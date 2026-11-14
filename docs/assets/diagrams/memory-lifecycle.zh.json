@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "单条记忆在遗忘曲线下的一生",
+    "locale": "zh-CN",
+    "quality_profile": "showcase"
+  },
+  "lanes": [
+    {
+      "id": "main",
+      "label": "保留率主线"
+    },
+    {
+      "id": "outcome",
+      "label": "出口"
+    },
+    {
+      "id": "end",
+      "label": "终点"
+    }
+  ],
+  "states": [
+    {
+      "id": "written",
+      "type": "start",
+      "label": "已写入",
+      "sublabel": "计时开始",
+      "lane": "main",
+      "col": 0,
+      "step": "01",
+      "width": 96
+    },
+    {
+      "id": "active",
+      "type": "active",
+      "label": "活跃",
+      "sublabel": "带保底分排序",
+      "lane": "main",
+      "col": 1,
+      "step": "02",
+      "tag": "R ≥ 0.3",
+      "width": 96
+    },
+    {
+      "id": "demoted",
+      "type": "waiting",
+      "label": "降权",
+      "sublabel": "仅按 R 排序",
+      "lane": "main",
+      "col": 2,
+      "step": "03",
+      "tag": "R < 0.3",
+      "width": 96
+    },
+    {
+      "id": "due",
+      "type": "decision",
+      "label": "到期",
+      "sublabel": "等待清扫",
+      "lane": "main",
+      "col": 3,
+      "step": "04",
+      "tag": "R < 0.05",
+      "width": 96
+    },
+    {
+      "id": "archived",
+      "type": "neutral",
+      "label": "已归档",
+      "sublabel": "保留全文 90 天",
+      "lane": "main",
+      "col": 4,
+      "step": "05",
+      "tag": "可恢复",
+      "width": 96
+    },
+    {
+      "id": "pinned",
+      "type": "success",
+      "label": "已钉住",
+      "sublabel": "永不离开存储",
+      "lane": "outcome",
+      "col": 0,
+      "tag": "豁免",
+      "width": 96
+    },
+    {
+      "id": "purged",
+      "type": "failure",
+      "label": "已清除",
+      "sublabel": "归档副本删除",
+      "lane": "end",
+      "col": 2,
+      "tag": "终态",
+      "width": 96
+    }
+  ],
+  "transitions": [
+    {
+      "id": "t-write",
+      "from": "written",
+      "to": "active"
+    },
+    {
+      "id": "t-decay",
+      "from": "active",
+      "to": "demoted",
+      "label": "R < 0.3",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "t-due",
+      "from": "demoted",
+      "to": "due",
+      "label": "R < 0.05"
+    },
+    {
+      "id": "t-sweep",
+      "from": "due",
+      "to": "archived",
+      "label": "清扫"
+    },
+    {
+      "id": "t-reinforce",
+      "from": "demoted",
+      "to": "active",
+      "label": "被用：×1.6",
+      "variant": "emphasis",
+      "route": "top-channel",
+      "fromSide": "top",
+      "toSide": "top",
+      "channelY": 110
+    },
+    {
+      "id": "t-restore",
+      "from": "archived",
+      "to": "active",
+      "label": "恢复",
+      "variant": "emphasis",
+      "route": "top-channel",
+      "fromSide": "top",
+      "toSide": "top",
+      "channelY": 84
+    },
+    {
+      "id": "t-pin",
+      "from": "active",
+      "to": "pinned",
+      "label": "钉住",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "via": [
+        [
+          248,
+          307
+        ]
+      ]
+    },
+    {
+      "id": "t-purge",
+      "from": "archived",
+      "to": "purged",
+      "label": "90 天后",
+      "variant": "dashed",
+      "route": "straight",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 40
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "保留率",
+      "items": [
+        "R = 0.5 ^ (距上次使用天数 / 半衰期)",
+        "活跃记忆再次被用，计时同样重置",
+        "每次使用半衰期 ×1.6，最多 8 次"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "遗忘",
+      "items": [
+        "降权的记忆排名下沉，但仍可被召回",
+        "到期的记忆由下一次清扫归档，再从存储删除",
+        "先写归档，后删存储条目"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "出口",
+      "items": [
+        "恢复会让记忆以活跃状态回到存储",
+        "90 天后归档副本被清除",
+        "钉住的记忆不会降权、到期或被删除"
+      ]
+    }
+  ]
+}

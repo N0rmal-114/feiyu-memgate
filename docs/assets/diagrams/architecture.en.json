@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "feiyu-memgate architecture",
+    "locale": "en",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "chat", "type": "external", "label": "Chat runtime", "sublabel": "bot · live · voice", "pos": [40, 310], "size": [150, 64] },
+    { "id": "client", "type": "frontend", "label": "Client SDK", "sublabel": "query · call · block", "pos": [250, 310], "size": [150, 64] },
+    { "id": "policy", "type": "security", "label": "Auth & policy", "sublabel": "token → scopes", "pos": [470, 150], "size": [150, 64], "tag": "rate limit" },
+    { "id": "api", "type": "backend", "label": "Gateway API", "sublabel": "/v1/recall · /v1/remember", "pos": [460, 310], "size": [170, 64] },
+    { "id": "recall", "type": "backend", "label": "Recall pipeline", "sublabel": "search → stages → budget", "pos": [700, 230], "size": [170, 64] },
+    { "id": "write", "type": "backend", "label": "Write pipeline", "sublabel": "validate → guards → cap", "pos": [700, 390], "size": [170, 64] },
+    { "id": "ledger", "type": "database", "label": "Usage ledger", "sublabel": "uses · last used · pins", "pos": [700, 70], "size": [170, 64] },
+    { "id": "sweeper", "type": "backend", "label": "Forgetting sweeper", "sublabel": "R = 0.5^(t/H)", "pos": [940, 70], "size": [170, 64] },
+    { "id": "archive", "type": "database", "label": "Archive", "sublabel": "restorable 90 d", "pos": [1180, 70], "size": [150, 64] },
+    { "id": "stores", "type": "database", "label": "Memory stores", "sublabel": "shared + per-tenant", "pos": [1180, 310], "size": [150, 64], "tag": "OpenViking · SQLite" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "feiyu-memgate gateway: the only holder of store keys", "wraps": ["policy", "api", "recall", "write", "ledger", "sweeper"] }
+  ],
+  "connections": [
+    { "id": "chat-to-client", "from": "chat", "to": "client", "label": "turn" },
+    { "id": "client-to-api", "from": "client", "to": "api", "label": "token", "variant": "emphasis" },
+    { "id": "authorize", "from": "policy", "to": "api", "label": "authorize", "variant": "security", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "api-to-recall", "from": "api", "to": "recall", "label": "recall" },
+    { "id": "api-to-write", "from": "api", "to": "write", "label": "remember" },
+    { "id": "recall-to-stores", "from": "recall", "to": "stores", "label": "find · read", "variant": "emphasis" },
+    { "id": "write-to-stores", "from": "write", "to": "stores", "label": "store" },
+    { "id": "record-use", "from": "recall", "to": "ledger", "label": "record use", "variant": "dashed", "fromSide": "top", "toSide": "bottom" },
+    { "id": "retention", "from": "ledger", "to": "sweeper", "label": "retention" },
+    { "id": "archive-text", "from": "sweeper", "to": "archive", "label": "full text" },
+    { "id": "forget", "from": "sweeper", "to": "stores", "label": "archive, then delete", "variant": "dashed", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    { "dot": "rose", "title": "Trust boundary", "items": ["Store keys live only in the gateway", "Each token maps to one policy: which stores it may read or write", "Tenants are isolated by their own store"] },
+    { "dot": "emerald", "title": "Recall", "items": ["Parallel search with one deadline", "Stages: threshold, freshness, redact, dedupe, budget", "A failed lookup is never reported as an empty one"] },
+    { "dot": "cyan", "title": "Forgetting (optional)", "items": ["The ledger holds no memory text", "Demote below R 0.3, delete below 0.05", "Archived before deletion; pinned memories stay"] }
+  ]
+}

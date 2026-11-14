@@ -1,0 +1,4 @@
+name: feiyu_memgate_recall
+author: N0rmal
+desc: Recall memories from a feiyu-memgate gateway before each reply, and a remember tool to store new ones. Example plugin.
+version: 0.1.0

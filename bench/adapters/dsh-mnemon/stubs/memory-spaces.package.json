@@ -1,0 +1,9 @@
+{
+  "name": "dsh-mnemon-source-memory-spaces",
+  "version": "0.5.27",
+  "type": "module",
+  "exports": {
+    "./provider-sdk": "./src/provider-sdk.ts",
+    "./internal/*": "./src/*"
+  }
+}

@@ -1,0 +1,46 @@
+# 混合后端：关键词（SQLite）+ 向量（embedding）一起查，结果融合。
+# 不需要单独的向量数据库，只需要一个兼容 OpenAI 的 embeddings 接口，这里用本机的 Ollama：
+#
+#   ollama pull bge-m3
+#
+# 先在环境变量 GATEWAY_TOKEN_OWNER 里放一个至少 32 个字符的随机令牌，然后：
+#
+#   feiyu-memgate check --config examples/hybrid/gateway.toml
+#   feiyu-memgate serve --config examples/hybrid/gateway.toml
+#
+# 注意：每条记忆的文字都会发给 embeddings 接口，请只用你信任的接口。
+
+[server]
+host = "127.0.0.1"
+port = 8080
+
+[stores.private]
+type = "hybrid"
+# 融合方式：每个后端各给一个 0..1 的相关度，合成 1 - (1-s1)(1-s2)。
+# 两边都认为相关的记忆排在前面，只有一边认为很相关的记忆也能通过分数线。
+# weights = [1.0, 1.0]              # 可选：每个后端一个权重（0..1），默认都是 1
+
+children = [
+    # 关键词一路：字面相同时最准，不需要任何服务。
+    { type = "sqlite", path = "data/keyword.db" },
+    # 向量一路：能找到换了说法的记忆。换模型要换文件（库里会记住建库用的模型）。
+    # floor/ceil 把余弦相似度换算成 0..1 的相关度：低于 floor 算 0，高于 ceil 算 1。
+    { type = "embedding", path = "data/vector.db", url = "http://127.0.0.1:11434/v1", model = "bge-m3", floor = 0.40, ceil = 0.80 },
+    # 用云端接口时再加密钥，密钥只从环境变量读（混合后端会自己解析子后端里的 *_env）：
+    #   key_env = "EMBEDDING_API_KEY"
+]
+
+[clients.owner]
+token_env = "GATEWAY_TOKEN_OWNER"   # 令牌只从环境变量读
+recall = ["private"]
+write = "private"
+daily_writes = 50
+
+[recall]
+# 不写 stages：用默认的一套（min_score、relative_score、newer_first、fill_text、drop_oversize、redact、dedupe、budget）。
+# 分数线和“离最高分多远”的比例由 hybrid 后端自己声明（0.70 和 0.85，在开发集 bench/dev 上选的，见 docs/backends.md），
+# 不用手写；要按自己的数据调，用 bench/dev_eval.py --backend hybrid --search 量一下再在这里写：
+#   stages = [{ type = "min_score", value = 0.5 }, { type = "relative_score", ratio = 0.7 }, "fill_text", ...]
+
+[write]
+guards = ["redact", { type = "daily_cap", utc_offset_hours = 8 }]

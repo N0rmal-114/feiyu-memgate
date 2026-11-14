@@ -1,0 +1,110 @@
+=== bge-small-zh-v1.5 F16 (floor 0.40 ceil 0.80, embedding line 0.30 / 0.90)
+cache: {"k": 45, "model": "hf.co/CompendiumLabs/bge-small-zh-v1.5-gguf:F16", "floor": 0.4, "ceil": 0.8}
+child own thresholds used for calibration: sqlite 0.30, embedding 0.30
+
+== all variants, best grid point by balanced (n answerable = 80, quiet = 30) ==
+                                    Hit@1  Hit@5 | best point         dep.hit   prec  quiet    bal  items
+child alone: sqlite (its best)       53.8   82.5 | m=0.30 r=0.75         36.2   84.8   86.7   60.6   0.36
+child alone: sqlite (its default)    53.8   82.5 | m=0.30 r=0.75         36.2   84.8   86.7   60.6   0.36
+child alone: embedding (its best)    73.8   91.2 | m=0.30 r=0.90         76.2   80.6   56.7   72.4   0.88
+child alone: embedding (its default)   73.8   91.2 | m=0.30 r=0.90         76.2   80.6   56.7   72.4   0.88
+A probabilistic OR (current)         72.5   91.2 | m=0.35 r=0.90         75.0   78.8   53.3   70.4   0.98
+B max of child scores                72.5   88.8 | m=0.30 r=0.90         76.2   80.3   56.7   72.4   0.89
+C calibrated OR                      68.8   91.2 | m=0.60 r=0.95         73.8   75.9   56.7   69.9   0.99
+D calibrated max + agreement bonus   68.8   88.8 | m=0.50 r=0.90         77.5   74.7   56.7   70.8   1.10
+E RRF order, calibrated-max score    65.0   91.2 | m=0.60 r=0.85         72.5   73.4   66.7   71.2   1.03
+F OR, keyword weight 0.5 [added after looking]   75.0   91.2 | m=0.35 r=0.90         72.5   80.7   56.7   71.0   0.86
+G OR, keyword weight 0.25 [added after looking]   75.0   92.5 | m=0.35 r=0.90         72.5   81.2   60.0   72.1   0.84
+
+== delivered hit by question type at each variant's chosen point (hit/n) ==
+                                        lexical   paraphrase      updated
+sqlite alone (its best point)             26/30         2/38         1/12
+embedding alone (its best point)          28/30        27/38         6/12
+sqlite alone (its default)                26/30         2/38         1/12
+embedding alone (its default)             28/30        27/38         6/12
+A probabilistic OR (current)              28/30        26/38         6/12
+B max of child scores                     28/30        27/38         6/12
+C calibrated OR                           29/30        25/38         5/12
+D calibrated max + agreement bonus        29/30        27/38         6/12
+E RRF order, calibrated-max score         29/30        23/38         6/12
+F OR, keyword weight 0.5 [added after looking]        28/30        25/38         5/12
+G OR, keyword weight 0.25 [added after looking]        28/30        25/38         5/12
+
+== paraphrase questions (38): delivered by the variant vs by the embedding child alone at ITS default ==
+embedding alone at its default delivers 27 of 38
+A probabilistic OR (current)       delivers 26: both 25, only variant  1, MISSED (embedding delivers, variant not)  2
+B max of child scores              delivers 27: both 27, only variant  0, MISSED (embedding delivers, variant not)  0
+C calibrated OR                    delivers 25: both 25, only variant  0, MISSED (embedding delivers, variant not)  2
+D calibrated max + agreement bonus delivers 27: both 27, only variant  0, MISSED (embedding delivers, variant not)  0
+E RRF order, calibrated-max score  delivers 23: both 22, only variant  1, MISSED (embedding delivers, variant not)  5
+F OR, keyword weight 0.5 [added after looking] delivers 25: both 25, only variant  0, MISSED (embedding delivers, variant not)  2
+G OR, keyword weight 0.25 [added after looking] delivers 25: both 25, only variant  0, MISSED (embedding delivers, variant not)  2
+
+== decision rule ==
+A: balanced 0.7044, ranked Hit@5 73/80, quiet 0.533; one question = 0.0091 balanced, one answerable question = 1 hit
+A: Hit@5 73 (>= 72: True), quiet 0.533 (>= 0.483: True), balanced 0.7044
+B: Hit@5 71 (>= 72: False), quiet 0.567 (>= 0.483: True), balanced 0.7235
+C: Hit@5 73 (>= 72: True), quiet 0.567 (>= 0.483: True), balanced 0.6985
+D: Hit@5 71 (>= 72: False), quiet 0.567 (>= 0.483: True), balanced 0.7080
+E: Hit@5 73 (>= 72: True), quiet 0.667 (>= 0.483: True), balanced 0.7124
+F: Hit@5 73 (>= 72: True), quiet 0.567 (>= 0.483: True), balanced 0.7101
+G: Hit@5 74 (>= 72: True), quiet 0.600 (>= 0.483: True), balanced 0.7206
+best admissible by (balanced, Hit@1, simplicity): G
+ADOPTED: G (OR, keyword weight 0.25 [added after looking]) at min_score=0.35 relative=0.90
+embedding alone at its default: balanced 0.7243 (dep.hit 0.762, quiet 0.567); adopted: balanced 0.7206 -> does NOT beat it
+
+=== bge-base-zh-v1.5 Q8_0 (floor 0.35 ceil 0.80, embedding line 0.25 / 0.75)
+cache: {"k": 45, "model": "hf.co/CompendiumLabs/bge-base-zh-v1.5-gguf:Q8_0", "floor": 0.35, "ceil": 0.8}
+child own thresholds used for calibration: sqlite 0.30, embedding 0.25
+
+== all variants, best grid point by balanced (n answerable = 80, quiet = 30) ==
+                                    Hit@1  Hit@5 | best point         dep.hit   prec  quiet    bal  items
+child alone: sqlite (its best)       53.8   82.5 | m=0.30 r=0.75         36.2   84.8   86.7   60.6   0.36
+child alone: sqlite (its default)    53.8   82.5 | m=0.30 r=0.75         36.2   84.8   86.7   60.6   0.36
+child alone: embedding (its best)    81.2   96.2 | m=0.25 r=0.75         72.5   81.8   73.3   75.9   0.91
+child alone: embedding (its default)   81.2   96.2 | m=0.25 r=0.75         72.5   81.8   73.3   75.9   0.91
+A probabilistic OR (current)         77.5   96.2 | m=0.35 r=0.80         75.0   83.1   70.0   76.4   0.94
+B max of child scores                75.0   96.2 | m=0.30 r=0.75         67.5   81.3   70.0   72.7   0.85
+C calibrated OR                      75.0   96.2 | m=0.60 r=0.90         75.0   80.8   70.0   75.7   1.00
+D calibrated max + agreement bonus   72.5   96.2 | m=0.55 r=0.85         72.5   81.1   73.3   75.7   0.93
+E RRF order, calibrated-max score    71.2   96.2 | m=0.55 r=0.90         66.2   83.1   76.7   74.5   0.75
+F OR, keyword weight 0.5 [added after looking]   78.8   97.5 | m=0.30 r=0.75         75.0   84.5   70.0   76.9   0.94
+G OR, keyword weight 0.25 [added after looking]   81.2   97.5 | m=0.25 r=0.80         76.2   84.0   70.0   77.2   0.89
+
+== delivered hit by question type at each variant's chosen point (hit/n) ==
+                                        lexical   paraphrase      updated
+sqlite alone (its best point)             26/30         2/38         1/12
+embedding alone (its best point)          29/30        22/38         7/12
+sqlite alone (its default)                26/30         2/38         1/12
+embedding alone (its default)             29/30        22/38         7/12
+A probabilistic OR (current)              29/30        25/38         6/12
+B max of child scores                     28/30        21/38         5/12
+C calibrated OR                           29/30        25/38         6/12
+D calibrated max + agreement bonus        29/30        23/38         6/12
+E RRF order, calibrated-max score         28/30        20/38         5/12
+F OR, keyword weight 0.5 [added after looking]        29/30        24/38         7/12
+G OR, keyword weight 0.25 [added after looking]        29/30        26/38         6/12
+
+== paraphrase questions (38): delivered by the variant vs by the embedding child alone at ITS default ==
+embedding alone at its default delivers 22 of 38
+A probabilistic OR (current)       delivers 25: both 22, only variant  3, MISSED (embedding delivers, variant not)  0
+B max of child scores              delivers 21: both 20, only variant  1, MISSED (embedding delivers, variant not)  2
+C calibrated OR                    delivers 25: both 22, only variant  3, MISSED (embedding delivers, variant not)  0
+D calibrated max + agreement bonus delivers 23: both 22, only variant  1, MISSED (embedding delivers, variant not)  0
+E RRF order, calibrated-max score  delivers 20: both 19, only variant  1, MISSED (embedding delivers, variant not)  3
+F OR, keyword weight 0.5 [added after looking] delivers 24: both 22, only variant  2, MISSED (embedding delivers, variant not)  0
+G OR, keyword weight 0.25 [added after looking] delivers 26: both 22, only variant  4, MISSED (embedding delivers, variant not)  0
+
+== decision rule ==
+A: balanced 0.7644, ranked Hit@5 77/80, quiet 0.700; one question = 0.0091 balanced, one answerable question = 1 hit
+A: Hit@5 77 (>= 76: True), quiet 0.700 (>= 0.650: True), balanced 0.7644
+B: Hit@5 77 (>= 76: True), quiet 0.700 (>= 0.650: True), balanced 0.7274
+C: Hit@5 77 (>= 76: True), quiet 0.700 (>= 0.650: True), balanced 0.7566
+D: Hit@5 77 (>= 76: True), quiet 0.733 (>= 0.650: True), balanced 0.7569
+E: Hit@5 77 (>= 76: True), quiet 0.767 (>= 0.650: True), balanced 0.7451
+F: Hit@5 78 (>= 76: True), quiet 0.700 (>= 0.650: True), balanced 0.7688
+G: Hit@5 78 (>= 76: True), quiet 0.700 (>= 0.650: True), balanced 0.7723
+best admissible by (balanced, Hit@1, simplicity): G
+but it beats A by 0.0079 < one question's worth (0.0091): A STAYS
+ADOPTED: A (probabilistic OR (current)) at min_score=0.35 relative=0.80
+embedding alone at its default: balanced 0.7590 (dep.hit 0.725, quiet 0.733); adopted: balanced 0.7644 -> BEATS it

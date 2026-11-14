@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "一次召回请求",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "column_fit": "spread"
+  },
+  "participants": [
+    {
+      "id": "chat",
+      "type": "external",
+      "label": "Chat runtime",
+      "sublabel": "bot · live · voice"
+    },
+    {
+      "id": "client",
+      "type": "frontend",
+      "label": "Client SDK",
+      "sublabel": "query · call · block"
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Gateway API",
+      "sublabel": "/v1/recall"
+    },
+    {
+      "id": "recall",
+      "type": "backend",
+      "label": "Recall",
+      "sublabel": "search → stages"
+    },
+    {
+      "id": "stores",
+      "type": "database",
+      "label": "Memory stores",
+      "sublabel": "共享 + 租户"
+    },
+    {
+      "id": "ledger",
+      "type": "database",
+      "label": "Usage ledger",
+      "sublabel": "uses · last used"
+    }
+  ],
+  "messages": [
+    {
+      "id": "turn",
+      "from": "chat",
+      "to": "client",
+      "y": 185,
+      "label": "用户发言 · 构造查询",
+      "variant": "default",
+      "note": "在此构造查询；语气词跳过"
+    },
+    {
+      "id": "post",
+      "from": "client",
+      "to": "api",
+      "y": 237,
+      "label": "POST /v1/recall + token",
+      "variant": "emphasis",
+      "note": "Bearer token"
+    },
+    {
+      "id": "run",
+      "from": "api",
+      "to": "recall",
+      "y": 289,
+      "label": "鉴权 · 限流 · 策略",
+      "variant": "security",
+      "note": "鉴权、限流、策略之后"
+    },
+    {
+      "id": "find",
+      "from": "recall",
+      "to": "stores",
+      "y": 341,
+      "label": "并行 find，同一截止时间",
+      "variant": "emphasis"
+    },
+    {
+      "id": "hits",
+      "from": "stores",
+      "to": "recall",
+      "y": 393,
+      "label": "候选",
+      "variant": "return"
+    },
+    {
+      "id": "use",
+      "from": "recall",
+      "to": "ledger",
+      "y": 445,
+      "label": "经各阶段，记录使用",
+      "variant": "dashed",
+      "note": "经过阶段：阈值 · 新鲜度 · 脱敏 · 去重 · 预算"
+    },
+    {
+      "id": "done",
+      "from": "recall",
+      "to": "api",
+      "y": 497,
+      "label": "results + more + failed",
+      "variant": "return"
+    },
+    {
+      "id": "resp",
+      "from": "api",
+      "to": "client",
+      "y": 549,
+      "label": "200 JSON",
+      "variant": "return"
+    },
+    {
+      "id": "block",
+      "from": "client",
+      "to": "chat",
+      "y": 601,
+      "label": "带标签的数据块",
+      "variant": "return",
+      "note": "附在当前消息上，不进 system prompt"
+    }
+  ]
+}

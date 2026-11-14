@@ -1,0 +1,170 @@
+{
+ "feiyu-memgate-sqlite": {
+  "label": {"zh": "feiyu-memgate sqlite", "en": "feiyu-memgate sqlite"},
+  "project": "feiyu-memgate", "kind": "keyword", "llm": false,
+  "caveat": {
+   "zh": "关键词后端（字符二元组 + IDF），不需要任何服务；默认召回步骤，默认值在开发集上选定。",
+   "en": "Keyword backend (character bigrams + IDF), no services needed; default recall stages, defaults chosen on the dev set."}
+ },
+ "feiyu-memgate-embedding": {
+  "label": {"zh": "feiyu-memgate embedding", "en": "feiyu-memgate embedding"},
+  "project": "feiyu-memgate", "kind": "vector", "llm": false,
+  "caveat": {
+   "zh": "向量后端（bge-m3，暴力余弦），默认召回步骤；需要一个 embeddings 接口。",
+   "en": "Vector backend (bge-m3, brute-force cosine), default recall stages; needs an embeddings endpoint."}
+ },
+ "feiyu-memgate-hybrid": {
+  "label": {"zh": "feiyu-memgate hybrid", "en": "feiyu-memgate hybrid"},
+  "project": "feiyu-memgate", "kind": "hybrid", "llm": false,
+  "caveat": {
+   "zh": "关键词 + 向量，概率“或”融合，默认召回步骤；需要一个 embeddings 接口。",
+   "en": "Keyword + vector with probabilistic-OR fusion, default recall stages; needs an embeddings endpoint."}
+ },
+ "feiyu-memgate-embedding-bge-small-zh": {
+  "label": {"zh": "feiyu-memgate embedding（bge-small-zh）", "en": "feiyu-memgate embedding (bge-small-zh)"},
+  "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
+  "caveat": {
+   "zh": "向量后端换成较轻的模型 bge-small-zh-v1.5（F16，47.9 MB，512 维，只支持中文），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤；需要一个 embeddings 接口。",
+   "en": "Vector backend with the lighter model bge-small-zh-v1.5 (F16, 47.9 MB, 512 dims, Chinese only), that model's preset (floor, ceil, score lines, prefixes), default recall stages; needs an embeddings endpoint."}
+ },
+ "feiyu-memgate-embedding-bge-base-zh": {
+  "label": {"zh": "feiyu-memgate embedding（bge-base-zh）", "en": "feiyu-memgate embedding (bge-base-zh)"},
+  "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
+  "caveat": {
+   "zh": "向量后端换成较轻的模型 bge-base-zh-v1.5（Q8_0，110 MB，768 维，只支持中文），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤；需要一个 embeddings 接口。",
+   "en": "Vector backend with the lighter model bge-base-zh-v1.5 (Q8_0, 110 MB, 768 dims, Chinese only), that model's preset (floor, ceil, score lines, prefixes), default recall stages; needs an embeddings endpoint."}
+ },
+ "feiyu-memgate-embedding-embeddinggemma": {
+  "label": {"zh": "feiyu-memgate embedding（embeddinggemma）", "en": "feiyu-memgate embedding (embeddinggemma)"},
+  "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
+  "caveat": {
+   "zh": "向量后端换成较轻的模型 embeddinggemma（622 MB，768 维，多语言），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤；需要一个 embeddings 接口。",
+   "en": "Vector backend with the lighter model embeddinggemma (622 MB, 768 dims, multilingual), that model's preset (floor, ceil, score lines, prefixes), default recall stages; needs an embeddings endpoint."}
+ },
+ "feiyu-memgate-embedding-qwen3-embedding": {
+  "label": {"zh": "feiyu-memgate embedding（qwen3-embedding）", "en": "feiyu-memgate embedding (qwen3-embedding)"},
+  "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
+  "caveat": {
+   "zh": "向量后端换成较轻的模型 qwen3-embedding 0.6B（639 MB，1024 维，多语言），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤；需要一个 embeddings 接口。",
+   "en": "Vector backend with the lighter model qwen3-embedding 0.6B (639 MB, 1024 dims, multilingual), that model's preset (floor, ceil, score lines, prefixes), default recall stages; needs an embeddings endpoint."}
+ },
+ "feiyu-memgate-sqlite-broad": {
+  "label": {"zh": "feiyu-memgate sqlite（宽松档）", "en": "feiyu-memgate sqlite (broad profile)"},
+  "project": "feiyu-memgate", "kind": "keyword", "llm": false, "variant": true,
+  "caveat": {
+   "zh": "和 feiyu-memgate-sqlite 完全一样，只是 [recall] profile = \"broad\"：min_score 0.25、比例 0.70（默认 0.30 / 0.75），这是开发集上按事先写定的规则选的宽松档，多答题、少安静。",
+   "en": "Identical to feiyu-memgate-sqlite except [recall] profile = \"broad\": min_score 0.25, ratio 0.70 (default 0.30 / 0.75), the recall-leaning profile chosen on the dev set by a rule fixed in advance; answers more, stays quiet less."}
+ },
+ "feiyu-memgate-embedding-broad": {
+  "label": {"zh": "feiyu-memgate embedding（bge-m3，宽松档）", "en": "feiyu-memgate embedding (bge-m3, broad profile)"},
+  "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
+  "caveat": {
+   "zh": "和 feiyu-memgate-embedding（bge-m3）完全一样，只是 [recall] profile = \"broad\"：min_score 0.30、比例 0.60（默认 0.50 / 0.85），开发集上按事先写定的规则选的宽松档，多答题，交出的条目更杂、对没有答案的问题更容易开口。",
+   "en": "Identical to feiyu-memgate-embedding (bge-m3) except [recall] profile = \"broad\": min_score 0.30, ratio 0.60 (default 0.50 / 0.85), the recall-leaning profile chosen on the dev set by a rule fixed in advance; answers more, delivers noisier items and speaks up more often when there is no answer."}
+ },
+ "feiyu-memgate-full": {
+  "label": {"zh": "feiyu-memgate full", "en": "feiyu-memgate full"},
+  "project": "feiyu-memgate", "kind": "hybrid", "llm": false,
+  "caveat": {
+   "zh": "混合后端 + 默认召回步骤 + freshness（遗忘账本，默认设置，不做清理）；记忆带自己的日期。",
+   "en": "Hybrid backend + default recall stages + freshness (forgetting ledger, default settings, no sweep); memories carry their own dates."}
+ },
+ "feiyu-memgate-openviking": {
+  "label": {"zh": "feiyu-memgate openviking", "en": "feiyu-memgate openviking"},
+  "project": "feiyu-memgate", "kind": "vector", "llm": false,
+  "caveat": {
+   "zh": "网关接在 OpenViking（只读存储）前面，默认召回步骤。",
+   "en": "The gateway in front of OpenViking (read-only store), default recall stages."}
+ },
+ "mem0-verbatim": {
+  "label": {"zh": "mem0（逐字）", "en": "mem0 (verbatim)"},
+  "project": "mem0", "kind": "vector", "llm": false,
+  "caveat": {
+   "zh": "add(infer=False) 逐字入库，不用 LLM；默认检索 top_k=20、阈值 0.1，实际交付 20 条。其 BM25 和实体部分依赖英文模型，对中文不起作用，排名基本是 bge-m3 余弦。",
+   "en": "add(infer=False), verbatim, no LLM; default search top_k=20, threshold 0.1, so 20 items are delivered. Its BM25 and entity parts rely on English-only models and contribute nothing on Chinese: the ranking is effectively bge-m3 cosine."}
+ },
+ "mem0": {
+  "label": {"zh": "mem0（LLM 提取）", "en": "mem0 (LLM extraction)"},
+  "project": "mem0", "kind": "extraction", "llm": true,
+  "caveat": {
+   "zh": "add(infer=True)，由 LLM 提取事实后入库（约 206 万 tokens）；检索默认值同逐字版，实际交付约 20 条。",
+   "en": "add(infer=True): an LLM extracts facts before storing (about 2.06 M tokens); same search defaults as the verbatim run, about 20 items delivered."}
+ },
+ "memsearch": {
+  "label": {"zh": "memsearch", "en": "memsearch"},
+  "project": "memsearch", "kind": "hybrid", "llm": false,
+  "caveat": {
+   "zh": "Markdown 入库，稠密 + BM25 的 RRF 融合；没有阈值和字数预算，交付 = 前 5 条；插件本身不自动注入，是否检索由模型决定。",
+   "en": "Markdown ingest, dense + BM25 fused by RRF; no threshold or character budget, delivered = top 5; the plugin does not inject automatically, the model decides whether to search."}
+ },
+ "openviking": {
+  "label": {"zh": "OpenViking", "en": "OpenViking"},
+  "project": "openviking", "kind": "vector", "llm": false,
+  "caveat": {
+   "zh": "直接写记忆文件，不走会话提取（真实部署会用模型提取，这里没测）；API 默认值，没有阈值，交付约 10 条；默认插件设置未能核实。",
+   "en": "Memory files written directly, no session extraction (a real deployment extracts with a model; not measured); API defaults, no threshold, about 10 items delivered; the plugin's own defaults could not be verified."}
+ },
+ "openviking-unfiltered": {
+  "label": {"zh": "OpenViking（不过滤目录摘要）", "en": "OpenViking (unfiltered)"},
+  "project": "openviking", "kind": "vector", "llm": false, "experiment": true,
+  "caveat": {
+   "zh": "实验变体：和 openviking 同样的调用，目录摘要保留为无编号条目（全部排名里只有 8 条），两行几乎一样。",
+   "en": "Experiment variant: same calls as openviking, directory summaries kept as id-less items (only 8 in all ranked lists), so the two rows are nearly identical."}
+ },
+ "dsh-mnemon": {
+  "label": {"zh": "dsh-mnemon", "en": "dsh-mnemon"},
+  "project": "dsh-mnemon", "kind": "keyword", "llm": false,
+  "caveat": {
+   "zh": "默认后端 Mnemon Native（SQLite，关键词 + 实体 + 图信号打分，无向量）；每次运行结果约 ±5 个百分点波动；默认写入走 LLM 复盘，这里绕过了（逐字写入），没有测；记忆日期不进存储；插件不自动注入，由模型调用召回。",
+   "en": "Default Mnemon Native backend (SQLite; keyword, entity and graph signals, no vectors); results move about ±5 points run to run; the default write path is an LLM review which was bypassed (verbatim writes) and is not measured; memory dates are not stored; the plugin does not inject automatically, the model calls recall."}
+ },
+ "dsh-mnemon-embedding": {
+  "label": {"zh": "dsh-mnemon + 向量", "en": "dsh-mnemon + embeddings"},
+  "project": "dsh-mnemon", "kind": "hybrid", "llm": false,
+  "caveat": {
+   "zh": "同 dsh-mnemon，打开了可选的向量模式（bge-m3）；每次运行约 ±5 个百分点波动；LLM 复盘被绕过。",
+   "en": "As dsh-mnemon with the optional embedding mode switched on (bge-m3); about ±5 points run to run; the LLM review is bypassed."}
+ },
+ "lingshu-dsh-memory": {
+  "label": {"zh": "lingshu", "en": "lingshu"},
+  "project": "lingshu", "kind": "keyword", "llm": false,
+  "caveat": {
+   "zh": "按设计每轮自动注入的是会话里最新的 4 条，不看问题，所以“交付命中”为 0 是设计使然，不是检索失败；排名用的是它的 BM25 读取。",
+   "en": "By design the per-turn injection is the 4 newest items of the session and ignores the question, so a deployed hit of 0 follows from the design, not from failed retrieval; the ranking uses its BM25 read."}
+ },
+ "meow-memory": {
+  "label": {"zh": "meow-memory", "en": "meow-memory"},
+  "project": "meow-memory", "kind": "keyword", "llm": false,
+  "caveat": {
+   "zh": "BM25 关键词检索；关键词由插件自带分词器生成（真实使用由 LLM 写关键词）；每条消息只按关键词命中注入前 2 条。",
+   "en": "BM25 keyword retrieval; keywords come from the plugin's own tokenizer (in real use an LLM writes them); the per-message injection takes the top 2 keyword hits."}
+ },
+ "graphiti": {
+  "label": {"zh": "Graphiti", "en": "Graphiti"},
+  "project": "graphiti", "kind": "graph", "llm": true,
+  "caveat": {
+   "zh": "非推荐的技术栈：嵌入式 Kuzu（上游已标记弃用）+ 一个小 LLM（deepseek-flash）做提取，中文单句记忆；总共约 118 万 tokens；返回的是提取出的事实边，不是原文。",
+   "en": "Non-recommended stack: embedded Kuzu (deprecated upstream) + a small LLM (deepseek-flash) for extraction, on one-sentence Chinese memories; about 1.18 M tokens; it returns extracted fact edges, not the original text."}
+ },
+ "seekmemory": {
+  "label": {"zh": "SeekMemory", "en": "SeekMemory"},
+  "project": "seekmemory", "kind": "keyword", "llm": false,
+  "caveat": {
+   "zh": "BM25 + 图激活，没有向量检索；用真实容器日期，新鲜度项对所有记忆接近 0。",
+   "en": "BM25 + graph activation, no vector search; real container date, so the freshness term is about 0 for every memory."}
+ },
+ "seekmemory-aged": {
+  "label": {"zh": "SeekMemory（老化 365 天）", "en": "SeekMemory (aged 365 days)"},
+  "project": "seekmemory", "kind": "keyword", "llm": false, "experiment": true,
+  "caveat": {
+   "zh": "实验变体：时钟拨快 365 天后跑一次衰减；没有一条被标记为遗忘（fact 级记忆不会被遗忘）。",
+   "en": "Experiment variant: clock moved 365 days ahead, then a decay sweep; no memory was marked forgotten (level fact is never forgotten)."}
+ },
+ "seekmemory-aged-detail": {
+  "label": {"zh": "SeekMemory（老化 365 天，detail 级）", "en": "SeekMemory (aged 365 days, detail level)"},
+  "project": "seekmemory", "kind": "keyword", "llm": false, "experiment": true,
+  "caveat": {
+   "zh": "365 天老化实验，不是默认运行：记忆按 detail 级写入，老化后 240 条全部被标记为遗忘，什么都召回不到（Hit@5 0%，安静率 100%）。",
+   "en": "A 365-day ageing experiment, not a default run: memories written at detail level, all 240 are marked forgotten after ageing, so nothing is recalled (Hit@5 0%, quiet rate 100%)."}
+ }
+}

@@ -1,0 +1,1277 @@
+{
+ "system": "graphiti",
+ "version": "graphiti-core 0.31.2",
+ "mode": "LLM extraction (deepseek-flash, JSON mode) of entities and temporal facts into embedded Kuzu; bge-m3 embeddings; 240 of 240 memories ingested",
+ "how": "Graphiti(graph_driver=KuzuDriver, llm_client=OpenAIGenericClient(json_object), embedder=OpenAIEmbedder(bge-m3)).add_episode(name=id, episode_body=text, reference_time=date, default group (no group_id)) per memory; Graphiti.search(query) (EDGE_HYBRID_SEARCH_RRF, limit 10) for ranked and deployed",
+ "ingest_seconds": 1346.69,
+ "llm_tokens": 1176519,
+ "llm_cost_cny": 2.0,
+ "answers": {
+  "q001": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 116.882
+  },
+  "q002": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 183.725
+  },
+  "q003": {
+   "ranked": [
+    {
+     "id": "m011",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m011",
+     "score": 1.0
+    }
+   ],
+   "ms": 79.117
+  },
+  "q004": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 136.716
+  },
+  "q005": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 85.234
+  },
+  "q006": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 154.922
+  },
+  "q007": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 110.014
+  },
+  "q008": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 229.717
+  },
+  "q009": {
+   "ranked": [
+    {
+     "id": "m142",
+     "score": 1.0
+    },
+    {
+     "id": "m136",
+     "score": 0.5
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m142",
+     "score": 1.0
+    },
+    {
+     "id": "m136",
+     "score": 0.5
+    }
+   ],
+   "ms": 206.246
+  },
+  "q010": {
+   "ranked": [
+    {
+     "id": "m096",
+     "score": 1.0
+    },
+    {
+     "id": "m166",
+     "score": 0.5
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m096",
+     "score": 1.0
+    },
+    {
+     "id": "m166",
+     "score": 0.5
+    }
+   ],
+   "ms": 196.074
+  },
+  "q011": {
+   "ranked": [
+    {
+     "id": "m166",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m166",
+     "score": 1.0
+    }
+   ],
+   "ms": 202.613
+  },
+  "q012": {
+   "ranked": [
+    {
+     "id": "m076",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m076",
+     "score": 1.0
+    }
+   ],
+   "ms": 485.547
+  },
+  "q013": {
+   "ranked": [
+    {
+     "id": "m105",
+     "score": 1.0
+    },
+    {
+     "id": "m142",
+     "score": 0.5
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m105",
+     "score": 1.0
+    },
+    {
+     "id": "m142",
+     "score": 0.5
+    }
+   ],
+   "ms": 211.662
+  },
+  "q014": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 702.922
+  },
+  "q015": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 103.34
+  },
+  "q016": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 593.83
+  },
+  "q017": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 297.916
+  },
+  "q018": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 414.896
+  },
+  "q019": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 237.638
+  },
+  "q020": {
+   "ranked": [
+    {
+     "id": "m047",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m047",
+     "score": 1.0
+    }
+   ],
+   "ms": 402.354
+  },
+  "q021": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 221.566
+  },
+  "q022": {
+   "ranked": [
+    {
+     "id": "m094",
+     "score": 1.0
+    },
+    {
+     "id": "m058",
+     "score": 0.25
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m094",
+     "score": 1.0
+    },
+    {
+     "id": "m058",
+     "score": 0.25
+    }
+   ],
+   "ms": 93.967
+  },
+  "q023": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 551.156
+  },
+  "q024": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 183.945
+  },
+  "q025": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 248.699
+  },
+  "q026": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 663.058
+  },
+  "q027": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 581.718
+  },
+  "q028": {
+   "ranked": [
+    {
+     "id": "m096",
+     "score": 1.0
+    },
+    {
+     "id": "m166",
+     "score": 0.3333
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m096",
+     "score": 1.0
+    },
+    {
+     "id": "m166",
+     "score": 0.3333
+    }
+   ],
+   "ms": 520.23
+  },
+  "q029": {
+   "ranked": [
+    {
+     "id": "m048",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m048",
+     "score": 1.0
+    }
+   ],
+   "ms": 1476.689
+  },
+  "q030": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 981.624
+  },
+  "q031": {
+   "ranked": [
+    {
+     "id": "m136",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m136",
+     "score": 1.0
+    }
+   ],
+   "ms": 434.007
+  },
+  "q032": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 705.037
+  },
+  "q033": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 592.208
+  },
+  "q034": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 309.521
+  },
+  "q035": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 671.183
+  },
+  "q036": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 732.089
+  },
+  "q037": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 415.557
+  },
+  "q038": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 267.577
+  },
+  "q039": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 598.991
+  },
+  "q040": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 365.159
+  },
+  "q041": {
+   "ranked": [
+    {
+     "id": "m066",
+     "score": 1.0
+    },
+    {
+     "id": "m032",
+     "score": 0.5
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m066",
+     "score": 1.0
+    },
+    {
+     "id": "m032",
+     "score": 0.5
+    }
+   ],
+   "ms": 535.241
+  },
+  "q042": {
+   "ranked": [
+    {
+     "id": "m117",
+     "score": 1.0
+    },
+    {
+     "id": "m218",
+     "score": 0.5
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m117",
+     "score": 1.0
+    },
+    {
+     "id": "m218",
+     "score": 0.5
+    }
+   ],
+   "ms": 191.389
+  },
+  "q043": {
+   "ranked": [
+    {
+     "id": "m233",
+     "score": 1.0
+    },
+    {
+     "id": "m234",
+     "score": 0.5
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m233",
+     "score": 1.0
+    },
+    {
+     "id": "m234",
+     "score": 0.5
+    }
+   ],
+   "ms": 614.823
+  },
+  "q044": {
+   "ranked": [
+    {
+     "id": "m060",
+     "score": 1.0
+    },
+    {
+     "id": "m234",
+     "score": 0.5
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m060",
+     "score": 1.0
+    },
+    {
+     "id": "m234",
+     "score": 0.5
+    }
+   ],
+   "ms": 414.579
+  },
+  "q045": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 280.213
+  },
+  "q046": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 519.079
+  },
+  "q047": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 466.481
+  },
+  "q048": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 692.726
+  },
+  "q049": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 318.637
+  },
+  "q050": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 383.232
+  },
+  "q051": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 390.025
+  },
+  "q052": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 632.061
+  },
+  "q053": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 250.906
+  },
+  "q054": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 340.861
+  },
+  "q055": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 559.555
+  },
+  "q056": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 300.263
+  },
+  "q057": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 806.864
+  },
+  "q058": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 568.453
+  },
+  "q059": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 242.283
+  },
+  "q060": {
+   "ranked": [
+    {
+     "id": "m076",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m076",
+     "score": 1.0
+    }
+   ],
+   "ms": 535.869
+  },
+  "q061": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 507.857
+  },
+  "q062": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 585.415
+  },
+  "q063": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 399.398
+  },
+  "q064": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 502.394
+  },
+  "q065": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 570.568
+  },
+  "q066": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 293.975
+  },
+  "q067": {
+   "ranked": [
+    {
+     "id": "m047",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m047",
+     "score": 1.0
+    }
+   ],
+   "ms": 305.098
+  },
+  "q068": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 440.964
+  },
+  "q069": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 166.531
+  },
+  "q070": {
+   "ranked": [
+    {
+     "id": "m130",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m130",
+     "score": 1.0
+    }
+   ],
+   "ms": 208.589
+  },
+  "q071": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 411.705
+  },
+  "q072": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 169.941
+  },
+  "q073": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 200.252
+  },
+  "q074": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 547.28
+  },
+  "q075": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 376.516
+  },
+  "q076": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 880.53
+  },
+  "q077": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 329.571
+  },
+  "q078": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 584.778
+  },
+  "q079": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 303.255
+  },
+  "q080": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 1197.364
+  },
+  "q081": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 664.167
+  },
+  "q082": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 645.768
+  },
+  "q083": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 405.951
+  },
+  "q084": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 344.436
+  },
+  "q085": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 926.469
+  },
+  "q086": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 645.339
+  },
+  "q087": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 1335.947
+  },
+  "q088": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 332.161
+  },
+  "q089": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 756.747
+  },
+  "q090": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 752.295
+  },
+  "q091": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 380.191
+  },
+  "q092": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 339.879
+  },
+  "q093": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 756.144
+  },
+  "q094": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 135.107
+  },
+  "q095": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 162.517
+  },
+  "q096": {
+   "ranked": [
+    {
+     "id": "m120",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m120",
+     "score": 1.0
+    }
+   ],
+   "ms": 290.491
+  },
+  "q097": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 316.333
+  },
+  "q098": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 407.837
+  },
+  "q099": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 275.306
+  },
+  "q100": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 699.146
+  },
+  "q101": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 620.143
+  },
+  "q102": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 308.432
+  },
+  "q103": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 795.947
+  },
+  "q104": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 530.589
+  },
+  "q105": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 302.604
+  },
+  "q106": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 295.938
+  },
+  "q107": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 285.348
+  },
+  "q108": {
+   "ranked": [
+    {
+     "id": "m048",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m048",
+     "score": 1.0
+    }
+   ],
+   "ms": 460.603
+  },
+  "q109": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 244.03
+  },
+  "q110": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 566.359
+  },
+  "q111": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 232.068
+  },
+  "q112": {
+   "ranked": [
+    {
+     "id": "m106",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m106",
+     "score": 1.0
+    }
+   ],
+   "ms": 611.083
+  },
+  "q113": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 288.342
+  },
+  "q114": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 468.452
+  },
+  "q115": {
+   "ranked": [
+    {
+     "id": "m166",
+     "score": 1.0
+    },
+    {
+     "id": "m096",
+     "score": 0.3333
+    },
+    {
+     "id": "m099",
+     "score": 0.25
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m166",
+     "score": 1.0
+    },
+    {
+     "id": "m096",
+     "score": 0.3333
+    },
+    {
+     "id": "m099",
+     "score": 0.25
+    }
+   ],
+   "ms": 234.404
+  },
+  "q116": {
+   "ranked": [
+    {
+     "id": "m048",
+     "score": 1.0
+    },
+    {
+     "id": "m196",
+     "score": 0.5
+    },
+    {
+     "id": "m210",
+     "score": 0.25
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m048",
+     "score": 1.0
+    },
+    {
+     "id": "m196",
+     "score": 0.5
+    },
+    {
+     "id": "m210",
+     "score": 0.25
+    }
+   ],
+   "ms": 474.334
+  },
+  "q117": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 170.196
+  },
+  "q118": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 367.414
+  },
+  "q119": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 460.88
+  },
+  "q120": {
+   "ranked": [
+    {
+     "id": "m055",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m055",
+     "score": 1.0
+    }
+   ],
+   "ms": 137.501
+  },
+  "q121": {
+   "ranked": [
+    {
+     "id": "m166",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m166",
+     "score": 1.0
+    }
+   ],
+   "ms": 276.885
+  },
+  "q122": {
+   "ranked": [
+    {
+     "id": "m142",
+     "score": 1.0
+    },
+    {
+     "id": "m136",
+     "score": 0.3333
+    },
+    {
+     "id": "m230",
+     "score": 0.25
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m142",
+     "score": 1.0
+    },
+    {
+     "id": "m136",
+     "score": 0.3333
+    },
+    {
+     "id": "m230",
+     "score": 0.25
+    }
+   ],
+   "ms": 524.001
+  },
+  "q123": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 444.714
+  },
+  "q124": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 759.487
+  },
+  "q125": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 526.002
+  },
+  "q126": {
+   "ranked": [
+    {
+     "id": "m076",
+     "score": 1.0
+    },
+    {
+     "id": "m166",
+     "score": 0.5
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m076",
+     "score": 1.0
+    },
+    {
+     "id": "m166",
+     "score": 0.5
+    }
+   ],
+   "ms": 241.515
+  },
+  "q127": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 299.328
+  },
+  "q128": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 293.474
+  },
+  "q129": {
+   "ranked": [
+    {
+     "id": "m136",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m136",
+     "score": 1.0
+    }
+   ],
+   "ms": 538.261
+  },
+  "q130": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 301.303
+  },
+  "q131": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 585.646
+  },
+  "q132": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 669.985
+  },
+  "q133": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 390.93
+  },
+  "q134": {
+   "ranked": [
+    {
+     "id": "m120",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m120",
+     "score": 1.0
+    }
+   ],
+   "ms": 484.358
+  },
+  "q135": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 341.149
+  },
+  "q136": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 814.4
+  },
+  "q137": {
+   "ranked": [
+    {
+     "id": "m032",
+     "score": 1.0
+    },
+    {
+     "id": "m240",
+     "score": 0.5
+    },
+    {
+     "id": "m218",
+     "score": 0.3333
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m032",
+     "score": 1.0
+    },
+    {
+     "id": "m240",
+     "score": 0.5
+    },
+    {
+     "id": "m218",
+     "score": 0.3333
+    }
+   ],
+   "ms": 360.553
+  },
+  "q138": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 722.002
+  },
+  "q139": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 475.599
+  },
+  "q140": {
+   "ranked": [
+    {
+     "id": "m016",
+     "score": 1.0
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m016",
+     "score": 1.0
+    }
+   ],
+   "ms": 508.28
+  },
+  "q141": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 410.396
+  },
+  "q142": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 278.429
+  },
+  "q143": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 348.857
+  },
+  "q144": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 193.423
+  },
+  "q145": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 346.5
+  },
+  "q146": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 856.189
+  },
+  "q147": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 447.652
+  },
+  "q148": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 251.686
+  },
+  "q149": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 894.213
+  },
+  "q150": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 848.182
+  },
+  "q151": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 315.301
+  },
+  "q152": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 235.597
+  },
+  "q153": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 555.904
+  },
+  "q154": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 227.289
+  },
+  "q155": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 777.404
+  },
+  "q156": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 332.483
+  },
+  "q157": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 273.871
+  },
+  "q158": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 357.465
+  },
+  "q159": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 399.589
+  },
+  "q160": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 334.974
+  }
+ },
+ "notes": [
+  "INGESTED 240 of 240 memories as episodes (name = memory id); failed episodes: 0; not ingested: 0. If this is below 240 it is a SUBSET: the 127 memories that are expect/stale for some question were taken first, the remaining ones in date order while the 5 CNY budget lasted. The scorer still scores all 160 questions, so questions whose memories were not ingested cannot be answered.",
+  "Failed episode ids: none",
+  "ranked and deployed are the SAME call: Graphiti.search(query) = recipe EDGE_HYBRID_SEARCH_RRF (BM25 + cosine over facts, RRF), default limit 10. The recipe applies its own default cosine floor (sim_min_score 0.6, search_utils.DEFAULT_MIN_SCORE) and has no token budget, so deployed = ranked = its default result and ms times that call (1 embedding request + Kuzu queries, no LLM).",
+  "Returned items are fact edges. Mapping: an edge maps to the memory of the earliest episode in edge.episodes (by memory date); several edges from one memory keep the best position; unmappable -> null. search() returns no scores, so score = 1/rank (order only).",
+  "Invalidated facts: of 58 edges returned over all questions, 1 had invalid_at/expired_at set (search() does not filter superseded edges).",
+  "Graph at the end: {\"entity_edges\": 69, \"edges_with_invalid_at\": 1, \"entity_nodes\": 125, \"episodes\": 240}",
+  "LLM: deepseek-flash via OpenAIGenericClient(structured_output_mode='json_object', max_tokens=8192); embedder bge-m3 1024d; cross-encoder = pass-through stub (Graphiti default needs an OpenAI model; unused by search()). Kuzu embedded driver (deprecated upstream, still shipped).",
+  "LLM calls: 596 (0 errored), prompt tokens 1028457 (cache hit 151040), completion tokens 148062. llm_cost_cny is the DeepSeek balance difference incl. 0.12 CNY of earlier debugging runs (2.0; other workers may have spent concurrently); token-based estimate at assumed prices (2.0 in / 8.0 out CNY per M): 3.2414.",
+  "Budget stop reached: False. Query failures: 0. ingest_seconds sums add_episode wall-clock over 240 episodes (the graph grows during ingest).",
+  "Every episode is text-typed (EpisodeType.text), default group (no group_id: KuzuDriver in 0.31.2 lacks the _database attribute that an explicit group_id needs), reference_time = memory date 00:00 UTC; only text, date and id were given to the system."
+ ]
+}

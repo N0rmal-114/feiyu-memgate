@@ -1,0 +1,10 @@
+# gitleaks configuration.
+#
+# The tests feed made-up secrets ("token=abcdef123456", "AKIAABCDEFGHIJKLMNOP") to the
+# redactor to check that it hides them. They are not real; only the tests are exempt.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "synthetic secrets used as redaction test input"
+paths = ['''^tests/''']

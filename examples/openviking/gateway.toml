@@ -1,0 +1,49 @@
+# 向量后端：记忆存在 OpenViking 里（向量检索 + 大模型后台抽取）。
+# OpenViking 的部署见它自己的文档；本项目在 v0.5.3 上使用过。
+# 每个 OpenViking 账号是一块独立的存储，密钥只有网关拿着，聊天程序只拿网关的令牌。
+
+[server]
+host = "0.0.0.0"
+port = 8080
+
+[stores.private]                      # 主人私聊的记忆
+type = "openviking"
+url = "http://openviking:1933"
+key_env = "OV_PRIVATE_KEY"            # 密钥从环境变量 OV_PRIVATE_KEY 读
+writable = true
+
+[tenants.group]                       # 每个群一个 OpenViking 账号，互相读不到
+type = "keyfile"
+path = "/run/feiyu/groups/keys.json"  # {"<群号>": "<这个群的密钥>"}，改了不用重启
+id_pattern = "[0-9]{5,12}"
+store = { type = "openviking", url = "http://openviking:1933" }
+
+[clients.owner]                       # 主人私聊用的令牌
+token_env = "GATEWAY_TOKEN_OWNER"
+recall = ["private"]
+write = "private"
+daily_writes = 50
+
+[clients.group]                       # 群聊用的令牌：每次请求必须带 tenant_id
+token_env = "GATEWAY_TOKEN_GROUP"
+tenants = "group"
+recall = ["@tenant"]                  # 只读本群自己的存储，不读任何共享存储
+write = "@tenant"                     # 写进本群自己的存储
+public = true                         # 公开场合：读写都用更严的脱敏
+daily_writes = 20                     # 每个群每天
+daily_writes_total = 500              # 所有群加起来每天
+
+[clients.live]                        # 直播用的令牌：能问，但现在什么都读不到
+token_env = "GATEWAY_TOKEN_LIVE"
+recall = []
+public = true
+
+[recall]
+deadline = 3.0
+cold_deadline = 8.0                   # 向量模型空闲后被卸载，隔一阵后的第一次召回多等一会儿
+cold_after = 600
+# 不写 stages：用默认的一套（min_score、relative_score、newer_first、fill_text、drop_oversize、redact、dedupe、budget），
+# openviking 存储自己的默认值是分数线 0.55（原始分数 0.775）、比例 0.95。
+
+[write]
+guards = ["redact", { type = "daily_cap", utc_offset_hours = 8 }]

@@ -1,0 +1,27 @@
+# 最小配置：不用向量模型、不用 docker，记忆存在一个 SQLite 文件里。
+#
+# 先在环境变量 GATEWAY_TOKEN_OWNER 里放一个至少 32 个字符的随机令牌，然后：
+#
+#   feiyu-memgate check --config examples/quickstart/gateway.toml
+#   feiyu-memgate serve --config examples/quickstart/gateway.toml
+
+[server]
+host = "127.0.0.1"
+port = 8080
+
+[stores.private]
+type = "sqlite"
+path = "data/private.db"
+
+[clients.owner]
+token_env = "GATEWAY_TOKEN_OWNER"   # 令牌只从环境变量读
+recall = ["private"]
+write = "private"
+daily_writes = 50
+
+[recall]
+# min_score 不写分数线时用每个存储自己的默认值（sqlite 是 0.3），存储没有默认值时是 0.5。
+stages = ["min_score", "redact", "dedupe", "budget"]
+
+[write]
+guards = ["redact", { type = "daily_cap", utc_offset_hours = 8 }]

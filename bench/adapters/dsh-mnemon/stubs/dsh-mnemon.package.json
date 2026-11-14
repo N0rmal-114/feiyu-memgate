@@ -1,0 +1,9 @@
+{
+  "name": "dsh-mnemon",
+  "version": "0.5.45",
+  "type": "module",
+  "exports": {
+    "./extension-sdk": "./src/extension-sdk.ts",
+    "./contracts": "./src/contracts.ts"
+  }
+}

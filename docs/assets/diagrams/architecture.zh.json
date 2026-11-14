@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "feiyu-memgate 架构",
+    "locale": "zh-CN",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "chat", "type": "external", "label": "聊天运行时", "sublabel": "机器人 · 直播 · 语音", "pos": [40, 310], "size": [150, 64] },
+    { "id": "client", "type": "frontend", "label": "客户端 SDK", "sublabel": "查询词 · 调用 · 记忆块", "pos": [250, 310], "size": [150, 64] },
+    { "id": "policy", "type": "security", "label": "认证与策略", "sublabel": "令牌 → 权限范围", "pos": [470, 150], "size": [150, 64], "tag": "限流" },
+    { "id": "api", "type": "backend", "label": "网关 API", "sublabel": "/v1/recall · /v1/remember", "pos": [460, 310], "size": [170, 64] },
+    { "id": "recall", "type": "backend", "label": "召回流水线", "sublabel": "检索 → 步骤 → 预算", "pos": [700, 230], "size": [170, 64] },
+    { "id": "write", "type": "backend", "label": "写入流水线", "sublabel": "校验 → 守卫 → 上限", "pos": [700, 390], "size": [170, 64] },
+    { "id": "ledger", "type": "database", "label": "使用账本", "sublabel": "次数 · 最近使用 · 钉住", "pos": [700, 70], "size": [170, 64] },
+    { "id": "sweeper", "type": "backend", "label": "遗忘清理器", "sublabel": "R = 0.5^(t/H)", "pos": [940, 70], "size": [170, 64] },
+    { "id": "archive", "type": "database", "label": "归档", "sublabel": "90 天内可恢复", "pos": [1180, 70], "size": [150, 64] },
+    { "id": "stores", "type": "database", "label": "记忆存储", "sublabel": "共享 + 按租户隔离", "pos": [1180, 310], "size": [150, 64], "tag": "OpenViking · SQLite" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "feiyu-memgate 网关：存储密钥的唯一持有者", "wraps": ["policy", "api", "recall", "write", "ledger", "sweeper"] }
+  ],
+  "connections": [
+    { "id": "chat-to-client", "from": "chat", "to": "client", "label": "对话" },
+    { "id": "client-to-api", "from": "client", "to": "api", "label": "令牌", "variant": "emphasis" },
+    { "id": "authorize", "from": "policy", "to": "api", "label": "鉴权", "variant": "security", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "api-to-recall", "from": "api", "to": "recall", "label": "召回" },
+    { "id": "api-to-write", "from": "api", "to": "write", "label": "写入" },
+    { "id": "recall-to-stores", "from": "recall", "to": "stores", "label": "检索 · 读取", "variant": "emphasis" },
+    { "id": "write-to-stores", "from": "write", "to": "stores", "label": "落库" },
+    { "id": "record-use", "from": "recall", "to": "ledger", "label": "记录使用", "variant": "dashed", "fromSide": "top", "toSide": "bottom" },
+    { "id": "retention", "from": "ledger", "to": "sweeper", "label": "保持率" },
+    { "id": "archive-text", "from": "sweeper", "to": "archive", "label": "全文" },
+    { "id": "forget", "from": "sweeper", "to": "stores", "label": "先归档，再删除", "variant": "dashed", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    { "dot": "rose", "title": "信任边界", "items": ["存储密钥只在网关里", "每个令牌对应一条策略：能读写哪些存储", "租户各用各的存储，互相隔离"] },
+    { "dot": "emerald", "title": "召回", "items": ["并行检索，共用一个时限", "步骤：分数线、新鲜度、脱敏、去重、预算", "查询失败不会被当成空结果"] },
+    { "dot": "cyan", "title": "遗忘（可选）", "items": ["账本里不放记忆内容", "R 低于 0.3 降权，低于 0.05 删除", "删除前先归档；钉住的不会被遗忘"] }
+  ]
+}

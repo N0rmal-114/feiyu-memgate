@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="580" viewBox="0 0 1000 580" role="img" lang="zh">
+<style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#c3c2b7;font-size:13px}.t{font-size:17px;font-weight:600;fill:#f0efec}.l{font-size:13px;fill:#f0efec}.lb{font-size:13px;font-weight:600;fill:#f0efec}.s{font-size:11px;fill:#c3c2b7}.grid{stroke:#2c2c2a;stroke-width:1;fill:none}.axis{stroke:#383835;stroke-width:1;fill:none}.tick{stroke:#f0efec;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#3987e5}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
+<rect width="1000" height="580" fill="#1a1a19"/>
+<text x="24.0" y="32.0" class="t">默认交付的内容：每题平均交付条数（横，对数轴）与其中正确的占比（纵）</text>
+<rect x="24.0" y="47.0" width="14" height="8" rx="2" class="fa"/>
+<text x="46.0" y="56.0" class="s">feiyu-memgate 的配置</text>
+<rect x="186.1" y="47.0" width="14" height="8" rx="2" class="fo"/>
+<text x="208.1" y="56.0" class="s">其他项目</text>
+<line x1="70.0" y1="484.0" x2="966.0" y2="484.0" class="axis"/>
+<text x="62.0" y="488.0" class="s" text-anchor="end">0%</text>
+<line x1="70.0" y1="389.0" x2="966.0" y2="389.0" class="grid"/>
+<text x="62.0" y="393.0" class="s" text-anchor="end">25%</text>
+<line x1="70.0" y1="294.0" x2="966.0" y2="294.0" class="grid"/>
+<text x="62.0" y="298.0" class="s" text-anchor="end">50%</text>
+<line x1="70.0" y1="199.0" x2="966.0" y2="199.0" class="grid"/>
+<text x="62.0" y="203.0" class="s" text-anchor="end">75%</text>
+<line x1="70.0" y1="104.0" x2="966.0" y2="104.0" class="grid"/>
+<text x="62.0" y="108.0" class="s" text-anchor="end">100%</text>
+<line x1="70.0" y1="104.0" x2="70.0" y2="484.0" class="grid"/>
+<text x="70.0" y="502.0" class="s" text-anchor="middle">0.25</text>
+<line x1="198.0" y1="104.0" x2="198.0" y2="484.0" class="grid"/>
+<text x="198.0" y="502.0" class="s" text-anchor="middle">0.5</text>
+<line x1="326.0" y1="104.0" x2="326.0" y2="484.0" class="grid"/>
+<text x="326.0" y="502.0" class="s" text-anchor="middle">1</text>
+<line x1="454.0" y1="104.0" x2="454.0" y2="484.0" class="grid"/>
+<text x="454.0" y="502.0" class="s" text-anchor="middle">2</text>
+<line x1="582.0" y1="104.0" x2="582.0" y2="484.0" class="grid"/>
+<text x="582.0" y="502.0" class="s" text-anchor="middle">4</text>
+<line x1="710.0" y1="104.0" x2="710.0" y2="484.0" class="grid"/>
+<text x="710.0" y="502.0" class="s" text-anchor="middle">8</text>
+<line x1="838.0" y1="104.0" x2="838.0" y2="484.0" class="grid"/>
+<text x="838.0" y="502.0" class="s" text-anchor="middle">16</text>
+<line x1="966.0" y1="104.0" x2="966.0" y2="484.0" class="grid"/>
+<text x="966.0" y="502.0" class="s" text-anchor="middle">32</text>
+<text x="518.0" y="522.0" class="s" text-anchor="middle">每题平均交付条数（对数轴）</text>
+<text x="24.0" y="90.0" class="s">交付条目里正确的占比</text>
+<text x="76.0" y="120.0" class="s">左上：交付得少，而且交付的基本是对的</text>
+<circle cx="623.2" cy="409.3" r="5" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="322.5" cy="170.3" r="5" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="354.8" cy="179.2" r="5" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="879.2" cy="465.0" r="5" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="750.2" cy="446.3" r="5" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="250.0" cy="140.4" r="5" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="251.7" cy="141.2" r="5" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="877.0" cy="464.9" r="5" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="474.7" cy="337.3" r="5" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="582.0" cy="484.0" r="5" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="162.5" cy="130.6" r="5" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="586.3" cy="418.5" r="5" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="434.5" cy="366.7" r="5" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="329.4" cy="343.1" r="5" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="107.5" cy="307.2" r="5" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<line x1="879.2" y1="465.0" x2="870.2" y2="465.0" class="lead" stroke="#c3c2b7"/>
+<line x1="750.2" y1="446.3" x2="764.2" y2="433.8" class="lead" stroke="#c3c2b7"/>
+<line x1="250.0" y1="140.4" x2="259.0" y2="140.4" class="lead" stroke="#c3c2b7"/>
+<line x1="582.0" y1="484.0" x2="568.0" y2="471.5" class="lead" stroke="#c3c2b7"/>
+<text x="632.2" y="412.3" class="l">memsearch 98%</text>
+<text x="313.5" y="173.3" class="l" text-anchor="end">feiyu-memgate embedding 82%</text>
+<text x="363.8" y="182.2" class="l">feiyu-memgate openviking 88%</text>
+<text x="870.2" y="468.0" class="l" text-anchor="end">mem0（逐字） 100% / mem0（LLM 提取） 99%</text>
+<text x="764.2" y="429.3" class="l">OpenViking 99%</text>
+<text x="259.0" y="143.4" class="l">feiyu-memgate hybrid 65% / full 65%</text>
+<text x="483.7" y="340.3" class="l">dsh-mnemon + 向量 88%</text>
+<text x="568.0" y="467.0" class="l" text-anchor="end">lingshu 0%</text>
+<text x="162.5" y="148.1" class="l" text-anchor="middle">feiyu-memgate sqlite 39%</text>
+<text x="577.3" y="421.5" class="l" text-anchor="end">SeekMemory 65%</text>
+<text x="443.5" y="369.7" class="l">meow-memory 57%</text>
+<text x="338.4" y="346.1" class="l">dsh-mnemon 38%</text>
+<text x="116.5" y="310.2" class="l">Graphiti 13%</text>
+<text x="24.0" y="546.0" class="s">每个标签后的数字：默认交付的命中率</text>
+<text x="24.0" y="564.0" class="s">bench/results/summary.md · 240 条记忆，160 个问题 · 2026-11-15</text>
+</svg>

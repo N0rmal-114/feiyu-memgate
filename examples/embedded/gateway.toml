@@ -1,0 +1,31 @@
+# 进程内（嵌入）部署：聊天程序和网关在同一个进程里，不开端口，不用向量模型。
+# 用法见 bot.py 和 docs/embedded.md：
+#
+#   python examples/embedded/bot.py                       # 进程内
+#   FEIYU_MEMGATE_URL=http://127.0.0.1:8080 FEIYU_MEMGATE_TOKEN=... python examples/embedded/bot.py   # 改走 HTTP
+#
+# 进程内用法不需要令牌：LocalClient 按名字（下面的 "owner"）取这个客户端的权限。
+# token_env 只在以后改成 `feiyu-memgate serve` 时才用得上；变量没设置也能进程内使用。
+
+[stores.private]
+type = "sqlite"
+path = "data/private.db"
+
+[clients.owner]
+token_env = "GATEWAY_TOKEN_OWNER"
+recall = ["private"]
+write = "private"
+daily_writes = 50
+rate_limit = 60
+
+[recall]
+stages = ["min_score", "redact", "dedupe", "budget"]
+
+[write]
+guards = ["redact", { type = "daily_cap", utc_offset_hours = 8 }]
+
+# 要用遗忘曲线时加上下面几行，并让 pin_writes / 每天一次的清扫随进程运行（docs/embedded.md）：
+# [forgetting]
+# ledger = "data/ledger.db"
+# archive = "data/forgotten.db"
+# stores = ["private"]

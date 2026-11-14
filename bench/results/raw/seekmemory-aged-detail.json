@@ -1,0 +1,823 @@
+{
+ "system": "seekmemory-aged-detail",
+ "version": "NeverENG/SeekMemory commit 794ec5d",
+ "mode": "verbatim ingest as level=detail memory artifacts via the kernel's persist(), no extraction, no embeddings (SeekMemory has no vector search), no LLM; deployed = recall.pipeline.query_block with default config (recall_k 8, budget 600 chars, evidence gate, disclosure); AGED: after ingest, clock advanced 365 days with zero recalls, maintain.decay.decay_all swept (240 memories forgotten), then the questions were answered",
+ "how": "store.open_store(':memory:'); store.sources.append_sources([Source]); maintain.link.persist(make('memory', ...), artifacts, cache, graph); maintain.decay.decay_all(artifacts, cache, today); deployed: recall.pipeline.query_block(cache, graph, artifacts, sources, umo, text, private=True, conf=DEFAULTS, owner_umo, speaker, hybrid_retriever=HybridRetriever) -> info['final_ids']; ranked: HybridRetriever.retrieve + recall.score.select(k=10, gate=False, explore=0)",
+ "ingest_seconds": 0.192,
+ "llm_tokens": 0,
+ "llm_cost_cny": 0.0,
+ "answers": {
+  "q001": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.115
+  },
+  "q002": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.099
+  },
+  "q003": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.104
+  },
+  "q004": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.095
+  },
+  "q005": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.091
+  },
+  "q006": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.088
+  },
+  "q007": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.088
+  },
+  "q008": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.118
+  },
+  "q009": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.126
+  },
+  "q010": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.097
+  },
+  "q011": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.122
+  },
+  "q012": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.119
+  },
+  "q013": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.092
+  },
+  "q014": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.098
+  },
+  "q015": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.098
+  },
+  "q016": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.12
+  },
+  "q017": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.121
+  },
+  "q018": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.097
+  },
+  "q019": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.094
+  },
+  "q020": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.097
+  },
+  "q021": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.094
+  },
+  "q022": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.163
+  },
+  "q023": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.12
+  },
+  "q024": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.103
+  },
+  "q025": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.092
+  },
+  "q026": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.158
+  },
+  "q027": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.1
+  },
+  "q028": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.091
+  },
+  "q029": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.1
+  },
+  "q030": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.132
+  },
+  "q031": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.121
+  },
+  "q032": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.098
+  },
+  "q033": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.104
+  },
+  "q034": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.09
+  },
+  "q035": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.089
+  },
+  "q036": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q037": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q038": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q039": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.096
+  },
+  "q040": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.096
+  },
+  "q041": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.097
+  },
+  "q042": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.09
+  },
+  "q043": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.088
+  },
+  "q044": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.092
+  },
+  "q045": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.115
+  },
+  "q046": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.118
+  },
+  "q047": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.138
+  },
+  "q048": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.094
+  },
+  "q049": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.089
+  },
+  "q050": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.12
+  },
+  "q051": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.101
+  },
+  "q052": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.099
+  },
+  "q053": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.094
+  },
+  "q054": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.089
+  },
+  "q055": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.088
+  },
+  "q056": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q057": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.09
+  },
+  "q058": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.091
+  },
+  "q059": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.095
+  },
+  "q060": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.094
+  },
+  "q061": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.09
+  },
+  "q062": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.099
+  },
+  "q063": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.09
+  },
+  "q064": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.095
+  },
+  "q065": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.117
+  },
+  "q066": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.12
+  },
+  "q067": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.097
+  },
+  "q068": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.098
+  },
+  "q069": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.09
+  },
+  "q070": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.092
+  },
+  "q071": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.088
+  },
+  "q072": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.1
+  },
+  "q073": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.089
+  },
+  "q074": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.088
+  },
+  "q075": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q076": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.112
+  },
+  "q077": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.115
+  },
+  "q078": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.107
+  },
+  "q079": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.095
+  },
+  "q080": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.092
+  },
+  "q081": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.093
+  },
+  "q082": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.092
+  },
+  "q083": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.091
+  },
+  "q084": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.092
+  },
+  "q085": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.116
+  },
+  "q086": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.117
+  },
+  "q087": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.095
+  },
+  "q088": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.094
+  },
+  "q089": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.101
+  },
+  "q090": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.1
+  },
+  "q091": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.092
+  },
+  "q092": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.092
+  },
+  "q093": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.097
+  },
+  "q094": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.088
+  },
+  "q095": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.152
+  },
+  "q096": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.107
+  },
+  "q097": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.096
+  },
+  "q098": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.09
+  },
+  "q099": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.096
+  },
+  "q100": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.093
+  },
+  "q101": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.091
+  },
+  "q102": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.119
+  },
+  "q103": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.119
+  },
+  "q104": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.144
+  },
+  "q105": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.119
+  },
+  "q106": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.095
+  },
+  "q107": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.089
+  },
+  "q108": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.092
+  },
+  "q109": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.088
+  },
+  "q110": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q111": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q112": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.088
+  },
+  "q113": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q114": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q115": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q116": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.096
+  },
+  "q117": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.089
+  },
+  "q118": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.088
+  },
+  "q119": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.1
+  },
+  "q120": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.095
+  },
+  "q121": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.144
+  },
+  "q122": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.11
+  },
+  "q123": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.119
+  },
+  "q124": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.131
+  },
+  "q125": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.101
+  },
+  "q126": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.092
+  },
+  "q127": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.09
+  },
+  "q128": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.101
+  },
+  "q129": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.095
+  },
+  "q130": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.092
+  },
+  "q131": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.103
+  },
+  "q132": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.093
+  },
+  "q133": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.091
+  },
+  "q134": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.088
+  },
+  "q135": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q136": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q137": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q138": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q139": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.094
+  },
+  "q140": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.088
+  },
+  "q141": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.11
+  },
+  "q142": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.015
+  },
+  "q143": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.09
+  },
+  "q144": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q145": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.114
+  },
+  "q146": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.122
+  },
+  "q147": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.1
+  },
+  "q148": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.016
+  },
+  "q149": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.013
+  },
+  "q150": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.09
+  },
+  "q151": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.092
+  },
+  "q152": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q153": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.087
+  },
+  "q154": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.013
+  },
+  "q155": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.088
+  },
+  "q156": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.101
+  },
+  "q157": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.091
+  },
+  "q158": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.089
+  },
+  "q159": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.09
+  },
+  "q160": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.1
+  }
+ },
+ "notes": [
+  "decay_all(today=2027-11-14) marked 240 of 240 memories state=forgotten (reversible revision, row kept); no recall happened between ingest and the sweep.",
+  "Clock for the aged run: container date 2026-11-14 + 365 days = 2027-11-14; decay_all takes it as a parameter, recall.score/temporal/assemble `date` rebound for the run.",
+  "Write path: Source row (memory text, owner, one private session) + maintain.link.persist (commit + cache.put + link_new graph edges). Extraction is skipped because it needs an LLM; the artifact text is the memory text verbatim. No tags, no emotion values (defaults), shape=point, about=other, scope=private, said_by/subject_id=owner. The dataset fields source and kind were not given to the system.",
+  "level=detail was chosen before the first run: 'fact' is the level for plain statements; maintain.decay.decay_plan never forgets level=fact (maintain/expiry_policy.py:49-50).",
+  "Not applied because they need an extraction model: tags, arousal/valence, 'supersedes' (the only mechanism that retires an older memory when a newer one contradicts it). Updated questions therefore rely on ranking alone.",
+  "ids: the artifact id is the memory id; deployed ids come from info['final_ids'] (items that reached the assembled block, after the 600-char budget). Scores are rank-derived (1/rank) because select() and query_block return no scores; they carry no meaning across systems.",
+  "ranked: pool and scope-prior weighting replicate query_block; select(k=10, gate=False, explore=0). It bypasses the intent switch (intent 'none' for greetings/clock/operate words) and disclosure so it measures retrieval only. deployed keeps both.",
+  "deployed uses defaults including explore_rate 0.1 (seeded by the query text, may swap the last pick for a random lower-ranked one) and the recent-context fallback for profile/topic questions.",
+  "A persistent HybridRetriever is used (as in the host adapters); BM25 index builds on the warm-up query.",
+  "0 question(s) with an error; 160 deployed call(s) returned an empty block."
+ ]
+}

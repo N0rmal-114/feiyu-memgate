@@ -1,0 +1,8 @@
+{
+  "name": "dsh-mnemon-provider-mnemon-native",
+  "version": "0.5.11",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

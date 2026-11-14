@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "feiyu-memgate"
+version = "0.1.0"
+description = "A pluggable memory gateway for chat agents: pick the pieces you want, write the ones you miss."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "N0rmal" }]
+keywords = ["memory", "llm", "agent", "chatbot", "gateway", "openviking", "astrbot"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/N0rmal-114/feiyu-memgate"
+Repository = "https://github.com/N0rmal-114/feiyu-memgate"
+
+[project.optional-dependencies]
+backup = ["cryptography>=42"]
+
+[project.scripts]
+feiyu-memgate = "feiyu_memgate.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="608" viewBox="0 0 1000 608" role="img" lang="zh">
+<style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#c3c2b7;font-size:13px}.t{font-size:17px;font-weight:600;fill:#f0efec}.l{font-size:13px;fill:#f0efec}.lb{font-size:13px;font-weight:600;fill:#f0efec}.s{font-size:11px;fill:#c3c2b7}.grid{stroke:#2c2c2a;stroke-width:1;fill:none}.axis{stroke:#383835;stroke-width:1;fill:none}.tick{stroke:#f0efec;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#3987e5}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
+<rect width="1000" height="608" fill="#1a1a19"/>
+<text x="24.0" y="32.0" class="t">Hit@k 曲线：k 从 1 到 10，前 k 条里有正确记忆的问题所占比例（线越早到顶，要翻的条数越少）</text>
+<rect x="24.0" y="47.0" width="14" height="8" rx="2" class="fa"/>
+<text x="46.0" y="56.0" class="s">feiyu-memgate 的配置</text>
+<rect x="186.1" y="47.0" width="14" height="8" rx="2" class="fo"/>
+<text x="208.1" y="56.0" class="s">其他项目</text>
+<line x1="70.0" y1="512.0" x2="590.0" y2="512.0" class="axis"/>
+<text x="62.0" y="516.0" class="s" text-anchor="end">0%</text>
+<line x1="70.0" y1="412.0" x2="590.0" y2="412.0" class="grid"/>
+<text x="62.0" y="416.0" class="s" text-anchor="end">25%</text>
+<line x1="70.0" y1="312.0" x2="590.0" y2="312.0" class="grid"/>
+<text x="62.0" y="316.0" class="s" text-anchor="end">50%</text>
+<line x1="70.0" y1="212.0" x2="590.0" y2="212.0" class="grid"/>
+<text x="62.0" y="216.0" class="s" text-anchor="end">75%</text>
+<line x1="70.0" y1="112.0" x2="590.0" y2="112.0" class="grid"/>
+<text x="62.0" y="116.0" class="s" text-anchor="end">100%</text>
+<line x1="70.0" y1="112.0" x2="70.0" y2="512.0" class="grid"/>
+<text x="70.0" y="530.0" class="s" text-anchor="middle">1</text>
+<line x1="127.8" y1="112.0" x2="127.8" y2="512.0" class="grid"/>
+<text x="127.8" y="530.0" class="s" text-anchor="middle">2</text>
+<line x1="185.6" y1="112.0" x2="185.6" y2="512.0" class="grid"/>
+<text x="185.6" y="530.0" class="s" text-anchor="middle">3</text>
+<line x1="243.3" y1="112.0" x2="243.3" y2="512.0" class="grid"/>
+<text x="243.3" y="530.0" class="s" text-anchor="middle">4</text>
+<line x1="301.1" y1="112.0" x2="301.1" y2="512.0" class="grid"/>
+<text x="301.1" y="530.0" class="s" text-anchor="middle">5</text>
+<line x1="358.9" y1="112.0" x2="358.9" y2="512.0" class="grid"/>
+<text x="358.9" y="530.0" class="s" text-anchor="middle">6</text>
+<line x1="416.7" y1="112.0" x2="416.7" y2="512.0" class="grid"/>
+<text x="416.7" y="530.0" class="s" text-anchor="middle">7</text>
+<line x1="474.4" y1="112.0" x2="474.4" y2="512.0" class="grid"/>
+<text x="474.4" y="530.0" class="s" text-anchor="middle">8</text>
+<line x1="532.2" y1="112.0" x2="532.2" y2="512.0" class="grid"/>
+<text x="532.2" y="530.0" class="s" text-anchor="middle">9</text>
+<line x1="590.0" y1="112.0" x2="590.0" y2="512.0" class="grid"/>
+<text x="590.0" y="530.0" class="s" text-anchor="middle">10</text>
+<text x="330.0" y="550.0" class="s" text-anchor="middle">k：看前几条</text>
+<text x="24.0" y="98.0" class="s">Hit@k</text>
+<polyline points="70.0,172.0 127.8,128.7 185.6,128.7 243.3,125.3 301.1,118.7 358.9,115.3 416.7,115.3 474.4,112.0 532.2,112.0 590.0,112.0" fill="none" stroke="#898781" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="70.0,202.0 127.8,158.7 185.6,152.0 243.3,142.0 301.1,132.0 358.9,122.0 416.7,122.0 474.4,122.0 532.2,118.7 590.0,118.7" fill="none" stroke="#898781" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="70.0,192.0 127.8,165.3 185.6,162.0 243.3,152.0 301.1,148.7 358.9,148.7 416.7,145.3 474.4,145.3 532.2,145.3 590.0,145.3" fill="none" stroke="#898781" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="70.0,252.0 127.8,212.0 185.6,205.3 243.3,188.7 301.1,185.3 358.9,182.0 416.7,172.0 474.4,168.7 532.2,165.3 590.0,158.7" fill="none" stroke="#898781" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="70.0,308.7 127.8,278.7 185.6,268.7 243.3,258.7 301.1,255.3 358.9,248.7 416.7,235.3 474.4,235.3 532.2,232.0 590.0,228.7" fill="none" stroke="#898781" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="70.0,305.3 127.8,295.3 185.6,272.0 243.3,262.0 301.1,258.7 358.9,255.3 416.7,238.7 474.4,235.3 532.2,232.0 590.0,232.0" fill="none" stroke="#898781" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="70.0,358.7 127.8,348.7 185.6,345.3 243.3,342.0 301.1,342.0 358.9,342.0 416.7,342.0 474.4,342.0 532.2,342.0 590.0,342.0" fill="none" stroke="#898781" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="70.0,462.0 127.8,458.7 185.6,458.7 243.3,458.7 301.1,458.7 358.9,458.7 416.7,458.7 474.4,458.7 532.2,458.7 590.0,458.7" fill="none" stroke="#898781" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="70.0,185.3 127.8,135.3 185.6,132.0 243.3,125.3 301.1,118.7 358.9,118.7 416.7,118.7 474.4,115.3 532.2,115.3 590.0,115.3" fill="none" stroke="#3987e5" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="70.0,185.3 127.8,138.7 185.6,132.0 243.3,125.3 301.1,118.7 358.9,118.7 416.7,118.7 474.4,115.3 532.2,115.3 590.0,115.3" fill="none" stroke="#3987e5" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 4"/>
+<polyline points="70.0,178.7 127.8,138.7 185.6,135.3 243.3,135.3 301.1,125.3 358.9,122.0 416.7,118.7 474.4,118.7 532.2,112.0 590.0,112.0" fill="none" stroke="#3987e5" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2 4"/>
+<polyline points="70.0,175.3 127.8,138.7 185.6,135.3 243.3,135.3 301.1,132.0 358.9,122.0 416.7,118.7 474.4,118.7 532.2,115.3 590.0,112.0" fill="none" stroke="#3987e5" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 4 2 4"/>
+<polyline points="70.0,265.3 127.8,215.3 185.6,202.0 243.3,192.0 301.1,185.3 358.9,185.3 416.7,175.3 474.4,168.7 532.2,162.0 590.0,158.7" fill="none" stroke="#3987e5" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="14 5"/>
+<line x1="590.0" y1="112.0" x2="630.0" y2="104.0" class="lead" stroke="#898781"/>
+<circle cx="590.0" cy="112.0" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<text x="636.0" y="108.0" class="l">memsearch</text>
+<line x1="590.0" y1="118.7" x2="630.0" y2="189.0" class="lead" stroke="#898781"/>
+<circle cx="590.0" cy="118.7" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<text x="636.0" y="193.0" class="l">mem0（LLM 提取）</text>
+<line x1="590.0" y1="145.3" x2="630.0" y2="206.0" class="lead" stroke="#898781"/>
+<circle cx="590.0" cy="145.3" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<text x="636.0" y="210.0" class="l">dsh-mnemon + 向量</text>
+<line x1="590.0" y1="158.7" x2="630.0" y2="223.0" class="lead" stroke="#898781"/>
+<circle cx="590.0" cy="158.7" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<text x="636.0" y="227.0" class="l">lingshu</text>
+<line x1="590.0" y1="228.7" x2="630.0" y2="257.0" class="lead" stroke="#898781"/>
+<circle cx="590.0" cy="228.7" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<text x="636.0" y="261.0" class="l">SeekMemory</text>
+<line x1="590.0" y1="232.0" x2="630.0" y2="274.0" class="lead" stroke="#898781"/>
+<circle cx="590.0" cy="232.0" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<text x="636.0" y="278.0" class="l">meow-memory</text>
+<line x1="590.0" y1="342.0" x2="630.0" y2="342.0" class="lead" stroke="#898781"/>
+<circle cx="590.0" cy="342.0" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<text x="636.0" y="346.0" class="l">dsh-mnemon</text>
+<line x1="590.0" y1="458.7" x2="630.0" y2="458.7" class="lead" stroke="#898781"/>
+<circle cx="590.0" cy="458.7" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<text x="636.0" y="462.7" class="l">Graphiti</text>
+<line x1="590.0" y1="115.3" x2="630.0" y2="155.0" class="lead" stroke="#3987e5"/>
+<circle cx="590.0" cy="115.3" r="4" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
+<text x="636.0" y="159.0" class="lb">feiyu-memgate embedding = mem0（逐字）</text>
+<line x1="590.0" y1="115.3" x2="630.0" y2="172.0" class="lead" stroke="#3987e5"/>
+<circle cx="590.0" cy="115.3" r="4" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
+<text x="636.0" y="176.0" class="lb">feiyu-memgate openviking = OpenViking</text>
+<line x1="590.0" y1="112.0" x2="630.0" y2="121.0" class="lead" stroke="#3987e5"/>
+<circle cx="590.0" cy="112.0" r="4" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
+<text x="636.0" y="125.0" class="lb">feiyu-memgate hybrid</text>
+<line x1="590.0" y1="112.0" x2="630.0" y2="138.0" class="lead" stroke="#3987e5"/>
+<circle cx="590.0" cy="112.0" r="4" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
+<text x="636.0" y="142.0" class="lb">feiyu-memgate full</text>
+<line x1="590.0" y1="158.7" x2="630.0" y2="240.0" class="lead" stroke="#3987e5"/>
+<circle cx="590.0" cy="158.7" r="4" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
+<text x="636.0" y="244.0" class="lb">feiyu-memgate sqlite</text>
+<text x="24.0" y="574.0" class="s">蓝色是 feiyu-memgate 的配置，不同虚线样式只用来区分它们，名字写在线尾；灰色是其他项目。完全重合的线只画一条，标签写在一起。</text>
+<text x="24.0" y="592.0" class="s">bench/results/summary.md · 240 条记忆，160 个问题 · 2026-11-15</text>
+</svg>

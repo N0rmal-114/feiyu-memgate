@@ -1,0 +1,553 @@
+{
+  "system": "feiyu-memgate",
+  "version": "0.1.0",
+  "date": "2026-11-15",
+  "python": "3.14.3",
+  "note": "measured in-process against a gateway built from a configuration dict; fake secrets and data only",
+  "properties": [
+    {
+      "property": "secrets_redacted_before_store_and_before_return",
+      "result": "yes",
+      "evidence": "ok write_accepted (status=200); ok raw_store_has_no_secret (0 of 3 fake secrets left in the stored row); ok raw_store_has_marker (markers=4); ok recall_answered (status=200 results=1); ok recall_returns_no_secret (markers_in_reply=2); ok recall_of_written_memory_clean (results=1); NOTE regex_cleaner_misses_unlabelled_secrets (documented heuristic limit: a secret with no key word near it is returned as it is; seen unmasked=True)",
+      "checks": {
+        "write_accepted": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200"
+        },
+        "raw_store_has_no_secret": {
+          "ok": true,
+          "kind": "check",
+          "detail": "0 of 3 fake secrets left in the stored row"
+        },
+        "raw_store_has_marker": {
+          "ok": true,
+          "kind": "check",
+          "detail": "markers=4"
+        },
+        "recall_answered": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200 results=1"
+        },
+        "recall_returns_no_secret": {
+          "ok": true,
+          "kind": "check",
+          "detail": "markers_in_reply=2"
+        },
+        "recall_of_written_memory_clean": {
+          "ok": true,
+          "kind": "check",
+          "detail": "results=1"
+        },
+        "regex_cleaner_misses_unlabelled_secrets": {
+          "ok": false,
+          "kind": "limit",
+          "detail": "documented heuristic limit: a secret with no key word near it is returned as it is; seen unmasked=True"
+        }
+      },
+      "parts": {
+        "before_store": "yes",
+        "before_return": "yes"
+      }
+    },
+    {
+      "property": "public_clients_get_stricter_redaction",
+      "result": "yes",
+      "evidence": "ok both_writes_accepted (owner=200 group=200); ok private_store_keeps_all_five (kept=5 of 5); ok public_store_masks_all_five (masked=5 of 5); ok public_store_has_markers (markers=5); ok public_recall_masks (status=200 results=1); ok private_recall_keeps (status=200 results=1); NOTE landline_and_fullwidth_digits_not_masked (documented regex limit; landline seen unmasked=True)",
+      "checks": {
+        "both_writes_accepted": {
+          "ok": true,
+          "kind": "check",
+          "detail": "owner=200 group=200"
+        },
+        "private_store_keeps_all_five": {
+          "ok": true,
+          "kind": "check",
+          "detail": "kept=5 of 5"
+        },
+        "public_store_masks_all_five": {
+          "ok": true,
+          "kind": "check",
+          "detail": "masked=5 of 5"
+        },
+        "public_store_has_markers": {
+          "ok": true,
+          "kind": "check",
+          "detail": "markers=5"
+        },
+        "public_recall_masks": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200 results=1"
+        },
+        "private_recall_keeps": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200 results=1"
+        },
+        "landline_and_fullwidth_digits_not_masked": {
+          "ok": false,
+          "kind": "limit",
+          "detail": "documented regex limit; landline seen unmasked=True"
+        }
+      }
+    },
+    {
+      "property": "memory_delivered_as_data_and_cannot_break_out",
+      "result": "yes",
+      "evidence": "ok hostile_memory_recalled (results=1); ok zh_one_open_one_close (open=1 close=1); ok zh_block_framed (starts_with_open=True ends_with_close=True); ok zh_memory_is_one_line (item_lines=1 lines=4); ok zh_tags_neutralised (escaped_openers=4); ok zh_header_says_data_not_instructions; ok en_one_open_one_close (open=1 close=1); ok en_block_framed (starts_with_open=True ends_with_close=True); ok en_memory_is_one_line (item_lines=1 lines=4); ok en_tags_neutralised (escaped_openers=4); ok en_header_says_data_not_instructions; NOTE instruction_prose_not_filtered (documented: the text is delimited and labelled as data, not rewritten; a model may still obey it); NOTE lookalike_unicode_tags_pass_through (full-width and zero-width variants are not ASCII tags; closing count in block=1)",
+      "checks": {
+        "hostile_memory_recalled": {
+          "ok": true,
+          "kind": "check",
+          "detail": "results=1"
+        },
+        "zh_one_open_one_close": {
+          "ok": true,
+          "kind": "check",
+          "detail": "open=1 close=1"
+        },
+        "zh_block_framed": {
+          "ok": true,
+          "kind": "check",
+          "detail": "starts_with_open=True ends_with_close=True"
+        },
+        "zh_memory_is_one_line": {
+          "ok": true,
+          "kind": "check",
+          "detail": "item_lines=1 lines=4"
+        },
+        "zh_tags_neutralised": {
+          "ok": true,
+          "kind": "check",
+          "detail": "escaped_openers=4"
+        },
+        "zh_header_says_data_not_instructions": {
+          "ok": true,
+          "kind": "check",
+          "detail": ""
+        },
+        "en_one_open_one_close": {
+          "ok": true,
+          "kind": "check",
+          "detail": "open=1 close=1"
+        },
+        "en_block_framed": {
+          "ok": true,
+          "kind": "check",
+          "detail": "starts_with_open=True ends_with_close=True"
+        },
+        "en_memory_is_one_line": {
+          "ok": true,
+          "kind": "check",
+          "detail": "item_lines=1 lines=4"
+        },
+        "en_tags_neutralised": {
+          "ok": true,
+          "kind": "check",
+          "detail": "escaped_openers=4"
+        },
+        "en_header_says_data_not_instructions": {
+          "ok": true,
+          "kind": "check",
+          "detail": ""
+        },
+        "instruction_prose_not_filtered": {
+          "ok": false,
+          "kind": "limit",
+          "detail": "documented: the text is delimited and labelled as data, not rewritten; a model may still obey it"
+        },
+        "lookalike_unicode_tags_pass_through": {
+          "ok": false,
+          "kind": "limit",
+          "detail": "full-width and zero-width variants are not ASCII tags; closing count in block=1"
+        }
+      }
+    },
+    {
+      "property": "isolation_enforced_by_credentials",
+      "result": "partial",
+      "evidence": "ok tenant_write_accepted (status=200); ok tenant_b_does_not_see_tenant_a (status=200 results=0); ok tenant_a_sees_own_memory (status=200 results=1); ok tenant_client_cannot_read_owner_store (status=200 results=0); ok owner_reads_owner_store (status=200 results=1); ok client_without_tenants_sending_tenant_id_refused (status=400 code=bad_tenant); ok tenant_client_without_tenant_id_refused (status=400 code=bad_tenant); ok unknown_tenant_refused (status=403 code=unknown_tenant); ok path_like_tenant_id_refused (status=400 code=bad_tenant); ok wrong_token_is_401 (status=401); ok missing_token_is_401 (status=401); ok tenant_client_cannot_touch_owner_store_via_used (status=403 code=forbidden); NOTE one_tenant_token_can_address_every_registered_tenant (documented, tenant_binding = \"request\" (the default): tenant_id is asserted by the token holder; the same group token read tenant 10001 after asking for 10002 (status=200); only the caller can know which group it speaks for); ok bound_token_reads_its_tenant_without_naming_it (status=200 results=1); ok bound_token_of_tenant_b_reads_b (control: status=200 results=1); ok bound_token_a_does_not_see_tenant_b (status=200 results=0 of them tenant two's=0); ok bound_token_cannot_name_another_tenant_by_any_body_value (11 of 11 body tenant_id values refused 403 tenant_mismatch on recall (10002, 10003, path-like, empty, leading space, trailing newline, a number, null, true, a list, an object), results returned=0); ok bound_token_cannot_write_or_report_for_another_tenant (remember status=403 code=tenant_mismatch, used status=403 code=tenant_mismatch, tenant two rows changed=False); ok minting_secret_alone_is_refused (status without tenant_id=401, with tenant_id=401); ok tenant_swapped_inside_a_token_is_refused (status=401); ok bound_token_for_unregistered_tenant_refused (status=403 code=unknown_tenant)",
+      "checks": {
+        "tenant_write_accepted": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200"
+        },
+        "tenant_b_does_not_see_tenant_a": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200 results=0"
+        },
+        "tenant_a_sees_own_memory": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200 results=1"
+        },
+        "tenant_client_cannot_read_owner_store": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200 results=0"
+        },
+        "owner_reads_owner_store": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200 results=1"
+        },
+        "client_without_tenants_sending_tenant_id_refused": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=400 code=bad_tenant"
+        },
+        "tenant_client_without_tenant_id_refused": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=400 code=bad_tenant"
+        },
+        "unknown_tenant_refused": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=403 code=unknown_tenant"
+        },
+        "path_like_tenant_id_refused": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=400 code=bad_tenant"
+        },
+        "wrong_token_is_401": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=401"
+        },
+        "missing_token_is_401": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=401"
+        },
+        "tenant_client_cannot_touch_owner_store_via_used": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=403 code=forbidden"
+        },
+        "one_tenant_token_can_address_every_registered_tenant": {
+          "ok": false,
+          "kind": "limit",
+          "detail": "documented, tenant_binding = \"request\" (the default): tenant_id is asserted by the token holder; the same group token read tenant 10001 after asking for 10002 (status=200); only the caller can know which group it speaks for"
+        },
+        "bound_token_reads_its_tenant_without_naming_it": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200 results=1"
+        },
+        "bound_token_of_tenant_b_reads_b": {
+          "ok": true,
+          "kind": "check",
+          "detail": "control: status=200 results=1"
+        },
+        "bound_token_a_does_not_see_tenant_b": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200 results=0 of them tenant two's=0"
+        },
+        "bound_token_cannot_name_another_tenant_by_any_body_value": {
+          "ok": true,
+          "kind": "check",
+          "detail": "11 of 11 body tenant_id values refused 403 tenant_mismatch on recall (10002, 10003, path-like, empty, leading space, trailing newline, a number, null, true, a list, an object), results returned=0"
+        },
+        "bound_token_cannot_write_or_report_for_another_tenant": {
+          "ok": true,
+          "kind": "check",
+          "detail": "remember status=403 code=tenant_mismatch, used status=403 code=tenant_mismatch, tenant two rows changed=False"
+        },
+        "minting_secret_alone_is_refused": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status without tenant_id=401, with tenant_id=401"
+        },
+        "tenant_swapped_inside_a_token_is_refused": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=401"
+        },
+        "bound_token_for_unregistered_tenant_refused": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=403 code=unknown_tenant"
+        }
+      }
+    },
+    {
+      "property": "failed_lookup_distinguishable_from_empty",
+      "result": "yes",
+      "evidence": "ok empty_store_is_200_with_no_results (status=200 results=0 failed=0); ok failing_store_is_503 (status=503 code=unavailable); ok partial_failure_is_200_with_failed_count (status=200 failed=1 results=1); ok deep_health_names_the_dead_store (stores={'private': 'ok', 'broken': 'down'} recall_failed_1h=2)",
+      "checks": {
+        "empty_store_is_200_with_no_results": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200 results=0 failed=0"
+        },
+        "failing_store_is_503": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=503 code=unavailable"
+        },
+        "partial_failure_is_200_with_failed_count": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200 failed=1 results=1"
+        },
+        "deep_health_names_the_dead_store": {
+          "ok": true,
+          "kind": "check",
+          "detail": "stores={'private': 'ok', 'broken': 'down'} recall_failed_1h=2"
+        }
+      }
+    },
+    {
+      "property": "writes_are_capped",
+      "result": "yes",
+      "evidence": "ok daily_writes_exactly_n_stored_under_8_writers (cap=5 attempts=32 ok=5 daily_limit=27 stored=5); ok per_minute_rate_limit_answers_429 (rate_limit=5 statuses=[200, 200, 200, 200, 200, 429, 429, 429]); ok rotating_tenant_ids_do_not_escape_request_limit (rate_limit=3 rate_limit_total=6 over 10 distinct tenants statuses=[200, 200, 200, 200, 200, 200, 429, 429, 429, 429]); ok rotating_tenant_ids_do_not_escape_daily_total (daily_writes_total=4 over 11 tenants ok=4 daily_limit=7 stored=4); NOTE caps_are_in_memory_and_reset_on_restart (documented: limits.py keeps counts in memory only; a restart clears them)",
+      "checks": {
+        "daily_writes_exactly_n_stored_under_8_writers": {
+          "ok": true,
+          "kind": "check",
+          "detail": "cap=5 attempts=32 ok=5 daily_limit=27 stored=5"
+        },
+        "per_minute_rate_limit_answers_429": {
+          "ok": true,
+          "kind": "check",
+          "detail": "rate_limit=5 statuses=[200, 200, 200, 200, 200, 429, 429, 429]"
+        },
+        "rotating_tenant_ids_do_not_escape_request_limit": {
+          "ok": true,
+          "kind": "check",
+          "detail": "rate_limit=3 rate_limit_total=6 over 10 distinct tenants statuses=[200, 200, 200, 200, 200, 200, 429, 429, 429, 429]"
+        },
+        "rotating_tenant_ids_do_not_escape_daily_total": {
+          "ok": true,
+          "kind": "check",
+          "detail": "daily_writes_total=4 over 11 tenants ok=4 daily_limit=7 stored=4"
+        },
+        "caps_are_in_memory_and_reset_on_restart": {
+          "ok": false,
+          "kind": "limit",
+          "detail": "documented: limits.py keeps counts in memory only; a restart clears them"
+        }
+      }
+    },
+    {
+      "property": "output_and_input_bounded",
+      "result": "yes",
+      "evidence": "ok limit_is_honoured (limit=3 gave 3, default gave 5); ok limit_has_a_hard_ceiling_of_10 (limit=50 gave 10); ok limit_below_1_is_raised_to_1 (limit=0 gave 1); ok character_budget_holds (returned_chars=1200 budget=1500 items=3 more=4); ok budget_overflow_counted_in_more (more=4); ok every_returned_text_is_whole_never_cut (items=3 all equal to their stored text=True); ok over_budget_memory_left_out_not_shortened (stored_chars=1700 budget=1500); ok oversize_memory_dropped_whole (stored_chars=75026 note=oversize-dropped); ok over_long_message_rejected_not_truncated (4001 chars -> status=400 code=bad_messages stored_rows_changed=False); ok max_length_message_stored_in_full (4000 chars -> status=200 stored_len=[4000]); ok over_total_rejected (17500 chars in 5 messages -> status=400); ok over_long_query_rejected (501 chars -> status=400); ok body_over_64kib_is_413 (status=413 code=too_large)",
+      "checks": {
+        "limit_is_honoured": {
+          "ok": true,
+          "kind": "check",
+          "detail": "limit=3 gave 3, default gave 5"
+        },
+        "limit_has_a_hard_ceiling_of_10": {
+          "ok": true,
+          "kind": "check",
+          "detail": "limit=50 gave 10"
+        },
+        "limit_below_1_is_raised_to_1": {
+          "ok": true,
+          "kind": "check",
+          "detail": "limit=0 gave 1"
+        },
+        "character_budget_holds": {
+          "ok": true,
+          "kind": "check",
+          "detail": "returned_chars=1200 budget=1500 items=3 more=4"
+        },
+        "budget_overflow_counted_in_more": {
+          "ok": true,
+          "kind": "check",
+          "detail": "more=4"
+        },
+        "every_returned_text_is_whole_never_cut": {
+          "ok": true,
+          "kind": "check",
+          "detail": "items=3 all equal to their stored text=True"
+        },
+        "over_budget_memory_left_out_not_shortened": {
+          "ok": true,
+          "kind": "check",
+          "detail": "stored_chars=1700 budget=1500"
+        },
+        "oversize_memory_dropped_whole": {
+          "ok": true,
+          "kind": "check",
+          "detail": "stored_chars=75026 note=oversize-dropped"
+        },
+        "over_long_message_rejected_not_truncated": {
+          "ok": true,
+          "kind": "check",
+          "detail": "4001 chars -> status=400 code=bad_messages stored_rows_changed=False"
+        },
+        "max_length_message_stored_in_full": {
+          "ok": true,
+          "kind": "check",
+          "detail": "4000 chars -> status=200 stored_len=[4000]"
+        },
+        "over_total_rejected": {
+          "ok": true,
+          "kind": "check",
+          "detail": "17500 chars in 5 messages -> status=400"
+        },
+        "over_long_query_rejected": {
+          "ok": true,
+          "kind": "check",
+          "detail": "501 chars -> status=400"
+        },
+        "body_over_64kib_is_413": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=413 code=too_large"
+        }
+      }
+    },
+    {
+      "property": "forgetting_is_gradual_archived_and_restorable",
+      "result": "yes",
+      "evidence": "ok first_sweep_of_an_old_store_deletes_nothing (memories dated 2025-01-01, clock 2026-11-14: forgotten=0 stored=3); ok reported_use_recorded (status=200 recorded=1); ok nothing_due_before_the_lifetime (day 30: forgotten=0 stored=3); ok unused_memory_deleted_after_lifetime (day 50: forgotten=1 remaining=2 pinned_kept=True used_kept=True); ok archive_holds_the_text (archived_row_present=True text_equal=True); ok restore_brings_it_back (restore=True text_equal=True archive_row_left=False); ok restored_memory_is_not_forgotten_at_once (swept right after the restore: forgotten=0); ok restored_memory_is_forgotten_again_when_unused (day 100: archived again=True); ok archive_copy_purged_after_its_retention (archive_days=30 purged=2); ok pinned_memory_survived_everything (day 135); NOTE archive_file_holds_plain_text (documented: the archive keeps forgotten text unencrypted for archive_days; protect the file)",
+      "checks": {
+        "first_sweep_of_an_old_store_deletes_nothing": {
+          "ok": true,
+          "kind": "check",
+          "detail": "memories dated 2025-01-01, clock 2026-11-14: forgotten=0 stored=3"
+        },
+        "reported_use_recorded": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200 recorded=1"
+        },
+        "nothing_due_before_the_lifetime": {
+          "ok": true,
+          "kind": "check",
+          "detail": "day 30: forgotten=0 stored=3"
+        },
+        "unused_memory_deleted_after_lifetime": {
+          "ok": true,
+          "kind": "check",
+          "detail": "day 50: forgotten=1 remaining=2 pinned_kept=True used_kept=True"
+        },
+        "archive_holds_the_text": {
+          "ok": true,
+          "kind": "check",
+          "detail": "archived_row_present=True text_equal=True"
+        },
+        "restore_brings_it_back": {
+          "ok": true,
+          "kind": "check",
+          "detail": "restore=True text_equal=True archive_row_left=False"
+        },
+        "restored_memory_is_not_forgotten_at_once": {
+          "ok": true,
+          "kind": "check",
+          "detail": "swept right after the restore: forgotten=0"
+        },
+        "restored_memory_is_forgotten_again_when_unused": {
+          "ok": true,
+          "kind": "check",
+          "detail": "day 100: archived again=True"
+        },
+        "archive_copy_purged_after_its_retention": {
+          "ok": true,
+          "kind": "check",
+          "detail": "archive_days=30 purged=2"
+        },
+        "pinned_memory_survived_everything": {
+          "ok": true,
+          "kind": "check",
+          "detail": "day 135"
+        },
+        "archive_file_holds_plain_text": {
+          "ok": false,
+          "kind": "limit",
+          "detail": "documented: the archive keeps forgotten text unencrypted for archive_days; protect the file"
+        }
+      }
+    },
+    {
+      "property": "write_needs_no_llm_call",
+      "result": "yes",
+      "evidence": "ok writes_succeed_with_sockets_blocked (statuses=[200, 200, 200]); ok recall_succeeds_with_sockets_blocked (status=200 results=1); ok no_connection_attempted (socket constructions/connects/lookups attempted=0); ok write_path_has_no_model_piece (stores=['SQLiteBackend'] guards=['redact', 'daily_cap']); NOTE only_the_sqlite_path_was_measured (the openviking, embedding and hybrid backends do call out (an embedding endpoint, or a server that may run its own extraction model); not covered by this probe)",
+      "checks": {
+        "writes_succeed_with_sockets_blocked": {
+          "ok": true,
+          "kind": "check",
+          "detail": "statuses=[200, 200, 200]"
+        },
+        "recall_succeeds_with_sockets_blocked": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200 results=1"
+        },
+        "no_connection_attempted": {
+          "ok": true,
+          "kind": "check",
+          "detail": "socket constructions/connects/lookups attempted=0"
+        },
+        "write_path_has_no_model_piece": {
+          "ok": true,
+          "kind": "check",
+          "detail": "stores=['SQLiteBackend'] guards=['redact', 'daily_cap']"
+        },
+        "only_the_sqlite_path_was_measured": {
+          "ok": false,
+          "kind": "limit",
+          "detail": "the openviking, embedding and hybrid backends do call out (an embedding endpoint, or a server that may run its own extraction model); not covered by this probe"
+        }
+      }
+    },
+    {
+      "property": "delete_list_export_absent_and_surface_minimal",
+      "result": "yes",
+      "evidence": "ok route_table_is_exactly_four (routes=['GET /healthz', 'POST /v1/recall', 'POST /v1/remember', 'POST /v1/used']); ok no_route_names_delete_list_or_export (checked words=delete,list,export,forget,admin,sweep,restore,backup); ok every_other_route_and_method_is_404_or_405 (tried=199 unexpected=0); ok health_needs_no_token_and_says_ok (status=200); NOTE deep_health_without_token_names_stores_and_counts (documented: /healthz?deep=1 is unauthenticated; keys=['recall_busy_1h', 'recall_failed_1h', 'status', 'stores', 'writes_24h']); ok every_v1_route_is_401_without_a_valid_token (no token / short token statuses={'/v1/recall': [401, 401], '/v1/remember': [401, 401], '/v1/used': [401, 401]}); ok default_bind_is_loopback (default host=127.0.0.1); ok requests_with_token_work (status=200)",
+      "checks": {
+        "route_table_is_exactly_four": {
+          "ok": true,
+          "kind": "check",
+          "detail": "routes=['GET /healthz', 'POST /v1/recall', 'POST /v1/remember', 'POST /v1/used']"
+        },
+        "no_route_names_delete_list_or_export": {
+          "ok": true,
+          "kind": "check",
+          "detail": "checked words=delete,list,export,forget,admin,sweep,restore,backup"
+        },
+        "every_other_route_and_method_is_404_or_405": {
+          "ok": true,
+          "kind": "check",
+          "detail": "tried=199 unexpected=0"
+        },
+        "health_needs_no_token_and_says_ok": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200"
+        },
+        "deep_health_without_token_names_stores_and_counts": {
+          "ok": false,
+          "kind": "limit",
+          "detail": "documented: /healthz?deep=1 is unauthenticated; keys=['recall_busy_1h', 'recall_failed_1h', 'status', 'stores', 'writes_24h']"
+        },
+        "every_v1_route_is_401_without_a_valid_token": {
+          "ok": true,
+          "kind": "check",
+          "detail": "no token / short token statuses={'/v1/recall': [401, 401], '/v1/remember': [401, 401], '/v1/used': [401, 401]}"
+        },
+        "default_bind_is_loopback": {
+          "ok": true,
+          "kind": "check",
+          "detail": "default host=127.0.0.1"
+        },
+        "requests_with_token_work": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=200"
+        }
+      }
+    }
+  ]
+}

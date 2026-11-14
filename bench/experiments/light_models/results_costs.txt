@@ -1,0 +1,25 @@
+light container before the first restart (qwen3-embedding was still loaded from an earlier run, so this is not an idle figure):
+fmg-bench-embedder-light memory 1.2GiB / 5GiB
+== bge-small-zh
+dev bge-small-zh__plain: dim 512, 160 memories, pair mean cosine 0.4310, ingest 0.67 s, db 675840 bytes, query p50 4.1 ms p95 31.5 ms
+fmg-bench-embedder-light memory 175.1MiB / 5GiB
+hf.co/CompendiumLabs/bge-small-zh-v1.5-gguf:F16    86ab153eef0c    58 MB    100% CPU     512        llamacpp    59 minutes from now    
+== bge-base-zh
+dev bge-base-zh__prefixed: dim 768, 160 memories, pair mean cosine 0.4076, ingest 2.59 s, db 675840 bytes, query p50 14.4 ms p95 40.8 ms
+fmg-bench-embedder-light memory 237.5MiB / 5GiB
+hf.co/CompendiumLabs/bge-base-zh-v1.5-gguf:Q8_0    5e1c58cb1b38    125 MB    100% CPU     512        llamacpp    59 minutes from now    
+== embeddinggemma
+dev embeddinggemma__plain: dim 768, 160 memories, pair mean cosine 0.3472, ingest 1.98 s, db 675840 bytes, query p50 8.9 ms p95 38.9 ms
+fmg-bench-embedder-light memory 761.4MiB / 5GiB
+embeddinggemma:latest    85462619ee72    692 MB    100% CPU     2048       llamacpp    59 minutes from now    
+== qwen3-embedding
+dev qwen3-embedding__prefixed: dim 1024, 160 memories, pair mean cosine 0.4002, ingest 8.56 s, db 757760 bytes, query p50 74.0 ms p95 82.7 ms
+fmg-bench-embedder-light memory 1.202GiB / 5GiB
+qwen3-embedding:0.6b    ac6da0dfba84    1.2 GB    100% CPU     4096       llamacpp    59 minutes from now    
+== bge-m3 (older container, not restarted)
+dev bge-m3__plain: dim 1024, 160 memories, pair mean cosine 0.4550, ingest 4.73 s, db 757760 bytes, query p50 19.5 ms p95 47.3 ms
+fmg-bench-embedder memory 1.362GiB / 5GiB
+bge-m3:latest    790764642607    1.2 GB    100% CPU     4096       llamacpp    59 minutes from now    
+
+light container idle after a restart, no model loaded (read separately):
+fmg-bench-embedder-light memory 112.7MiB / 5GiB

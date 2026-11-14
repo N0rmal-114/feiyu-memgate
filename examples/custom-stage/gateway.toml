@@ -1,0 +1,26 @@
+# 自己写一块召回步骤：recency_stage.py 就放在这份配置旁边，配置里写“模块名:类名”。
+# 加载配置时，配置文件所在的文件夹会排在 Python 搜索路径的最前面，不用安装，也不用改 feiyu-memgate。
+#
+# 先在环境变量 GATEWAY_TOKEN_OWNER 里放一个至少 32 个字符的随机令牌，然后：
+#
+#   feiyu-memgate check --config examples/custom-stage/gateway.toml
+#   feiyu-memgate serve --config examples/custom-stage/gateway.toml
+
+[stores.private]
+type = "sqlite"
+path = "data/private.db"
+
+[clients.owner]
+token_env = "GATEWAY_TOKEN_OWNER"
+recall = ["private"]
+write = "private"
+daily_writes = 50
+
+[recall]
+stages = [
+    "min_score",                                            # 分数线只看相似度，所以放在改分数的步骤前面
+    { type = "recency_stage:Recency", half_life_days = 30 },  # 新的记忆排在旧的前面
+    "redact",
+    "dedupe",
+    "budget",
+]

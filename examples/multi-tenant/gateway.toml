@@ -1,0 +1,63 @@
+# 多租户、不用向量模型：每个群一个 SQLite 文件，主人另有一份私聊记忆。
+# 群聊能读“可公开清单”（public_list）和本群自己的记忆，读不到主人的私聊记忆，也读不到别的群。
+
+[stores.private]
+type = "sqlite"
+path = "data/private.db"
+
+[stores.public_list]
+type = "sqlite"
+path = "data/public-list.db"
+
+[tenants.group]
+type = "directory"
+path = "data/groups"                  # 每个群一个 <群号>.db
+id_pattern = "[0-9]{5,12}"
+create = false                        # 只有登记过的群才有记忆，不会替陌生群建库
+
+[clients.owner]
+token_env = "GATEWAY_TOKEN_OWNER"
+recall = ["private", "public_list"]
+write = "private"
+daily_writes = 50
+
+[clients.curator]                     # 只用来往可公开清单里写主人批准过的内容
+token_env = "GATEWAY_TOKEN_CURATOR"
+write = "public_list"
+
+[clients.group]
+token_env = "GATEWAY_TOKEN_GROUP"
+tenants = "group"
+# 默认 tenant_binding = "request"：群号由请求里的 tenant_id 自报，拿着这个令牌的程序能读写任何已登记的群。
+# 只适合一个可信的机器人进程替所有群服务；feiyu-memgate check 会对它打印一行提醒。
+recall = ["public_list", "@tenant"]   # "@tenant" = 本群自己的存储；不写它就不搜本群
+write = "@tenant"
+public = true
+daily_writes = 20                     # 每个群每天
+daily_writes_total = 500              # 所有群加起来每天；换着群号刷也绕不过去
+
+# 令牌要交给每个群各自的、没那么可信的程序时，改用令牌绑定：每个群一个令牌，只能用于这个群。
+# GATEWAY_MINT_GROUP 里放的是铸造密钥（至少 32 个字符），它本身不能用来认证；在网关主机上铸造令牌：
+#   feiyu-memgate tenants token --config gateway.toml --client group_bound --tenant 10001
+# 撤销一个群：从 data/groups 删掉它的库（create = false 时才管用）；撤销全部：tenant_token_generation 加一后重启。
+#
+# [clients.group_bound]
+# token_env = "GATEWAY_MINT_GROUP"
+# tenants = "group"
+# tenant_binding = "token"
+# tenant_token_generation = 1
+# recall = ["public_list", "@tenant"]
+# write = "@tenant"
+# public = true
+# daily_writes = 20
+# daily_writes_total = 500
+
+[recall]
+# min_score 不写分数线：sqlite 存储自己的默认分数线是 0.3。
+stages = [
+    "min_score",
+    { type = "source_weight", weights = { private = 1.0, public_list = 0.9, group = 0.6 } },
+    "redact",
+    "dedupe",
+    "budget",
+]

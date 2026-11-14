@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# secrets and local data never belong in the repository
+.env
+*.env
+!.env.example
+*.key
+keys.json
+*.db
+*.db-wal
+*.db-shm
+data/

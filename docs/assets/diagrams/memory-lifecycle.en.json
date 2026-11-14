@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "Life of one memory under the forgetting curve",
+    "locale": "en",
+    "quality_profile": "showcase"
+  },
+  "lanes": [
+    {
+      "id": "main",
+      "label": "Retention rail"
+    },
+    {
+      "id": "outcome",
+      "label": "Outcomes"
+    },
+    {
+      "id": "end",
+      "label": "Terminal"
+    }
+  ],
+  "states": [
+    {
+      "id": "written",
+      "type": "start",
+      "label": "Written",
+      "sublabel": "clock starts",
+      "lane": "main",
+      "col": 0,
+      "step": "01",
+      "width": 96
+    },
+    {
+      "id": "active",
+      "type": "active",
+      "label": "Active",
+      "sublabel": "ranked with a floor",
+      "lane": "main",
+      "col": 1,
+      "step": "02",
+      "tag": "R ≥ 0.3",
+      "width": 96
+    },
+    {
+      "id": "demoted",
+      "type": "waiting",
+      "label": "Demoted",
+      "sublabel": "ranked by R alone",
+      "lane": "main",
+      "col": 2,
+      "step": "03",
+      "tag": "R < 0.3",
+      "width": 96
+    },
+    {
+      "id": "due",
+      "type": "decision",
+      "label": "Due",
+      "sublabel": "waits for the sweep",
+      "lane": "main",
+      "col": 3,
+      "step": "04",
+      "tag": "R < 0.05",
+      "width": 96
+    },
+    {
+      "id": "archived",
+      "type": "neutral",
+      "label": "Archived",
+      "sublabel": "full text kept, 90 d",
+      "lane": "main",
+      "col": 4,
+      "step": "05",
+      "tag": "restorable",
+      "width": 96
+    },
+    {
+      "id": "pinned",
+      "type": "success",
+      "label": "Pinned",
+      "sublabel": "never leaves the store",
+      "lane": "outcome",
+      "col": 0,
+      "tag": "exempt",
+      "width": 96
+    },
+    {
+      "id": "purged",
+      "type": "failure",
+      "label": "Purged",
+      "sublabel": "archive copy deleted",
+      "lane": "end",
+      "col": 2,
+      "tag": "terminal",
+      "width": 96
+    }
+  ],
+  "transitions": [
+    {
+      "id": "t-write",
+      "from": "written",
+      "to": "active"
+    },
+    {
+      "id": "t-decay",
+      "from": "active",
+      "to": "demoted",
+      "label": "R < 0.3",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "t-due",
+      "from": "demoted",
+      "to": "due",
+      "label": "R < 0.05"
+    },
+    {
+      "id": "t-sweep",
+      "from": "due",
+      "to": "archived",
+      "label": "sweep"
+    },
+    {
+      "id": "t-reinforce",
+      "from": "demoted",
+      "to": "active",
+      "label": "used: ×1.6",
+      "variant": "emphasis",
+      "route": "top-channel",
+      "fromSide": "top",
+      "toSide": "top",
+      "channelY": 110
+    },
+    {
+      "id": "t-restore",
+      "from": "archived",
+      "to": "active",
+      "label": "restore",
+      "variant": "emphasis",
+      "route": "top-channel",
+      "fromSide": "top",
+      "toSide": "top",
+      "channelY": 84
+    },
+    {
+      "id": "t-pin",
+      "from": "active",
+      "to": "pinned",
+      "label": "pin",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "via": [
+        [
+          248,
+          307
+        ]
+      ]
+    },
+    {
+      "id": "t-purge",
+      "from": "archived",
+      "to": "purged",
+      "label": "after 90 d",
+      "variant": "dashed",
+      "route": "straight",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 40
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Retention",
+      "items": [
+        "R = 0.5 ^ (days since last use / half-life)",
+        "Active memories that are used again restart the clock too",
+        "Each use grows the half-life ×1.6, up to 8 uses"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Forgetting",
+      "items": [
+        "Demoted memories sink in ranking but still answer",
+        "Due memories are archived by the next sweep, then deleted",
+        "Archive is written before the store entry is deleted"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Exits",
+      "items": [
+        "Restore puts a memory back as active",
+        "After 90 days the archive copy is purged",
+        "A pinned memory is never demoted, due or deleted"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,272 @@
+{
+ "system": "feiyu-memgate",
+ "version": "0.1.0 (the tree probed on 2026-11-15)",
+ "date": "2026-11-15",
+ "note_zh": "只描述 feiyu-memgate 自己：十项设计性质由 bench/design_probe.py 在进程内实测，结果在 bench/results/design/feiyu-memgate.json。这不是和其他项目的对比；被测项目的功能事实见 bench/results/design/features.md。",
+ "note_en": "About feiyu-memgate only: the ten design properties are measured in-process by bench/design_probe.py, results in bench/results/design/feiyu-memgate.json. This is not a comparison with other projects; functional facts about the benchmarked projects are in bench/results/design/features.en.md.",
+ "probe": {
+  "script": "bench/design_probe.py",
+  "results": "bench/results/design/feiyu-memgate.json",
+  "python": "3.14.3",
+  "probe_date": "2026-11-15"
+ },
+ "legend": {
+  "yes": "✓",
+  "partial": "◐",
+  "no": "✗"
+ },
+ "properties": [
+  {
+   "number": 1,
+   "zh": "写入前脱敏",
+   "en": "Redacted before storing",
+   "status": "yes",
+   "label_zh": "正则",
+   "label_en": "regex",
+   "basis": "measured",
+   "probe_properties": [
+    "secrets_redacted_before_store_and_before_return",
+    "public_clients_get_stricter_redaction"
+   ],
+   "evidence_zh": "探针1：假 API 密钥、“密码是…”、Bearer 令牌写入后，存储原文里 0/3 处残留，出现 4 个 [REDACTED]；公开客户端另遮手机、邮箱、证件号、地址（探针2）。只是正则，没有关键词的孤立密钥认不出（实测：未遮）。",
+   "evidence_en": "Probe 1: a fake API key, a password in the 密码是… form and a bearer token were written; 0 of 3 remained in the raw stored row, 4 [REDACTED] marks appeared. Public clients also lose phone, e-mail, ID digits and address (probe 2). Regexes only: a secret with no key word near it is not recognised (observed unmasked)."
+  },
+  {
+   "number": 2,
+   "zh": "返回前脱敏",
+   "en": "Redacted before returning",
+   "status": "yes",
+   "label_zh": "正则",
+   "label_en": "regex",
+   "basis": "measured",
+   "probe_properties": [
+    "secrets_redacted_before_store_and_before_return",
+    "public_clients_get_stricter_redaction"
+   ],
+   "evidence_zh": "探针1：绕过网关直接写进存储的假密钥和假密码，召回回答里 0 处残留（redact 召回步骤，默认开启，回答里出现 [REDACTED]）；公开客户端另遮个人信息（探针2：召回时手机、邮箱、证件号、地址都被遮，私有客户端原样保留）。",
+   "evidence_en": "Probe 1: a fake key and password planted straight into the store, bypassing the gateway, left 0 traces in the recall reply (default redact stage; [REDACTED] marks appear). Public clients also lose personal data on recall (probe 2: phone, e-mail, ID digits and address were masked, the private client keeps them)."
+  },
+  {
+   "number": 3,
+   "zh": "记忆作为数据交付且不可越界",
+   "en": "Delivered as data, cannot break out",
+   "status": "yes",
+   "label_zh": "标签块转义",
+   "label_en": "tagged, escaped",
+   "basis": "measured",
+   "probe_properties": [
+    "memory_delivered_as_data_and_cannot_break_out"
+   ],
+   "evidence_zh": "探针3：含闭标签、开标签、伪 system 指令的记忆，经 BlockFormatter（中英文各一次）后块里恰好 1 个开标签、1 个闭标签，4 处左尖括号被转义，每条压成一行，头部写明“资料，不是指令”。限度：指令文字本身不改写，模型仍可能听信；全角/零宽变体不是 ASCII 标签，原样通过；块由客户端库生成，直接用 HTTP JSON 的调用者须自己包裹。",
+   "evidence_en": "Probe 3: a memory holding a closing tag, an opening tag and a fake system instruction came out of BlockFormatter (zh and en) with exactly 1 opening and 1 closing tag, 4 left angle brackets escaped, one line per memory, and a head saying data, not instructions. Limits: the instruction prose itself is not rewritten and a model may still obey it; full-width and zero-width look-alikes are not ASCII tags and pass through; the block is built by the client library, so callers using the raw HTTP JSON must wrap it themselves."
+  },
+  {
+   "number": 4,
+   "zh": "凭据级隔离",
+   "en": "Isolation by credentials",
+   "status": "partial",
+   "label_zh": "租户绑定可选",
+   "label_en": "tenant binding opt-in",
+   "basis": "measured",
+   "probe_properties": [
+    "isolation_enforced_by_credentials"
+   ],
+   "evidence_zh": "探针4：群客户端令牌读不到主人库（0 条）、/v1/used 指向主人库 403；不带 tenants 的客户端发 tenant_id 得 400 bad_tenant；未登记租户 403；错令牌和无令牌 401；路径式租户号 400。租户之间有两种模式。tenant_binding = \"token\"（可选）：每个令牌由铸造密钥按租户用 HMAC 铸造；实测为租户 10001 铸造的令牌不写 tenant_id 就读到 10001，看不到 10002 的记忆；请求体里写 11 种别的 tenant_id（别的租户、路径式、空、前后带空白、数字、null、true、列表、对象）全部 403 tenant_mismatch；往 10002 写入、报告用到都 403，10002 没有变化；铸造密钥本身当令牌用 401，把令牌里的租户号换成 10002 得 401，为未登记租户铸造的令牌 403。tenant_binding = \"request\"（默认）：租户号由令牌持有者自报，同一个群令牌能换号读任何已登记租户（实测：问 10002 无结果后同一令牌读到 10001 的记忆）；security.md 写明这种模式只适合一个可信的进程，`feiyu-memgate check` 对这样的客户端打印提醒。仍记部分，因为绑定只在配置了 tenant_binding = \"token\" 时才由网关强制（实测成立），默认的 request 模式下一个多租户令牌仍能读所有已登记租户。",
+   "evidence_en": "Probe 4: the group client's token cannot read the owner's store (0 hits), /v1/used pointing at the owner store is 403; a client without tenants that sends tenant_id gets 400 bad_tenant; an unknown tenant 403; wrong or missing token 401; a path-like tenant id 400. Between tenants there are two modes. With tenant_binding = \"token\" (opt-in) each token is minted per tenant from a minting secret with an HMAC: measured, a token minted for tenant 10001 read 10001 without naming it and saw none of 10002's memories; 11 other tenant_id values in the body (another tenant, path-like, empty, leading or trailing whitespace, a number, null, true, a list, an object) were all 403 tenant_mismatch; writing and reporting use for 10002 were 403 and left 10002 unchanged; the minting secret used as a token was 401, a token with its tenant swapped to 10002 was 401, a token minted for an unregistered tenant 403. With tenant_binding = \"request\" (the default) the tenant id is asserted by the token holder, so one group token can read any registered tenant (measured: after 10002 returned nothing, the same token read tenant 10001's memory); security.md limits this mode to one trusted process and `feiyu-memgate check` prints a reminder for such a client. Still partial because the binding is enforced only when tenant_binding = \"token\" is configured (measured to hold there), while in the default request mode one multi-tenant token still reads every registered tenant."
+  },
+  {
+   "number": 5,
+   "zh": "失败与空结果可区分",
+   "en": "Failure told from empty",
+   "status": "yes",
+   "label_zh": "503与计数",
+   "label_en": "503 + failed count",
+   "basis": "measured",
+   "probe_properties": [
+    "failed_lookup_distinguishable_from_empty"
+   ],
+   "evidence_zh": "探针5：唯一的存储报错 → 503 unavailable；空存储 → 200、results 为空、failed 0；两个存储一个坏 → 200 且 failed=1，仍返回另一个的结果；/healthz?deep=1 把坏存储标为 down，recall_failed_1h 计数。",
+   "evidence_en": "Probe 5: the only store raising gives 503 unavailable; an empty store gives 200, empty results, failed 0; two stores with one broken give 200 with failed=1 and the other store's result; /healthz?deep=1 marks the broken store down and counts recall_failed_1h."
+  },
+  {
+   "number": 6,
+   "zh": "写入上限",
+   "en": "Write caps",
+   "status": "yes",
+   "label_zh": "日与分钟上限",
+   "label_en": "daily + per-minute",
+   "basis": "measured",
+   "probe_properties": [
+    "writes_are_capped"
+   ],
+   "evidence_zh": "探针6：daily_writes=5，8 个线程共 32 次并发写，恰好 5 次成功、27 次 429 daily_limit，存储里恰 5 行；rate_limit=5 时 8 次请求为 5 个 200 加 3 个 429；轮换 10 个租户号仍被 rate_limit_total=6 拦住（6 个 200 加 4 个 429）；daily_writes_total=4 时 11 个租户一共只存下 4 条。限度：计数在内存里，重启清零。",
+   "evidence_en": "Probe 6: with daily_writes=5, 8 concurrent writers made 32 writes: exactly 5 succeeded, 27 got 429 daily_limit, 5 rows stored; with rate_limit=5, 8 requests gave 5 x 200 then 3 x 429; rotating 10 tenant ids was still stopped by rate_limit_total=6 (6 x 200 then 4 x 429); with daily_writes_total=4, 11 tenants stored 4 in all. Limit: counts live in memory and reset on restart."
+  },
+  {
+   "number": 7,
+   "zh": "输出有界",
+   "en": "Bounded output, whole items",
+   "status": "yes",
+   "label_zh": "条数字数整条",
+   "label_en": "count, chars, whole",
+   "basis": "measured",
+   "probe_properties": [
+    "output_and_input_bounded"
+   ],
+   "evidence_zh": "探针7：limit=3 得 3 条，默认 5 条，limit=50 得 10 条（上限 10），limit=0 得 1 条；字数预算 1500：库里 6 条 400 字加一条 1700 字的记忆，返回 3 条共 1200 字、more=4，每条返回文本都等于存储原文（不截断），1700 字的超预算记忆整条留下；75026 字的记忆整条丢弃（note oversize-dropped）。输入：4001 字消息 → 400 bad_messages 且行数不变，4000 字原样存下，5×3500 字 → 400，501 字查询 → 400，超 64 KiB 请求体 → 413。",
+   "evidence_en": "Probe 7: limit=3 gave 3, default 5, limit=50 gave 10 (ceiling), limit=0 gave 1; character budget 1500: of six 400-char memories plus one 1700-char memory, 3 items and 1200 chars came back with more=4, every returned text equals its stored text (never cut), the 1700-char memory was left out whole; a 75026-char memory was dropped whole (note oversize-dropped). Input: a 4001-char message gave 400 bad_messages with the row count unchanged, 4000 chars were stored in full, 5 x 3500 chars gave 400, a 501-char query gave 400, a body over 64 KiB gave 413."
+  },
+  {
+   "number": 8,
+   "zh": "遗忘可恢复",
+   "en": "Forgetting, recoverable",
+   "status": "yes",
+   "label_zh": "归档可恢复",
+   "label_en": "archived, restorable",
+   "basis": "measured",
+   "probe_properties": [
+    "forgetting_is_gradual_archived_and_restorable"
+   ],
+   "evidence_zh": "探针8（假时钟，半衰期 10 天，归档保留 30 天）：记忆日期 2025-01-01 的老库首次清理删 0 条；第 30 天（C 被 /v1/used 报告用过）删 0 条；第 50 天：未用过的 A 被存档后删除，置顶的 B 和用过的 C 保留；存档里的文字等于原文；restore 后原文回到存储、存档行移除；恢复后立刻清理不会再删；第 100 天再次被存档；保留期过后（第 135 天）存档副本被清掉。限度：存档文件是明文；遗忘要配置 [forgetting]，默认关闭。",
+   "evidence_en": "Probe 8 (fake clock, half-life 10 days, archive kept 30 days): the first sweep of an old store (memories dated 2025-01-01) forgot 0; day 30 (C reported used via /v1/used) forgot 0; day 50: the unused A was archived then deleted, pinned B and used C stayed; the archive held A's text equal to the original; restore put it back and removed the archive row; a sweep right after the restore forgot nothing; day 100 archived it again; after the retention (day 135) the archive copy was purged. Limits: the archive file is plain text; forgetting needs a [forgetting] section and is off by default."
+  },
+  {
+   "number": 9,
+   "zh": "写入无需大模型",
+   "en": "Write needs no LLM",
+   "status": "yes",
+   "label_zh": "不联网",
+   "label_en": "no network",
+   "basis": "measured",
+   "probe_properties": [
+    "write_needs_no_llm_call"
+   ],
+   "evidence_zh": "探针9：socket 被打补丁、一碰就抛错时，SQLite 路径的 3 次写入全部 200、召回 200，socket 构造/连接/解析尝试 0 次；写入链上只有 redact 和 daily_cap 两个守卫，没有模型件。限度：只测了 SQLite；openviking、embedding、hybrid 后端会联网（嵌入服务，或带抽取模型的服务端）。",
+   "evidence_en": "Probe 9: with sockets patched to raise, 3 writes on the SQLite path all returned 200 and recall 200, with 0 socket constructions, connects or lookups attempted; the write chain holds only the redact and daily_cap guards, no model piece. Limit: only SQLite was measured; the openviking, embedding and hybrid backends do call out (an embedding service, or a server with an extraction model)."
+  },
+  {
+   "number": 10,
+   "zh": "网络面最小且需鉴权",
+   "en": "Minimal, authenticated network surface",
+   "status": "yes",
+   "label_zh": "四路由需令牌",
+   "label_en": "4 routes, token",
+   "basis": "measured",
+   "probe_properties": [
+    "delete_list_export_absent_and_surface_minimal"
+   ],
+   "evidence_zh": "探针10：路由表恰好 4 条（GET /healthz，POST /v1/recall、/v1/remember、/v1/used）；199 个其余方法×路径组合（含 /v1/delete、/v1/list、/v1/export、/admin、/metrics）全部 404/405；三个 /v1 路由无令牌或短令牌都是 401；默认监听 127.0.0.1；没有删除、列出、导出路由。已知偏差：/healthz?deep=1 不要令牌，回存储名和计数。",
+   "evidence_en": "Probe 10: the route table is exactly 4 (GET /healthz, POST /v1/recall, /v1/remember, /v1/used); 199 other method x path combinations (including /v1/delete, /v1/list, /v1/export, /admin, /metrics) all answered 404/405; the three /v1 routes answer 401 without a valid token; default bind 127.0.0.1; no delete, list or export route. Known deviation: /healthz?deep=1 needs no token and returns store names and counts."
+  }
+ ],
+ "counts": {
+  "yes": 9,
+  "partial": 1,
+  "no": 0
+ },
+ "limits": [
+  {
+   "zh": "默认模式下租户之间不是凭据隔离（探针 4，◐）：默认的 tenant_binding = \"request\" 里多租户令牌不绑定租户号，同一个群令牌能读任何已登记租户，只适合交给一个可信的进程。可选的 tenant_binding = \"token\" 给每个租户铸造各自的令牌，探针 4 实测它把令牌限制在铸造时的租户上（请求里换租户号 403 tenant_mismatch，铸造密钥本身当令牌用 401）；它要自己配置才生效，见 docs/security.md。",
+   "en": "Tenants are not isolated by credentials in the default mode (probe 4, ◐): with tenant_binding = \"request\" (the default) a multi-tenant token is not bound to a tenant id, so one group token can read any registered tenant; this mode is for one trusted process. The opt-in tenant_binding = \"token\" mints one token per tenant, and probe 4 measured that it confines a token to the tenant it was minted for (another tenant id in the request: 403 tenant_mismatch; the minting secret used as a token: 401); it only applies when configured, see docs/security.md."
+  },
+  {
+   "zh": "/healthz?deep=1 不要令牌，回存储名、失败计数和写入统计（文档自述的设计）。",
+   "en": "/healthz?deep=1 needs no token and returns store names, failure counters and write statistics (documented design)."
+  },
+  {
+   "zh": "脱敏是正则：没有关键词的孤立密钥、座机、全角数字认不出（探针 1、2 实测到，文档自述）；指令样文字不改写，全角/零宽的标签仿写原样通过（探针 3）。",
+   "en": "Redaction is regexes: an isolated secret without a key word, landline numbers and full-width digits are missed (seen in probes 1 and 2, documented); instruction prose is not rewritten and full-width or zero-width tag look-alikes pass through (probe 3)."
+  },
+  {
+   "zh": "只测了 SQLite 路径（探针 9）：openviking、embedding、hybrid 后端会联网。",
+   "en": "Only the SQLite path was measured (probe 9): the openviking, embedding and hybrid backends call out."
+  },
+  {
+   "zh": "限额计数在内存里，重启清零；遗忘的存档文件是明文，遗忘默认关闭。",
+   "en": "Limit counters live in memory and reset on restart; the forgetting archive file is plain text, and forgetting is off by default."
+  }
+ ],
+ "found_elsewhere": [
+  {
+   "projects": [
+    "SeekMemory"
+   ],
+   "zh_title": "回复真的用上了某条记忆才自动强化它",
+   "en_title": "Automatic reinforcement when a reply actually used a memory",
+   "zh": "回复用到某条记忆时，它自动得到加权，衰减计时重新开始；只被检索或注入不算。本项目有同样的思路：POST /v1/used 记录“真的用了”（探针 8 实测 recorded=1），但要聊天程序自己上报；不上报时，只有可选的 freshness 召回步骤会在召回时给最相关的一条记一次使用（credit 默认 top），而被返回不等于有用。",
+   "en": "When a reply uses a memory it is reinforced automatically and its decay clock restarts; being retrieved or injected alone does not count. feiyu-memgate has the same idea: POST /v1/used records a real use (probe 8 measured recorded=1), but the chat program has to report it; without a report only the optional freshness stage credits the best result at recall time (credit defaults to top), and being returned is not being used."
+  },
+  {
+   "projects": [
+    "SeekMemory"
+   ],
+   "zh_title": "分级披露：全文、转述、暗示或沉默",
+   "en_title": "Graded disclosure: full text, paraphrase, hint or silence",
+   "zh": "按记忆和当前对话的契合程度决定给出全文、转述、一句暗示还是不提。本项目的访问是按存储、按凭据的全有或全无，没有分级。",
+   "en": "How well a memory fits the current conversation decides whether it is given in full, paraphrased, hinted at or left out. feiyu-memgate's access is all or nothing per store and credential, with no grading."
+  },
+  {
+   "projects": [
+    "Graphiti",
+    "SeekMemory"
+   ],
+   "zh_title": "被新事实取代的旧事实会被标记失效",
+   "en_title": "Superseded facts are marked invalid",
+   "zh": "Graphiti 用大模型比较新旧事实，给被取代的旧事实写上失效时间；SeekMemory 用 supersedes 字段让被反驳的旧记忆退场。本项目按原文存，召回时用 dedupe 去掉近似重复、用 newer_first 把新的排在前面，没有“后一条取代前一条”的概念。",
+   "en": "Graphiti has a language model compare new and existing facts and sets an invalidation time on the superseded one; SeekMemory retires a contradicted older memory through its supersedes field. feiyu-memgate stores text as written, drops near-duplicates at recall (dedupe) and puts newer items first (newer_first), but has no notion of a later memory replacing an earlier one."
+  },
+  {
+   "projects": [
+    "mem0",
+    "Graphiti",
+    "SeekMemory",
+    "dsh-mnemon",
+    "memsearch",
+    "meow-memory",
+    "OpenViking"
+   ],
+   "zh_title": "用大模型抽取和整理记忆",
+   "en_title": "Model-based extraction and consolidation of memories",
+   "zh": "mem0 抽取事实（名字被解析、日期落到绝对日期）；Graphiti 抽取实体和带时间的事实；OpenViking 在会话提交时抽取；dsh-mnemon 有空闲复盘；SeekMemory 由宿主模型抽取，并有夜间整理；memsearch 的插件总结每一轮；meow-memory 有反思与梦境整合。本项目网关只存原文，抽取（如果有）是后端的事（OpenViking 后端）；换来的是便宜、可预测、不联网，失去的是归并、改写和从长对话里提炼要点的能力。",
+   "en": "mem0 extracts facts (names resolved, dates grounded); Graphiti extracts entities and time-stamped facts; OpenViking extracts on session commit; dsh-mnemon runs an idle review; SeekMemory extracts through the host model plus a nightly consolidation; the memsearch plugin summarises each turn; meow-memory has reflection and dream consolidation. The gateway stores the text as written and leaves any extraction to the backend (the OpenViking backend); that buys cheap, predictable, offline writes and gives up merging, rewriting and distilling long conversations."
+  },
+  {
+   "projects": [
+    "lingshu",
+    "meow-memory",
+    "mem0"
+   ],
+   "zh_title": "写入时的去重、合并和闸门",
+   "en_title": "Write-time dedupe, merge and gate",
+   "zh": "lingshu 的写入闸门对每次写入给出 ACCEPT/MERGE/DROP/DEFER 并记日志，同骨架的短消息 24 小时内合并；meow-memory 把和已有同级记忆高度相似（词元 Jaccard ≥ 0.8）的新记忆并进已有的那一行；mem0 按哈希去重。本项目默认的写入守卫只有 redact 和 daily_cap，重复的记忆照存，到召回时才用 dedupe 步骤去掉近似重复。",
+   "en": "lingshu's write gate returns ACCEPT/MERGE/DROP/DEFER for every write and logs the decision, and merges same-skeleton short messages within 24 h; meow-memory merges a new memory into an existing row of the same level when they are very similar (token Jaccard >= 0.8); mem0 deduplicates by hash. feiyu-memgate's default write guards are only redact and daily_cap, so duplicates are stored and only filtered at recall by the dedupe stage."
+  },
+  {
+   "projects": [
+    "dsh-mnemon"
+   ],
+   "zh_title": "按轮收窄读范围，并说明“空不等于没有”",
+   "en_title": "Per-turn narrowing of read scope, and saying that empty does not mean nothing matches",
+   "zh": "一轮只读它这一轮指定的记忆空间；预算用完时策略报告没有去查，并说明空列表不等于没有匹配。本项目的读权限固定在令牌上，一次召回内不能再收窄；失败与空的区分有（failed、busy、503），但没有“预算用完所以没去查”的逐轮说明，除了 busy 计数。",
+   "en": "A turn reads only the memory spaces named for that turn; when the budget is spent the strategy reports that it did not look and states that an empty list does not mean nothing matches. feiyu-memgate's read permission is fixed on the token and cannot be narrowed per request; it separates failed from empty (failed, busy, 503) but has no per-turn 'budget spent, did not look' statement beyond the busy count."
+  },
+  {
+   "projects": [
+    "mem0"
+   ],
+   "zh_title": "每条记忆可以设到期日",
+   "en_title": "Per-memory expiry date",
+   "zh": "可选的 expiration_date 让记忆到期后不再出现在检索结果里。本项目没有按条的到期日，遗忘只由“多久没被用到”的曲线决定。",
+   "en": "The optional expiration_date keeps a memory out of search results after that date. feiyu-memgate has no per-memory expiry; forgetting follows only how long a memory has gone unused."
+  },
+  {
+   "projects": [
+    "memsearch"
+   ],
+   "zh_title": "记忆是人能读、能改、能进 git 的 Markdown",
+   "en_title": "Markdown as the source of truth",
+   "zh": "Markdown 文件是真源，索引可以重建，删掉的内容可以从文件或 git 找回。本项目的记忆在 SQLite 里，改动要走工具；有加密备份（backup seal），但不是人能直接编辑的格式。",
+   "en": "Markdown files are the source of truth, the index can be rebuilt, and deleted content can be recovered from the files or git. feiyu-memgate keeps memories in SQLite and edits go through tools; it has encrypted backups (backup seal) but no format a person edits directly."
+  }
+ ]
+}

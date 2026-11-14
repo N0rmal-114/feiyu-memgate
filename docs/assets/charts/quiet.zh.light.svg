@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="590" viewBox="0 0 1000 590" role="img" lang="zh">
+<style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#52514e;font-size:13px}.t{font-size:17px;font-weight:600;fill:#0b0b0b}.l{font-size:13px;fill:#0b0b0b}.lb{font-size:13px;font-weight:600;fill:#0b0b0b}.s{font-size:11px;fill:#52514e}.grid{stroke:#e1e0d9;stroke-width:1;fill:none}.axis{stroke:#c3c2b7;stroke-width:1;fill:none}.tick{stroke:#0b0b0b;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#2a78d6}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
+<rect width="1000" height="590" fill="#fcfcfb"/>
+<text x="24.0" y="32.0" class="t">安静率：记忆里没有答案的问题，系统什么都不返回的比例</text>
+<rect x="24.0" y="47.0" width="14" height="8" rx="2" class="fa"/>
+<text x="46.0" y="56.0" class="s">feiyu-memgate 的配置</text>
+<rect x="186.1" y="47.0" width="14" height="8" rx="2" class="fo"/>
+<text x="208.1" y="56.0" class="s">其他项目</text>
+<line x1="330.0" y1="80.0" x2="330.0" y2="506.0" class="axis"/>
+<text x="330.0" y="524.0" class="s" text-anchor="middle">0%</text>
+<line x1="440.0" y1="80.0" x2="440.0" y2="506.0" class="grid"/>
+<text x="440.0" y="524.0" class="s" text-anchor="middle">25%</text>
+<line x1="550.0" y1="80.0" x2="550.0" y2="506.0" class="grid"/>
+<text x="550.0" y="524.0" class="s" text-anchor="middle">50%</text>
+<line x1="660.0" y1="80.0" x2="660.0" y2="506.0" class="grid"/>
+<text x="660.0" y="524.0" class="s" text-anchor="middle">75%</text>
+<line x1="770.0" y1="80.0" x2="770.0" y2="506.0" class="grid"/>
+<text x="770.0" y="524.0" class="s" text-anchor="middle">100%</text>
+<text x="24.0" y="104.5" class="l">Graphiti</text>
+<text x="212.0" y="104.0" class="s">图 · 用 LLM</text>
+<path d="M330.0,93.0 H689.0 A4.0,4.0 0 0 1 693.0,97.0 V103.0 A4.0,4.0 0 0 1 689.0,107.0 H330.0 Z" fill="#898781"/>
+<text x="701.0" y="104.5" class="lb">82.5%</text>
+<text x="24.0" y="132.5" class="l">feiyu-memgate full</text>
+<text x="212.0" y="132.0" class="s">混合</text>
+<path d="M330.0,121.0 H656.0 A4.0,4.0 0 0 1 660.0,125.0 V131.0 A4.0,4.0 0 0 1 656.0,135.0 H330.0 Z" fill="#2a78d6"/>
+<text x="668.0" y="132.5" class="lb">75.0%</text>
+<text x="24.0" y="160.5" class="l">feiyu-memgate hybrid</text>
+<text x="212.0" y="160.0" class="s">混合</text>
+<path d="M330.0,149.0 H656.0 A4.0,4.0 0 0 1 660.0,153.0 V159.0 A4.0,4.0 0 0 1 656.0,163.0 H330.0 Z" fill="#2a78d6"/>
+<text x="668.0" y="160.5" class="lb">75.0%</text>
+<text x="24.0" y="188.5" class="l">feiyu-memgate sqlite</text>
+<text x="212.0" y="188.0" class="s">关键词</text>
+<path d="M330.0,177.0 H656.0 A4.0,4.0 0 0 1 660.0,181.0 V187.0 A4.0,4.0 0 0 1 656.0,191.0 H330.0 Z" fill="#2a78d6"/>
+<text x="668.0" y="188.5" class="lb">75.0%</text>
+<text x="24.0" y="216.5" class="l">feiyu-memgate embedding</text>
+<text x="212.0" y="216.0" class="s">向量</text>
+<path d="M330.0,205.0 H612.0 A4.0,4.0 0 0 1 616.0,209.0 V215.0 A4.0,4.0 0 0 1 612.0,219.0 H330.0 Z" fill="#2a78d6"/>
+<text x="624.0" y="216.5" class="lb">65.0%</text>
+<text x="24.0" y="244.5" class="l">feiyu-memgate openviking</text>
+<text x="212.0" y="244.0" class="s">向量</text>
+<path d="M330.0,233.0 H502.0 A4.0,4.0 0 0 1 506.0,237.0 V243.0 A4.0,4.0 0 0 1 502.0,247.0 H330.0 Z" fill="#2a78d6"/>
+<text x="514.0" y="244.5" class="lb">40.0%</text>
+<text x="24.0" y="272.5" class="l">SeekMemory</text>
+<text x="212.0" y="272.0" class="s">关键词</text>
+<path d="M330.0,261.0 H425.0 A4.0,4.0 0 0 1 429.0,265.0 V271.0 A4.0,4.0 0 0 1 425.0,275.0 H330.0 Z" fill="#898781"/>
+<text x="437.0" y="272.5" class="lb">22.5%</text>
+<text x="24.0" y="300.5" class="l">meow-memory</text>
+<text x="212.0" y="300.0" class="s">关键词</text>
+<path d="M330.0,289.0 H370.0 A4.0,4.0 0 0 1 374.0,293.0 V299.0 A4.0,4.0 0 0 1 370.0,303.0 H330.0 Z" fill="#898781"/>
+<text x="382.0" y="300.5" class="lb">10.0%</text>
+<text x="24.0" y="328.5" class="l">dsh-mnemon</text>
+<text x="212.0" y="328.0" class="s">关键词</text>
+<text x="338.0" y="328.5" class="lb">0.0%</text>
+<text x="24.0" y="356.5" class="l">dsh-mnemon + 向量</text>
+<text x="212.0" y="356.0" class="s">混合</text>
+<text x="338.0" y="356.5" class="lb">0.0%</text>
+<text x="24.0" y="384.5" class="l">lingshu</text>
+<text x="212.0" y="384.0" class="s">关键词</text>
+<text x="338.0" y="384.5" class="lb">0.0%</text>
+<text x="24.0" y="412.5" class="l">mem0（LLM 提取）</text>
+<text x="212.0" y="412.0" class="s">提取 · 用 LLM</text>
+<text x="338.0" y="412.5" class="lb">0.0%</text>
+<text x="24.0" y="440.5" class="l">mem0（逐字）</text>
+<text x="212.0" y="440.0" class="s">向量</text>
+<text x="338.0" y="440.5" class="lb">0.0%</text>
+<text x="24.0" y="468.5" class="l">memsearch</text>
+<text x="212.0" y="468.0" class="s">混合</text>
+<text x="338.0" y="468.5" class="lb">0.0%</text>
+<text x="24.0" y="496.5" class="l">OpenViking</text>
+<text x="212.0" y="496.0" class="s">向量</text>
+<text x="338.0" y="496.5" class="lb">0.0%</text>
+<text x="24.0" y="556.0" class="s">总是返回前 k 条的系统，安静率按定义是 0。安静率高不等于好：它和命中率此消彼长。 安静题 40 个。</text>
+<text x="24.0" y="574.0" class="s">bench/results/summary.md · 240 条记忆，160 个问题 · 2026-11-15</text>
+</svg>

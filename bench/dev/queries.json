@@ -1,0 +1,748 @@
+{
+ "q001": {
+  "query": "我吃了芒果会怎么样？",
+  "expect": [
+   "d007"
+  ],
+  "type": "lexical"
+ },
+ "q002": {
+  "query": "点酸菜鱼我喜欢加辣吗？",
+  "expect": [
+   "d020"
+  ],
+  "type": "lexical"
+ },
+ "q003": {
+  "query": "闸站门口的早点摊我常吃什么？",
+  "expect": [
+   "d029"
+  ],
+  "type": "lexical"
+ },
+ "q004": {
+  "query": "夜班下了班我在路口小店吃阳春面加什么？",
+  "expect": [
+   "d039"
+  ],
+  "type": "lexical"
+ },
+ "q005": {
+  "query": "母亲寄来的腊肉我分给了谁？",
+  "expect": [
+   "d107"
+  ],
+  "type": "lexical"
+ },
+ "q006": {
+  "query": "小满不吃哪些菜？",
+  "expect": [
+   "d036"
+  ],
+  "type": "lexical"
+ },
+ "q007": {
+  "query": "小满的班主任姓什么？",
+  "expect": [
+   "d075"
+  ],
+  "type": "lexical"
+ },
+ "q008": {
+  "query": "小满的围棋赛得了第几名？",
+  "expect": [
+   "d091"
+  ],
+  "type": "lexical"
+ },
+ "q009": {
+  "query": "小满的眼镜是多少度？",
+  "expect": [
+   "d115"
+  ],
+  "type": "lexical"
+ },
+ "q010": {
+  "query": "我第一次割蜜割了多少斤？",
+  "expect": [
+   "d047"
+  ],
+  "type": "lexical"
+ },
+ "q011": {
+  "query": "荆条蜜我割了多少斤？",
+  "expect": [
+   "d058"
+  ],
+  "type": "lexical"
+ },
+ "q012": {
+  "query": "分群飞走的蜂是在哪里收回来的？",
+  "expect": [
+   "d068"
+  ],
+  "type": "lexical"
+ },
+ "q013": {
+  "query": "手摇割蜜机多少钱？",
+  "expect": [
+   "d060"
+  ],
+  "type": "lexical"
+ },
+ "q014": {
+  "query": "我被蜂蜇了哪里？",
+  "expect": [
+   "d040"
+  ],
+  "type": "lexical"
+ },
+ "q015": {
+  "query": "电子管收音机是花多少钱淘到的？",
+  "expect": [
+   "d023"
+  ],
+  "type": "lexical"
+ },
+ "q016": {
+  "query": "我用什么绕了那个矿石收音机？",
+  "expect": [
+   "d090"
+  ],
+  "type": "lexical"
+ },
+ "q017": {
+  "query": "我第一次完整拉下来的手风琴曲是哪首？",
+  "expect": [
+   "d084"
+  ],
+  "type": "lexical"
+ },
+ "q018": {
+  "query": "秤砣拔了哪颗牙？",
+  "expect": [
+   "d043"
+  ],
+  "type": "lexical"
+ },
+ "q019": {
+  "query": "秤砣怕水吗？",
+  "expect": [
+   "d053"
+  ],
+  "type": "lexical"
+ },
+ "q020": {
+  "query": "老房子卫生间渗水后怎么处理的？",
+  "expect": [
+   "d048"
+  ],
+  "type": "lexical"
+ },
+ "q021": {
+  "query": "搬家那天谁来帮忙？",
+  "expect": [
+   "d124"
+  ],
+  "type": "lexical"
+ },
+ "q022": {
+  "query": "国庆去云崖寨住民宿带谁一起？",
+  "expect": [
+   "d156"
+  ],
+  "type": "lexical"
+ },
+ "q023": {
+  "query": "去鹭鸶洲看候鸟是怎么去的？",
+  "expect": [
+   "d041"
+  ],
+  "type": "lexical"
+ },
+ "q024": {
+  "query": "去雾凇岭看雪转了几趟车？",
+  "expect": [
+   "d111"
+  ],
+  "type": "lexical"
+ },
+ "q025": {
+  "query": "群里的暗号是什么？",
+  "expect": [
+   "d026"
+  ],
+  "type": "lexical"
+ },
+ "q026": {
+  "query": "桂圆喜欢哪种蜜？",
+  "expect": [
+   "d054"
+  ],
+  "type": "lexical"
+ },
+ "q027": {
+  "query": "蜜糖叔最爱喝什么？",
+  "expect": [
+   "d049"
+  ],
+  "type": "lexical"
+ },
+ "q028": {
+  "query": "老槐给群里每人做了什么？",
+  "expect": [
+   "d080"
+  ],
+  "type": "lexical"
+ },
+ "q029": {
+  "query": "豆沙拍的视频播放量破了多少？",
+  "expect": [
+   "d077"
+  ],
+  "type": "lexical"
+ },
+ "q030": {
+  "query": "养蜂入门小课来了几个新手？",
+  "expect": [
+   "d157"
+  ],
+  "type": "lexical"
+ },
+ "q031": {
+  "query": "回老家我一定要吃的是什么？",
+  "expect": [
+   "d067"
+  ],
+  "type": "paraphrase"
+ },
+ "q032": {
+  "query": "闺女的功课哪科不太行？",
+  "expect": [
+   "d081"
+  ],
+  "type": "paraphrase"
+ },
+ "q033": {
+  "query": "孩子最馋的那道菜我练了几回？",
+  "expect": [
+   "d052"
+  ],
+  "type": "paraphrase"
+ },
+ "q034": {
+  "query": "闺女迈进青少年那年收到我什么礼物？",
+  "expect": [
+   "d073"
+  ],
+  "type": "paraphrase"
+ },
+ "q035": {
+  "query": "单位里带过我的老前辈是哪位？",
+  "expect": [
+   "d006"
+  ],
+  "type": "paraphrase"
+ },
+ "q036": {
+  "query": "我手把手教那个年轻人学什么本事？",
+  "expect": [
+   "d032"
+  ],
+  "type": "paraphrase"
+ },
+ "q037": {
+  "query": "跑货船的朋友是谁，多久路过一回？",
+  "expect": [
+   "d021"
+  ],
+  "type": "paraphrase"
+ },
+ "q038": {
+  "query": "教我拉琴的老人家以前是干啥的？",
+  "expect": [
+   "d030"
+  ],
+  "type": "paraphrase"
+ },
+ "q039": {
+  "query": "给狗看牙看关节的是哪位？",
+  "expect": [
+   "d042"
+  ],
+  "type": "paraphrase"
+ },
+ "q040": {
+  "query": "老妈肯不肯搬到镇上跟我一起住？",
+  "expect": [
+   "d012"
+  ],
+  "type": "paraphrase"
+ },
+ "q041": {
+  "query": "洪峰过境那次我在岗位上熬了多久？",
+  "expect": [
+   "d139"
+  ],
+  "type": "paraphrase"
+ },
+ "q042": {
+  "query": "有船撞到了设施，我写了什么材料？",
+  "expect": [
+   "d057"
+  ],
+  "type": "paraphrase"
+ },
+ "q043": {
+  "query": "冰封那几天，第一趟船是怎么保证能进闸的？",
+  "expect": [
+   "d106"
+  ],
+  "type": "paraphrase"
+ },
+ "q044": {
+  "query": "我想往上走一步，要准备什么材料？",
+  "expect": [
+   "d149"
+  ],
+  "type": "paraphrase"
+ },
+ "q045": {
+  "query": "往上走一步的选拔我考得怎么样？",
+  "expect": [
+   "d159"
+  ],
+  "type": "paraphrase"
+ },
+ "q046": {
+  "query": "我拿到过什么资格证？",
+  "expect": [
+   "d074"
+  ],
+  "type": "paraphrase"
+ },
+ "q047": {
+  "query": "放爆竹的时候我家狗躲去哪了？",
+  "expect": [
+   "d085"
+  ],
+  "type": "paraphrase"
+ },
+ "q048": {
+  "query": "天擦黑前我家老狗要去哪里放风？",
+  "expect": [
+   "d147"
+  ],
+  "type": "paraphrase"
+ },
+ "q049": {
+  "query": "我家那条狗多大年纪，哪儿来的？",
+  "expect": [
+   "d010"
+  ],
+  "type": "paraphrase"
+ },
+ "q050": {
+  "query": "练琴肩膀不舒服，我是怎么解决的？",
+  "expect": [
+   "d064"
+  ],
+  "type": "paraphrase"
+ },
+ "q051": {
+  "query": "单位晚会我表演了什么？",
+  "expect": [
+   "d138"
+  ],
+  "type": "paraphrase"
+ },
+ "q052": {
+  "query": "那台不响的老机子后来是怎么出声的？",
+  "expect": [
+   "d045"
+  ],
+  "type": "paraphrase"
+ },
+ "q053": {
+  "query": "修机器时我喜欢听什么陪着？",
+  "expect": [
+   "d100"
+  ],
+  "type": "paraphrase"
+ },
+ "q054": {
+  "query": "我冲蜜水放不放酸味的东西？",
+  "expect": [
+   "d152"
+  ],
+  "type": "paraphrase"
+ },
+ "q055": {
+  "query": "最近一茬的蜜我分送给了哪几个人？",
+  "expect": [
+   "d133"
+  ],
+  "type": "paraphrase"
+ },
+ "q056": {
+  "query": "蜜蜂过冬前我做了哪些防护？",
+  "expect": [
+   "d093"
+  ],
+  "type": "paraphrase"
+ },
+ "q057": {
+  "query": "我喝酒有什么限度？",
+  "expect": [
+   "d078"
+  ],
+  "type": "paraphrase"
+ },
+ "q058": {
+  "query": "谁在县城做花草生意？",
+  "expect": [
+   "d011"
+  ],
+  "type": "paraphrase"
+ },
+ "q059": {
+  "query": "群里谁是做木工活的？",
+  "expect": [
+   "d016"
+  ],
+  "type": "paraphrase"
+ },
+ "q060": {
+  "query": "谁是群里的小辈？",
+  "expect": [
+   "d019"
+  ],
+  "type": "paraphrase"
+ },
+ "q061": {
+  "query": "群里谁在医疗行业工作？",
+  "expect": [
+   "d022"
+  ],
+  "type": "paraphrase"
+ },
+ "q062": {
+  "query": "谁吃不惯蜜蜂采回来的黄粉末？",
+  "expect": [
+   "d051"
+  ],
+  "type": "paraphrase"
+ },
+ "q063": {
+  "query": "谁吃甜浆时连带着蜂窝一起嚼？",
+  "expect": [
+   "d056"
+  ],
+  "type": "paraphrase"
+ },
+ "q064": {
+  "query": "谁早上拿蜜涂在烤过的面食上？",
+  "expect": [
+   "d059"
+  ],
+  "type": "paraphrase"
+ },
+ "q065": {
+  "query": "有人天蒙蒙亮发招呼，是想唠嗑吗？",
+  "expect": [
+   "d065"
+  ],
+  "type": "paraphrase"
+ },
+ "q066": {
+  "query": "有谁走夜路摔伤了脚休养了很久？",
+  "expect": [
+   "d086"
+  ],
+  "type": "paraphrase"
+ },
+ "q067": {
+  "query": "岁末聚会大家互相交换了什么？",
+  "expect": [
+   "d098"
+  ],
+  "type": "paraphrase"
+ },
+ "q068": {
+  "query": "能随便拿蜜糖叔开涮吗？",
+  "expect": [
+   "d117"
+  ],
+  "type": "paraphrase"
+ },
+ "q069": {
+  "query": "我现在是几班倒？",
+  "expect": [
+   "d062"
+  ],
+  "type": "updated",
+  "stale": [
+   "d003"
+  ]
+ },
+ "q070": {
+  "query": "我现在住在哪一带？",
+  "expect": [
+   "d123"
+  ],
+  "type": "updated",
+  "stale": [
+   "d014"
+  ]
+ },
+ "q071": {
+  "query": "我还抽烟吗？",
+  "expect": [
+   "d101"
+  ],
+  "type": "updated",
+  "stale": [
+   "d004"
+  ]
+ },
+ "q072": {
+  "query": "我现在喝茶有什么讲究？",
+  "expect": [
+   "d096"
+  ],
+  "type": "updated",
+  "stale": [
+   "d013"
+  ]
+ },
+ "q073": {
+  "query": "我的蜂场有几箱蜂？",
+  "expect": [
+   "d130"
+  ],
+  "type": "updated",
+  "stale": [
+   "d031"
+  ]
+ },
+ "q074": {
+  "query": "小满现在怎么上学，每天回家吗？",
+  "expect": [
+   "d112"
+  ],
+  "type": "updated",
+  "stale": [
+   "d017"
+  ]
+ },
+ "q075": {
+  "query": "秤砣现在吃什么？",
+  "expect": [
+   "d104"
+  ],
+  "type": "updated",
+  "stale": [
+   "d025"
+  ]
+ },
+ "q076": {
+  "query": "我现在怎么学手风琴？",
+  "expect": [
+   "d116"
+  ],
+  "type": "updated",
+  "stale": [
+   "d037"
+  ]
+ },
+ "q077": {
+  "query": "小满现在课外学什么？",
+  "expect": [
+   "d136"
+  ],
+  "type": "updated",
+  "stale": [
+   "d027"
+  ]
+ },
+ "q078": {
+  "query": "船闸站现在的站长是谁？",
+  "expect": [
+   "d134"
+  ],
+  "type": "updated",
+  "stale": [
+   "d005"
+  ]
+ },
+ "q079": {
+  "query": "群里现在定在什么时候去看蜂？",
+  "expect": [
+   "d094"
+  ],
+  "type": "updated",
+  "stale": [
+   "d033"
+  ]
+ },
+ "q080": {
+  "query": "养蜂群现在谁是群主？",
+  "expect": [
+   "d131"
+  ],
+  "type": "updated",
+  "stale": [
+   "d009"
+  ]
+ },
+ "q081": {
+  "query": "我姐姐的孩子几岁了？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q082": {
+  "query": "秤砣最喜欢的玩具是什么？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q083": {
+  "query": "小满的围棋老师叫什么名字？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q084": {
+  "query": "我的蜂场里换过蜂王吗？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q085": {
+  "query": "蜜糖叔住在哪个村？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q086": {
+  "query": "阿梨的花店叫什么名字？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q087": {
+  "query": "小满游泳比赛的成绩怎么样？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q088": {
+  "query": "我母亲的生日是哪天？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q089": {
+  "query": "邱师傅退休后去哪里养老？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q090": {
+  "query": "我的手风琴是什么牌子的？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q091": {
+  "query": "船闸一次最多能过几条船？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q092": {
+  "query": "老槐的木工房在哪个镇？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q093": {
+  "query": "豆沙的短视频发在哪个平台？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q094": {
+  "query": "我住在鹭鸶洲的渔家小院一晚多少钱？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q095": {
+  "query": "我抽烟抽了多少年？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q096": {
+  "query": "我的车是什么颜色的？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q097": {
+  "query": "我最喜欢的足球队是哪支？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q098": {
+  "query": "我的血型是什么？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q099": {
+  "query": "我读的是哪所大学？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q100": {
+  "query": "我会说几门外语？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q101": {
+  "query": "下个月我有什么日程安排？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q102": {
+  "query": "我最喜欢的电影是什么？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q103": {
+  "query": "我的身高体重是多少？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q104": {
+  "query": "我平时用什么牌子的牙膏？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q105": {
+  "query": "我家的无线网络叫什么名字？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q106": {
+  "query": "我最近在追什么剧？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q107": {
+  "query": "我养的绿萝多久浇一次水？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q108": {
+  "query": "我小时候的梦想是什么？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q109": {
+  "query": "我喜欢什么颜色？",
+  "expect": [],
+  "type": "quiet"
+ },
+ "q110": {
+  "query": "我是哪年出生的？",
+  "expect": [],
+  "type": "quiet"
+ }
+}

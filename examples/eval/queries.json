@@ -1,0 +1,175 @@
+{
+  "q01": {
+    "query": "许明川平时喝什么咖啡",
+    "expect": [
+      "preferences/许明川/咖啡.md"
+    ]
+  },
+  "q02": {
+    "query": "他写稿的时候听什么音乐",
+    "expect": [
+      "preferences/许明川/音乐.md"
+    ]
+  },
+  "q03": {
+    "query": "许明川喜欢玩什么类型的游戏",
+    "expect": [
+      "preferences/许明川/游戏.md"
+    ]
+  },
+  "q04": {
+    "query": "他几点睡觉几点起床",
+    "expect": [
+      "preferences/许明川/作息.md"
+    ]
+  },
+  "q05": {
+    "query": "他爱吃什么不吃什么",
+    "expect": [
+      "preferences/许明川/食物.md"
+    ]
+  },
+  "q06": {
+    "query": "许明川多久游一次泳",
+    "expect": [
+      "preferences/许明川/运动.md",
+      "entities/地点/游泳馆.md"
+    ]
+  },
+  "q07": {
+    "query": "何知夏喜欢喝什么",
+    "expect": [
+      "preferences/何知夏/饮品.md"
+    ]
+  },
+  "q08": {
+    "query": "何知夏出远门坐什么交通工具",
+    "expect": [
+      "preferences/何知夏/出行.md"
+    ]
+  },
+  "q09": {
+    "query": "方雨桐养了什么宠物",
+    "expect": [
+      "preferences/方雨桐/宠物.md",
+      "entities/宠物/汤圆.md",
+      "entities/宠物/年糕.md"
+    ]
+  },
+  "q10": {
+    "query": "团子为什么去了宠物医院",
+    "expect": [
+      "events/2026/10/03/猫生病.md"
+    ]
+  },
+  "q11": {
+    "query": "电脑蓝屏是什么原因",
+    "expect": [
+      "events/2026/10/08/电脑蓝屏.md",
+      "entities/物品/画图电脑.md"
+    ]
+  },
+  "q12": {
+    "query": "客户让他把灯笼改成什么颜色",
+    "expect": [
+      "events/2026/10/12/稿件交付.md",
+      "entities/作品/青禾旅馆.md"
+    ]
+  },
+  "q13": {
+    "query": "生日那天何知夏送了什么礼物",
+    "expect": [
+      "events/2026/10/20/生日.md",
+      "entities/物品/压感笔套.md"
+    ]
+  },
+  "q14": {
+    "query": "他帮朋友搬家那天发生了什么",
+    "expect": [
+      "events/2026/10/27/搬家帮忙.md"
+    ]
+  },
+  "q15": {
+    "query": "游泳第一次游够一千米是什么时候",
+    "expect": [
+      "events/2026/11/01/游泳.md"
+    ]
+  },
+  "q16": {
+    "query": "咖啡机坏了怎么处理的",
+    "expect": [
+      "events/2026/11/02/咖啡机.md",
+      "entities/物品/咖啡机.md"
+    ]
+  },
+  "q17": {
+    "query": "他看的那个插画展叫什么",
+    "expect": [
+      "events/2026/11/04/展览.md"
+    ]
+  },
+  "q18": {
+    "query": "汤圆跑出笼子后在哪里找到的",
+    "expect": [
+      "events/2026/11/05/仓鼠逃跑.md"
+    ]
+  },
+  "q19": {
+    "query": "灯塔守夜人是一款什么游戏",
+    "expect": [
+      "entities/作品/灯塔守夜人.md",
+      "events/2026/11/07/新游戏.md"
+    ]
+  },
+  "q20": {
+    "query": "沈清河写过哪些书",
+    "expect": [
+      "entities/人物/沈清河.md",
+      "preferences/许明川/阅读.md"
+    ]
+  },
+  "q21": {
+    "query": "江边小馆的招牌是什么",
+    "expect": [
+      "entities/地点/江边小馆.md"
+    ]
+  },
+  "q22": {
+    "query": "青禾美术社什么时候聚会",
+    "expect": [
+      "entities/组织/青禾美术社.md"
+    ]
+  },
+  "n01": {
+    "query": "量子计算机的纠错码是怎么工作的",
+    "expect": []
+  },
+  "n02": {
+    "query": "火星表面的平均气温是多少",
+    "expect": []
+  },
+  "n03": {
+    "query": "如何用汇编语言写一个操作系统内核",
+    "expect": []
+  },
+  "n04": {
+    "query": "请推荐一个适合新手的股票基金组合",
+    "expect": []
+  },
+  "n05": {
+    "query": "古罗马的税收制度有什么特点",
+    "expect": []
+  },
+  "n06": {
+    "query": "怎样给汽车更换机油滤清器",
+    "expect": []
+  },
+  "n07": {
+    "query": "糖尿病患者每天应该摄入多少碳水",
+    "expect": []
+  },
+  "n08": {
+    "query": "北极熊的捕猎习性",
+    "expect": []
+  }
+}
