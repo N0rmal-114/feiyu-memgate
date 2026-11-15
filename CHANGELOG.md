@@ -41,7 +41,7 @@
 
 ### 新增
 
-- DeepSeek Harness（DSH）插件，在 `plugins/` 下，发布到 npm：`dsh-feiyu-memgate`（自带网关、自动召回、记住和查找两个工具、设置页面，默认关键词检索）和可选的 `dsh-feiyu-memgate-embed`（本机 CPU 运行向量模型，模型点击后才下载）。两个包的版本号各自独立，都是 0.1.0。
+- DeepSeek Harness（DSH）插件，在 `plugins/` 下，发布到 npm：`dsh-feiyu-memgate`（自带网关、自动召回、记住和查找两个工具、设置页面，默认关键词检索）和可选的 `dsh-feiyu-memgate-embed`（本机 CPU 运行向量模型，模型点击后才下载）。两个包的版本号各自独立。
 - AstrBot 示例插件：宿主不支持临时消息片段时，记忆块不再接到系统提示词末尾（那样每轮都会让提示词缓存失效），改为接在当前消息的文字末尾；`FEIYU_MEMGATE_FALLBACK` 可选 `message`（默认）、`system`、`off`。历史里留下的旧记忆块不会进入下一次的查询词，同一段记忆不会连续接两次。新增 `BlockFormatter.strip()`。插件的逻辑现在有测试（用模拟的 AstrBot 接口）。
 - 召回步骤 `newer_first`（见上）。在开发集和测试集上，新旧两条记忆都被交付时新的排在前面的比例，默认的向量配置从约六成到全部；两份数据里这类问题分别只有 12 和 20 道。
 - 租户绑定令牌：多租户客户端写 `tenant_binding = "token"` 后，`token_env` 里的密钥只用来铸造令牌，每个租户一个派生令牌（`feiyu-memgate tenants token --config <文件> --client <名字> --tenant <租户号>`），网关无状态校验，请求里的 `tenant_id` 可以不写，写了且和令牌不一致回 403 `tenant_mismatch`。`tenant_token_generation` 加一即吊销该客户端的全部派生令牌。这种客户端的限流先查每个租户自己的额度、通过了才扣总量，一个租户不能把别的租户挤掉。默认仍是原来的自报租户号，`check` 会对它给一行提醒。细节和限度见 security.md。

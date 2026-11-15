@@ -348,6 +348,11 @@ test('the chain line says where the setup stands, in the page language', () => {
   assert.match(at('done'), /^bge-m3 is in use/)
   assert.equal(internals.pickText({ en: 'a', zh: '乙' }, 'zh'), '乙')
   assert.equal(internals.formatSize(1157671200), '1.2 GB')
+  // One failure reported both by the click's answer and by the chain's stored state is shown once.
+  assert.equal(internals.sameProblem({ code: 'builds-denied' }, { code: 'builds-denied' }), true)
+  assert.equal(internals.sameProblem({ code: 'builds-denied' }, { code: 'python-missing' }), false)
+  assert.equal(internals.sameProblem({ code: 'builds-denied' }, null), false)
+  assert.equal(internals.sameProblem({}, {}), false)
   assert.equal(internals.formatSize(47886240), '47.9 MB')
 })
 

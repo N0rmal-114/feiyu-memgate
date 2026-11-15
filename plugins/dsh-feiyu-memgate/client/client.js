@@ -1066,6 +1066,12 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
       body)
   }
 
+  // The answer to a click and the stored state of the chain often carry the same failure (a declined
+  // install script is both). Found in a real host: the message was shown twice. Show the stored one.
+  function sameProblem(a, b) {
+    return Boolean(a && b && a.code && a.code === b.code)
+  }
+
   function Problem(props) {
     const { problem, lang, t } = props
     if (!problem) return null
@@ -1187,7 +1193,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
         view.python && view.python.problem ? h(Problem, { problem: view.python.problem, lang, t }) : null,
         line ? h('p', { style: S.note, role: 'status' }, line) : null,
         view.chain && view.chain.error ? h(Problem, { problem: view.chain.error, lang, t }) : null,
-        refusal ? h(Problem, { problem: refusal, lang, t }) : null,
+        refusal && !sameProblem(refusal, view.chain && view.chain.error) ? h(Problem, { problem: refusal, lang, t }) : null,
         declined ? h('p', { style: S.note, role: 'status' }, t('declined')) : null,
         view.builds
           ? h('div', { style: S.confirm, role: 'dialog', 'aria-label': t('phase.builds') },
@@ -1310,7 +1316,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
     // For tests: the page's pure parts and components.
     internals: {
       FIELDS, NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, dictionaries, fieldView, buildOps, saveDraft, statusRows, checkText,
-      fetchStatus, fetchModels, postModels, pickText, formatSize, memoryText, modelActions, chainLine, SettingsPage, SettingsBody, ModelsSection,
+      fetchStatus, fetchModels, postModels, pickText, formatSize, memoryText, modelActions, chainLine, sameProblem, SettingsPage, SettingsBody, ModelsSection,
       ModelRowForTests: ModelRow,
     },
   }
