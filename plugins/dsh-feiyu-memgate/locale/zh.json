@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "feiyu-memgate 记忆",
+    "description": "feiyu-memgate 记忆网关的 DeepSeek Harness 插件：提供长期记忆，自动召回，并给模型记住和查找两个工具。",
+    "detail": "docs/DETAIL.md"
+  }
+}

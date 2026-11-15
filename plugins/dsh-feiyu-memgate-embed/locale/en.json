@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "feiyu-memgate local embeddings",
+    "description": "Runs a local embedding model on the CPU and offers it to the feiyu-memgate memory plugin, so memories are found by meaning without any online service.",
+    "detail": "docs/DETAIL.en.md"
+  }
+}

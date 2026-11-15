@@ -617,6 +617,17 @@ client = LocalClient.from_config("gateway.toml", client="owner")   # 不起服�
 
 AstrBot 的接入示例在 [integrations/astrbot](integrations/astrbot/)。
 
+### DeepSeek Harness（DSH）插件
+
+本仓库的 `plugins/` 下有两个 DSH 插件包，各自发布到 npm：
+
+| 包 | 作用 |
+|---|---|
+| [dsh-feiyu-memgate](plugins/dsh-feiyu-memgate/README.zh.md) | 给 DSH 对话加上长期记忆：自带并自动启动本网关，每轮自动召回，给模型“记住”和“查找”两个工具，带设置页面。每项功能都能单独关掉。默认用关键词检索，不需要模型，也不下载任何东西。 |
+| [dsh-feiyu-memgate-embed](plugins/dsh-feiyu-memgate-embed/README.zh.md) | 可选的附加包：在本机只用 CPU 运行向量模型，让换了说法的问题也能找到记忆。模型在设置页面里点“下载并启用”之后才下载。 |
+
+安装：在 DSH 的插件页面安装 `dsh-feiyu-memgate`，或运行 `dsh plugin --profile <name> add dsh-feiyu-memgate`。要求、设置和测试范围见各自的说明。
+
 ## 配置示例
 
 换成向量后端，只改存储一节（[examples/hybrid](examples/hybrid/gateway.toml) 是关键词加向量的混合配置，[examples/openviking](examples/openviking/gateway.toml) 接 OpenViking）：
@@ -695,6 +706,7 @@ stages = ["min_score", { type = "recency_stage:Recency", half_life_days = 30 }, 
 | [docs/design/](docs/design/) | 来源项目里的原始设计文档和改造前的审计 |
 | [bench/](bench/README.md) | 基准的数据、规则、适配器和复现方法 |
 | [bench/results/design/](bench/results/design/features.md) | 各项目的功能对照，和本项目的设计自检 |
+| [plugins/](plugins/dsh-feiyu-memgate/README.zh.md) | DeepSeek Harness 插件和它的向量附加包 |
 | [research/](research/) | 对同类记忆项目的调研报告：它们怎么工作、成熟度、可以借鉴什么 |
 
 ## 现状与限制
@@ -710,6 +722,7 @@ python -m unittest discover -s tests -t .
 - 改成框架之后的这一版还没有经过长时间的线上运行。
 - 遗忘曲线只在模拟里验证过，默认关闭。
 - AstrBot 接入示例的逻辑用模拟的 AstrBot 接口测过，没有在真实的 AstrBot 里跑过。
+- DSH 插件在 Windows 上已安装的 DeepSeek Harness 0.2.2-rc.1 里用隔离的配置测过加载、自带网关、设置页面和本地向量模型；没有测过 macOS 和 Linux、桌面应用自己的窗口，也没有在和真实模型的对话里用过。它的测试用 `node --test` 在各自的目录里运行，不计入上面的数字。
 - 多租户客户端默认仍是调用方自报租户号，同一个令牌可以读任何已登记的租户；要把令牌发给不完全可信的程序时，改用租户绑定令牌（`tenant_binding = "token"`）。绑定令牌没有过期时间，靠提高代数或移除租户来吊销。
 - 进程内运行（`LocalClient`）时没有信任边界，见上面“部署档位”。
 - 脱敏基于正则，认不出没有关键词提示的孤立密钥；记忆里指令样的文字不会被改写。

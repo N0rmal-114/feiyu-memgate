@@ -1,0 +1,7 @@
+# The dsh-feiyu-memgate bundle patch: one row that mounts the plugin with its default settings
+# (managed gateway, automatic recall, the remember and search tools). Change settings in the
+# host's Settings page or with an id-targeted override of `feiyu-memgate`.
+- insert:
+    - id: feiyu-memgate
+      name: dsh-feiyu-memgate
+      config: {}

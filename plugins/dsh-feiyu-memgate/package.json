@@ -1,0 +1,74 @@
+{
+  "name": "dsh-feiyu-memgate",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness (DSH) plugin for the feiyu-memgate memory gateway: automatic recall, remember and search tools, with a bundled gateway.",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client/client.js",
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "files": [
+    "index.js",
+    "src/",
+    "client/",
+    "python/",
+    "locale/",
+    "docs/",
+    "cordis.patch.yml",
+    "icon.png",
+    "LICENSE"
+  ],
+  "icon": "icon.png",
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "memory",
+    "feiyu-memgate"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "sync-gateway": "node scripts/sync-gateway.mjs",
+    "sync-client": "node scripts/sync-client.mjs",
+    "sync-catalogue": "node scripts/sync-catalogue.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-plugin-manager"
+      ]
+    }
+  },
+  "engines": {
+    "node": ">=22.19",
+    "dsh": ">=0.2.0-rc.1 <0.2.1-0 || >=0.2.1-alpha.1 <0.2.2-0 || >=0.2.2-alpha.1 <0.2.3-0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/schemastery": "^3.18.4",
+    "@deepseek-ai/dsh-llm": ">=0.2.0-rc.1 <0.2.1-0 || >=0.2.1-alpha.1 <0.2.2-0 || >=0.2.2-alpha.1 <0.2.3-0"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-llm": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/N0rmal-114/feiyu-memgate.git",
+    "directory": "plugins/dsh-feiyu-memgate"
+  },
+  "homepage": "https://github.com/N0rmal-114/feiyu-memgate/tree/main/plugins/dsh-feiyu-memgate",
+  "bugs": {
+    "url": "https://github.com/N0rmal-114/feiyu-memgate/issues"
+  },
+  "author": "N0rmal",
+  "license": "MIT"
+}

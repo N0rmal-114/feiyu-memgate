@@ -1,0 +1,4 @@
+# `files` in package.json lists what is published; this keeps byte-code caches out of python/.
+__pycache__/
+*.pyc
+*.pyo

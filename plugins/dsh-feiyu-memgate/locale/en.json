@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "feiyu-memgate memory",
+    "description": "The DeepSeek Harness plugin for the feiyu-memgate memory gateway: long-term memory with automatic recall and remember/search tools.",
+    "detail": "docs/DETAIL.en.md"
+  }
+}

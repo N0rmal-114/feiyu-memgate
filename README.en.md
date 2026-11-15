@@ -620,6 +620,17 @@ client = LocalClient.from_config("gateway.toml", client="owner")   # no service,
 
 An AstrBot integration example is in [integrations/astrbot](integrations/astrbot/).
 
+### DeepSeek Harness (DSH) plugins
+
+Two DSH plugin packages live under `plugins/` in this repository. Each is published to npm:
+
+| Package | What it does |
+|---|---|
+| [dsh-feiyu-memgate](plugins/dsh-feiyu-memgate/README.md) | Adds long-term memory to DSH conversations: it ships this gateway and starts it by itself, recalls at the start of every turn, gives the model a remember tool and a search tool, and has a settings page. Each feature can be switched off on its own. The default is keyword retrieval, which needs no model and downloads nothing. |
+| [dsh-feiyu-memgate-embed](plugins/dsh-feiyu-memgate-embed/README.md) | Optional add-on: runs an embedding model on this machine, on the CPU only, so that reworded questions find their memories too. A model is downloaded only after you press "Download and enable" on the settings page. |
+
+To install, add `dsh-feiyu-memgate` on DSH's plugin page, or run `dsh plugin --profile <name> add dsh-feiyu-memgate`. Requirements, settings and what was tested are in each package's README.
+
 ## Configuration examples
 
 To switch to the vector backend, change only the store section ([examples/hybrid](examples/hybrid/gateway.toml) is a hybrid keyword plus vector configuration, and [examples/openviking](examples/openviking/gateway.toml) connects to OpenViking):
@@ -698,6 +709,7 @@ Put the class file next to the configuration file. No installation is needed. Th
 | [docs/design/](docs/design/) (Chinese) | Original design documents from the project this was extracted from, and the audit done before the rework |
 | [bench/](bench/README.md) (Chinese) | Benchmark data, rules, adapters and reproduction steps |
 | [bench/results/design/](bench/results/design/features.en.md) | Feature comparison of the projects, and this project's design self-check |
+| [plugins/](plugins/dsh-feiyu-memgate/README.md) | The DeepSeek Harness plugin and its embedding add-on |
 | [research/](research/) (Chinese) | Survey reports on similar memory projects: how they work, how mature they are, what can be borrowed |
 
 ## Status and limits
@@ -713,6 +725,7 @@ There are currently 1394 tests. The gateway's approach comes from the version th
 - This version, after the rework into a framework, has not yet run in production for a long time.
 - The forgetting curve has been verified only in simulation and is off by default.
 - The logic of the AstrBot integration example is tested against stand-ins for AstrBot's interface. It has not been run in a real AstrBot.
+- The DSH plugins were tested on Windows in an installed DeepSeek Harness 0.2.2-rc.1 with an isolated configuration: loading, the bundled gateway, the settings page and a local embedding model. They were not tested on macOS or Linux, in the desktop application's own window, or in a conversation with a real model. Their tests run with `node --test` in each package's folder and are not part of the number above.
 - By default, a multi-tenant client still has the caller report its tenant id, and one token can read any registered tenant. To give a token to a program that is not fully trusted, use tenant-bound tokens (`tenant_binding = "token"`). A bound token has no expiry date. Revoke it by raising the generation or removing the tenant.
 - When running in-process (`LocalClient`) there is no trust boundary, see "Deployment tiers" above.
 - Redaction is regex-based. It cannot recognize an isolated key with no keyword hint, and instruction-like text inside memories is not rewritten.

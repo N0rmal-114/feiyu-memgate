@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+# The bundled gateway is a byte-for-byte copy of a released commit; python/GATEWAY_VERSION.json
+# records a sha256 per file, so line endings must not be converted here.
+python/** -text

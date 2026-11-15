@@ -1,0 +1,60 @@
+{
+  "name": "dsh-feiyu-memgate-embed",
+  "version": "0.1.0",
+  "description": "Optional add-on for the dsh-feiyu-memgate DeepSeek Harness (DSH) plugin: runs a local embedding model on the CPU with node-llama-cpp and offers it to the memory gateway as an OpenAI-compatible endpoint on loopback.",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "files": [
+    "index.js",
+    "src/",
+    "locale/",
+    "docs/",
+    "cordis.patch.yml",
+    "icon.png",
+    "LICENSE"
+  ],
+  "icon": "icon.png",
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "feiyu-memgate",
+    "embeddings",
+    "node-llama-cpp",
+    "gguf"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "engines": {
+    "node": ">=22.19",
+    "dsh": ">=0.2.2-rc.1 <0.2.3-0"
+  },
+  "dependencies": {
+    "node-llama-cpp": "3.22.3"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/schemastery": "^3.18.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/N0rmal-114/feiyu-memgate.git",
+    "directory": "plugins/dsh-feiyu-memgate-embed"
+  },
+  "homepage": "https://github.com/N0rmal-114/feiyu-memgate/tree/main/plugins/dsh-feiyu-memgate-embed",
+  "bugs": {
+    "url": "https://github.com/N0rmal-114/feiyu-memgate/issues"
+  },
+  "author": "N0rmal",
+  "license": "MIT"
+}

@@ -1,0 +1,8 @@
+# The dsh-feiyu-memgate-embed bundle patch: one row that mounts the add-on with its default settings.
+# Nothing is downloaded and no model runs until a model is added and chosen with /memgate-embed.
+# Change settings in the host's Settings page or with an id-targeted override of
+# `feiyu-memgate-embed`.
+- insert:
+    - id: feiyu-memgate-embed
+      name: dsh-feiyu-memgate-embed
+      config: {}
