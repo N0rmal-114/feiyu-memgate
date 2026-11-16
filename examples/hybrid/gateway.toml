@@ -38,7 +38,7 @@ daily_writes = 50
 
 [recall]
 # 不写 stages：用默认的一套（min_score、relative_score、newer_first、fill_text、drop_oversize、redact、dedupe、budget）。
-# 分数线和“离最高分多远”的比例由 hybrid 后端自己声明（0.70 和 0.85，在开发集 bench/dev 上选的，见 docs/backends.md），
+# 分数线和“离最高分多远”的比例由 hybrid 后端自己声明（默认的 broad 档是 0.40 和 0.65，[recall] profile = "precise" 时是 0.70 和 0.85；在开发集 bench/dev 上选的，见 docs/backends.md），
 # 不用手写；要按自己的数据调，用 bench/dev_eval.py --backend hybrid --search 量一下再在这里写：
 #   stages = [{ type = "min_score", value = 0.5 }, { type = "relative_score", ratio = 0.7 }, "fill_text", ...]
 

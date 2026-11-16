@@ -43,7 +43,7 @@ deadline = 3.0
 cold_deadline = 8.0                   # 向量模型空闲后被卸载，隔一阵后的第一次召回多等一会儿
 cold_after = 600
 # 不写 stages：用默认的一套（min_score、relative_score、newer_first、fill_text、drop_oversize、redact、dedupe、budget），
-# openviking 存储自己的默认值是分数线 0.55（原始分数 0.775）、比例 0.95。
+# openviking 存储自己声明的分数线：默认的 broad 档是 0.55（原始分数 0.775）、比例 0.90，[recall] profile = "precise" 时是 0.55、比例 0.95。
 
 [write]
 guards = ["redact", { type = "daily_cap", utc_offset_hours = 8 }]

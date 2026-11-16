@@ -49,7 +49,7 @@
 <polyline points="70.0,185.3 127.8,135.3 185.6,132.0 243.3,125.3 301.1,118.7 358.9,118.7 416.7,118.7 474.4,115.3 532.2,115.3 590.0,115.3" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
 <polyline points="70.0,185.3 127.8,138.7 185.6,132.0 243.3,125.3 301.1,118.7 358.9,118.7 416.7,118.7 474.4,115.3 532.2,115.3 590.0,115.3" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 4"/>
 <polyline points="70.0,178.7 127.8,138.7 185.6,135.3 243.3,135.3 301.1,125.3 358.9,122.0 416.7,118.7 474.4,118.7 532.2,112.0 590.0,112.0" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2 4"/>
-<polyline points="70.0,175.3 127.8,138.7 185.6,135.3 243.3,135.3 301.1,132.0 358.9,122.0 416.7,118.7 474.4,118.7 532.2,115.3 590.0,112.0" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 4 2 4"/>
+<polyline points="70.0,178.7 127.8,135.3 185.6,135.3 243.3,135.3 301.1,132.0 358.9,122.0 416.7,118.7 474.4,118.7 532.2,115.3 590.0,112.0" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 4 2 4"/>
 <polyline points="70.0,265.3 127.8,215.3 185.6,202.0 243.3,192.0 301.1,185.3 358.9,185.3 416.7,175.3 474.4,168.7 532.2,162.0 590.0,158.7" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="14 5"/>
 <line x1="590.0" y1="112.0" x2="630.0" y2="104.0" class="lead" stroke="#898781"/>
 <circle cx="590.0" cy="112.0" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
@@ -91,5 +91,5 @@
 <circle cx="590.0" cy="158.7" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
 <text x="636.0" y="244.0" class="lb">feiyu-memgate sqlite</text>
 <text x="24.0" y="574.0" class="s">蓝色是 feiyu-memgate 的配置，不同虚线样式只用来区分它们，名字写在线尾；灰色是其他项目。完全重合的线只画一条，标签写在一起。</text>
-<text x="24.0" y="592.0" class="s">bench/results/summary.md · 240 条记忆，160 个问题 · 2026-11-15</text>
+<text x="24.0" y="592.0" class="s">bench/results/summary.md · 240 条记忆，160 个问题 · 2026-11-16</text>
 </svg>

@@ -25,6 +25,11 @@ class MemoryBackend(abc.ABC):
     to stop early. Read them with getattr: ctl may be None or lack them. A backend without
     sockets and without long work ignores ctl.
 
+    Score lines: `default_min_score` and `default_relative_ratio` (optional) are the lines of the "precise"
+    profile; the `default_` prefix is historical, it does not mean the default profile. `broad_min_score` and
+    `broad_relative_ratio` are those of "broad", which is the default profile of the stages. A backend that
+    declares no broad line keeps its `default_` line under either profile.
+
     Failures raise BackendError (or any exception): the gateway counts the store
     as failed for this request and goes on with the others. Error messages must not
     contain memory text or keys.
@@ -49,13 +54,15 @@ class MemoryBackend(abc.ABC):
     # follows each write for a few minutes and reports the outcome in /healthz?deep=1.
     tracks_writes = False
     # The min_score a recall should use for this backend when the policy names none (the gateway's
-    # `min_score` stage reads it). Scores of different backends mean different things (keyword
+    # `min_score` stage reads it). The `default_` prefix is historical: it names the line of the "precise"
+    # profile, not the default profile (the default profile is "broad", see broad_* below). Scores of different backends mean different things (keyword
     # overlap, semantic similarity), so a backend states a sensible floor for its own scale.
     # Optional: a backend that does not set it gets the gateway's own default.
     default_min_score = None
     # The recall-leaning counterparts, used by the `min_score` / `relative_score` stages when their option
-    # `profile` is "broad" (they trade precision and silence for more answered questions). None means this
-    # backend has no distinct broad setting: the stages then use the default above.
+    # `profile` is "broad", which is the stages' default (they trade precision and silence for more answered
+    # questions). None means this backend has no distinct broad setting: the stages then use the default_ line
+    # above under either profile.
     broad_min_score = None
     broad_relative_ratio = None
 

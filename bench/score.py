@@ -445,7 +445,7 @@ def build_markdown(summary):
             if s.get("experiment"):
                 lines += ["- 这是实验变体，不是默认运行；图表里不画，表里保留。"]
             if s.get("variant"):
-                lines += ["- 这是同一个后端的另一档配置（别的模型或宽松档），不在五张基准图里画，表里保留。"]
+                lines += ["- 这是同一个后端的另一档配置（别的模型或精确档），不在五张基准图里画，表里保留。"]
             lines += ["- 备注：%s" % n for n in s["notes"]]
             lines += [""]
     if summary["errors"]:

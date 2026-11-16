@@ -1,9 +1,9 @@
 {
  "system": "feiyu-memgate-openviking",
  "version": "0.1.0 (OpenViking v0.5.3)",
- "mode": "verbatim memory-file ingest into OpenViking, feiyu-memgate openviking backend (read-only store), default recall stages, bge-m3 embeddings inside OpenViking, no LLM",
+ "mode": "verbatim memory-file ingest into OpenViking, feiyu-memgate openviking backend (read-only store), default recall stages (broad profile), bge-m3 embeddings inside OpenViking, no LLM",
  "how": "config.build_gateway(dict); OpenVikingBackend.put(text, ref=viking://~/memories/events/Y/M/D/<id>.md) per memory; OpenVikingBackend.find(query, 10) for ranked; Gateway.recall('owner', {'query': q}) for deployed; id = file name of the item's URI",
- "ingest_seconds": 69.814,
+ "ingest_seconds": 69.282,
  "llm_tokens": 0,
  "llm_cost_cny": 0.0,
  "answers": {
@@ -56,7 +56,7 @@
      "score": 0.7548
     }
    ],
-   "ms": 24.478
+   "ms": 25.658
   },
   "q002": {
    "ranked": [
@@ -107,7 +107,7 @@
      "score": 0.8211
     }
    ],
-   "ms": 25.269
+   "ms": 25.7
   },
   "q003": {
    "ranked": [
@@ -158,7 +158,7 @@
      "score": 0.7623
     }
    ],
-   "ms": 51.921
+   "ms": 50.109
   },
   "q004": {
    "ranked": [
@@ -209,7 +209,7 @@
      "score": 0.7282
     }
    ],
-   "ms": 25.547
+   "ms": 24.906
   },
   "q005": {
    "ranked": [
@@ -260,7 +260,7 @@
      "score": 0.6961
     }
    ],
-   "ms": 24.688
+   "ms": 23.262
   },
   "q006": {
    "ranked": [
@@ -311,7 +311,7 @@
      "score": 0.8014
     }
    ],
-   "ms": 51.264
+   "ms": 51.725
   },
   "q007": {
    "ranked": [
@@ -362,7 +362,7 @@
      "score": 0.8106
     }
    ],
-   "ms": 24.488
+   "ms": 23.417
   },
   "q008": {
    "ranked": [
@@ -413,7 +413,7 @@
      "score": 0.6834
     }
    ],
-   "ms": 24.751
+   "ms": 26.384
   },
   "q009": {
    "ranked": [
@@ -464,7 +464,7 @@
      "score": 0.7447
     }
    ],
-   "ms": 52.139
+   "ms": 50.194
   },
   "q010": {
    "ranked": [
@@ -511,11 +511,15 @@
    ],
    "deployed": [
     {
-     "id": "m008",
+     "id": "m194",
      "score": 0.7301
+    },
+    {
+     "id": "m008",
+     "score": 0.6738
     }
    ],
-   "ms": 25.226
+   "ms": 24.734
   },
   "q011": {
    "ranked": [
@@ -566,7 +570,7 @@
      "score": 0.7533
     }
    ],
-   "ms": 23.602
+   "ms": 23.799
   },
   "q012": {
    "ranked": [
@@ -617,7 +621,7 @@
      "score": 0.7721
     }
    ],
-   "ms": 51.847
+   "ms": 51.808
   },
   "q013": {
    "ranked": [
@@ -668,7 +672,7 @@
      "score": 0.7425
     }
    ],
-   "ms": 23.21
+   "ms": 26.065
   },
   "q014": {
    "ranked": [
@@ -719,7 +723,7 @@
      "score": 0.8212
     }
    ],
-   "ms": 25.515
+   "ms": 26.36
   },
   "q015": {
    "ranked": [
@@ -770,7 +774,7 @@
      "score": 0.756
     }
    ],
-   "ms": 49.836
+   "ms": 50.628
   },
   "q016": {
    "ranked": [
@@ -821,7 +825,7 @@
      "score": 0.8109
     }
    ],
-   "ms": 26.611
+   "ms": 55.935
   },
   "q017": {
    "ranked": [
@@ -872,7 +876,7 @@
      "score": 0.6879
     }
    ],
-   "ms": 25.742
+   "ms": 24.728
   },
   "q018": {
    "ranked": [
@@ -923,7 +927,7 @@
      "score": 0.6889
     }
    ],
-   "ms": 50.88
+   "ms": 43.028
   },
   "q019": {
    "ranked": [
@@ -974,7 +978,7 @@
      "score": 0.7369
     }
    ],
-   "ms": 24.446
+   "ms": 22.765
   },
   "q020": {
    "ranked": [
@@ -1025,7 +1029,7 @@
      "score": 0.7184
     }
    ],
-   "ms": 24.206
+   "ms": 25.01
   },
   "q021": {
    "ranked": [
@@ -1076,7 +1080,7 @@
      "score": 0.8548
     }
    ],
-   "ms": 52.263
+   "ms": 52.005
   },
   "q022": {
    "ranked": [
@@ -1127,7 +1131,7 @@
      "score": 0.7431
     }
    ],
-   "ms": 24.203
+   "ms": 23.214
   },
   "q023": {
    "ranked": [
@@ -1178,7 +1182,7 @@
      "score": 0.7418
     }
    ],
-   "ms": 25.73
+   "ms": 24.532
   },
   "q024": {
    "ranked": [
@@ -1229,7 +1233,7 @@
      "score": 0.7501
     }
    ],
-   "ms": 51.081
+   "ms": 52.926
   },
   "q025": {
    "ranked": [
@@ -1280,7 +1284,7 @@
      "score": 0.8178
     }
    ],
-   "ms": 25.805
+   "ms": 26.086
   },
   "q026": {
    "ranked": [
@@ -1331,7 +1335,7 @@
      "score": 0.8278
     }
    ],
-   "ms": 25.522
+   "ms": 25.232
   },
   "q027": {
    "ranked": [
@@ -1382,7 +1386,7 @@
      "score": 0.8359
     }
    ],
-   "ms": 47.354
+   "ms": 52.401
   },
   "q028": {
    "ranked": [
@@ -1429,11 +1433,19 @@
    ],
    "deployed": [
     {
-     "id": "m096",
+     "id": "m194",
      "score": 0.7458
+    },
+    {
+     "id": "m096",
+     "score": 0.6787
+    },
+    {
+     "id": "m012",
+     "score": 0.6748
     }
    ],
-   "ms": 25.814
+   "ms": 56.461
   },
   "q029": {
    "ranked": [
@@ -1484,7 +1496,7 @@
      "score": 0.8419
     }
    ],
-   "ms": 25.596
+   "ms": 25.992
   },
   "q030": {
    "ranked": [
@@ -1535,7 +1547,7 @@
      "score": 0.8354
     }
    ],
-   "ms": 47.513
+   "ms": 27.201
   },
   "q031": {
    "ranked": [
@@ -1586,7 +1598,7 @@
      "score": 0.8061
     }
    ],
-   "ms": 25.005
+   "ms": 52.742
   },
   "q032": {
    "ranked": [
@@ -1637,7 +1649,7 @@
      "score": 0.8119
     }
    ],
-   "ms": 24.424
+   "ms": 24.422
   },
   "q033": {
    "ranked": [
@@ -1688,7 +1700,7 @@
      "score": 0.7556
     }
    ],
-   "ms": 52.418
+   "ms": 25.475
   },
   "q034": {
    "ranked": [
@@ -1739,7 +1751,7 @@
      "score": 0.8559
     }
    ],
-   "ms": 26.87
+   "ms": 54.018
   },
   "q035": {
    "ranked": [
@@ -1790,7 +1802,7 @@
      "score": 0.8224
     }
    ],
-   "ms": 25.29
+   "ms": 23.795
   },
   "q036": {
    "ranked": [
@@ -1841,7 +1853,7 @@
      "score": 0.7955
     }
    ],
-   "ms": 48.217
+   "ms": 25.002
   },
   "q037": {
    "ranked": [
@@ -1892,7 +1904,7 @@
      "score": 0.7976
     }
    ],
-   "ms": 24.694
+   "ms": 52.756
   },
   "q038": {
    "ranked": [
@@ -1943,7 +1955,7 @@
      "score": 0.7719
     }
    ],
-   "ms": 23.87
+   "ms": 24.275
   },
   "q039": {
    "ranked": [
@@ -1994,7 +2006,7 @@
      "score": 0.7089
     }
    ],
-   "ms": 52.487
+   "ms": 24.078
   },
   "q040": {
    "ranked": [
@@ -2041,11 +2053,15 @@
    ],
    "deployed": [
     {
-     "id": "m071",
+     "id": "m110",
      "score": 0.7171
+    },
+    {
+     "id": "m071",
+     "score": 0.6578
     }
    ],
-   "ms": 28.093
+   "ms": 50.991
   },
   "q041": {
    "ranked": [
@@ -2096,7 +2112,7 @@
      "score": 0.8172
     }
    ],
-   "ms": 26.597
+   "ms": 23.75
   },
   "q042": {
    "ranked": [
@@ -2147,7 +2163,7 @@
      "score": 0.8232
     }
    ],
-   "ms": 51.422
+   "ms": 22.765
   },
   "q043": {
    "ranked": [
@@ -2198,7 +2214,7 @@
      "score": 0.8751
     }
    ],
-   "ms": 24.275
+   "ms": 51.73
   },
   "q044": {
    "ranked": [
@@ -2249,7 +2265,7 @@
      "score": 0.7338
     }
    ],
-   "ms": 25.451
+   "ms": 26.552
   },
   "q045": {
    "ranked": [
@@ -2300,7 +2316,7 @@
      "score": 0.6859
     }
    ],
-   "ms": 47.582
+   "ms": 24.031
   },
   "q046": {
    "ranked": [
@@ -2353,9 +2369,13 @@
     {
      "id": "m049",
      "score": 0.5822
+    },
+    {
+     "id": "m019",
+     "score": 0.5508
     }
    ],
-   "ms": 25.882
+   "ms": 53.874
   },
   "q047": {
    "ranked": [
@@ -2402,11 +2422,15 @@
    ],
    "deployed": [
     {
-     "id": "m002",
+     "id": "m147",
      "score": 0.6835
+    },
+    {
+     "id": "m002",
+     "score": 0.632
     }
    ],
-   "ms": 25.301
+   "ms": 23.106
   },
   "q048": {
    "ranked": [
@@ -2457,7 +2481,7 @@
      "score": 0.57
     }
    ],
-   "ms": 54.982
+   "ms": 24.898
   },
   "q049": {
    "ranked": [
@@ -2503,7 +2527,7 @@
     }
    ],
    "deployed": [],
-   "ms": 23.997
+   "ms": 50.155
   },
   "q050": {
    "ranked": [
@@ -2554,7 +2578,7 @@
      "score": 0.5774
     }
    ],
-   "ms": 23.696
+   "ms": 23.745
   },
   "q051": {
    "ranked": [
@@ -2605,7 +2629,7 @@
      "score": 0.5994
     }
    ],
-   "ms": 52.075
+   "ms": 24.651
   },
   "q052": {
    "ranked": [
@@ -2652,15 +2676,23 @@
    ],
    "deployed": [
     {
-     "id": "m035",
+     "id": "m037",
      "score": 0.6122
     },
     {
-     "id": "m028",
+     "id": "m035",
      "score": 0.6005
+    },
+    {
+     "id": "m028",
+     "score": 0.5585
+    },
+    {
+     "id": "m015",
+     "score": 0.5547
     }
    ],
-   "ms": 25.215
+   "ms": 52.12
   },
   "q053": {
    "ranked": [
@@ -2706,7 +2738,7 @@
     }
    ],
    "deployed": [],
-   "ms": 26.141
+   "ms": 24.001
   },
   "q054": {
    "ranked": [
@@ -2757,7 +2789,7 @@
      "score": 0.6215
     }
    ],
-   "ms": 49.752
+   "ms": 25.261
   },
   "q055": {
    "ranked": [
@@ -2814,9 +2846,13 @@
     {
      "id": "m083",
      "score": 0.5721
+    },
+    {
+     "id": "m059",
+     "score": 0.5532
     }
    ],
-   "ms": 26.788
+   "ms": 52.173
   },
   "q056": {
    "ranked": [
@@ -2862,7 +2898,7 @@
     }
    ],
    "deployed": [],
-   "ms": 23.985
+   "ms": 24.392
   },
   "q057": {
    "ranked": [
@@ -2909,19 +2945,27 @@
    ],
    "deployed": [
     {
-     "id": "m102",
+     "id": "m208",
      "score": 0.6348
     },
     {
-     "id": "m063",
+     "id": "m102",
      "score": 0.6127
     },
     {
-     "id": "m039",
+     "id": "m063",
      "score": 0.6072
+    },
+    {
+     "id": "m059",
+     "score": 0.5881
+    },
+    {
+     "id": "m039",
+     "score": 0.5804
     }
    ],
-   "ms": 50.505
+   "ms": 24.921
   },
   "q058": {
    "ranked": [
@@ -2972,11 +3016,23 @@
      "score": 0.6512
     },
     {
-     "id": "m012",
+     "id": "m181",
      "score": 0.6394
+    },
+    {
+     "id": "m167",
+     "score": 0.617
+    },
+    {
+     "id": "m101",
+     "score": 0.6047
+    },
+    {
+     "id": "m059",
+     "score": 0.5916
     }
    ],
-   "ms": 25.607
+   "ms": 52.959
   },
   "q059": {
    "ranked": [
@@ -3027,7 +3083,7 @@
      "score": 0.6418
     }
    ],
-   "ms": 24.424
+   "ms": 24.667
   },
   "q060": {
    "ranked": [
@@ -3078,7 +3134,7 @@
      "score": 0.633
     }
    ],
-   "ms": 51.815
+   "ms": 26.884
   },
   "q061": {
    "ranked": [
@@ -3129,11 +3185,15 @@
      "score": 0.7086
     },
     {
-     "id": "m042",
+     "id": "m122",
      "score": 0.6836
+    },
+    {
+     "id": "m042",
+     "score": 0.6524
     }
    ],
-   "ms": 25.302
+   "ms": 51.556
   },
   "q062": {
    "ranked": [
@@ -3184,7 +3244,7 @@
      "score": 0.6595
     }
    ],
-   "ms": 26.809
+   "ms": 26.658
   },
   "q063": {
    "ranked": [
@@ -3235,7 +3295,7 @@
      "score": 0.6553
     }
    ],
-   "ms": 50.242
+   "ms": 26.711
   },
   "q064": {
    "ranked": [
@@ -3286,7 +3346,7 @@
      "score": 0.6486
     }
    ],
-   "ms": 25.489
+   "ms": 48.403
   },
   "q065": {
    "ranked": [
@@ -3337,7 +3397,7 @@
      "score": 0.6415
     }
    ],
-   "ms": 25.894
+   "ms": 24.356
   },
   "q066": {
    "ranked": [
@@ -3388,11 +3448,15 @@
      "score": 0.6149
     },
     {
-     "id": "m014",
+     "id": "m062",
      "score": 0.5897
+    },
+    {
+     "id": "m014",
+     "score": 0.5689
     }
    ],
-   "ms": 50.632
+   "ms": 27.432
   },
   "q067": {
    "ranked": [
@@ -3443,7 +3507,7 @@
      "score": 0.6649
     }
    ],
-   "ms": 27.334
+   "ms": 53.376
   },
   "q068": {
    "ranked": [
@@ -3494,7 +3558,7 @@
      "score": 0.6372
     }
    ],
-   "ms": 24.824
+   "ms": 24.664
   },
   "q069": {
    "ranked": [
@@ -3545,7 +3609,7 @@
      "score": 0.7066
     }
    ],
-   "ms": 47.348
+   "ms": 24.568
   },
   "q070": {
    "ranked": [
@@ -3596,7 +3660,7 @@
      "score": 0.62
     }
    ],
-   "ms": 28.002
+   "ms": 50.994
   },
   "q071": {
    "ranked": [
@@ -3647,7 +3711,7 @@
      "score": 0.6105
     }
    ],
-   "ms": 26.089
+   "ms": 25.562
   },
   "q072": {
    "ranked": [
@@ -3698,7 +3762,7 @@
      "score": 0.7037
     }
    ],
-   "ms": 47.183
+   "ms": 25.214
   },
   "q073": {
    "ranked": [
@@ -3747,9 +3811,13 @@
     {
      "id": "m124",
      "score": 0.663
+    },
+    {
+     "id": "m109",
+     "score": 0.6108
     }
    ],
-   "ms": 24.748
+   "ms": 46.057
   },
   "q074": {
    "ranked": [
@@ -3804,7 +3872,7 @@
      "score": 0.5835
     }
    ],
-   "ms": 27.32
+   "ms": 26.092
   },
   "q075": {
    "ranked": [
@@ -3851,11 +3919,19 @@
    ],
    "deployed": [
     {
-     "id": "m014",
+     "id": "m219",
      "score": 0.6104
+    },
+    {
+     "id": "m062",
+     "score": 0.5582
+    },
+    {
+     "id": "m014",
+     "score": 0.5536
     }
    ],
-   "ms": 44.071
+   "ms": 24.659
   },
   "q076": {
    "ranked": [
@@ -3906,7 +3982,7 @@
      "score": 0.7178
     }
    ],
-   "ms": 25.694
+   "ms": 52.697
   },
   "q077": {
    "ranked": [
@@ -3957,7 +4033,7 @@
      "score": 0.6888
     }
    ],
-   "ms": 28.143
+   "ms": 27.014
   },
   "q078": {
    "ranked": [
@@ -4004,11 +4080,23 @@
    ],
    "deployed": [
     {
-     "id": "m177",
+     "id": "m182",
      "score": 0.6436
+    },
+    {
+     "id": "m177",
+     "score": 0.6098
+    },
+    {
+     "id": "m172",
+     "score": 0.5869
+    },
+    {
+     "id": "m170",
+     "score": 0.5815
     }
    ],
-   "ms": 47.101
+   "ms": 25.74
   },
   "q079": {
    "ranked": [
@@ -4059,7 +4147,7 @@
      "score": 0.7276
     }
    ],
-   "ms": 27.083
+   "ms": 46.995
   },
   "q080": {
    "ranked": [
@@ -4110,7 +4198,7 @@
      "score": 0.6996
     }
    ],
-   "ms": 27.016
+   "ms": 24.115
   },
   "q081": {
    "ranked": [
@@ -4161,7 +4249,7 @@
      "score": 0.7319
     }
    ],
-   "ms": 26.638
+   "ms": 26.31
   },
   "q082": {
    "ranked": [
@@ -4214,9 +4302,13 @@
     {
      "id": "m128",
      "score": 0.6082
+    },
+    {
+     "id": "m089",
+     "score": 0.5952
     }
    ],
-   "ms": 53.473
+   "ms": 48.353
   },
   "q083": {
    "ranked": [
@@ -4267,7 +4359,7 @@
      "score": 0.7084
     }
    ],
-   "ms": 29.047
+   "ms": 26.581
   },
   "q084": {
    "ranked": [
@@ -4318,7 +4410,7 @@
      "score": 0.7972
     }
    ],
-   "ms": 28.835
+   "ms": 26.309
   },
   "q085": {
    "ranked": [
@@ -4369,7 +4461,7 @@
      "score": 0.6736
     }
    ],
-   "ms": 49.97
+   "ms": 46.312
   },
   "q086": {
    "ranked": [
@@ -4416,11 +4508,15 @@
    ],
    "deployed": [
     {
-     "id": "m035",
+     "id": "m160",
      "score": 0.6165
+    },
+    {
+     "id": "m035",
+     "score": 0.5563
     }
    ],
-   "ms": 25.089
+   "ms": 24.557
   },
   "q087": {
    "ranked": [
@@ -4471,7 +4567,7 @@
      "score": 0.553
     }
    ],
-   "ms": 25.558
+   "ms": 23.915
   },
   "q088": {
    "ranked": [
@@ -4522,7 +4618,7 @@
      "score": 0.571
     }
    ],
-   "ms": 52.771
+   "ms": 51.025
   },
   "q089": {
    "ranked": [
@@ -4573,7 +4669,7 @@
      "score": 0.7585
     }
    ],
-   "ms": 24.165
+   "ms": 24.811
   },
   "q090": {
    "ranked": [
@@ -4624,15 +4720,23 @@
      "score": 0.6062
     },
     {
-     "id": "m026",
+     "id": "m033",
      "score": 0.578
     },
     {
-     "id": "m009",
+     "id": "m026",
      "score": 0.5774
+    },
+    {
+     "id": "m011",
+     "score": 0.5635
+    },
+    {
+     "id": "m009",
+     "score": 0.5553
     }
    ],
-   "ms": 27.976
+   "ms": 24.725
   },
   "q091": {
    "ranked": [
@@ -4683,7 +4787,7 @@
      "score": 0.5908
     }
    ],
-   "ms": 47.716
+   "ms": 51.724
   },
   "q092": {
    "ranked": [
@@ -4734,7 +4838,7 @@
      "score": 0.7219
     }
    ],
-   "ms": 27.53
+   "ms": 25.803
   },
   "q093": {
    "ranked": [
@@ -4781,11 +4885,15 @@
    ],
    "deployed": [
     {
-     "id": "m122",
+     "id": "m163",
      "score": 0.6211
+    },
+    {
+     "id": "m122",
+     "score": 0.5809
     }
    ],
-   "ms": 25.397
+   "ms": 24.681
   },
   "q094": {
    "ranked": [
@@ -4836,7 +4944,7 @@
      "score": 0.6482
     }
    ],
-   "ms": 51.92
+   "ms": 50.412
   },
   "q095": {
    "ranked": [
@@ -4883,19 +4991,27 @@
    ],
    "deployed": [
     {
-     "id": "m020",
+     "id": "m233",
      "score": 0.6287
     },
     {
-     "id": "m019",
+     "id": "m206",
      "score": 0.6141
     },
     {
-     "id": "m017",
+     "id": "m193",
      "score": 0.6035
+    },
+    {
+     "id": "m110",
+     "score": 0.592
+    },
+    {
+     "id": "m071",
+     "score": 0.5816
     }
    ],
-   "ms": 23.693
+   "ms": 26.449
   },
   "q096": {
    "ranked": [
@@ -4954,11 +5070,15 @@
      "score": 0.6091
     },
     {
-     "id": "m030",
+     "id": "m075",
      "score": 0.6042
+    },
+    {
+     "id": "m030",
+     "score": 0.5815
     }
    ],
-   "ms": 26.574
+   "ms": 25.815
   },
   "q097": {
    "ranked": [
@@ -5009,7 +5129,7 @@
      "score": 0.8289
     }
    ],
-   "ms": 48.421
+   "ms": 44.633
   },
   "q098": {
    "ranked": [
@@ -5060,7 +5180,7 @@
      "score": 0.5592
     }
    ],
-   "ms": 24.174
+   "ms": 26.096
   },
   "q099": {
    "ranked": [
@@ -5111,7 +5231,7 @@
      "score": 0.6982
     }
    ],
-   "ms": 28.237
+   "ms": 27.917
   },
   "q100": {
    "ranked": [
@@ -5166,7 +5286,7 @@
      "score": 0.6316
     }
    ],
-   "ms": 45.999
+   "ms": 48.784
   },
   "q101": {
    "ranked": [
@@ -5213,11 +5333,15 @@
    ],
    "deployed": [
     {
-     "id": "m057",
+     "id": "m154",
      "score": 0.753
+    },
+    {
+     "id": "m057",
+     "score": 0.6785
     }
    ],
-   "ms": 26.134
+   "ms": 53.976
   },
   "q102": {
    "ranked": [
@@ -5264,11 +5388,15 @@
    ],
    "deployed": [
     {
-     "id": "m104",
+     "id": "m198",
      "score": 0.7179
+    },
+    {
+     "id": "m104",
+     "score": 0.6529
     }
    ],
-   "ms": 28.841
+   "ms": 24.093
   },
   "q103": {
    "ranked": [
@@ -5315,15 +5443,27 @@
    ],
    "deployed": [
     {
-     "id": "m144",
+     "id": "m202",
      "score": 0.5999
     },
     {
-     "id": "m097",
+     "id": "m193",
      "score": 0.5712
+    },
+    {
+     "id": "m190",
+     "score": 0.5618
+    },
+    {
+     "id": "m144",
+     "score": 0.5571
+    },
+    {
+     "id": "m097",
+     "score": 0.5564
     }
    ],
-   "ms": 26.796
+   "ms": 23.158
   },
   "q104": {
    "ranked": [
@@ -5378,7 +5518,7 @@
      "score": 0.6452
     }
    ],
-   "ms": 55.689
+   "ms": 53.534
   },
   "q105": {
    "ranked": [
@@ -5429,7 +5569,7 @@
      "score": 0.6593
     }
    ],
-   "ms": 31.324
+   "ms": 24.41
   },
   "q106": {
    "ranked": [
@@ -5478,9 +5618,13 @@
     {
      "id": "m205",
      "score": 0.7241
+    },
+    {
+     "id": "m039",
+     "score": 0.6806
     }
    ],
-   "ms": 23.606
+   "ms": 23.925
   },
   "q107": {
    "ranked": [
@@ -5527,15 +5671,27 @@
    ],
    "deployed": [
     {
-     "id": "m208",
+     "id": "m211",
      "score": 0.6646
     },
     {
-     "id": "m059",
+     "id": "m208",
      "score": 0.6427
+    },
+    {
+     "id": "m082",
+     "score": 0.6205
+    },
+    {
+     "id": "m063",
+     "score": 0.6079
+    },
+    {
+     "id": "m059",
+     "score": 0.5998
     }
    ],
-   "ms": 51.832
+   "ms": 23.563
   },
   "q108": {
    "ranked": [
@@ -5582,11 +5738,15 @@
    ],
    "deployed": [
     {
-     "id": "m093",
+     "id": "m216",
      "score": 0.7499
+    },
+    {
+     "id": "m093",
+     "score": 0.6965
     }
    ],
-   "ms": 23.909
+   "ms": 23.958
   },
   "q109": {
    "ranked": [
@@ -5641,7 +5801,7 @@
      "score": 0.6424
     }
    ],
-   "ms": 23.764
+   "ms": 51.75
   },
   "q110": {
    "ranked": [
@@ -5692,7 +5852,7 @@
      "score": 0.5962
     }
    ],
-   "ms": 53.015
+   "ms": 22.865
   },
   "q111": {
    "ranked": [
@@ -5741,9 +5901,13 @@
     {
      "id": "m178",
      "score": 0.6833
+    },
+    {
+     "id": "m077",
+     "score": 0.6444
     }
    ],
-   "ms": 25.285
+   "ms": 25.505
   },
   "q112": {
    "ranked": [
@@ -5794,11 +5958,15 @@
      "score": 0.6539
     },
     {
-     "id": "m044",
+     "id": "m106",
      "score": 0.6405
+    },
+    {
+     "id": "m044",
+     "score": 0.6018
     }
    ],
-   "ms": 23.367
+   "ms": 50.928
   },
   "q113": {
    "ranked": [
@@ -5853,7 +6021,7 @@
      "score": 0.6862
     }
    ],
-   "ms": 51.527
+   "ms": 25.101
   },
   "q114": {
    "ranked": [
@@ -5904,11 +6072,23 @@
      "score": 0.6425
     },
     {
-     "id": "m128",
+     "id": "m203",
      "score": 0.616
+    },
+    {
+     "id": "m128",
+     "score": 0.604
+    },
+    {
+     "id": "m089",
+     "score": 0.5949
+    },
+    {
+     "id": "m032",
+     "score": 0.5825
     }
    ],
-   "ms": 24.33
+   "ms": 23.392
   },
   "q115": {
    "ranked": [
@@ -5967,7 +6147,7 @@
      "score": 0.7194
     }
    ],
-   "ms": 24.648
+   "ms": 50.393
   },
   "q116": {
    "ranked": [
@@ -6022,7 +6202,7 @@
      "score": 0.6953
     }
    ],
-   "ms": 52.554
+   "ms": 22.831
   },
   "q117": {
    "ranked": [
@@ -6077,7 +6257,7 @@
      "score": 0.6751
     }
    ],
-   "ms": 24.663
+   "ms": 26.415
   },
   "q118": {
    "ranked": [
@@ -6128,7 +6308,7 @@
      "score": 0.7317
     }
    ],
-   "ms": 24.198
+   "ms": 50.526
   },
   "q119": {
    "ranked": [
@@ -6183,7 +6363,7 @@
      "score": 0.6799
     }
    ],
-   "ms": 52.273
+   "ms": 25.115
   },
   "q120": {
    "ranked": [
@@ -6238,7 +6418,7 @@
      "score": 0.7473
     }
    ],
-   "ms": 25.27
+   "ms": 25.733
   },
   "q121": {
    "ranked": [
@@ -6289,15 +6469,23 @@
      "score": 0.6419
     },
     {
-     "id": "m072",
+     "id": "m127",
      "score": 0.6406
     },
     {
-     "id": "m008",
+     "id": "m072",
      "score": 0.611
+    },
+    {
+     "id": "m028",
+     "score": 0.6046
+    },
+    {
+     "id": "m015",
+     "score": 0.5923
     }
    ],
-   "ms": 25.745
+   "ms": 52.251
   },
   "q122": {
    "ranked": [
@@ -6344,15 +6532,19 @@
    ],
    "deployed": [
     {
-     "id": "m142",
+     "id": "m230",
      "score": 0.6209
     },
     {
-     "id": "m112",
+     "id": "m142",
      "score": 0.6103
+    },
+    {
+     "id": "m112",
+     "score": 0.5632
     }
    ],
-   "ms": 53.731
+   "ms": 23.299
   },
   "q123": {
    "ranked": [
@@ -6403,7 +6595,7 @@
      "score": 0.6352
     }
    ],
-   "ms": 23.642
+   "ms": 24.649
   },
   "q124": {
    "ranked": [
@@ -6454,7 +6646,7 @@
      "score": 0.6284
     }
    ],
-   "ms": 24.662
+   "ms": 51.828
   },
   "q125": {
    "ranked": [
@@ -6505,7 +6697,7 @@
      "score": 0.6487
     }
    ],
-   "ms": 50.559
+   "ms": 23.34
   },
   "q126": {
    "ranked": [
@@ -6560,7 +6752,7 @@
      "score": 0.6069
     }
    ],
-   "ms": 24.069
+   "ms": 23.273
   },
   "q127": {
    "ranked": [
@@ -6615,7 +6807,7 @@
      "score": 0.554
     }
    ],
-   "ms": 24.436
+   "ms": 23.296
   },
   "q128": {
    "ranked": [
@@ -6666,7 +6858,7 @@
      "score": 0.5528
     }
    ],
-   "ms": 49.005
+   "ms": 23.254
   },
   "q129": {
    "ranked": [
@@ -6717,7 +6909,7 @@
      "score": 0.6702
     }
    ],
-   "ms": 26.152
+   "ms": 53.221
   },
   "q130": {
    "ranked": [
@@ -6768,7 +6960,7 @@
      "score": 0.5668
     }
    ],
-   "ms": 23.659
+   "ms": 24.216
   },
   "q131": {
    "ranked": [
@@ -6814,7 +7006,7 @@
     }
    ],
    "deployed": [],
-   "ms": 55.682
+   "ms": 25.288
   },
   "q132": {
    "ranked": [
@@ -6861,15 +7053,19 @@
    ],
    "deployed": [
     {
-     "id": "m068",
+     "id": "m079",
      "score": 0.6644
     },
     {
-     "id": "m064",
+     "id": "m068",
      "score": 0.6474
+    },
+    {
+     "id": "m064",
+     "score": 0.6271
     }
    ],
-   "ms": 23.178
+   "ms": 53.26
   },
   "q133": {
    "ranked": [
@@ -6918,9 +7114,13 @@
     {
      "id": "m212",
      "score": 0.7283
+    },
+    {
+     "id": "m006",
+     "score": 0.6568
     }
    ],
-   "ms": 24.302
+   "ms": 23.898
   },
   "q134": {
    "ranked": [
@@ -6967,19 +7167,23 @@
    ],
    "deployed": [
     {
-     "id": "m180",
+     "id": "m229",
      "score": 0.7091
     },
     {
-     "id": "m120",
+     "id": "m180",
      "score": 0.7063
     },
     {
-     "id": "m030",
+     "id": "m120",
      "score": 0.6883
+    },
+    {
+     "id": "m030",
+     "score": 0.6539
     }
    ],
-   "ms": 51.853
+   "ms": 23.635
   },
   "q135": {
    "ranked": [
@@ -7030,7 +7234,7 @@
      "score": 0.7031
     }
    ],
-   "ms": 24.92
+   "ms": 51.049
   },
   "q136": {
    "ranked": [
@@ -7085,7 +7289,7 @@
      "score": 0.5655
     }
    ],
-   "ms": 23.698
+   "ms": 24.371
   },
   "q137": {
    "ranked": [
@@ -7132,11 +7336,19 @@
    ],
    "deployed": [
     {
-     "id": "m031",
+     "id": "m231",
      "score": 0.715
+    },
+    {
+     "id": "m221",
+     "score": 0.6552
+    },
+    {
+     "id": "m031",
+     "score": 0.6449
     }
    ],
-   "ms": 51.883
+   "ms": 25.258
   },
   "q138": {
    "ranked": [
@@ -7187,7 +7399,7 @@
      "score": 0.7385
     }
    ],
-   "ms": 24.45
+   "ms": 50.659
   },
   "q139": {
    "ranked": [
@@ -7238,7 +7450,7 @@
      "score": 0.5753
     }
    ],
-   "ms": 24.866
+   "ms": 25.687
   },
   "q140": {
    "ranked": [
@@ -7293,7 +7505,7 @@
      "score": 0.704
     }
    ],
-   "ms": 50.982
+   "ms": 25.172
   },
   "q141": {
    "ranked": [
@@ -7348,7 +7560,7 @@
      "score": 0.556
     }
    ],
-   "ms": 23.089
+   "ms": 52.685
   },
   "q142": {
    "ranked": [
@@ -7394,7 +7606,7 @@
     }
    ],
    "deployed": [],
-   "ms": 27.872
+   "ms": 24.262
   },
   "q143": {
    "ranked": [
@@ -7440,7 +7652,7 @@
     }
    ],
    "deployed": [],
-   "ms": 48.728
+   "ms": 24.707
   },
   "q144": {
    "ranked": [
@@ -7486,7 +7698,7 @@
     }
    ],
    "deployed": [],
-   "ms": 24.784
+   "ms": 51.034
   },
   "q145": {
    "ranked": [
@@ -7537,7 +7749,7 @@
      "score": 0.5595
     }
    ],
-   "ms": 24.601
+   "ms": 24.265
   },
   "q146": {
    "ranked": [
@@ -7583,7 +7795,7 @@
     }
    ],
    "deployed": [],
-   "ms": 54.791
+   "ms": 23.514
   },
   "q147": {
    "ranked": [
@@ -7629,7 +7841,7 @@
     }
    ],
    "deployed": [],
-   "ms": 24.595
+   "ms": 50.61
   },
   "q148": {
    "ranked": [
@@ -7680,7 +7892,7 @@
      "score": 0.5582
     }
    ],
-   "ms": 27.358
+   "ms": 24.106
   },
   "q149": {
    "ranked": [
@@ -7726,7 +7938,7 @@
     }
    ],
    "deployed": [],
-   "ms": 26.335
+   "ms": 24.494
   },
   "q150": {
    "ranked": [
@@ -7781,7 +7993,7 @@
      "score": 0.5628
     }
    ],
-   "ms": 52.655
+   "ms": 50.145
   },
   "q151": {
    "ranked": [
@@ -7827,7 +8039,7 @@
     }
    ],
    "deployed": [],
-   "ms": 24.941
+   "ms": 22.004
   },
   "q152": {
    "ranked": [
@@ -7873,7 +8085,7 @@
     }
    ],
    "deployed": [],
-   "ms": 25.865
+   "ms": 45.583
   },
   "q153": {
    "ranked": [
@@ -7919,7 +8131,7 @@
     }
    ],
    "deployed": [],
-   "ms": 51.06
+   "ms": 25.932
   },
   "q154": {
    "ranked": [
@@ -7965,7 +8177,7 @@
     }
    ],
    "deployed": [],
-   "ms": 24.377
+   "ms": 25.798
   },
   "q155": {
    "ranked": [
@@ -8011,7 +8223,7 @@
     }
    ],
    "deployed": [],
-   "ms": 24.064
+   "ms": 50.078
   },
   "q156": {
    "ranked": [
@@ -8070,7 +8282,7 @@
      "score": 0.5566
     }
    ],
-   "ms": 51.892
+   "ms": 26.442
   },
   "q157": {
    "ranked": [
@@ -8108,7 +8320,7 @@
     }
    ],
    "deployed": [],
-   "ms": 24.339
+   "ms": 23.497
   },
   "q158": {
    "ranked": [
@@ -8154,7 +8366,7 @@
     }
    ],
    "deployed": [],
-   "ms": 24.197
+   "ms": 49.879
   },
   "q159": {
    "ranked": [
@@ -8200,7 +8412,7 @@
     }
    ],
    "deployed": [],
-   "ms": 52.178
+   "ms": 24.891
   },
   "q160": {
    "ranked": [
@@ -8222,14 +8434,14 @@
     }
    ],
    "deployed": [],
-   "ms": 30.703
+   "ms": 24.935
   }
  },
  "notes": [
   "Memories written with OpenVikingBackend.put (content/write, mode create) as memory files, no session or extraction, so no language model is used; llm_tokens is 0. Ingest went into its own OpenViking user.",
-  "ingest_seconds includes the wait until a sample of 21 memories (and the last one written) found themselves (wait 67.4 s; writes alone 2.4 s, 0 put failure(s)).",
+  "ingest_seconds includes the wait until a sample of 21 memories (and the last one written) found themselves (wait 66.9 s; writes alone 2.3 s, 0 put failure(s)).",
   "ranked: backend.find(query, 10) of the read-only store; directory summaries (.abstract.md, .overview.md) are skipped by the backend itself, so ranked can hold fewer than 10 items.",
-  "deployed uses the default recall stages (min_score, relative_score, newer_first, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; the gateway asks the backend for 15 candidates; ms times that Gateway.recall call only. The backend maps OpenViking's raw score with its default floor 0.50 / ceil 1.00 (raw kept in Hit.meta); its defaults are min_score 0.55 and relative ratio 0.95, so min_score 0.55 means raw 0.775.",
+  "deployed uses the default recall stages (min_score, relative_score, newer_first, fill_text, drop_oversize, redact, dedupe, budget) with the default profile (broad), none passed and the default limit of 5; the gateway asks the backend for 15 candidates; ms times that Gateway.recall call only. The backend maps OpenViking's raw score with its default floor 0.50 / ceil 1.00 (raw kept in Hit.meta); its precise lines are min_score 0.55 and relative ratio 0.95, its broad lines (the default profile) 0.55 and 0.90, so the min_score in use, 0.55, means raw 0.775.",
   "Backend and gateway timeouts are the defaults (backend socket timeout 2 s) except for ingest writes (30 s).",
   "Recall item ids: the memory id is the file name of the item's URI (id field); 0 item(s) unmapped.",
   "0 recall call(s) did not answer 200; 0 backend find call(s) for ranked failed.",

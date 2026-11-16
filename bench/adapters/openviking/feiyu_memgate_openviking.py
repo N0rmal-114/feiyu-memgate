@@ -2,7 +2,9 @@
 
     python feiyu_memgate_openviking.py --out DIR      (inside the benchmark container, see run.sh)
 
-Writes <out>/feiyu-memgate-openviking.json (contract: bench/CONTRACT.md).
+Writes <out>/feiyu-memgate-openviking.json (contract: bench/CONTRACT.md): the gateway's defaults, which are the
+broad profile since 2026-11-16, no profile is passed. With --profile precise it pins `[recall] profile = "precise"`
+and writes <out>/feiyu-memgate-openviking-precise.json (the same ingest into its own OpenViking user `gateprecise`, so the two runs do not share files).
 
 - ingest: OpenVikingBackend(writable=True).put(text, ref=<memory URI>) per memory, oldest first, into the
   user `gate` (its own space, separate from the one the direct adapter uses). The URI is
@@ -42,12 +44,15 @@ def load(name):
         return json.load(f)
 
 
-def build(key):
-    """The in-process gateway: one read-only openviking store, one owner client, default stages."""
+def build(key, profile=None):
+    """The in-process gateway: one read-only openviking store, one owner client, default stages; `profile` None
+    passes none (the gateway's default, broad), "precise" pins the precise lines."""
     cfg = {
         "stores": {"ov": {"type": "openviking", "url": ov.BASE, "key": key, "writable": False}},
         "clients": {"owner": {"token_env": "GATEWAY_TOKEN_OWNER", "recall": ["ov"]}},
     }
+    if profile is not None:
+        cfg["recall"] = {"profile": profile}
     return config.build_gateway(cfg, env={"GATEWAY_TOKEN_OWNER": FAKE_TOKEN}, log=lambda line: None)
 
 
@@ -58,9 +63,14 @@ def item(mid, score):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--out", required=True)
+    parser.add_argument("--profile", choices=("precise",), default=None,
+                        help="pin the precise score lines (writes feiyu-memgate-openviking-precise.json); without "
+                             "it the gateway's defaults run, which are the broad profile")
     args = parser.parse_args(argv)
+    precise = args.profile == "precise"
+    system = "feiyu-memgate-openviking" + ("-precise" if precise else "")
     memories, queries = load("memories.json"), load("queries.json")
-    key = json.load(open("/work/keys.json", encoding="utf-8"))["gate"]
+    key = json.load(open("/work/keys.json", encoding="utf-8"))["gateprecise" if precise else "gate"]
     by_text = {m["text"]: mid for mid, m in memories.items()}
 
     writer = OpenVikingBackend(ov.BASE, key, timeout=30.0, writable=True)
@@ -75,7 +85,7 @@ def main(argv=None):
     waited, confirmed = ov.wait_indexed(key, memories)
     ingest_seconds = time.perf_counter() - start
 
-    gw = build(key)
+    gw = build(key, args.profile)
     backend = gw.stores["ov"]
     gw.recall("owner", {"query": WARMUP_QUERY})  # one warm-up query before timing
     try:
@@ -108,6 +118,7 @@ def main(argv=None):
             ranked_failures += 1
         answers[qid] = {"ranked": ranked, "deployed": deployed, "ms": round(ms, 3)}
 
+    min_in_use = backend.default_min_score if precise else backend.broad_min_score
     notes = [
         "Memories written with OpenVikingBackend.put (content/write, mode create) as memory files, no session or "
         "extraction, so no language model is used; llm_tokens is 0. Ingest went into its own OpenViking user.",
@@ -115,13 +126,16 @@ def main(argv=None):
         "(wait %.1f s; writes alone %.1f s, %d put failure(s))." % (confirmed, waited, write_seconds, put_failures),
         "ranked: backend.find(query, 10) of the read-only store; directory summaries (.abstract.md, .overview.md) "
         "are skipped by the backend itself, so ranked can hold fewer than 10 items.",
-        "deployed uses the default recall stages (%s) and the default limit of 5; the gateway asks the backend for "
-        "15 candidates; ms times that Gateway.recall call only. The backend maps OpenViking's raw score with its "
-        "default floor %.2f / ceil %.2f (raw kept in Hit.meta); its defaults are min_score %.2f and relative ratio "
-        "%.2f, so min_score %.2f means raw %.3f." % (
-            ", ".join(stages_module.DEFAULT_STAGES), backend.floor, backend.ceil, backend.default_min_score,
-            backend.default_relative_ratio, backend.default_min_score,
-            backend.floor + backend.default_min_score * (backend.ceil - backend.floor)),
+        "deployed uses the default recall stages (%s) with %s and the default limit of 5; the gateway asks the "
+        "backend for 15 candidates; ms times that Gateway.recall call only. The backend maps OpenViking's raw score "
+        "with its default floor %.2f / ceil %.2f (raw kept in Hit.meta); its precise lines are min_score %.2f and "
+        "relative ratio %.2f, its broad lines (the default profile) %.2f and %.2f, so the min_score in use, %.2f, "
+        "means raw %.3f." % (
+            ", ".join(stages_module.DEFAULT_STAGES),
+            "[recall] profile = 'precise' pinned" if precise else "the default profile (broad), none passed",
+            backend.floor, backend.ceil, backend.default_min_score, backend.default_relative_ratio,
+            backend.broad_min_score, backend.broad_relative_ratio, min_in_use,
+            backend.floor + min_in_use * (backend.ceil - backend.floor)),
         "Backend and gateway timeouts are the defaults (backend socket timeout 2 s) except for ingest writes (30 s).",
         "Recall item ids: the memory id is the file name of the item's URI (id field); %d item(s) unmapped." % unmapped,
         "%d recall call(s) did not answer 200; %d backend find call(s) for ranked failed." % (failures, ranked_failures),
@@ -129,9 +143,10 @@ def main(argv=None):
     ]
     version = json.load(urllib.request.urlopen(ov.BASE + "/health")).get("version", "unknown")
     result = {
-        "system": "feiyu-memgate-openviking", "version": "%s (OpenViking %s)" % (__version__, version),
+        "system": system, "version": "%s (OpenViking %s)" % (__version__, version),
         "mode": "verbatim memory-file ingest into OpenViking, feiyu-memgate openviking backend (read-only store), "
-                "default recall stages, bge-m3 embeddings inside OpenViking, no LLM",
+                "default recall stages%s, bge-m3 embeddings inside OpenViking, no LLM"
+                % (", precise recall profile" if precise else " (broad profile)"),
         "how": "config.build_gateway(dict); OpenVikingBackend.put(text, ref=viking://~/memories/events/Y/M/D/<id>.md) "
                "per memory; OpenVikingBackend.find(query, 10) for ranked; Gateway.recall('owner', {'query': q}) "
                "for deployed; id = file name of the item's URI",
@@ -139,10 +154,10 @@ def main(argv=None):
         "answers": answers, "notes": notes,
     }
     os.makedirs(args.out, exist_ok=True)
-    with open(os.path.join(args.out, "feiyu-memgate-openviking.json"), "w", encoding="utf-8", newline="\n") as f:
+    with open(os.path.join(args.out, system + ".json"), "w", encoding="utf-8", newline="\n") as f:
         json.dump(result, f, ensure_ascii=False, indent=1)
         f.write("\n")
-    print("wrote feiyu-memgate-openviking.json, recall failures=%d" % failures)
+    print("wrote %s.json, recall failures=%d" % (system, failures))
 
 
 if __name__ == "__main__":

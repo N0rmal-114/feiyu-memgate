@@ -114,8 +114,8 @@ stages = [
 
 | 名字 | 做什么 | 选项 |
 |---|---|---|
-| `min_score` | 丢掉相似度低于分数线的 | `value`（不写时用存储自己的默认分数线，存储也没有就是 0.5）、`per_store`（按存储分别设）、`profile`（`"precise"` 默认，或 `"broad"`：用存储的 `broad_min_score`，存储没声明就还是默认分数线；`value` / `per_store` 优先） |
-| `relative_score` | 丢掉分数远低于本次请求里最高分的：低于 `ratio` × 最高分（可选再低于最高分 − `gap`）的不要。最高分是走到这一步的候选里最高的，放在 `min_score` 后面时就是过了分数线的最高分 | `ratio`（0..1，不写时用存储的 `default_relative_ratio`，存储也没有就是 0.6）、`gap`（默认不用）、`profile`（同 `min_score`，用存储的 `broad_relative_ratio`；`ratio` 优先） |
+| `min_score` | 丢掉相似度低于分数线的 | `value`（不写时按 `profile` 用存储声明的分数线，存储也没有就是 0.5）、`per_store`（按存储分别设）、`profile`（`"broad"` 默认：用存储的 `broad_min_score`；或 `"precise"`：用存储的 `default_min_score`；存储没声明 `broad_min_score` 时两档都用 `default_min_score`；`value` / `per_store` 优先） |
+| `relative_score` | 丢掉分数远低于本次请求里最高分的：低于 `ratio` × 最高分（可选再低于最高分 − `gap`）的不要。最高分是走到这一步的候选里最高的，放在 `min_score` 后面时就是过了分数线的最高分 | `ratio`（0..1，不写时按 `profile` 用存储声明的比例，存储也没有就是 0.6）、`gap`（默认不用）、`profile`（同 `min_score`，`"broad"` 默认用存储的 `broad_relative_ratio`，`"precise"` 用 `default_relative_ratio`；`ratio` 优先） |
 | `newer_first` | 同一次请求里，分数不低于最高分 × `band` 的候选中，带日期的按“新的在前”交换分数；分数的多重集合不变，不丢任何候选。没有日期的记忆不受影响 | `band`（默认 0.85）、`related`（0..1，默认 0 = 不用：大于 0 时，两条记忆的文字字符二元组重叠不低于它才交换）、`min_days`（默认 1，日期相差不到这么多天算同一时间） |
 | `source_weight` | 分数乘上来源权重，让一种来源排在另一种前面 | `weights`、`default` |
 | `drop_marker` | 丢掉带标记串的记忆（比如写入自检留下的）。不在默认的一套里 | `markers` |
@@ -177,10 +177,10 @@ from feiyu_memgate.pieces import Hit, MemoryBackend, register
 @register("backend", "mine")
 class MyBackend(MemoryBackend):
     writable = True
-    default_min_score = 0.4      # 可选：min_score 不写分数线时，这个存储的分数线
-    default_relative_ratio = 0.8 # 可选：relative_score 不写 ratio 时，这个存储的比例
-    broad_min_score = 0.3        # 可选：profile = "broad" 时的宽松分数线（不声明就用上面的默认值）
-    broad_relative_ratio = 0.6   # 可选：profile = "broad" 时的宽松比例
+    default_min_score = 0.4      # 可选：profile = "precise" 时 min_score 的分数线（default_ 是历史命名，指 precise 档，不是默认档位）
+    default_relative_ratio = 0.8 # 可选：profile = "precise" 时 relative_score 的比例
+    broad_min_score = 0.3        # 可选：profile = "broad"（默认档位）时的分数线；不声明就两档都用上面的 default_ 值
+    broad_relative_ratio = 0.6   # 可选：profile = "broad"（默认档位）时的比例
 
     def __init__(self, url, key):
         ...
@@ -200,7 +200,7 @@ class MyBackend(MemoryBackend):
 
 要点：
 
-- **怎么搜由你定**：向量、关键词、图、全量扫描都行。网关只要求分数在 0 到 1 之间。不同后端的分数不在一个尺度上时，声明 `default_min_score`（和 `default_relative_ratio`），或者用 `min_score` 的 `per_store` 分别设分数线。
+- **怎么搜由你定**：向量、关键词、图、全量扫描都行。网关只要求分数在 0 到 1 之间。不同后端的分数不在一个尺度上时，声明 `default_min_score`（和 `default_relative_ratio`；这是 `precise` 档的分数线，`default_` 是历史命名；默认档位 `broad` 的分数线用 `broad_min_score`、`broad_relative_ratio` 声明，不声明就用 `default_` 的值），或者用 `min_score` 的 `per_store` 分别设分数线。
 - **`find` 的结果要合规**：一个列表，每项有字符串 `ref`、有限的数字 `score`、字符串或 `None` 的 `text` 和 `date`。不合规的整个结果当作这个存储“这次没查成”，日志记 `bad-result`。`ref` 会作为结果里的 `id` 交给客户端。
 - **怎么存也由你定**：原样存下来，或者交给模型抽取。看过以后什么都不该留，就返回 `None`，客户端会得到 `{"status": "skipped"}`。如果是“先收下、之后再整理”的，把 `tracks_writes` 设成 `True` 并实现 `write_state(receipt)`（返回 `"saved"`、`"empty"` 或 `None`），网关就会替你统计每次写入的下场。
 - **出错就抛异常**（推荐 `BackendError`）。召回时网关把这个存储记为“这次没查成”，继续用别的存储；写入时回 502。错误信息里不要带记忆内容和密钥，日志里网关也只记错误类型。

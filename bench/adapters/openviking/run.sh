@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# From scratch: start a throw-away OpenViking, run both adapters and the capability check of feiyu-memgate's
-# openviking backend, tear it down.
+# From scratch: start a throw-away OpenViking, run the adapters (the direct one, feiyu-memgate with the gateway's
+# defaults, feiyu-memgate with --profile precise) and the capability check of feiyu-memgate's openviking
+# backend, tear it down.
 #   run.sh        the held-out benchmark (bench/data)
 #   run.sh dev    only the development-set candidate lists (bench/dev) for bench/dev_eval.py; nothing is written
 #                 into bench/results/raw
@@ -57,10 +58,11 @@ if [ "${1:-}" = "dev" ]; then
 fi
 runpy "${RUN_ARGS[@]}" python:3.12-slim python $A/openviking_direct.py --out /out
 runpy "${RUN_ARGS[@]}" python:3.12-slim python $A/feiyu_memgate_openviking.py --out /out
+runpy "${RUN_ARGS[@]}" python:3.12-slim python $A/feiyu_memgate_openviking.py --out /out --profile precise
 runpy "${RUN_ARGS[@]}" python:3.12-slim python $A/capabilities.py --out /out
 
 mkdir -p "$REPO/bench/results/raw"
 cp "$WORK/out/openviking.json" "$WORK/out/openviking-unfiltered.json" "$WORK/out/feiyu-memgate-openviking.json" \
-   "$REPO/bench/results/raw/"
+   "$WORK/out/feiyu-memgate-openviking-precise.json" "$REPO/bench/results/raw/"
 cp "$WORK/out/capabilities.json" "$WORK/"
 echo "done; capability report of the openviking backend: $WORK/capabilities.json"

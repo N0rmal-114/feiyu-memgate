@@ -30,6 +30,8 @@ class OpenVikingBackend(_OpenVikingBackend):
     the backend's own defaults are chosen on bench/dev and are pinned in test_backend_openviking_manage."""
     default_min_score = 0.5
     default_relative_ratio = 0.6
+    broad_min_score = None  # no broad lines: the default lines above apply under every profile
+    broad_relative_ratio = None
 
 CHAN_KEY = "chan-key-fake"
 TOKEN_OWNER = "tok-owner-fake-" + "0" * 20

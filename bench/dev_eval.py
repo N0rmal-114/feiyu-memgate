@@ -1,6 +1,7 @@
 """Development-set evaluation and threshold search for a backend + recall stage list.
 
     python bench/dev_eval.py --backend sqlite --search              # grid search on bench/dev, writes results/dev/sqlite.md
+                                                                    # (broad, the default profile) and sqlite-precise.md
     python bench/dev_eval.py --backend sqlite                       # one run with the default stages
     python bench/dev_eval.py --backend sqlite --ratio 0.7 --min-score 0.3
     python bench/dev_eval.py --backend sqlite --sweep               # the whole min_score x ratio table
@@ -33,7 +34,9 @@ The chosen point has the highest balanced; ties go to the higher deployed hit, t
 then to the lower ratio ("off" counts as the lowest: the rule left this last
 tie open and the choice follows the direction of the one before it, the more permissive point).
 
-Second profile (`--search --profile broad`, writes results/dev/<name>-broad.md): the same candidate lists and
+Second profile (`--search --profile broad`, writes results/dev/<name>.md: since 2026-11-16 broad is the default
+profile of the gateway, so its record carries the plain name; the balanced search above writes
+results/dev/<name>-precise.md with `--profile precise`; `--search` alone writes both): the same candidate lists and
 grid, another objective, also written down before any number was looked at. Among the grid points with
 precision >= 50 % and quiet rate >= half of the quiet rate of the backend's declared default ("precise") point,
 take the highest deployed hit; ties go to the higher balanced, then the higher min_score, then the higher ratio
@@ -412,7 +415,7 @@ def report(backend, data_dir, queries, memories, results, previous, previous_m):
     shown = os.path.relpath(data_dir, ROOT).replace(os.sep, "/") if os.path.abspath(data_dir).startswith(ROOT) \
         else os.path.basename(os.path.normpath(data_dir))
     lines = [
-        "# 开发集阈值搜索：%s" % backend, "",
+        "# 开发集阈值搜索（精确档 precise）：%s" % backend, "",
         "数据：`%s`，%d 条记忆，%d 个问题（%d 个可回答，%d 个没有答案）。" % (
             shown, len(memories), len(queries), len(queries) - n_quiet, n_quiet),
         "网格：min_score 0.05 到 0.80（步长 0.05）x relative_score 比例 0.50 到 0.95（步长 0.05）或不用该步骤，"
@@ -437,16 +440,16 @@ def report(backend, data_dir, queries, memories, results, previous, previous_m):
 
 
 def report_broad(name, data_dir, queries, memories, results, precise_point, broad):
-    """The text of results/dev/<name>-broad.md."""
+    """The text of results/dev/<name>.md (the broad profile, which is the gateway's default)."""
     point, m, precise_m, count = broad
     n_quiet = sum(1 for q in queries.values() if not q["expect"])
     shown = os.path.relpath(data_dir, ROOT).replace(os.sep, "/") if os.path.abspath(data_dir).startswith(ROOT)         else os.path.basename(os.path.normpath(data_dir))
     distinct = tuple(point) != tuple(precise_point)
     lines = [
-        "# 开发集：宽松档（broad）的选择：%s" % name, "",
+        "# 开发集：宽松档（broad，默认档）的选择：%s" % name, "",
         "数据：`%s`，%d 条记忆，%d 个问题（%d 个可回答，%d 个没有答案）。同一份候选列表、同一张网格（%d 个点）、同一套真实的召回步骤"
-        "（见 `%s.md` 的搜索）。" % (shown, len(memories), len(queries), len(queries) - n_quiet, n_quiet, len(results),
-                                  name),
+        "（见 `%s-precise.md` 的搜索）。" % (shown, len(memories), len(queries), len(queries) - n_quiet, n_quiet,
+                                           len(results), name),
         "规则（事先写定）：在精确率 >= 50%% 且安静率 >= 精确档安静率的一半（%.1f%%）的格子里取交付命中最高的；"
         "平手取 balanced 高的，再取 min_score 高的，再取比例高的（不用 relative_score 算最低）。"
         "精确档是后端声明的默认点，不是重新搜索的结果。满足条件的格子 %d 个。" % (precise_m["quiet"] * 50, count), "",
@@ -459,7 +462,7 @@ def report_broad(name, data_dir, queries, memories, results, precise_point, broa
             ((m["precision"] or 0) - (precise_m["precision"] or 0)) * 100,
             (m["quiet"] - precise_m["quiet"]) * 100, m["items"] - precise_m["items"]), ""]
     else:
-        lines += ["结论：选中的点就是精确档的点，**没有独立的宽松档**：后端不声明宽松值，`profile = \"broad\"` 对它回落到默认值。", ""]
+        lines += ["结论：选中的点就是精确档的点，**没有独立的宽松档**：后端不声明宽松值，默认档（broad）对它回落到精确档的线（`default_min_score` / `default_relative_ratio`）。", ""]
     return "\n".join(lines)
 
 
@@ -469,8 +472,10 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--backend", choices=BACKENDS, required=True)
     parser.add_argument("--data", default=DEV_DIR, help="development set directory (default: bench/dev)")
-    parser.add_argument("--search", action="store_true", help="the fixed grid search; writes results/dev/<backend>.md")
-    parser.add_argument("--out-dir", default=OUT_DIR, help="where --search writes <backend>.md")
+    parser.add_argument("--search", action="store_true",
+                        help="the fixed grid search; writes results/dev/<name>.md (broad, the default profile) and "
+                             "<name>-precise.md")
+    parser.add_argument("--out-dir", default=OUT_DIR, help="where --search writes its reports")
     parser.add_argument("--candidates", metavar="FILE", help="read the candidate lists from FILE instead of a backend")
     parser.add_argument("--save-candidates", metavar="FILE", help="write the candidate lists to FILE")
     parser.add_argument("--stages", help="stage list: comma-separated names or a JSON list "
@@ -483,9 +488,9 @@ def main(argv=None):
     parser.add_argument("--model", default=DEFAULT_MODEL, help="embedding model name")
     parser.add_argument("--option", action="append", metavar="KEY=VALUE",
                         help="backend option (JSON value), for a hybrid: of its embedding child; repeatable")
-    parser.add_argument("--profile", choices=("precise", "broad"), default="precise",
-                        help="with --search: the objective (precise: balanced, writes <name>.md; broad: see the "
-                             "docstring, writes <name>-broad.md)")
+    parser.add_argument("--profile", choices=("precise", "broad", "both"), default="both",
+                        help="with --search: the objective (precise: balanced, writes <name>-precise.md; broad: see "
+                             "the docstring, writes <name>.md; both: the default)")
     parser.add_argument("--name", help="base name of the file --search writes (default: the backend)")
     parser.add_argument("--hybrid-option", action="append", metavar="KEY=VALUE",
                         help="option of the hybrid backend itself, e.g. weights=[1,0.5]; repeatable")
@@ -505,26 +510,24 @@ def main(argv=None):
     print("dev set: %d memories, %d questions (%d without an answer); backend %s"
           % (len(memories), len(queries), sum(1 for q in queries.values() if not q["expect"]), args.backend))
 
-    if args.search and args.profile == "broad":
-        results = search(cand, queries)
-        precise_point = declared_point(args.backend, args.model)
-        name = args.name or args.backend
-        text = report_broad(name, args.data, queries, memories, results, precise_point,
-                            broad_choice(results, precise_point))
-        print(text)
-        os.makedirs(args.out_dir, exist_ok=True)
-        with open(os.path.join(args.out_dir, name + "-broad.md"), "w", encoding="utf-8", newline="\n") as f:
-            f.write(text + "\n")
-        return 0
     if args.search:
         results = search(cand, queries)
-        prev = PREVIOUS[args.backend]
-        previous_m = evaluate(cand, [grid_specs(*prev)], queries)[0][1]
-        text = report(args.backend, args.data, queries, memories, results, prev, previous_m)
-        print(text)
+        name = args.name or args.backend
         os.makedirs(args.out_dir, exist_ok=True)
-        with open(os.path.join(args.out_dir, (args.name or args.backend) + ".md"), "w", encoding="utf-8", newline="\n") as f:
-            f.write(text + "\n")
+        if args.profile in ("broad", "both"):
+            precise_point = declared_point(args.backend, args.model)
+            text = report_broad(name, args.data, queries, memories, results, precise_point,
+                                broad_choice(results, precise_point))
+            print(text)
+            with open(os.path.join(args.out_dir, name + ".md"), "w", encoding="utf-8", newline="\n") as f:
+                f.write(text + "\n")
+        if args.profile in ("precise", "both"):
+            prev = PREVIOUS[args.backend]
+            previous_m = evaluate(cand, [grid_specs(*prev)], queries)[0][1]
+            text = report(args.backend, args.data, queries, memories, results, prev, previous_m)
+            print(text)
+            with open(os.path.join(args.out_dir, name + "-precise.md"), "w", encoding="utf-8", newline="\n") as f:
+                f.write(text + "\n")
         return 0
     if args.sweep:
         runs = [(m, r) for m in SWEEP_SCORES for r in SWEEP_RATIOS]

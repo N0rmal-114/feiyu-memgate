@@ -29,45 +29,45 @@
 <text x="832.7" y="550.0" class="s" text-anchor="middle">100%</text>
 <text x="976.0" y="90.0" class="lb" text-anchor="end">items/q</text>
 <text x="24.0" y="130.5" class="l">feiyu-memgate openviking</text>
-<path d="M224.0,119.0 H345.5 A4.0,4.0 0 0 1 349.5,123.0 V129.0 A4.0,4.0 0 0 1 345.5,133.0 H224.0 Z" fill="#2a78d6"/>
-<text x="355.5" y="130.0" class="s">83.7%</text>
-<path d="M453.3,119.0 H569.6 A4.0,4.0 0 0 1 573.6,123.0 V129.0 A4.0,4.0 0 0 1 569.6,133.0 H453.3 Z" fill="#2a78d6"/>
-<text x="579.6" y="130.0" class="s">80.2%</text>
+<path d="M224.0,119.0 H344.0 A4.0,4.0 0 0 1 348.0,123.0 V129.0 A4.0,4.0 0 0 1 344.0,133.0 H224.0 Z" fill="#2a78d6"/>
+<text x="354.0" y="130.0" class="s">82.7%</text>
+<path d="M453.3,119.0 H563.1 A4.0,4.0 0 0 1 567.1,123.0 V129.0 A4.0,4.0 0 0 1 563.1,133.0 H453.3 Z" fill="#2a78d6"/>
+<text x="573.1" y="130.0" class="s">75.9%</text>
 <path d="M682.7,119.0 H738.7 A4.0,4.0 0 0 1 742.7,123.0 V129.0 A4.0,4.0 0 0 1 738.7,133.0 H682.7 Z" fill="#2a78d6"/>
 <text x="748.7" y="130.0" class="s">40.0%</text>
-<text x="976.0" y="130.0" class="s" text-anchor="end">1.17</text>
-<text x="24.0" y="158.5" class="l">feiyu-memgate embedding</text>
-<path d="M224.0,147.0 H343.2 A4.0,4.0 0 0 1 347.2,151.0 V157.0 A4.0,4.0 0 0 1 343.2,161.0 H224.0 Z" fill="#2a78d6"/>
-<text x="353.2" y="158.0" class="s">82.1%</text>
-<path d="M453.3,147.0 H573.2 A4.0,4.0 0 0 1 577.2,151.0 V157.0 A4.0,4.0 0 0 1 573.2,161.0 H453.3 Z" fill="#2a78d6"/>
-<text x="583.2" y="158.0" class="s">82.5%</text>
-<path d="M682.7,147.0 H776.2 A4.0,4.0 0 0 1 780.2,151.0 V157.0 A4.0,4.0 0 0 1 776.2,161.0 H682.7 Z" fill="#2a78d6"/>
-<text x="786.2" y="158.0" class="s">65.0%</text>
-<text x="976.0" y="158.0" class="s" text-anchor="end">0.98</text>
-<text x="24.0" y="186.5" class="l">feiyu-memgate hybrid</text>
-<path d="M224.0,175.0 H333.4 A4.0,4.0 0 0 1 337.4,179.0 V185.0 A4.0,4.0 0 0 1 333.4,189.0 H224.0 Z" fill="#2a78d6"/>
-<text x="343.4" y="186.0" class="s">75.6%</text>
-<path d="M453.3,175.0 H585.0 A4.0,4.0 0 0 1 589.0,179.0 V185.0 A4.0,4.0 0 0 1 585.0,189.0 H453.3 Z" fill="#2a78d6"/>
-<text x="595.0" y="186.0" class="s">90.4%</text>
-<path d="M682.7,175.0 H791.2 A4.0,4.0 0 0 1 795.2,179.0 V185.0 A4.0,4.0 0 0 1 791.2,189.0 H682.7 Z" fill="#2a78d6"/>
-<text x="801.2" y="186.0" class="s">75.0%</text>
-<text x="976.0" y="186.0" class="s" text-anchor="end">0.66</text>
-<text x="24.0" y="214.5" class="l">feiyu-memgate full</text>
-<path d="M224.0,203.0 H333.3 A4.0,4.0 0 0 1 337.3,207.0 V213.0 A4.0,4.0 0 0 1 333.3,217.0 H224.0 Z" fill="#2a78d6"/>
-<text x="343.3" y="214.0" class="s">75.6%</text>
-<path d="M453.3,203.0 H584.6 A4.0,4.0 0 0 1 588.6,207.0 V213.0 A4.0,4.0 0 0 1 584.6,217.0 H453.3 Z" fill="#2a78d6"/>
-<text x="594.6" y="214.0" class="s">90.2%</text>
-<path d="M682.7,203.0 H791.2 A4.0,4.0 0 0 1 795.2,207.0 V213.0 A4.0,4.0 0 0 1 791.2,217.0 H682.7 Z" fill="#2a78d6"/>
-<text x="801.2" y="214.0" class="s">75.0%</text>
-<text x="976.0" y="214.0" class="s" text-anchor="end">0.67</text>
+<text x="976.0" y="130.0" class="s" text-anchor="end">1.50</text>
+<text x="24.0" y="158.5" class="l">feiyu-memgate hybrid</text>
+<path d="M224.0,147.0 H332.0 A4.0,4.0 0 0 1 336.0,151.0 V157.0 A4.0,4.0 0 0 1 332.0,161.0 H224.0 Z" fill="#2a78d6"/>
+<text x="342.0" y="158.0" class="s">74.7%</text>
+<path d="M453.3,147.0 H543.2 A4.0,4.0 0 0 1 547.2,151.0 V157.0 A4.0,4.0 0 0 1 543.2,161.0 H453.3 Z" fill="#2a78d6"/>
+<text x="553.2" y="158.0" class="s">62.6%</text>
+<path d="M682.7,147.0 H731.2 A4.0,4.0 0 0 1 735.2,151.0 V157.0 A4.0,4.0 0 0 1 731.2,161.0 H682.7 Z" fill="#2a78d6"/>
+<text x="741.2" y="158.0" class="s">35.0%</text>
+<text x="976.0" y="158.0" class="s" text-anchor="end">2.01</text>
+<text x="24.0" y="186.5" class="l">feiyu-memgate full</text>
+<path d="M224.0,175.0 H329.6 A4.0,4.0 0 0 1 333.6,179.0 V185.0 A4.0,4.0 0 0 1 329.6,189.0 H224.0 Z" fill="#2a78d6"/>
+<text x="339.6" y="186.0" class="s">73.1%</text>
+<path d="M453.3,175.0 H539.4 A4.0,4.0 0 0 1 543.4,179.0 V185.0 A4.0,4.0 0 0 1 539.4,189.0 H453.3 Z" fill="#2a78d6"/>
+<text x="549.4" y="186.0" class="s">60.1%</text>
+<path d="M682.7,175.0 H731.2 A4.0,4.0 0 0 1 735.2,179.0 V185.0 A4.0,4.0 0 0 1 731.2,189.0 H682.7 Z" fill="#2a78d6"/>
+<text x="741.2" y="186.0" class="s">35.0%</text>
+<text x="976.0" y="186.0" class="s" text-anchor="end">2.08</text>
+<text x="24.0" y="214.5" class="l">feiyu-memgate embedding</text>
+<path d="M224.0,203.0 H327.5 A4.0,4.0 0 0 1 331.5,207.0 V213.0 A4.0,4.0 0 0 1 327.5,217.0 H224.0 Z" fill="#2a78d6"/>
+<text x="337.5" y="214.0" class="s">71.6%</text>
+<path d="M453.3,203.0 H534.7 A4.0,4.0 0 0 1 538.7,207.0 V213.0 A4.0,4.0 0 0 1 534.7,217.0 H453.3 Z" fill="#2a78d6"/>
+<text x="544.7" y="214.0" class="s">56.9%</text>
+<path d="M682.7,203.0 H727.4 A4.0,4.0 0 0 1 731.4,207.0 V213.0 A4.0,4.0 0 0 1 727.4,217.0 H682.7 Z" fill="#2a78d6"/>
+<text x="737.4" y="214.0" class="s">32.5%</text>
+<text x="976.0" y="214.0" class="s" text-anchor="end">2.46</text>
 <text x="24.0" y="242.5" class="l">feiyu-memgate sqlite</text>
-<path d="M224.0,231.0 H302.7 A4.0,4.0 0 0 1 306.7,235.0 V241.0 A4.0,4.0 0 0 1 302.7,245.0 H224.0 Z" fill="#2a78d6"/>
-<text x="312.7" y="242.0" class="s">55.1%</text>
-<path d="M453.3,231.0 H588.8 A4.0,4.0 0 0 1 592.8,235.0 V241.0 A4.0,4.0 0 0 1 588.8,245.0 H453.3 Z" fill="#2a78d6"/>
-<text x="598.8" y="242.0" class="s">93.0%</text>
-<path d="M682.7,231.0 H791.2 A4.0,4.0 0 0 1 795.2,235.0 V241.0 A4.0,4.0 0 0 1 791.2,245.0 H682.7 Z" fill="#2a78d6"/>
-<text x="801.2" y="242.0" class="s">75.0%</text>
-<text x="976.0" y="242.0" class="s" text-anchor="end">0.41</text>
+<path d="M224.0,231.0 H311.9 A4.0,4.0 0 0 1 315.9,235.0 V241.0 A4.0,4.0 0 0 1 311.9,245.0 H224.0 Z" fill="#2a78d6"/>
+<text x="321.9" y="242.0" class="s">61.3%</text>
+<path d="M453.3,231.0 H583.2 A4.0,4.0 0 0 1 587.2,235.0 V241.0 A4.0,4.0 0 0 1 583.2,245.0 H453.3 Z" fill="#2a78d6"/>
+<text x="593.2" y="242.0" class="s">89.3%</text>
+<path d="M682.7,231.0 H783.7 A4.0,4.0 0 0 1 787.7,235.0 V241.0 A4.0,4.0 0 0 1 783.7,245.0 H682.7 Z" fill="#2a78d6"/>
+<text x="793.7" y="242.0" class="s">70.0%</text>
+<text x="976.0" y="242.0" class="s" text-anchor="end">0.55</text>
 <text x="24.0" y="270.5" class="l">dsh-mnemon + embeddings</text>
 <path d="M224.0,259.0 H300.4 A4.0,4.0 0 0 1 304.4,263.0 V269.0 A4.0,4.0 0 0 1 300.4,273.0 H224.0 Z" fill="#898781"/>
 <text x="310.4" y="270.0" class="s">53.6%</text>
@@ -141,5 +141,5 @@
 <text x="976.0" y="522.0" class="s" text-anchor="end">4.00</text>
 <text x="24.0" y="582.0" class="s">Delivered F1 is the harmonic mean of delivered hit and precision: both must be high. Precision is the share of delivered items that are right; a system that delivered nothing has</text>
 <text x="24.0" y="600.0" class="s">none, shown as a dash.</text>
-<text x="24.0" y="618.0" class="s">bench/results/summary.md · 240 memories, 160 questions · 2026-11-15</text>
+<text x="24.0" y="618.0" class="s">bench/results/summary.md · 240 memories, 160 questions · 2026-11-16</text>
 </svg>

@@ -45,18 +45,31 @@ class StageProfileTest(unittest.TestCase):
         ctx = RecallContext("q", 5, pool=self.pool)
         return [c.score for c in stage.prepare(self.cands(scores, store, source), ctx)]
 
-    def test_min_score_uses_the_broad_line_only_when_asked(self):
+    def test_the_default_profile_is_broad_for_both_stages(self):
+        self.assertEqual(stages.DEFAULT_PROFILE, "broad")
+        self.assertEqual(stages.MinScore().profile, "broad")
+        self.assertEqual(stages.RelativeScore().profile, "broad")
+        self.assertEqual(registry.create("recall_stage", "min_score").profile, "broad")
+        self.assertEqual(registry.create("recall_stage", "relative_score").profile, "broad")
+
+    def test_min_score_defaults_to_the_broad_line_and_precise_gives_the_default_line(self):
         store = Store(default_min_score=0.5, broad_min_score=0.3)
         scores = [0.9, 0.4, 0.2]
-        self.assertEqual(self.kept(stages.MinScore(), scores, store), [0.9])
-        self.assertEqual(self.kept(stages.MinScore(profile="precise"), scores, store), [0.9])
+        self.assertEqual(self.kept(stages.MinScore(), scores, store), [0.9, 0.4])
         self.assertEqual(self.kept(stages.MinScore(profile="broad"), scores, store), [0.9, 0.4])
+        self.assertEqual(self.kept(stages.MinScore(profile="precise"), scores, store), [0.9])
 
-    def test_relative_score_uses_the_broad_ratio_only_when_asked(self):
+    def test_relative_score_defaults_to_the_broad_ratio_and_precise_gives_the_default_ratio(self):
         store = Store(default_relative_ratio=0.9, broad_relative_ratio=0.5)
         scores = [1.0, 0.7, 0.4]
-        self.assertEqual(self.kept(stages.RelativeScore(), scores, store), [1.0])
+        self.assertEqual(self.kept(stages.RelativeScore(), scores, store), [1.0, 0.7])
         self.assertEqual(self.kept(stages.RelativeScore(profile="broad"), scores, store), [1.0, 0.7])
+        self.assertEqual(self.kept(stages.RelativeScore(profile="precise"), scores, store), [1.0])
+
+    def test_a_store_without_broad_lines_keeps_its_default_line_when_no_profile_is_given(self):
+        store = Store(default_min_score=0.45, default_relative_ratio=0.8)
+        self.assertEqual(self.kept(stages.MinScore(), [0.5, 0.4], store), [0.5])
+        self.assertEqual(self.kept(stages.RelativeScore(), [1.0, 0.85, 0.7], store), [1.0, 0.85])
 
     def test_a_store_without_broad_values_falls_back_to_its_default(self):
         store = Store(default_min_score=0.45, default_relative_ratio=0.8)  # no broad_* at all
@@ -97,7 +110,8 @@ class StageProfileTest(unittest.TestCase):
     def test_the_stages_are_built_with_the_option_from_a_spec(self):
         stage = registry.create("recall_stage", {"type": "min_score", "profile": "broad"})
         self.assertEqual(stage.profile, "broad")
-        self.assertEqual(registry.create("recall_stage", "relative_score").profile, "precise")
+        self.assertEqual(registry.create("recall_stage", {"type": "relative_score", "profile": "precise"}).profile,
+                         "precise")
 
     def test_default_stages_do_not_change(self):
         self.assertEqual(stages.DEFAULT_STAGES[:3], ("min_score", "relative_score", "newer_first"))
@@ -128,6 +142,10 @@ class DeclaredNumbersTest(unittest.TestCase):
         for pattern, preset in embedding_module.PRESETS:
             self.assertLessEqual(preset["broad_min_score"], preset["min_score"], pattern)
             self.assertLessEqual(preset["broad_ratio"], preset["ratio"], pattern)
+
+    def test_the_default_prefix_is_documented_as_the_precise_line(self):
+        self.assertIn("precise", MemoryBackend.__doc__)
+        self.assertIn("historical", MemoryBackend.__doc__)
 
     def test_the_base_class_declares_no_broad_profile(self):
         self.assertIsNone(MemoryBackend.broad_min_score)
@@ -161,8 +179,8 @@ class DeclaredNumbersTest(unittest.TestCase):
         cand = Candidate(score=0.1, source="s", store=be, ref="r", text="t")
         ctx = RecallContext("q", 5, pool=Pool())
         self.addCleanup(ctx.pool.close)
-        self.assertEqual(stages.MinScore().prepare([cand], ctx), [])  # default 0.25
-        self.assertEqual(stages.MinScore(profile="broad").prepare([cand], ctx), [cand])  # broad 0.05
+        self.assertEqual(stages.MinScore(profile="precise").prepare([cand], ctx), [])  # precise line 0.25
+        self.assertEqual(stages.MinScore().prepare([cand], ctx), [cand])  # broad line 0.05, the default profile
 
 
 class BroadRuleTest(unittest.TestCase):

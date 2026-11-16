@@ -1,8 +1,10 @@
 """Adapter: feiyu-memgate with everything turned on: hybrid backend + default stages + freshness.
 
-    python bench/adapters/feiyu_memgate_full.py [--out DIR] [--embed-url URL] [--model NAME]
+    python bench/adapters/feiyu_memgate_full.py [--out DIR] [--embed-url URL] [--model NAME] [--profile precise]
 
-Writes <out>/feiyu-memgate-full.json (the contract is bench/CONTRACT.md; default out is bench/results/raw).
+Writes <out>/feiyu-memgate-full.json (the contract is bench/CONTRACT.md; default out is bench/results/raw); with
+--profile precise it pins `[recall] profile = "precise"` and writes feiyu-memgate-full-precise.json, without it the
+gateway's defaults (the broad profile) run.
 This is the configuration a user gets by following the documentation to the end: the hybrid backend of
 feiyu_memgate_hybrid.py, the default recall stages with the `freshness` stage of the forgetting curve put
 right after `min_score` (docs/forgetting.md), and a [forgetting] section with the documented defaults
@@ -36,7 +38,8 @@ from feiyu_memgate.model import Candidate  # noqa: E402
 
 SYSTEM = "feiyu-memgate-full"
 MODE = ("verbatim ingest with dates, hybrid backend (sqlite keyword + embedding bge-m3, probabilistic-OR fusion), "
-        "default recall stages plus freshness, forgetting ledger with default settings, no sweep, no LLM")
+        "default recall stages (broad profile) plus freshness, forgetting ledger with default settings, no sweep, "
+        "no LLM")
 HOW = ("config.build_gateway(dict with [forgetting]); HybridBackend.put_many([(text, id, date)]) once; "
        "Forgetting.sync('private', store); Gateway.recall('owner', {'query': q}) for deployed (stages: min_score, "
        "freshness, relative_score, fill_text, drop_oversize, redact, dedupe, budget); HybridBackend.find(query, 10) "
@@ -85,6 +88,7 @@ def main(argv=None):
             return [(c.ref, c.score) for c in candidates[:base.TOP]]
 
         notes = hybrid.notes()[:1] + [
+            hybrid.stage_notes(hybrid.notes(), args.profile)[2],
             "Everything is turned on with documented defaults: stages min_score, freshness (floor 0.7), "
             "relative_score, fill_text, drop_oversize, redact, dedupe, budget; [forgetting] with the default "
             "Ebbinghaus curve, a temporary ledger and archive; no sweep was run and nothing was forgotten.",
@@ -96,9 +100,16 @@ def main(argv=None):
             "deployed uses the default limit of 5; ms times that Gateway.recall call only (two children, then "
             "freshness reads the ledger).",
         ]
-        path = base.run_system(hybrid.store_spec(args.embed_url, args.model), args.out, SYSTEM, MODE, HOW, notes,
+        mode = MODE
+        if args.profile == "precise":
+            mode = mode.replace("default recall stages (broad profile)", "default recall stages") + \
+                ", precise recall profile"
+            notes.append("Precise profile: [recall] profile = 'precise': the hybrid's precise lines (0.70 / 0.85) "
+                         "instead of the broad 0.40 / 0.65 of the plain run; the freshness stage is the same.")
+        path = base.run_system(hybrid.store_spec(args.embed_url, args.model), args.out,
+                               base.system_name(SYSTEM, "", args.profile), mode, HOW, notes,
                                stages=stage_names(), forgetting=forgetting, wall=pinned_clock(memories),
-                               prepare=prepare, after_question=after_question, rank=rank)
+                               prepare=prepare, after_question=after_question, rank=rank, profile=args.profile)
     print("wrote " + path)
 
 

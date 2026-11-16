@@ -155,8 +155,12 @@ class DevSetRunTest(unittest.TestCase):
         out = io.StringIO()
         with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(out):
             code = dev.main(["--backend", "inmemory", "--data", self.EXAMPLES, "--search", "--out-dir", tmp])
-            with open(os.path.join(tmp, "inmemory.md"), encoding="utf-8") as f:
+            self.assertEqual(sorted(os.listdir(tmp)), ["inmemory-precise.md", "inmemory.md"])
+            with open(os.path.join(tmp, "inmemory-precise.md"), encoding="utf-8") as f:
                 written = f.read()
+            with open(os.path.join(tmp, "inmemory.md"), encoding="utf-8") as f:
+                broad_report = f.read()
+        self.assertIn("broad", broad_report)
         self.assertEqual(code, 0)
         self.assertIn("\u9009\u5b9a", written)
         self.assertIn("before:", written)

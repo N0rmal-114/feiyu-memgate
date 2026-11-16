@@ -44,7 +44,7 @@ feiyu-memgate 是放在“聊天程序”和“记忆存储”中间的一层网
 5. **工作线程**：搜索在一个固定大小的线程池里跑，不排队：等不到空闲线程的存储这次不查，算“忙”（`busy`），不算坏。一个存储同时最多占 `store_max_inflight` 个线程，所以一个卡住的存储占不满整个池子；多租户请求同时在进行的个数有上限，而且它们访问存储时总会给别的客户端留几个线程。
 6. **过一遍 recall_stage**：
    - 每个步骤先对全部候选做一次 `prepare`（便宜的事：按分数线丢、改分数、按来源加权）。`prepare` 出错，这次召回回 503，不返回没检查过的东西。
-     - 默认的分数线来自各存储自己的声明：`min_score` 和 `relative_score` 取存储的 `default_min_score`、`default_relative_ratio`，向量和关键词后端的分数不在同一个尺度上，所以数值不同。两步的 `profile` 选项（或 `[recall] profile`）可以换成存储声明的另一组 `broad` 分数线；档位的来历和取舍见 [backends.md](backends.md)。
+     - 默认的分数线来自各存储自己的声明：`min_score` 和 `relative_score` 默认用 `broad` 档，取存储的 `broad_min_score`、`broad_relative_ratio`；向量和关键词后端的分数不在同一个尺度上，所以数值不同。两步的 `profile` 选项（或 `[recall] profile = "precise"`）可以换成存储的 `default_min_score`、`default_relative_ratio`（`default_` 是历史命名，指 `precise` 档，不是默认档位）；存储没有声明 `broad_*` 时两档都用 `default_*`。档位的来历和取舍见 [backends.md](backends.md)。
      - 默认列表里 `newer_first` 紧跟在 `relative_score` 之后：在通过分数线的候选中，分数不低于最高分一定比例（`band`，默认 0.85）且日期有效的几条，把它们的分数在彼此之间重新分配，让日期新的排在前面。它不丢任何候选，只调整顺序，所以交付哪些只取决于后面的条数和字数限制；没有日期的候选保持原样。
    - 按分数从高到低，逐条让每个步骤 `admit`：留下（KEEP）、丢掉（DROP），或者“是好的但放不下”（DEFER，计入 `more`）。慢的事（补读全文）放在这里，只对快要被返回的候选做。某个步骤对某一条出错，只丢这一条。
    - 条数够了就停。剩下的候选只让 `cheap` 的步骤（去重、丢超长、丢标记）再看一遍，过得去的计入 `more`；时限到了也停，剩下的都计入 `more`。所以 `more` 是“最多还有几条”。

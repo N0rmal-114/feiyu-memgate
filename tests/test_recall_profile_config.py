@@ -1,4 +1,4 @@
-"""`[recall] profile = "broad"`: the shortcut that sets the profile of min_score and relative_score
+"""`[recall] profile` ("broad" when absent, "precise" gives the old lines): the shortcut that sets the profile of min_score and relative_score
 wherever the stage list does not set it itself, and the line `feiyu-memgate check` prints."""
 import contextlib
 import io
@@ -32,12 +32,37 @@ def profiles(gateway):
 
 
 class ProfileShortcutTest(unittest.TestCase):
-    def test_default_is_precise_and_the_stage_list_is_untouched(self):
-        for recall in (None, {}, {"profile": "precise"}):
+    def test_default_is_broad_and_the_stage_list_is_untouched(self):
+        for recall in (None, {}, {"profile": "broad"}):
             gateway = build(recall)
             self.addCleanup(gateway.close)
-            self.assertEqual(profiles(gateway), {"min_score": "precise", "relative_score": "precise"})
+            self.assertEqual(profiles(gateway), {"min_score": "broad", "relative_score": "broad"})
             self.assertEqual([s.name for s in gateway.stages], list(stages.DEFAULT_STAGES))
+
+    def test_no_profile_key_gives_broad_also_with_a_written_out_list(self):
+        gateway = build({"stages": ["min_score", {"type": "relative_score", "gap": 0.2}, "redact"]})
+        self.addCleanup(gateway.close)
+        self.assertEqual(profiles(gateway), {"min_score": "broad", "relative_score": "broad"})
+
+    def test_an_explicit_precise_reaches_the_stages(self):
+        gateway = build({"profile": "precise"})
+        self.addCleanup(gateway.close)
+        self.assertEqual(profiles(gateway), {"min_score": "precise", "relative_score": "precise"})
+        self.assertEqual([s.name for s in gateway.stages], list(stages.DEFAULT_STAGES))
+        gateway = build({"profile": "precise",
+                         "stages": ["min_score", {"type": "relative_score", "gap": 0.2}, "redact"]})
+        self.addCleanup(gateway.close)
+        self.assertEqual(profiles(gateway), {"min_score": "precise", "relative_score": "precise"})
+        self.assertEqual(gateway.stages[1].gap, 0.2)
+
+    def test_a_stage_profile_overrides_the_section_profile_both_ways(self):
+        gateway = build({"profile": "precise", "stages": [
+            {"type": "min_score", "profile": "broad"}, "relative_score", "redact"]})
+        self.addCleanup(gateway.close)
+        self.assertEqual(profiles(gateway), {"min_score": "broad", "relative_score": "precise"})
+        gateway = build({"stages": [{"type": "min_score", "profile": "precise"}, "relative_score", "redact"]})
+        self.addCleanup(gateway.close)
+        self.assertEqual(profiles(gateway), {"min_score": "precise", "relative_score": "broad"})
 
     def test_broad_applies_to_the_default_stage_list(self):
         gateway = build({"profile": "broad"})
@@ -97,8 +122,10 @@ class ProfileShortcutTest(unittest.TestCase):
             def find(self, query, limit, timeout=None, ctl=None):
                 return [Hit(ref="a", score=0.9, text="alpha"), Hit(ref="b", score=0.46, text="bravo")]
 
-        for profile, expected in (("precise", ["alpha"]), ("broad", ["alpha", "bravo"])):
-            gateway = build({"profile": profile})
+        for recall, expected in (({"profile": "precise"}, ["alpha"]), ({"profile": "broad"}, ["alpha", "bravo"]),
+                                 (None, ["alpha", "bravo"])):
+            profile = recall and recall["profile"]
+            gateway = build(recall)
             self.addCleanup(gateway.close)
             gateway.stores["private"] = Store()
             reply = gateway.recall("owner", {"query": "q"})
@@ -122,10 +149,10 @@ class CheckLineTest(unittest.TestCase):
     def test_check_prints_the_active_profile(self):
         code, text = self.run_check("")
         self.assertEqual(code, 0)
-        self.assertIn("分数线档位：min_score precise、relative_score precise", text)
-        code, text = self.run_check('\n[recall]\nprofile = "broad"\n')
-        self.assertEqual(code, 0)
         self.assertIn("分数线档位：min_score broad、relative_score broad", text)
+        code, text = self.run_check('\n[recall]\nprofile = "precise"\n')
+        self.assertEqual(code, 0)
+        self.assertIn("分数线档位：min_score precise、relative_score precise", text)
 
     def test_check_reports_a_bad_profile(self):
         code, text = self.run_check('\n[recall]\nprofile = "wide"\n')

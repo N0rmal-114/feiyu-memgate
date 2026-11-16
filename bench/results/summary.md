@@ -10,23 +10,30 @@
 
 | 系统 | Hit@1 | Hit@5 | MRR@10 | Recall@5 | 交付命中 | 噪声 | 平均条数 | 安静率 | 新旧优先 | p50 ms | p95 ms | 入库 s | tokens | 费用 CNY | 精确率 | 交付 F1 | 平均字数 | 家族 | 检索类型 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| feiyu-memgate-embedding-embeddinggemma | 81.7% | 99.2% | 0.887 | 99.2% | 76.7% | 14.2% | 0.81 | 72.5% | 40.0% | 12.51 | 37.19 | 2.7 | 0 | 0.00 | 85.8% | 81.0% | 20 | feiyu-memgate | vector |
-| feiyu-memgate-embedding | 81.7% | 98.3% | 0.890 | 98.3% | 81.7% | 17.5% | 0.98 | 65.0% | 50.0% | 25.20 | 52.39 | 6.6 | 0 | 0.00 | 82.5% | 82.1% | 24 | feiyu-memgate | vector |
-| feiyu-memgate-embedding-broad | 81.7% | 98.3% | 0.890 | 98.3% | 96.7% | 43.1% | 2.46 | 32.5% | 50.0% | 25.59 | 52.19 | 6.6 | 0 | 0.00 | 56.9% | 71.6% | 59 | feiyu-memgate | vector |
-| feiyu-memgate-openviking | 81.7% | 98.3% | 0.889 | 98.3% | 87.5% | 19.8% | 1.17 | 40.0% | 50.0% | 26.13 | 52.66 | 69.8 | 0 | 0.00 | 80.2% | 83.7% | 28 | feiyu-memgate | vector |
+| feiyu-memgate-embedding-embeddinggemma | 81.7% | 99.2% | 0.887 | 99.2% | 97.5% | 36.2% | 2.04 | 37.5% | 40.0% | 12.65 | 38.68 | 2.7 | 0 | 0.00 | 63.8% | 77.1% | 48 | feiyu-memgate | vector |
+| feiyu-memgate-embedding-embeddinggemma-precise | 81.7% | 99.2% | 0.887 | 99.2% | 76.7% | 14.2% | 0.81 | 72.5% | 40.0% | 12.62 | 39.63 | 2.5 | 0 | 0.00 | 85.8% | 81.0% | 20 | feiyu-memgate | vector |
+| feiyu-memgate-embedding | 81.7% | 98.3% | 0.890 | 98.3% | 96.7% | 43.1% | 2.46 | 32.5% | 50.0% | 24.36 | 51.34 | 6.4 | 0 | 0.00 | 56.9% | 71.6% | 59 | feiyu-memgate | vector |
+| feiyu-memgate-embedding-precise | 81.7% | 98.3% | 0.890 | 98.3% | 81.7% | 17.5% | 0.98 | 65.0% | 50.0% | 24.71 | 51.34 | 6.5 | 0 | 0.00 | 82.5% | 82.1% | 24 | feiyu-memgate | vector |
+| feiyu-memgate-openviking | 81.7% | 98.3% | 0.889 | 98.3% | 90.8% | 24.1% | 1.50 | 40.0% | 50.0% | 25.73 | 53.22 | 69.3 | 0 | 0.00 | 75.9% | 82.7% | 36 | feiyu-memgate | vector |
+| feiyu-memgate-openviking-precise | 81.7% | 98.3% | 0.889 | 98.3% | 87.5% | 19.8% | 1.17 | 40.0% | 50.0% | 25.28 | 52.85 | 71.8 | 0 | 0.00 | 80.2% | 83.7% | 28 | feiyu-memgate | vector |
 | mem0-verbatim | 81.7% | 98.3% | 0.890 | 98.3% | 100.0% | 95.0% | 20.00 | 0.0% | 50.0% | 35.40 | 79.89 | 9.3 | 0 | 0.00 | 5.0% | 9.5% | 482 | other | vector |
 | memsearch | 85.0% | 98.3% | 0.912 | 98.3% | 98.3% | 80.3% | 5.00 | 0.0% | 60.0% | 26.36 | 52.68 | 13.6 | 0 | 0.00 | 19.7% | 32.8% | 120 | other | hybrid |
-| openviking | 81.7% | 98.3% | 0.889 | 98.3% | 99.2% | 90.1% | 9.94 | 0.0% | 50.0% | 25.89 | 51.80 | 72.2 | 0 | 0.00 | 9.9% | 18.0% | 240 | other | vector |
-| openviking-unfiltered | 81.7% | 98.3% | 0.889 | 98.3% | 99.2% | 90.1% | 9.99 | 0.0% | 50.0% | 25.89 | 51.80 | 72.2 | 0 | 0.00 | 9.9% | 18.0% | 241† | other | vector |
-| feiyu-memgate-hybrid | 83.3% | 96.7% | 0.896 | 96.7% | 65.0% | 9.6% | 0.66 | 75.0% | 50.0% | 29.02 | 55.75 | 6.5 | 0 | 0.00 | 90.4% | 75.6% | 16 | feiyu-memgate | hybrid |
-| feiyu-memgate-embedding-qwen3-embedding | 84.2% | 95.8% | 0.900 | 95.8% | 85.0% | 18.1% | 0.97 | 37.5% | 50.0% | 77.24 | 85.69 | 10.6 | 0 | 0.00 | 81.9% | 83.4% | 24 | feiyu-memgate | vector |
-| feiyu-memgate-full | 84.2% | 95.0% | 0.899 | 95.0% | 65.0% | 9.8% | 0.67 | 75.0% | 50.0% | 31.81 | 57.64 | 6.6 | 0 | 0.00 | 90.2% | 75.6% | 16 | feiyu-memgate | hybrid |
+| openviking | 81.7% | 98.3% | 0.889 | 98.3% | 99.2% | 90.1% | 9.94 | 0.0% | 50.0% | 24.92 | 51.80 | 71.8 | 0 | 0.00 | 9.9% | 18.0% | 240 | other | vector |
+| openviking-unfiltered | 81.7% | 98.3% | 0.889 | 98.3% | 99.2% | 90.1% | 9.99 | 0.0% | 50.0% | 24.92 | 51.80 | 71.8 | 0 | 0.00 | 9.9% | 18.0% | 241† | other | vector |
+| feiyu-memgate-hybrid | 83.3% | 96.7% | 0.896 | 96.7% | 92.5% | 37.4% | 2.01 | 35.0% | 50.0% | 27.90 | 55.21 | 6.4 | 0 | 0.00 | 62.6% | 74.7% | 49 | feiyu-memgate | hybrid |
+| feiyu-memgate-hybrid-precise | 83.3% | 96.7% | 0.896 | 96.7% | 65.0% | 9.6% | 0.66 | 75.0% | 50.0% | 27.89 | 55.14 | 6.6 | 0 | 0.00 | 90.4% | 75.6% | 16 | feiyu-memgate | hybrid |
+| feiyu-memgate-embedding-qwen3-embedding | 84.2% | 95.8% | 0.900 | 95.8% | 94.2% | 29.3% | 1.76 | 32.5% | 50.0% | 75.49 | 85.86 | 10.4 | 0 | 0.00 | 70.7% | 80.8% | 43 | feiyu-memgate | vector |
+| feiyu-memgate-embedding-qwen3-embedding-precise | 84.2% | 95.8% | 0.900 | 95.8% | 85.0% | 18.1% | 0.97 | 37.5% | 50.0% | 74.64 | 83.83 | 10.3 | 0 | 0.00 | 81.9% | 83.4% | 24 | feiyu-memgate | vector |
+| feiyu-memgate-full | 83.3% | 95.0% | 0.896 | 95.0% | 93.3% | 39.9% | 2.08 | 35.0% | 50.0% | 33.45 | 54.47 | 6.4 | 0 | 0.00 | 60.1% | 73.1% | 50 | feiyu-memgate | hybrid |
+| feiyu-memgate-full-precise | 84.2% | 95.0% | 0.899 | 95.0% | 65.0% | 9.8% | 0.67 | 75.0% | 50.0% | 33.08 | 55.03 | 6.4 | 0 | 0.00 | 90.2% | 75.6% | 16 | feiyu-memgate | hybrid |
 | mem0 | 77.5% | 95.0% | 0.851 | 95.0% | 99.2% | 95.0% | 19.76 | 0.0% | 60.0% | 69.33 | 609.84 | 471.2 | 2059186 | 0.53 | 5.0% | 9.6% | 478 | other | extraction |
-| feiyu-memgate-embedding-bge-base-zh | 82.5% | 93.3% | 0.872 | 93.3% | 72.5% | 13.8% | 0.77 | 65.0% | 45.0% | 19.06 | 46.09 | 3.5 | 0 | 0.00 | 86.2% | 78.7% | 19 | feiyu-memgate | vector |
-| feiyu-memgate-embedding-bge-small-zh | 75.8% | 92.5% | 0.833 | 92.5% | 76.7% | 20.6% | 0.94 | 47.5% | 35.0% | 6.68 | 31.81 | 1.0 | 0 | 0.00 | 79.4% | 78.0% | 23 | feiyu-memgate | vector |
+| feiyu-memgate-embedding-bge-base-zh | 82.5% | 93.3% | 0.872 | 93.3% | 88.3% | 29.8% | 1.51 | 37.5% | 45.0% | 19.11 | 46.73 | 3.5 | 0 | 0.00 | 70.2% | 78.2% | 37 | feiyu-memgate | vector |
+| feiyu-memgate-embedding-bge-base-zh-precise | 82.5% | 93.3% | 0.872 | 93.3% | 72.5% | 13.8% | 0.77 | 65.0% | 45.0% | 18.17 | 45.36 | 3.4 | 0 | 0.00 | 86.2% | 78.7% | 19 | feiyu-memgate | vector |
+| feiyu-memgate-embedding-bge-small-zh | 75.8% | 92.5% | 0.833 | 92.5% | 86.7% | 31.0% | 1.79 | 20.0% | 35.0% | 6.43 | 32.87 | 1.0 | 0 | 0.00 | 69.0% | 76.8% | 43 | feiyu-memgate | vector |
+| feiyu-memgate-embedding-bge-small-zh-precise | 75.8% | 92.5% | 0.833 | 92.5% | 76.7% | 20.6% | 0.94 | 47.5% | 35.0% | 6.33 | 30.68 | 1.0 | 0 | 0.00 | 79.4% | 78.0% | 23 | feiyu-memgate | vector |
 | dsh-mnemon-embedding | 80.0% | 90.8% | 0.845 | 90.8% | 87.5% | 61.4% | 2.24 | 0.0% | 55.0% | 78.08 | 105.26 | 12.2 | 0 | 0.00 | 38.6% | 53.6% | 54 | other | hybrid |
-| feiyu-memgate-sqlite | 61.7% | 81.7% | 0.708 | 81.7% | 39.2% | 7.0% | 0.41 | 75.0% | 55.0% | 2.14 | 2.91 | 0.0 | 0 | 0.00 | 93.0% | 55.1% | 10 | feiyu-memgate | keyword |
-| feiyu-memgate-sqlite-broad | 61.7% | 81.7% | 0.708 | 81.7% | 46.7% | 10.7% | 0.55 | 70.0% | 55.0% | 2.08 | 3.00 | 0.0 | 0 | 0.00 | 89.3% | 61.3% | 14 | feiyu-memgate | keyword |
+| feiyu-memgate-sqlite | 61.7% | 81.7% | 0.708 | 81.7% | 46.7% | 10.7% | 0.55 | 70.0% | 55.0% | 2.17 | 3.10 | 0.0 | 0 | 0.00 | 89.3% | 61.3% | 14 | feiyu-memgate | keyword |
+| feiyu-memgate-sqlite-precise | 61.7% | 81.7% | 0.708 | 81.7% | 39.2% | 7.0% | 0.41 | 75.0% | 55.0% | 2.15 | 3.04 | 0.0 | 0 | 0.00 | 93.0% | 55.1% | 10 | feiyu-memgate | keyword |
 | lingshu-dsh-memory | 65.0% | 81.7% | 0.726 | 81.7% | 0.0% | 100.0% | 4.00 | 0.0% | 55.0% | 2.18 | 2.63 | 4.1 | 0 | 0.00 | 0.0% | 0.0% | 90 | other | keyword |
 | seekmemory | 50.8% | 64.2% | 0.571 | 64.2% | 65.0% | 82.8% | 4.09 | 22.5% | 45.0% | 1.97 | 2.92 | 0.2 | 0 | 0.00 | 17.2% | 27.3% | 98 | other | keyword |
 | seekmemory-aged | 52.5% | 64.2% | 0.582 | 64.2% | 65.0% | 82.8% | 4.09 | 22.5% | 45.0% | 1.82 | 2.74 | 0.2 | 0 | 0.00 | 17.2% | 27.3% | 98 | other | keyword |
@@ -35,7 +42,7 @@
 | graphiti | 12.5% | 13.3% | 0.129 | 13.3% | 13.3% | 53.5% | 0.31 | 82.5% | 5.0% | 390.93 | 848.18 | 1346.7 | 1176519 | 2.00 | 46.5% | 20.7% | 8 | other | graph |
 | seekmemory-aged-detail | 0.0% | 0.0% | 0.000 | 0.0% | 0.0% | - | 0.00 | 100.0% | 0.0% | 0.09 | 0.13 | 0.2 | 0 | 0.00 | - | - | 0 | other | keyword |
 
-精确率和交付 F1 只统计交付了东西的可答问题（共 120 个可答问题；各系统的分母：feiyu-memgate-embedding-embeddinggemma 103，feiyu-memgate-embedding 106，feiyu-memgate-embedding-broad 118，feiyu-memgate-openviking 117，mem0-verbatim 120，memsearch 120，openviking 120，openviking-unfiltered 120，feiyu-memgate-hybrid 80，feiyu-memgate-embedding-qwen3-embedding 120，feiyu-memgate-full 80，mem0 120，feiyu-memgate-embedding-bge-base-zh 94，feiyu-memgate-embedding-bge-small-zh 110，dsh-mnemon-embedding 120，feiyu-memgate-sqlite 50，feiyu-memgate-sqlite-broad 59，lingshu-dsh-memory 120，seekmemory 116，seekmemory-aged 116，meow-memory 115，dsh-mnemon 120，graphiti 24，seekmemory-aged-detail 0）；什么都没交的可答问题不进分母，所以交得很少的系统精确率可以很高。
+精确率和交付 F1 只统计交付了东西的可答问题（共 120 个可答问题；各系统的分母：feiyu-memgate-embedding-embeddinggemma 119，feiyu-memgate-embedding-embeddinggemma-precise 103，feiyu-memgate-embedding 118，feiyu-memgate-embedding-precise 106，feiyu-memgate-openviking 117，feiyu-memgate-openviking-precise 117，mem0-verbatim 120，memsearch 120，openviking 120，openviking-unfiltered 120，feiyu-memgate-hybrid 117，feiyu-memgate-hybrid-precise 80，feiyu-memgate-embedding-qwen3-embedding 120，feiyu-memgate-embedding-qwen3-embedding-precise 120，feiyu-memgate-full 117，feiyu-memgate-full-precise 80，mem0 120，feiyu-memgate-embedding-bge-base-zh 117，feiyu-memgate-embedding-bge-base-zh-precise 94，feiyu-memgate-embedding-bge-small-zh 119，feiyu-memgate-embedding-bge-small-zh-precise 110，dsh-mnemon-embedding 120，feiyu-memgate-sqlite 59，feiyu-memgate-sqlite-precise 50，lingshu-dsh-memory 120，seekmemory 116，seekmemory-aged 116，meow-memory 115，dsh-mnemon 120，graphiti 24，seekmemory-aged-detail 0）；什么都没交的可答问题不进分母，所以交得很少的系统精确率可以很高。
 
 † 平均字数：这些系统交付的条目里有没有记忆编号的（openviking-unfiltered 8 条），按全部记忆的平均长度计入。
 
@@ -46,22 +53,29 @@
 | 系统 | @1 | @2 | @3 | @4 | @5 | @6 | @7 | @8 | @9 | @10 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | feiyu-memgate-embedding-embeddinggemma | 81.7% | 90.8% | 95.8% | 96.7% | 99.2% | 99.2% | 100.0% | 100.0% | 100.0% | 100.0% |
+| feiyu-memgate-embedding-embeddinggemma-precise | 81.7% | 90.8% | 95.8% | 96.7% | 99.2% | 99.2% | 100.0% | 100.0% | 100.0% | 100.0% |
 | feiyu-memgate-embedding | 81.7% | 94.2% | 95.0% | 96.7% | 98.3% | 98.3% | 98.3% | 99.2% | 99.2% | 99.2% |
-| feiyu-memgate-embedding-broad | 81.7% | 94.2% | 95.0% | 96.7% | 98.3% | 98.3% | 98.3% | 99.2% | 99.2% | 99.2% |
+| feiyu-memgate-embedding-precise | 81.7% | 94.2% | 95.0% | 96.7% | 98.3% | 98.3% | 98.3% | 99.2% | 99.2% | 99.2% |
 | feiyu-memgate-openviking | 81.7% | 93.3% | 95.0% | 96.7% | 98.3% | 98.3% | 98.3% | 99.2% | 99.2% | 99.2% |
+| feiyu-memgate-openviking-precise | 81.7% | 93.3% | 95.0% | 96.7% | 98.3% | 98.3% | 98.3% | 99.2% | 99.2% | 99.2% |
 | mem0-verbatim | 81.7% | 94.2% | 95.0% | 96.7% | 98.3% | 98.3% | 98.3% | 99.2% | 99.2% | 99.2% |
 | memsearch | 85.0% | 95.8% | 95.8% | 96.7% | 98.3% | 99.2% | 99.2% | 100.0% | 100.0% | 100.0% |
 | openviking | 81.7% | 93.3% | 95.0% | 96.7% | 98.3% | 98.3% | 98.3% | 99.2% | 99.2% | 99.2% |
 | openviking-unfiltered | 81.7% | 93.3% | 95.0% | 96.7% | 98.3% | 98.3% | 98.3% | 99.2% | 99.2% | 99.2% |
 | feiyu-memgate-hybrid | 83.3% | 93.3% | 94.2% | 94.2% | 96.7% | 97.5% | 98.3% | 98.3% | 100.0% | 100.0% |
+| feiyu-memgate-hybrid-precise | 83.3% | 93.3% | 94.2% | 94.2% | 96.7% | 97.5% | 98.3% | 98.3% | 100.0% | 100.0% |
 | feiyu-memgate-embedding-qwen3-embedding | 84.2% | 94.2% | 95.8% | 95.8% | 95.8% | 96.7% | 96.7% | 96.7% | 98.3% | 98.3% |
-| feiyu-memgate-full | 84.2% | 93.3% | 94.2% | 94.2% | 95.0% | 97.5% | 98.3% | 98.3% | 99.2% | 100.0% |
+| feiyu-memgate-embedding-qwen3-embedding-precise | 84.2% | 94.2% | 95.8% | 95.8% | 95.8% | 96.7% | 96.7% | 96.7% | 98.3% | 98.3% |
+| feiyu-memgate-full | 83.3% | 94.2% | 94.2% | 94.2% | 95.0% | 97.5% | 98.3% | 98.3% | 99.2% | 100.0% |
+| feiyu-memgate-full-precise | 84.2% | 93.3% | 94.2% | 94.2% | 95.0% | 97.5% | 98.3% | 98.3% | 99.2% | 100.0% |
 | mem0 | 77.5% | 88.3% | 90.0% | 92.5% | 95.0% | 97.5% | 97.5% | 97.5% | 98.3% | 98.3% |
 | feiyu-memgate-embedding-bge-base-zh | 82.5% | 90.0% | 90.8% | 91.7% | 93.3% | 94.2% | 94.2% | 94.2% | 94.2% | 94.2% |
+| feiyu-memgate-embedding-bge-base-zh-precise | 82.5% | 90.0% | 90.8% | 91.7% | 93.3% | 94.2% | 94.2% | 94.2% | 94.2% | 94.2% |
 | feiyu-memgate-embedding-bge-small-zh | 75.8% | 85.8% | 89.2% | 91.7% | 92.5% | 93.3% | 94.2% | 94.2% | 95.0% | 96.7% |
+| feiyu-memgate-embedding-bge-small-zh-precise | 75.8% | 85.8% | 89.2% | 91.7% | 92.5% | 93.3% | 94.2% | 94.2% | 95.0% | 96.7% |
 | dsh-mnemon-embedding | 80.0% | 86.7% | 87.5% | 90.0% | 90.8% | 90.8% | 91.7% | 91.7% | 91.7% | 91.7% |
 | feiyu-memgate-sqlite | 61.7% | 74.2% | 77.5% | 80.0% | 81.7% | 81.7% | 84.2% | 85.8% | 87.5% | 88.3% |
-| feiyu-memgate-sqlite-broad | 61.7% | 74.2% | 77.5% | 80.0% | 81.7% | 81.7% | 84.2% | 85.8% | 87.5% | 88.3% |
+| feiyu-memgate-sqlite-precise | 61.7% | 74.2% | 77.5% | 80.0% | 81.7% | 81.7% | 84.2% | 85.8% | 87.5% | 88.3% |
 | lingshu-dsh-memory | 65.0% | 75.0% | 76.7% | 80.8% | 81.7% | 82.5% | 85.0% | 85.8% | 86.7% | 88.3% |
 | seekmemory | 50.8% | 58.3% | 60.8% | 63.3% | 64.2% | 65.8% | 69.2% | 69.2% | 70.0% | 70.8% |
 | seekmemory-aged | 52.5% | 59.2% | 61.7% | 63.3% | 64.2% | 65.8% | 69.2% | 69.2% | 70.0% | 70.8% |
@@ -74,23 +88,30 @@
 
 | 系统 | Hit@1 | Hit@5 | MRR@10 | Recall@5 | 交付命中 | 噪声 | 平均条数 |
 |---|---|---|---|---|---|---|---|
-| feiyu-memgate-embedding-embeddinggemma | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
-| feiyu-memgate-embedding | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
-| feiyu-memgate-embedding-broad | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 19.7% | 1.64 |
-| feiyu-memgate-openviking | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
+| feiyu-memgate-embedding-embeddinggemma | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 16.5% | 1.51 |
+| feiyu-memgate-embedding-embeddinggemma-precise | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
+| feiyu-memgate-embedding | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 19.7% | 1.64 |
+| feiyu-memgate-embedding-precise | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
+| feiyu-memgate-openviking | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 3.7% | 1.09 |
+| feiyu-memgate-openviking-precise | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
 | mem0-verbatim | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 95.0% | 20.00 |
 | memsearch | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 80.0% | 5.00 |
 | openviking | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 90.0% | 10.00 |
 | openviking-unfiltered | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 90.0% | 10.00 |
-| feiyu-memgate-hybrid | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
-| feiyu-memgate-embedding-qwen3-embedding | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
-| feiyu-memgate-full | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 2.2% | 1.04 |
+| feiyu-memgate-hybrid | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 19.0% | 1.51 |
+| feiyu-memgate-hybrid-precise | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
+| feiyu-memgate-embedding-qwen3-embedding | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 10.6% | 1.29 |
+| feiyu-memgate-embedding-qwen3-embedding-precise | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
+| feiyu-memgate-full | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 27.2% | 1.78 |
+| feiyu-memgate-full-precise | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 2.2% | 1.04 |
 | mem0 | 97.8% | 100.0% | 0.989 | 100.0% | 100.0% | 94.9% | 19.73 |
-| feiyu-memgate-embedding-bge-base-zh | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
-| feiyu-memgate-embedding-bge-small-zh | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
+| feiyu-memgate-embedding-bge-base-zh | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 9.3% | 1.20 |
+| feiyu-memgate-embedding-bge-base-zh-precise | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
+| feiyu-memgate-embedding-bge-small-zh | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 5.9% | 1.13 |
+| feiyu-memgate-embedding-bge-small-zh-precise | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
 | dsh-mnemon-embedding | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 59.4% | 2.64 |
-| feiyu-memgate-sqlite | 97.8% | 100.0% | 0.989 | 100.0% | 95.6% | 0.0% | 0.96 |
-| feiyu-memgate-sqlite-broad | 97.8% | 100.0% | 0.989 | 100.0% | 97.8% | 0.0% | 0.98 |
+| feiyu-memgate-sqlite | 97.8% | 100.0% | 0.989 | 100.0% | 97.8% | 0.0% | 0.98 |
+| feiyu-memgate-sqlite-precise | 97.8% | 100.0% | 0.989 | 100.0% | 95.6% | 0.0% | 0.96 |
 | lingshu-dsh-memory | 97.8% | 100.0% | 0.989 | 100.0% | 0.0% | 100.0% | 4.00 |
 | seekmemory | 97.8% | 97.8% | 0.980 | 97.8% | 97.8% | 72.9% | 4.42 |
 | seekmemory-aged | 97.8% | 97.8% | 0.980 | 97.8% | 97.8% | 72.9% | 4.42 |
@@ -103,23 +124,30 @@
 
 | 系统 | Hit@1 | Hit@5 | MRR@10 | Recall@5 | 交付命中 | 噪声 | 平均条数 |
 |---|---|---|---|---|---|---|---|
-| feiyu-memgate-embedding-embeddinggemma | 81.8% | 98.2% | 0.876 | 98.2% | 69.1% | 7.3% | 0.75 |
-| feiyu-memgate-embedding | 80.0% | 96.4% | 0.864 | 96.4% | 69.1% | 20.5% | 1.04 |
-| feiyu-memgate-embedding-broad | 80.0% | 96.4% | 0.864 | 96.4% | 92.7% | 54.7% | 3.09 |
-| feiyu-memgate-openviking | 80.0% | 96.4% | 0.864 | 96.4% | 81.8% | 24.0% | 1.29 |
+| feiyu-memgate-embedding-embeddinggemma | 81.8% | 98.2% | 0.876 | 98.2% | 96.4% | 44.3% | 2.56 |
+| feiyu-memgate-embedding-embeddinggemma-precise | 81.8% | 98.2% | 0.876 | 98.2% | 69.1% | 7.3% | 0.75 |
+| feiyu-memgate-embedding | 80.0% | 96.4% | 0.864 | 96.4% | 92.7% | 54.7% | 3.09 |
+| feiyu-memgate-embedding-precise | 80.0% | 96.4% | 0.864 | 96.4% | 69.1% | 20.5% | 1.04 |
+| feiyu-memgate-openviking | 80.0% | 96.4% | 0.864 | 96.4% | 81.8% | 30.5% | 1.76 |
+| feiyu-memgate-openviking-precise | 80.0% | 96.4% | 0.864 | 96.4% | 81.8% | 24.0% | 1.29 |
 | mem0-verbatim | 80.0% | 96.4% | 0.864 | 96.4% | 100.0% | 95.0% | 20.00 |
 | memsearch | 83.6% | 96.4% | 0.894 | 96.4% | 96.4% | 80.7% | 5.00 |
 | openviking | 80.0% | 96.4% | 0.864 | 96.4% | 98.2% | 90.2% | 10.00 |
 | openviking-unfiltered | 80.0% | 96.4% | 0.864 | 96.4% | 98.2% | 90.2% | 10.00 |
-| feiyu-memgate-hybrid | 81.8% | 92.7% | 0.868 | 92.7% | 34.5% | 2.6% | 0.36 |
-| feiyu-memgate-embedding-qwen3-embedding | 83.6% | 90.9% | 0.874 | 90.9% | 85.5% | 17.6% | 1.11 |
-| feiyu-memgate-full | 83.6% | 89.1% | 0.876 | 89.1% | 34.5% | 2.6% | 0.36 |
+| feiyu-memgate-hybrid | 81.8% | 92.7% | 0.868 | 92.7% | 85.5% | 42.4% | 2.20 |
+| feiyu-memgate-hybrid-precise | 81.8% | 92.7% | 0.868 | 92.7% | 34.5% | 2.6% | 0.36 |
+| feiyu-memgate-embedding-qwen3-embedding | 83.6% | 90.9% | 0.874 | 90.9% | 89.1% | 33.0% | 2.04 |
+| feiyu-memgate-embedding-qwen3-embedding-precise | 83.6% | 90.9% | 0.874 | 90.9% | 85.5% | 17.6% | 1.11 |
+| feiyu-memgate-full | 81.8% | 89.1% | 0.870 | 89.1% | 85.5% | 42.9% | 2.24 |
+| feiyu-memgate-full-precise | 83.6% | 89.1% | 0.876 | 89.1% | 34.5% | 2.6% | 0.36 |
 | mem0 | 67.3% | 92.7% | 0.769 | 92.7% | 98.2% | 95.0% | 19.76 |
-| feiyu-memgate-embedding-bge-base-zh | 81.8% | 87.3% | 0.833 | 87.3% | 58.2% | 14.3% | 0.73 |
-| feiyu-memgate-embedding-bge-small-zh | 70.9% | 83.6% | 0.763 | 83.6% | 65.5% | 21.1% | 0.91 |
+| feiyu-memgate-embedding-bge-base-zh | 81.8% | 87.3% | 0.833 | 87.3% | 83.6% | 33.9% | 1.78 |
+| feiyu-memgate-embedding-bge-base-zh-precise | 81.8% | 87.3% | 0.833 | 87.3% | 58.2% | 14.3% | 0.73 |
+| feiyu-memgate-embedding-bge-small-zh | 70.9% | 83.6% | 0.763 | 83.6% | 80.0% | 40.6% | 2.27 |
+| feiyu-memgate-embedding-bge-small-zh-precise | 70.9% | 83.6% | 0.763 | 83.6% | 65.5% | 21.1% | 0.91 |
 | dsh-mnemon-embedding | 72.7% | 85.5% | 0.774 | 85.5% | 78.2% | 58.8% | 2.02 |
-| feiyu-memgate-sqlite | 38.2% | 63.6% | 0.501 | 63.6% | 0.0% | - | 0.00 |
-| feiyu-memgate-sqlite-broad | 38.2% | 63.6% | 0.501 | 63.6% | 3.6% | 0.0% | 0.04 |
+| feiyu-memgate-sqlite | 38.2% | 63.6% | 0.501 | 63.6% | 3.6% | 0.0% | 0.04 |
+| feiyu-memgate-sqlite-precise | 38.2% | 63.6% | 0.501 | 63.6% | 0.0% | - | 0.00 |
 | lingshu-dsh-memory | 43.6% | 63.6% | 0.533 | 63.6% | 0.0% | 100.0% | 4.00 |
 | seekmemory | 18.2% | 32.7% | 0.251 | 32.7% | 32.7% | 90.8% | 4.00 |
 | seekmemory-aged | 21.8% | 32.7% | 0.273 | 32.7% | 32.7% | 90.8% | 4.00 |
@@ -132,23 +160,30 @@
 
 | 系统 | Hit@1 | Hit@5 | MRR@10 | Recall@5 | 交付命中 | 噪声 | 平均条数 | 新旧优先 | 交付中新旧优先 | 题数 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| feiyu-memgate-embedding-embeddinggemma | 40.0% | 100.0% | 0.667 | 100.0% | 45.0% | 68.6% | 1.30 | 40.0% | 100.0% | 9/9 |
-| feiyu-memgate-embedding | 45.0% | 100.0% | 0.717 | 100.0% | 75.0% | 53.7% | 1.60 | 50.0% | 100.0% | 15/15 |
-| feiyu-memgate-embedding-broad | 45.0% | 100.0% | 0.717 | 100.0% | 100.0% | 65.0% | 3.25 | 50.0% | 80.0% | 16/20 |
-| feiyu-memgate-openviking | 45.0% | 100.0% | 0.708 | 100.0% | 75.0% | 53.3% | 1.65 | 50.0% | 100.0% | 15/15 |
+| feiyu-memgate-embedding-embeddinggemma | 40.0% | 100.0% | 0.667 | 100.0% | 95.0% | 59.4% | 2.70 | 40.0% | 63.2% | 12/19 |
+| feiyu-memgate-embedding-embeddinggemma-precise | 40.0% | 100.0% | 0.667 | 100.0% | 45.0% | 68.6% | 1.30 | 40.0% | 100.0% | 9/9 |
+| feiyu-memgate-embedding | 45.0% | 100.0% | 0.717 | 100.0% | 100.0% | 65.0% | 3.25 | 50.0% | 80.0% | 16/20 |
+| feiyu-memgate-embedding-precise | 45.0% | 100.0% | 0.717 | 100.0% | 75.0% | 53.7% | 1.60 | 50.0% | 100.0% | 15/15 |
+| feiyu-memgate-openviking | 45.0% | 100.0% | 0.708 | 100.0% | 95.0% | 53.7% | 2.40 | 50.0% | 100.0% | 19/19 |
+| feiyu-memgate-openviking-precise | 45.0% | 100.0% | 0.708 | 100.0% | 75.0% | 53.3% | 1.65 | 50.0% | 100.0% | 15/15 |
 | mem0-verbatim | 45.0% | 100.0% | 0.717 | 100.0% | 100.0% | 95.0% | 20.00 | 50.0% | 50.0% | 10/20 |
 | memsearch | 55.0% | 100.0% | 0.762 | 100.0% | 100.0% | 80.0% | 5.00 | 60.0% | 60.0% | 12/20 |
 | openviking | 45.0% | 100.0% | 0.708 | 100.0% | 100.0% | 90.0% | 10.00 | 50.0% | 50.0% | 10/20 |
 | openviking-unfiltered | 45.0% | 100.0% | 0.708 | 100.0% | 100.0% | 90.0% | 10.00 | 50.0% | 50.0% | 10/20 |
-| feiyu-memgate-hybrid | 50.0% | 100.0% | 0.735 | 100.0% | 70.0% | 44.8% | 1.35 | 50.0% | 100.0% | 14/14 |
-| feiyu-memgate-embedding-qwen3-embedding | 50.0% | 100.0% | 0.750 | 100.0% | 50.0% | 60.0% | 1.20 | 50.0% | 100.0% | 10/10 |
-| feiyu-memgate-full | 50.0% | 100.0% | 0.735 | 100.0% | 70.0% | 39.6% | 1.30 | 50.0% | 100.0% | 14/14 |
+| feiyu-memgate-hybrid | 50.0% | 100.0% | 0.735 | 100.0% | 95.0% | 65.8% | 3.20 | 50.0% | 84.2% | 16/19 |
+| feiyu-memgate-hybrid-precise | 50.0% | 100.0% | 0.735 | 100.0% | 70.0% | 44.8% | 1.35 | 50.0% | 100.0% | 14/14 |
+| feiyu-memgate-embedding-qwen3-embedding | 50.0% | 100.0% | 0.750 | 100.0% | 95.0% | 61.3% | 2.65 | 50.0% | 73.7% | 14/19 |
+| feiyu-memgate-embedding-qwen3-embedding-precise | 50.0% | 100.0% | 0.750 | 100.0% | 50.0% | 60.0% | 1.20 | 50.0% | 100.0% | 10/10 |
+| feiyu-memgate-full | 50.0% | 100.0% | 0.735 | 100.0% | 100.0% | 61.0% | 3.05 | 50.0% | 95.0% | 19/20 |
+| feiyu-memgate-full-precise | 50.0% | 100.0% | 0.735 | 100.0% | 70.0% | 39.6% | 1.30 | 50.0% | 100.0% | 14/14 |
 | mem0 | 60.0% | 90.0% | 0.767 | 90.0% | 100.0% | 94.9% | 19.70 | 60.0% | 60.0% | 12/20 |
-| feiyu-memgate-embedding-bge-base-zh | 45.0% | 95.0% | 0.692 | 95.0% | 50.0% | 57.1% | 1.10 | 45.0% | 80.0% | 8/10 |
-| feiyu-memgate-embedding-bge-small-zh | 35.0% | 100.0% | 0.646 | 100.0% | 55.0% | 65.8% | 1.50 | 35.0% | 100.0% | 11/11 |
+| feiyu-memgate-embedding-bge-base-zh | 45.0% | 95.0% | 0.692 | 95.0% | 75.0% | 65.7% | 2.00 | 45.0% | 80.0% | 12/15 |
+| feiyu-memgate-embedding-bge-base-zh-precise | 45.0% | 95.0% | 0.692 | 95.0% | 50.0% | 57.1% | 1.10 | 45.0% | 80.0% | 8/10 |
+| feiyu-memgate-embedding-bge-small-zh | 35.0% | 100.0% | 0.646 | 100.0% | 75.0% | 61.7% | 2.05 | 35.0% | 73.3% | 11/15 |
+| feiyu-memgate-embedding-bge-small-zh-precise | 35.0% | 100.0% | 0.646 | 100.0% | 55.0% | 65.8% | 1.50 | 35.0% | 100.0% | 11/11 |
 | dsh-mnemon-embedding | 55.0% | 85.0% | 0.692 | 85.0% | 85.0% | 72.9% | 3.05 | 55.0% | 64.7% | 11/17 |
-| feiyu-memgate-sqlite | 45.0% | 90.0% | 0.646 | 90.0% | 20.0% | 50.0% | 0.40 | 55.0% | 75.0% | 3/4 |
-| feiyu-memgate-sqlite-broad | 45.0% | 90.0% | 0.646 | 90.0% | 50.0% | 48.7% | 1.05 | 55.0% | 80.0% | 8/10 |
+| feiyu-memgate-sqlite | 45.0% | 90.0% | 0.646 | 90.0% | 50.0% | 48.7% | 1.05 | 55.0% | 80.0% | 8/10 |
+| feiyu-memgate-sqlite-precise | 45.0% | 90.0% | 0.646 | 90.0% | 20.0% | 50.0% | 0.40 | 55.0% | 75.0% | 3/4 |
 | lingshu-dsh-memory | 50.0% | 90.0% | 0.667 | 90.0% | 0.0% | 100.0% | 4.00 | 55.0% | - | 0/0 |
 | seekmemory | 35.0% | 75.0% | 0.532 | 75.0% | 80.0% | 84.5% | 5.15 | 45.0% | 56.2% | 9/16 |
 | seekmemory-aged | 35.0% | 75.0% | 0.536 | 75.0% | 80.0% | 84.5% | 5.15 | 45.0% | 56.2% | 9/16 |
@@ -163,23 +198,30 @@
 
 | 系统 | 安静率 | 平均条数 |
 |---|---|---|
-| feiyu-memgate-embedding-embeddinggemma | 72.5% | 0.42 |
-| feiyu-memgate-embedding | 65.0% | 0.57 |
-| feiyu-memgate-embedding-broad | 32.5% | 2.12 |
-| feiyu-memgate-openviking | 40.0% | 0.95 |
+| feiyu-memgate-embedding-embeddinggemma | 37.5% | 1.60 |
+| feiyu-memgate-embedding-embeddinggemma-precise | 72.5% | 0.42 |
+| feiyu-memgate-embedding | 32.5% | 2.12 |
+| feiyu-memgate-embedding-precise | 65.0% | 0.57 |
+| feiyu-memgate-openviking | 40.0% | 1.15 |
+| feiyu-memgate-openviking-precise | 40.0% | 0.95 |
 | mem0-verbatim | 0.0% | 20.00 |
 | memsearch | 0.0% | 5.00 |
 | openviking | 0.0% | 9.78 |
 | openviking-unfiltered | 0.0% | 9.97 |
-| feiyu-memgate-hybrid | 75.0% | 0.35 |
-| feiyu-memgate-embedding-qwen3-embedding | 37.5% | 0.65 |
-| feiyu-memgate-full | 75.0% | 0.35 |
+| feiyu-memgate-hybrid | 35.0% | 1.73 |
+| feiyu-memgate-hybrid-precise | 75.0% | 0.35 |
+| feiyu-memgate-embedding-qwen3-embedding | 32.5% | 1.45 |
+| feiyu-memgate-embedding-qwen3-embedding-precise | 37.5% | 0.65 |
+| feiyu-memgate-full | 35.0% | 1.70 |
+| feiyu-memgate-full-precise | 75.0% | 0.35 |
 | mem0 | 0.0% | 19.82 |
-| feiyu-memgate-embedding-bge-base-zh | 65.0% | 0.40 |
-| feiyu-memgate-embedding-bge-small-zh | 47.5% | 0.62 |
+| feiyu-memgate-embedding-bge-base-zh | 37.5% | 1.23 |
+| feiyu-memgate-embedding-bge-base-zh-precise | 65.0% | 0.40 |
+| feiyu-memgate-embedding-bge-small-zh | 20.0% | 1.75 |
+| feiyu-memgate-embedding-bge-small-zh-precise | 47.5% | 0.62 |
 | dsh-mnemon-embedding | 0.0% | 1.68 |
-| feiyu-memgate-sqlite | 75.0% | 0.38 |
-| feiyu-memgate-sqlite-broad | 70.0% | 0.53 |
+| feiyu-memgate-sqlite | 70.0% | 0.53 |
+| feiyu-memgate-sqlite-precise | 75.0% | 0.38 |
 | lingshu-dsh-memory | 0.0% | 4.00 |
 | seekmemory | 22.5% | 3.33 |
 | seekmemory-aged | 22.5% | 3.33 |
@@ -192,13 +234,29 @@
 
 ### feiyu-memgate-embedding-embeddinggemma（0.1.0）
 
-- 模式：verbatim ingest, embedding backend (embeddinggemma via an OpenAI-compatible endpoint, brute-force cosine), default recall stages, no LLM
+- 模式：verbatim ingest, embedding backend (embeddinggemma via an OpenAI-compatible endpoint, brute-force cosine), default recall stages (broad profile), no LLM
 - 调用：config.build_gateway(dict); EmbeddingBackend.put_many([(text, id, date)]) once for all memories; Gateway.recall('owner', {'query': q}) for deployed; EmbeddingBackend.find(query, 10) for ranked
-- 注意：向量后端换成较轻的模型 embeddinggemma（622 MB，768 维，多语言），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤；需要一个 embeddings 接口。
-- 这是同一个后端的另一档配置（别的模型或宽松档），不在五张基准图里画，表里保留。
+- 注意：向量后端换成较轻的模型 embeddinggemma（622 MB，768 维，多语言），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤（宽松档 broad：min_score 0.30、比例 0.60）；需要一个 embeddings 接口。
+- 这是同一个后端的另一档配置（别的模型或精确档），不在五张基准图里画，表里保留。
 - 备注：Backend is the embedding backend: model embeddinggemma, cosine mapped to 0..1 with floor 0.30 and ceil 0.75 (the backend's values for this model, chosen on the development sets, not on this data); query prefix none, document prefix none.
 - 备注：ranked scores are the mapped relevance values, not comparable across systems.
-- 备注：deployed uses the default recall stages (min_score with the backend's default 0.55, relative_score with the backend's default ratio 0.85, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only.
+- 备注：deployed uses the default recall stages, whose default profile is broad (min_score with the backend's broad line 0.30, relative_score with its ratio 0.60, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; no profile is passed; ms times that Gateway.recall call only. The broad lines were chosen on the development set by the broad rule of bench/dev_eval.py (precision >= 50 % and at least half of the precise quiet rate, best delivered hit); the precise lines are 0.55 and 0.85 (the -precise run).
+- 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
+- 备注：0 recall call(s) did not answer 200; 0 ranked search(es) failed.
+- 备注：deployed was timed before ranked, so ms includes the real query embedding request; ranked then reuses the backend's query-embedding cache.
+- 备注：Gateway.recall was called directly, so the per-client rate limiter (applied only in admit) was not involved.
+- 备注：Memories were ingested with one put_many call (embedding requests of 32 texts); ingest_seconds covers it.
+
+### feiyu-memgate-embedding-embeddinggemma-precise（0.1.0）
+
+- 模式：verbatim ingest, embedding backend (embeddinggemma via an OpenAI-compatible endpoint, brute-force cosine), default recall stages, no LLM, precise recall profile
+- 调用：config.build_gateway(dict); EmbeddingBackend.put_many([(text, id, date)]) once for all memories; Gateway.recall('owner', {'query': q}) for deployed; EmbeddingBackend.find(query, 10) for ranked
+- 注意：和 feiyu-memgate-embedding-embeddinggemma 完全一样，只是固定 [recall] profile = "precise"：min_score 0.55、比例 0.85（默认的宽松档是 0.30 / 0.60）。留出集上，默认档 → 精确档：交付命中 97.5% → 76.7%，精确率 63.8% → 85.8%，安静率 37.5% → 72.5%，每题交付 2.04 → 0.81 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。
+- 这是同一个后端的另一档配置（别的模型或精确档），不在五张基准图里画，表里保留。
+- 备注：Backend is the embedding backend: model embeddinggemma, cosine mapped to 0..1 with floor 0.30 and ceil 0.75 (the backend's values for this model, chosen on the development sets, not on this data); query prefix none, document prefix none.
+- 备注：ranked scores are the mapped relevance values, not comparable across systems.
+- 备注：deployed uses the default recall stages with [recall] profile = 'precise' pinned (min_score with the backend's precise line 0.55, relative_score with its ratio 0.85, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only. The plain run of this backend uses the broad lines 0.30 and 0.60 instead.
+- 备注：Precise profile: [recall] profile = 'precise' makes min_score and relative_score use the precision-leaning lines of this backend (min_score 0.55, ratio 0.85 instead of the broad 0.30 and 0.60), chosen on the development set by the balanced rule of bench/dev_eval.py (delivered F1 weighted with the quiet rate). It answers fewer questions and stays quiet more often than the default.
 - 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
 - 备注：0 recall call(s) did not answer 200; 0 ranked search(es) failed.
 - 备注：deployed was timed before ranked, so ms includes the real query embedding request; ranked then reuses the backend's query-embedding cache.
@@ -207,28 +265,28 @@
 
 ### feiyu-memgate-embedding（0.1.0）
 
-- 模式：verbatim ingest, embedding backend (bge-m3 via an OpenAI-compatible endpoint, brute-force cosine), default recall stages, no LLM
+- 模式：verbatim ingest, embedding backend (bge-m3 via an OpenAI-compatible endpoint, brute-force cosine), default recall stages (broad profile), no LLM
 - 调用：config.build_gateway(dict); EmbeddingBackend.put_many([(text, id, date)]) once for all memories; Gateway.recall('owner', {'query': q}) for deployed; EmbeddingBackend.find(query, 10) for ranked
-- 注意：向量后端（bge-m3，暴力余弦），默认召回步骤；需要一个 embeddings 接口。
+- 注意：向量后端（bge-m3，暴力余弦），默认召回步骤（宽松档 broad：min_score 0.30、比例 0.60）；需要一个 embeddings 接口。
 - 备注：Backend is the embedding backend: bge-m3 vectors (1024 dimensions) from an embeddings endpoint, cosine mapped to 0..1 with floor 0.40 and ceil 0.80 (chosen on the development sets, not on this data).
 - 备注：ranked scores are the mapped relevance values, not comparable across systems.
-- 备注：deployed uses the default recall stages (min_score with the backend's default 0.50, relative_score with the backend's default ratio 0.85, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only.
+- 备注：deployed uses the default recall stages, whose default profile is broad (min_score with the backend's broad line 0.30, relative_score with its ratio 0.60, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; no profile is passed; ms times that Gateway.recall call only. The broad lines were chosen on the development set by the broad rule of bench/dev_eval.py (precision >= 50 % and at least half of the precise quiet rate, best delivered hit); the precise lines are 0.50 and 0.85 (the -precise run).
 - 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
 - 备注：0 recall call(s) did not answer 200; 0 ranked search(es) failed.
 - 备注：deployed was timed before ranked, so ms includes the real query embedding request; ranked then reuses the backend's query-embedding cache.
 - 备注：Gateway.recall was called directly, so the per-client rate limiter (applied only in admit) was not involved.
 - 备注：Memories were ingested with one put_many call (embedding requests of 32 texts); ingest_seconds covers it.
 
-### feiyu-memgate-embedding-broad（0.1.0）
+### feiyu-memgate-embedding-precise（0.1.0）
 
-- 模式：verbatim ingest, embedding backend (bge-m3 via an OpenAI-compatible endpoint, brute-force cosine), default recall stages, no LLM, broad recall profile
+- 模式：verbatim ingest, embedding backend (bge-m3 via an OpenAI-compatible endpoint, brute-force cosine), default recall stages, no LLM, precise recall profile
 - 调用：config.build_gateway(dict); EmbeddingBackend.put_many([(text, id, date)]) once for all memories; Gateway.recall('owner', {'query': q}) for deployed; EmbeddingBackend.find(query, 10) for ranked
-- 注意：和 feiyu-memgate-embedding（bge-m3）完全一样，只是 [recall] profile = "broad"：min_score 0.30、比例 0.60（默认 0.50 / 0.85），开发集上按事先写定的规则选的宽松档，多答题，交出的条目更杂、对没有答案的问题更容易开口。
-- 这是同一个后端的另一档配置（别的模型或宽松档），不在五张基准图里画，表里保留。
-- 备注：Backend is the embedding backend: model bge-m3, cosine mapped to 0..1 with floor 0.40 and ceil 0.80 (the backend's values for this model, chosen on the development sets, not on this data); query prefix none, document prefix none.
+- 注意：和 feiyu-memgate-embedding 完全一样，只是固定 [recall] profile = "precise"：min_score 0.50、比例 0.85（默认的宽松档是 0.30 / 0.60）。留出集上，默认档 → 精确档：交付命中 96.7% → 81.7%，精确率 56.9% → 82.5%，安静率 32.5% → 65.0%，每题交付 2.46 → 0.98 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。
+- 这是同一个后端的另一档配置（别的模型或精确档），不在五张基准图里画，表里保留。
+- 备注：Backend is the embedding backend: bge-m3 vectors (1024 dimensions) from an embeddings endpoint, cosine mapped to 0..1 with floor 0.40 and ceil 0.80 (chosen on the development sets, not on this data).
 - 备注：ranked scores are the mapped relevance values, not comparable across systems.
-- 备注：deployed uses the default recall stages (min_score with the backend's default 0.50, relative_score with the backend's default ratio 0.85, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only.
-- 备注：Broad profile: [recall] profile = 'broad' makes min_score and relative_score use the recall-leaning lines of this backend (min_score 0.30, ratio 0.60 instead of 0.50 and 0.85), chosen on the development set by the rule of bench/dev_eval.py --profile broad: precision >= 50 % and at least half of the default quiet rate, best delivered hit. It trades precision and silence for answered questions.
+- 备注：deployed uses the default recall stages with [recall] profile = 'precise' pinned (min_score with the backend's precise line 0.50, relative_score with its ratio 0.85, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only. The plain run of this backend uses the broad lines 0.30 and 0.60 instead.
+- 备注：Precise profile: [recall] profile = 'precise' makes min_score and relative_score use the precision-leaning lines of this backend (min_score 0.50, ratio 0.85 instead of the broad 0.30 and 0.60), chosen on the development set by the balanced rule of bench/dev_eval.py (delivered F1 weighted with the quiet rate). It answers fewer questions and stays quiet more often than the default.
 - 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
 - 备注：0 recall call(s) did not answer 200; 0 ranked search(es) failed.
 - 备注：deployed was timed before ranked, so ms includes the real query embedding request; ranked then reuses the backend's query-embedding cache.
@@ -237,13 +295,28 @@
 
 ### feiyu-memgate-openviking（0.1.0 (OpenViking v0.5.3)）
 
-- 模式：verbatim memory-file ingest into OpenViking, feiyu-memgate openviking backend (read-only store), default recall stages, bge-m3 embeddings inside OpenViking, no LLM
+- 模式：verbatim memory-file ingest into OpenViking, feiyu-memgate openviking backend (read-only store), default recall stages (broad profile), bge-m3 embeddings inside OpenViking, no LLM
 - 调用：config.build_gateway(dict); OpenVikingBackend.put(text, ref=viking://~/memories/events/Y/M/D/<id>.md) per memory; OpenVikingBackend.find(query, 10) for ranked; Gateway.recall('owner', {'query': q}) for deployed; id = file name of the item's URI
-- 注意：网关接在 OpenViking（只读存储）前面，默认召回步骤。
+- 注意：网关接在 OpenViking（只读存储）前面，默认召回步骤（宽松档 broad：min_score 0.55、比例 0.90）。
 - 备注：Memories written with OpenVikingBackend.put (content/write, mode create) as memory files, no session or extraction, so no language model is used; llm_tokens is 0. Ingest went into its own OpenViking user.
-- 备注：ingest_seconds includes the wait until a sample of 21 memories (and the last one written) found themselves (wait 67.4 s; writes alone 2.4 s, 0 put failure(s)).
+- 备注：ingest_seconds includes the wait until a sample of 21 memories (and the last one written) found themselves (wait 66.9 s; writes alone 2.3 s, 0 put failure(s)).
 - 备注：ranked: backend.find(query, 10) of the read-only store; directory summaries (.abstract.md, .overview.md) are skipped by the backend itself, so ranked can hold fewer than 10 items.
-- 备注：deployed uses the default recall stages (min_score, relative_score, newer_first, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; the gateway asks the backend for 15 candidates; ms times that Gateway.recall call only. The backend maps OpenViking's raw score with its default floor 0.50 / ceil 1.00 (raw kept in Hit.meta); its defaults are min_score 0.55 and relative ratio 0.95, so min_score 0.55 means raw 0.775.
+- 备注：deployed uses the default recall stages (min_score, relative_score, newer_first, fill_text, drop_oversize, redact, dedupe, budget) with the default profile (broad), none passed and the default limit of 5; the gateway asks the backend for 15 candidates; ms times that Gateway.recall call only. The backend maps OpenViking's raw score with its default floor 0.50 / ceil 1.00 (raw kept in Hit.meta); its precise lines are min_score 0.55 and relative ratio 0.95, its broad lines (the default profile) 0.55 and 0.90, so the min_score in use, 0.55, means raw 0.775.
+- 备注：Backend and gateway timeouts are the defaults (backend socket timeout 2 s) except for ingest writes (30 s).
+- 备注：Recall item ids: the memory id is the file name of the item's URI (id field); 0 item(s) unmapped.
+- 备注：0 recall call(s) did not answer 200; 0 backend find call(s) for ranked failed.
+- 备注：Gateway.recall was called directly, so the per-client rate limiter was not involved.
+
+### feiyu-memgate-openviking-precise（0.1.0 (OpenViking v0.5.3)）
+
+- 模式：verbatim memory-file ingest into OpenViking, feiyu-memgate openviking backend (read-only store), default recall stages, precise recall profile, bge-m3 embeddings inside OpenViking, no LLM
+- 调用：config.build_gateway(dict); OpenVikingBackend.put(text, ref=viking://~/memories/events/Y/M/D/<id>.md) per memory; OpenVikingBackend.find(query, 10) for ranked; Gateway.recall('owner', {'query': q}) for deployed; id = file name of the item's URI
+- 注意：和 feiyu-memgate-openviking 完全一样，只是固定 [recall] profile = "precise"：min_score 0.55、比例 0.95（默认的宽松档是 0.55 / 0.90）。留出集上，默认档 → 精确档：交付命中 90.8% → 87.5%，精确率 75.9% → 80.2%，安静率 40.0% → 40.0%，每题交付 1.50 → 1.17 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。
+- 这是同一个后端的另一档配置（别的模型或精确档），不在五张基准图里画，表里保留。
+- 备注：Memories written with OpenVikingBackend.put (content/write, mode create) as memory files, no session or extraction, so no language model is used; llm_tokens is 0. Ingest went into its own OpenViking user.
+- 备注：ingest_seconds includes the wait until a sample of 21 memories (and the last one written) found themselves (wait 69.4 s; writes alone 2.4 s, 0 put failure(s)).
+- 备注：ranked: backend.find(query, 10) of the read-only store; directory summaries (.abstract.md, .overview.md) are skipped by the backend itself, so ranked can hold fewer than 10 items.
+- 备注：deployed uses the default recall stages (min_score, relative_score, newer_first, fill_text, drop_oversize, redact, dedupe, budget) with [recall] profile = 'precise' pinned and the default limit of 5; the gateway asks the backend for 15 candidates; ms times that Gateway.recall call only. The backend maps OpenViking's raw score with its default floor 0.50 / ceil 1.00 (raw kept in Hit.meta); its precise lines are min_score 0.55 and relative ratio 0.95, its broad lines (the default profile) 0.55 and 0.90, so the min_score in use, 0.55, means raw 0.775.
 - 备注：Backend and gateway timeouts are the defaults (backend socket timeout 2 s) except for ingest writes (30 s).
 - 备注：Recall item ids: the memory id is the file name of the item's URI (id field); 0 item(s) unmapped.
 - 备注：0 recall call(s) did not answer 200; 0 backend find call(s) for ranked failed.
@@ -282,7 +355,7 @@
 - 调用：POST /api/v1/content/write per memory (mode create, URI viking://user/owner/memories/events/Y/M/D/<id>.md); POST /api/v1/search/find {query, limit 10, target_uri viking://~/memories} for ranked; the same call without limit and score_threshold for deployed; id = file name of the result URI
 - 注意：直接写记忆文件，不走会话提取（真实部署会用模型提取，这里没测）；API 默认值，没有阈值，交付约 10 条；默认插件设置未能核实。
 - 备注：Memories were written directly as memory files (content/write, mode create) under events/YYYY/MM/DD/<id>.md with the memory date in the path; OpenViking's session/commit extraction (which needs a language model) was not used, so llm_tokens is 0. A real deployment would extract facts with a model, which this does not measure.
-- 备注：Embeddings: bge-m3 (1024) through the shared embedder; indexing is asynchronous, ingest_seconds includes the wait until a sample of 21 memories (and the last one written) found themselves (wait 69.6 s; writes alone 2.6 s, 0 write failure(s)).
+- 备注：Embeddings: bge-m3 (1024) through the shared embedder; indexing is asynchronous, ingest_seconds includes the wait until a sample of 21 memories (and the last one written) found themselves (wait 69.2 s; writes alone 2.6 s, 0 write failure(s)).
 - 备注：Scores are OpenViking's own search scores, not comparable across systems.
 - 备注：deployed: the plugin's default limit/threshold is UNVERIFIED (its package is not available offline); the API defaults stand in for it: limit 10, no score threshold. So deployed equals ranked in size.
 - 备注：The search over viking://~/memories also returns directory summaries (.abstract.md/.overview.md): 8 such item(s) among the ranked results of all questions.
@@ -298,7 +371,7 @@
 - 注意：实验变体：和 openviking 同样的调用，目录摘要保留为无编号条目（全部排名里只有 8 条），两行几乎一样。
 - 这是实验变体，不是默认运行；图表里不画，表里保留。
 - 备注：Memories were written directly as memory files (content/write, mode create) under events/YYYY/MM/DD/<id>.md with the memory date in the path; OpenViking's session/commit extraction (which needs a language model) was not used, so llm_tokens is 0. A real deployment would extract facts with a model, which this does not measure.
-- 备注：Embeddings: bge-m3 (1024) through the shared embedder; indexing is asynchronous, ingest_seconds includes the wait until a sample of 21 memories (and the last one written) found themselves (wait 69.6 s; writes alone 2.6 s, 0 write failure(s)).
+- 备注：Embeddings: bge-m3 (1024) through the shared embedder; indexing is asynchronous, ingest_seconds includes the wait until a sample of 21 memories (and the last one written) found themselves (wait 69.2 s; writes alone 2.6 s, 0 write failure(s)).
 - 备注：Scores are OpenViking's own search scores, not comparable across systems.
 - 备注：deployed: the plugin's default limit/threshold is UNVERIFIED (its package is not available offline); the API defaults stand in for it: limit 10, no score threshold. So deployed equals ranked in size.
 - 备注：The search over viking://~/memories also returns directory summaries (.abstract.md/.overview.md): 8 such item(s) among the ranked results of all questions.
@@ -309,12 +382,28 @@
 
 ### feiyu-memgate-hybrid（0.1.0）
 
-- 模式：verbatim ingest, hybrid backend (sqlite keyword + embedding bge-m3, probabilistic-OR fusion), default recall stages, no LLM
+- 模式：verbatim ingest, hybrid backend (sqlite keyword + embedding bge-m3, probabilistic-OR fusion), default recall stages (broad profile), no LLM
 - 调用：config.build_gateway(dict); HybridBackend.put_many([(text, id, date)]) once for all memories (written to both children under the memory id); Gateway.recall('owner', {'query': q}) for deployed; HybridBackend.find(query, 10) for ranked
-- 注意：关键词 + 向量，概率“或”融合，默认召回步骤；需要一个 embeddings 接口。
+- 注意：关键词 + 向量，概率“或”融合，默认召回步骤（宽松档 broad：min_score 0.40、比例 0.65）；需要一个 embeddings 接口。
 - 备注：Backend is the hybrid backend: a sqlite keyword child (IDF-weighted containment of character bigrams and CJK single characters) and an embedding child (bge-m3, cosine mapped with floor 0.40 and ceil 0.80); fused score = 1 - prod(1 - score_i) with both weights 1.0. Defaults chosen on the development sets, not on this data.
 - 备注：ranked scores are the fused relevance values, not comparable across systems.
-- 备注：deployed uses the default recall stages (min_score with the hybrid's default 0.70, relative_score with its default ratio 0.85, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only (it asks both children, one after the other).
+- 备注：deployed uses the default recall stages, whose default profile is broad (min_score with the hybrid's broad line 0.40, relative_score with its ratio 0.65, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; no profile is passed; ms times that Gateway.recall call only. The broad lines were chosen on the development set by the broad rule of bench/dev_eval.py (precision >= 50 % and at least half of the precise quiet rate, best delivered hit); the precise lines are 0.70 and 0.85 (the -precise run). The recall call asks both children, one after the other.
+- 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
+- 备注：0 recall call(s) did not answer 200; 0 ranked search(es) failed.
+- 备注：deployed was timed before ranked, so ms includes the real query embedding request; ranked then reuses the backend's query-embedding cache.
+- 备注：Gateway.recall was called directly, so the per-client rate limiter (applied only in admit) was not involved.
+- 备注：Memories were ingested with one put_many call (embedding requests of 32 texts); ingest_seconds covers it.
+
+### feiyu-memgate-hybrid-precise（0.1.0）
+
+- 模式：verbatim ingest, hybrid backend (sqlite keyword + embedding bge-m3, probabilistic-OR fusion), default recall stages, no LLM, precise recall profile
+- 调用：config.build_gateway(dict); HybridBackend.put_many([(text, id, date)]) once for all memories (written to both children under the memory id); Gateway.recall('owner', {'query': q}) for deployed; HybridBackend.find(query, 10) for ranked
+- 注意：和 feiyu-memgate-hybrid 完全一样，只是固定 [recall] profile = "precise"：min_score 0.70、比例 0.85（默认的宽松档是 0.40 / 0.65）。留出集上，默认档 → 精确档：交付命中 92.5% → 65.0%，精确率 62.6% → 90.4%，安静率 35.0% → 75.0%，每题交付 2.01 → 0.66 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。
+- 这是同一个后端的另一档配置（别的模型或精确档），不在五张基准图里画，表里保留。
+- 备注：Backend is the hybrid backend: a sqlite keyword child (IDF-weighted containment of character bigrams and CJK single characters) and an embedding child (bge-m3, cosine mapped with floor 0.40 and ceil 0.80); fused score = 1 - prod(1 - score_i) with both weights 1.0. Defaults chosen on the development sets, not on this data.
+- 备注：ranked scores are the fused relevance values, not comparable across systems.
+- 备注：deployed uses the default recall stages with [recall] profile = 'precise' pinned (min_score with the hybrid's precise line 0.70, relative_score with its ratio 0.85, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only. The plain run of this backend uses the broad lines 0.40 and 0.65 instead. The recall call asks both children, one after the other.
+- 备注：Precise profile: [recall] profile = 'precise': min_score 0.70 and ratio 0.85 (the hybrid's default_min_score and default_relative_ratio, the precise lines) instead of the broad 0.40 and 0.65 of the plain run.
 - 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
 - 备注：0 recall call(s) did not answer 200; 0 ranked search(es) failed.
 - 备注：deployed was timed before ranked, so ms includes the real query embedding request; ranked then reuses the backend's query-embedding cache.
@@ -323,13 +412,29 @@
 
 ### feiyu-memgate-embedding-qwen3-embedding（0.1.0）
 
-- 模式：verbatim ingest, embedding backend (qwen3-embedding:0.6b via an OpenAI-compatible endpoint, brute-force cosine), default recall stages, no LLM
+- 模式：verbatim ingest, embedding backend (qwen3-embedding:0.6b via an OpenAI-compatible endpoint, brute-force cosine), default recall stages (broad profile), no LLM
 - 调用：config.build_gateway(dict); EmbeddingBackend.put_many([(text, id, date)]) once for all memories; Gateway.recall('owner', {'query': q}) for deployed; EmbeddingBackend.find(query, 10) for ranked
-- 注意：向量后端换成较轻的模型 qwen3-embedding 0.6B（639 MB，1024 维，多语言），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤；需要一个 embeddings 接口。
-- 这是同一个后端的另一档配置（别的模型或宽松档），不在五张基准图里画，表里保留。
+- 注意：向量后端换成较轻的模型 qwen3-embedding 0.6B（639 MB，1024 维，多语言），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤（宽松档 broad：min_score 0.15、比例 0.65）；需要一个 embeddings 接口。
+- 这是同一个后端的另一档配置（别的模型或精确档），不在五张基准图里画，表里保留。
 - 备注：Backend is the embedding backend: model qwen3-embedding:0.6b, cosine mapped to 0..1 with floor 0.35 and ceil 0.80 (the backend's values for this model, chosen on the development sets, not on this data); query prefix set, document prefix none.
 - 备注：ranked scores are the mapped relevance values, not comparable across systems.
-- 备注：deployed uses the default recall stages (min_score with the backend's default 0.20, relative_score with the backend's default ratio 0.95, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only.
+- 备注：deployed uses the default recall stages, whose default profile is broad (min_score with the backend's broad line 0.15, relative_score with its ratio 0.65, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; no profile is passed; ms times that Gateway.recall call only. The broad lines were chosen on the development set by the broad rule of bench/dev_eval.py (precision >= 50 % and at least half of the precise quiet rate, best delivered hit); the precise lines are 0.20 and 0.95 (the -precise run).
+- 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
+- 备注：0 recall call(s) did not answer 200; 0 ranked search(es) failed.
+- 备注：deployed was timed before ranked, so ms includes the real query embedding request; ranked then reuses the backend's query-embedding cache.
+- 备注：Gateway.recall was called directly, so the per-client rate limiter (applied only in admit) was not involved.
+- 备注：Memories were ingested with one put_many call (embedding requests of 32 texts); ingest_seconds covers it.
+
+### feiyu-memgate-embedding-qwen3-embedding-precise（0.1.0）
+
+- 模式：verbatim ingest, embedding backend (qwen3-embedding:0.6b via an OpenAI-compatible endpoint, brute-force cosine), default recall stages, no LLM, precise recall profile
+- 调用：config.build_gateway(dict); EmbeddingBackend.put_many([(text, id, date)]) once for all memories; Gateway.recall('owner', {'query': q}) for deployed; EmbeddingBackend.find(query, 10) for ranked
+- 注意：和 feiyu-memgate-embedding-qwen3-embedding 完全一样，只是固定 [recall] profile = "precise"：min_score 0.20、比例 0.95（默认的宽松档是 0.15 / 0.65）。留出集上，默认档 → 精确档：交付命中 94.2% → 85.0%，精确率 70.7% → 81.9%，安静率 32.5% → 37.5%，每题交付 1.76 → 0.97 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。
+- 这是同一个后端的另一档配置（别的模型或精确档），不在五张基准图里画，表里保留。
+- 备注：Backend is the embedding backend: model qwen3-embedding:0.6b, cosine mapped to 0..1 with floor 0.35 and ceil 0.80 (the backend's values for this model, chosen on the development sets, not on this data); query prefix set, document prefix none.
+- 备注：ranked scores are the mapped relevance values, not comparable across systems.
+- 备注：deployed uses the default recall stages with [recall] profile = 'precise' pinned (min_score with the backend's precise line 0.20, relative_score with its ratio 0.95, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only. The plain run of this backend uses the broad lines 0.15 and 0.65 instead.
+- 备注：Precise profile: [recall] profile = 'precise' makes min_score and relative_score use the precision-leaning lines of this backend (min_score 0.20, ratio 0.95 instead of the broad 0.15 and 0.65), chosen on the development set by the balanced rule of bench/dev_eval.py (delivered F1 weighted with the quiet rate). It answers fewer questions and stays quiet more often than the default.
 - 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
 - 备注：0 recall call(s) did not answer 200; 0 ranked search(es) failed.
 - 备注：deployed was timed before ranked, so ms includes the real query embedding request; ranked then reuses the backend's query-embedding cache.
@@ -338,15 +443,36 @@
 
 ### feiyu-memgate-full（0.1.0）
 
-- 模式：verbatim ingest with dates, hybrid backend (sqlite keyword + embedding bge-m3, probabilistic-OR fusion), default recall stages plus freshness, forgetting ledger with default settings, no sweep, no LLM
+- 模式：verbatim ingest with dates, hybrid backend (sqlite keyword + embedding bge-m3, probabilistic-OR fusion), default recall stages (broad profile) plus freshness, forgetting ledger with default settings, no sweep, no LLM
 - 调用：config.build_gateway(dict with [forgetting]); HybridBackend.put_many([(text, id, date)]) once; Forgetting.sync('private', store); Gateway.recall('owner', {'query': q}) for deployed (stages: min_score, freshness, relative_score, fill_text, drop_oversize, redact, dedupe, budget); HybridBackend.find(query, 10) scored by the freshness stage's prepare() for ranked
-- 注意：混合后端 + 默认召回步骤 + freshness（遗忘账本，默认设置，不做清理）；记忆带自己的日期。
+- 注意：混合后端 + 默认召回步骤（宽松档 broad：min_score 0.40、比例 0.65）+ freshness（遗忘账本，默认设置，不做清理）；记忆带自己的日期。
 - 备注：Backend is the hybrid backend: a sqlite keyword child (IDF-weighted containment of character bigrams and CJK single characters) and an embedding child (bge-m3, cosine mapped with floor 0.40 and ceil 0.80); fused score = 1 - prod(1 - score_i) with both weights 1.0. Defaults chosen on the development sets, not on this data.
+- 备注：deployed uses the default recall stages, whose default profile is broad (min_score with the hybrid's broad line 0.40, relative_score with its ratio 0.65, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; no profile is passed; ms times that Gateway.recall call only. The broad lines were chosen on the development set by the broad rule of bench/dev_eval.py (precision >= 50 % and at least half of the precise quiet rate, best delivered hit); the precise lines are 0.70 and 0.85 (the -precise run). The recall call asks both children, one after the other.
 - 备注：Everything is turned on with documented defaults: stages min_score, freshness (floor 0.7), relative_score, fill_text, drop_oversize, redact, dedupe, budget; [forgetting] with the default Ebbinghaus curve, a temporary ledger and archive; no sweep was run and nothing was forgotten.
 - 备注：Memories carry their own dates; Forgetting.sync made each ledger first_seen the memory's date. The forgetting clock was pinned to the day after the newest memory so the run does not depend on today's date.
 - 备注：ranked is the backend's top 10 with freshness applied (prepare() only, no use recorded); no threshold.
 - 备注：Uses recorded by each deployed recall were removed again and the ledger re-synchronised, so every question was asked of the same state.
 - 备注：deployed uses the default limit of 5; ms times that Gateway.recall call only (two children, then freshness reads the ledger).
+- 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
+- 备注：0 recall call(s) did not answer 200; 0 ranked search(es) failed.
+- 备注：deployed was timed before ranked, so ms includes the real query embedding request; ranked then reuses the backend's query-embedding cache.
+- 备注：Gateway.recall was called directly, so the per-client rate limiter (applied only in admit) was not involved.
+- 备注：Memories were ingested with one put_many call (embedding requests of 32 texts); ingest_seconds covers it.
+
+### feiyu-memgate-full-precise（0.1.0）
+
+- 模式：verbatim ingest with dates, hybrid backend (sqlite keyword + embedding bge-m3, probabilistic-OR fusion), default recall stages plus freshness, forgetting ledger with default settings, no sweep, no LLM, precise recall profile
+- 调用：config.build_gateway(dict with [forgetting]); HybridBackend.put_many([(text, id, date)]) once; Forgetting.sync('private', store); Gateway.recall('owner', {'query': q}) for deployed (stages: min_score, freshness, relative_score, fill_text, drop_oversize, redact, dedupe, budget); HybridBackend.find(query, 10) scored by the freshness stage's prepare() for ranked
+- 注意：和 feiyu-memgate-full 完全一样，只是固定 [recall] profile = "precise"：min_score 0.70、比例 0.85（默认的宽松档是 0.40 / 0.65）。留出集上，默认档 → 精确档：交付命中 93.3% → 65.0%，精确率 60.1% → 90.2%，安静率 35.0% → 75.0%，每题交付 2.08 → 0.67 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。
+- 这是同一个后端的另一档配置（别的模型或精确档），不在五张基准图里画，表里保留。
+- 备注：Backend is the hybrid backend: a sqlite keyword child (IDF-weighted containment of character bigrams and CJK single characters) and an embedding child (bge-m3, cosine mapped with floor 0.40 and ceil 0.80); fused score = 1 - prod(1 - score_i) with both weights 1.0. Defaults chosen on the development sets, not on this data.
+- 备注：deployed uses the default recall stages with [recall] profile = 'precise' pinned (min_score with the hybrid's precise line 0.70, relative_score with its ratio 0.85, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only. The plain run of this backend uses the broad lines 0.40 and 0.65 instead. The recall call asks both children, one after the other.
+- 备注：Everything is turned on with documented defaults: stages min_score, freshness (floor 0.7), relative_score, fill_text, drop_oversize, redact, dedupe, budget; [forgetting] with the default Ebbinghaus curve, a temporary ledger and archive; no sweep was run and nothing was forgotten.
+- 备注：Memories carry their own dates; Forgetting.sync made each ledger first_seen the memory's date. The forgetting clock was pinned to the day after the newest memory so the run does not depend on today's date.
+- 备注：ranked is the backend's top 10 with freshness applied (prepare() only, no use recorded); no threshold.
+- 备注：Uses recorded by each deployed recall were removed again and the ledger re-synchronised, so every question was asked of the same state.
+- 备注：deployed uses the default limit of 5; ms times that Gateway.recall call only (two children, then freshness reads the ledger).
+- 备注：Precise profile: [recall] profile = 'precise': the hybrid's precise lines (0.70 / 0.85) instead of the broad 0.40 / 0.65 of the plain run; the freshness stage is the same.
 - 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
 - 备注：0 recall call(s) did not answer 200; 0 ranked search(es) failed.
 - 备注：deployed was timed before ranked, so ms includes the real query embedding request; ranked then reuses the backend's query-embedding cache.
@@ -368,13 +494,29 @@
 
 ### feiyu-memgate-embedding-bge-base-zh（0.1.0）
 
-- 模式：verbatim ingest, embedding backend (hf.co/CompendiumLabs/bge-base-zh-v1.5-gguf:Q8_0 via an OpenAI-compatible endpoint, brute-force cosine), default recall stages, no LLM
+- 模式：verbatim ingest, embedding backend (hf.co/CompendiumLabs/bge-base-zh-v1.5-gguf:Q8_0 via an OpenAI-compatible endpoint, brute-force cosine), default recall stages (broad profile), no LLM
 - 调用：config.build_gateway(dict); EmbeddingBackend.put_many([(text, id, date)]) once for all memories; Gateway.recall('owner', {'query': q}) for deployed; EmbeddingBackend.find(query, 10) for ranked
-- 注意：向量后端换成较轻的模型 bge-base-zh-v1.5（Q8_0，110 MB，768 维，只支持中文），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤；需要一个 embeddings 接口。
-- 这是同一个后端的另一档配置（别的模型或宽松档），不在五张基准图里画，表里保留。
+- 注意：向量后端换成较轻的模型 bge-base-zh-v1.5（Q8_0，110 MB，768 维，只支持中文），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤（宽松档 broad：min_score 0.05、比例 0.50）；需要一个 embeddings 接口。
+- 这是同一个后端的另一档配置（别的模型或精确档），不在五张基准图里画，表里保留。
 - 备注：Backend is the embedding backend: model hf.co/CompendiumLabs/bge-base-zh-v1.5-gguf:Q8_0, cosine mapped to 0..1 with floor 0.35 and ceil 0.80 (the backend's values for this model, chosen on the development sets, not on this data); query prefix set, document prefix none.
 - 备注：ranked scores are the mapped relevance values, not comparable across systems.
-- 备注：deployed uses the default recall stages (min_score with the backend's default 0.25, relative_score with the backend's default ratio 0.75, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only.
+- 备注：deployed uses the default recall stages, whose default profile is broad (min_score with the backend's broad line 0.05, relative_score with its ratio 0.50, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; no profile is passed; ms times that Gateway.recall call only. The broad lines were chosen on the development set by the broad rule of bench/dev_eval.py (precision >= 50 % and at least half of the precise quiet rate, best delivered hit); the precise lines are 0.25 and 0.75 (the -precise run).
+- 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
+- 备注：0 recall call(s) did not answer 200; 0 ranked search(es) failed.
+- 备注：deployed was timed before ranked, so ms includes the real query embedding request; ranked then reuses the backend's query-embedding cache.
+- 备注：Gateway.recall was called directly, so the per-client rate limiter (applied only in admit) was not involved.
+- 备注：Memories were ingested with one put_many call (embedding requests of 32 texts); ingest_seconds covers it.
+
+### feiyu-memgate-embedding-bge-base-zh-precise（0.1.0）
+
+- 模式：verbatim ingest, embedding backend (hf.co/CompendiumLabs/bge-base-zh-v1.5-gguf:Q8_0 via an OpenAI-compatible endpoint, brute-force cosine), default recall stages, no LLM, precise recall profile
+- 调用：config.build_gateway(dict); EmbeddingBackend.put_many([(text, id, date)]) once for all memories; Gateway.recall('owner', {'query': q}) for deployed; EmbeddingBackend.find(query, 10) for ranked
+- 注意：和 feiyu-memgate-embedding-bge-base-zh 完全一样，只是固定 [recall] profile = "precise"：min_score 0.25、比例 0.75（默认的宽松档是 0.05 / 0.50）。留出集上，默认档 → 精确档：交付命中 88.3% → 72.5%，精确率 70.2% → 86.2%，安静率 37.5% → 65.0%，每题交付 1.51 → 0.77 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。
+- 这是同一个后端的另一档配置（别的模型或精确档），不在五张基准图里画，表里保留。
+- 备注：Backend is the embedding backend: model hf.co/CompendiumLabs/bge-base-zh-v1.5-gguf:Q8_0, cosine mapped to 0..1 with floor 0.35 and ceil 0.80 (the backend's values for this model, chosen on the development sets, not on this data); query prefix set, document prefix none.
+- 备注：ranked scores are the mapped relevance values, not comparable across systems.
+- 备注：deployed uses the default recall stages with [recall] profile = 'precise' pinned (min_score with the backend's precise line 0.25, relative_score with its ratio 0.75, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only. The plain run of this backend uses the broad lines 0.05 and 0.50 instead.
+- 备注：Precise profile: [recall] profile = 'precise' makes min_score and relative_score use the precision-leaning lines of this backend (min_score 0.25, ratio 0.75 instead of the broad 0.05 and 0.50), chosen on the development set by the balanced rule of bench/dev_eval.py (delivered F1 weighted with the quiet rate). It answers fewer questions and stays quiet more often than the default.
 - 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
 - 备注：0 recall call(s) did not answer 200; 0 ranked search(es) failed.
 - 备注：deployed was timed before ranked, so ms includes the real query embedding request; ranked then reuses the backend's query-embedding cache.
@@ -383,13 +525,29 @@
 
 ### feiyu-memgate-embedding-bge-small-zh（0.1.0）
 
-- 模式：verbatim ingest, embedding backend (hf.co/CompendiumLabs/bge-small-zh-v1.5-gguf:F16 via an OpenAI-compatible endpoint, brute-force cosine), default recall stages, no LLM
+- 模式：verbatim ingest, embedding backend (hf.co/CompendiumLabs/bge-small-zh-v1.5-gguf:F16 via an OpenAI-compatible endpoint, brute-force cosine), default recall stages (broad profile), no LLM
 - 调用：config.build_gateway(dict); EmbeddingBackend.put_many([(text, id, date)]) once for all memories; Gateway.recall('owner', {'query': q}) for deployed; EmbeddingBackend.find(query, 10) for ranked
-- 注意：向量后端换成较轻的模型 bge-small-zh-v1.5（F16，47.9 MB，512 维，只支持中文），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤；需要一个 embeddings 接口。
-- 这是同一个后端的另一档配置（别的模型或宽松档），不在五张基准图里画，表里保留。
+- 注意：向量后端换成较轻的模型 bge-small-zh-v1.5（F16，47.9 MB，512 维，只支持中文），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤（宽松档 broad：min_score 0.10、比例 0.65）；需要一个 embeddings 接口。
+- 这是同一个后端的另一档配置（别的模型或精确档），不在五张基准图里画，表里保留。
 - 备注：Backend is the embedding backend: model hf.co/CompendiumLabs/bge-small-zh-v1.5-gguf:F16, cosine mapped to 0..1 with floor 0.40 and ceil 0.80 (the backend's values for this model, chosen on the development sets, not on this data); query prefix none, document prefix none.
 - 备注：ranked scores are the mapped relevance values, not comparable across systems.
-- 备注：deployed uses the default recall stages (min_score with the backend's default 0.30, relative_score with the backend's default ratio 0.90, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only.
+- 备注：deployed uses the default recall stages, whose default profile is broad (min_score with the backend's broad line 0.10, relative_score with its ratio 0.65, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; no profile is passed; ms times that Gateway.recall call only. The broad lines were chosen on the development set by the broad rule of bench/dev_eval.py (precision >= 50 % and at least half of the precise quiet rate, best delivered hit); the precise lines are 0.30 and 0.90 (the -precise run).
+- 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
+- 备注：0 recall call(s) did not answer 200; 0 ranked search(es) failed.
+- 备注：deployed was timed before ranked, so ms includes the real query embedding request; ranked then reuses the backend's query-embedding cache.
+- 备注：Gateway.recall was called directly, so the per-client rate limiter (applied only in admit) was not involved.
+- 备注：Memories were ingested with one put_many call (embedding requests of 32 texts); ingest_seconds covers it.
+
+### feiyu-memgate-embedding-bge-small-zh-precise（0.1.0）
+
+- 模式：verbatim ingest, embedding backend (hf.co/CompendiumLabs/bge-small-zh-v1.5-gguf:F16 via an OpenAI-compatible endpoint, brute-force cosine), default recall stages, no LLM, precise recall profile
+- 调用：config.build_gateway(dict); EmbeddingBackend.put_many([(text, id, date)]) once for all memories; Gateway.recall('owner', {'query': q}) for deployed; EmbeddingBackend.find(query, 10) for ranked
+- 注意：和 feiyu-memgate-embedding-bge-small-zh 完全一样，只是固定 [recall] profile = "precise"：min_score 0.30、比例 0.90（默认的宽松档是 0.10 / 0.65）。留出集上，默认档 → 精确档：交付命中 86.7% → 76.7%，精确率 69.0% → 79.4%，安静率 20.0% → 47.5%，每题交付 1.79 → 0.94 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。
+- 这是同一个后端的另一档配置（别的模型或精确档），不在五张基准图里画，表里保留。
+- 备注：Backend is the embedding backend: model hf.co/CompendiumLabs/bge-small-zh-v1.5-gguf:F16, cosine mapped to 0..1 with floor 0.40 and ceil 0.80 (the backend's values for this model, chosen on the development sets, not on this data); query prefix none, document prefix none.
+- 备注：ranked scores are the mapped relevance values, not comparable across systems.
+- 备注：deployed uses the default recall stages with [recall] profile = 'precise' pinned (min_score with the backend's precise line 0.30, relative_score with its ratio 0.90, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only. The plain run of this backend uses the broad lines 0.10 and 0.65 instead.
+- 备注：Precise profile: [recall] profile = 'precise' makes min_score and relative_score use the precision-leaning lines of this backend (min_score 0.30, ratio 0.90 instead of the broad 0.10 and 0.65), chosen on the development set by the balanced rule of bench/dev_eval.py (delivered F1 weighted with the quiet rate). It answers fewer questions and stays quiet more often than the default.
 - 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
 - 备注：0 recall call(s) did not answer 200; 0 ranked search(es) failed.
 - 备注：deployed was timed before ranked, so ms includes the real query embedding request; ranked then reuses the backend's query-embedding cache.
@@ -415,29 +573,29 @@
 
 ### feiyu-memgate-sqlite（0.1.0）
 
-- 模式：verbatim ingest, sqlite keyword backend (IDF-weighted grams), default recall stages, no embeddings, no LLM
+- 模式：verbatim ingest, sqlite keyword backend (IDF-weighted grams), default recall stages (broad profile), no embeddings, no LLM
 - 调用：config.build_gateway(dict); SQLiteBackend.put(text, ref, date) per memory; SQLiteBackend.find(query, 10) for ranked; Gateway.recall('owner', {'query': q}) for deployed
-- 注意：关键词后端（字符二元组 + IDF），不需要任何服务；默认召回步骤，默认值在开发集上选定。
+- 注意：关键词后端（字符二元组 + IDF），不需要任何服务；默认召回步骤（宽松档 broad：min_score 0.25、比例 0.70），分数线在开发集上选定。
 - 备注：Backend is the sqlite keyword backend: IDF-weighted containment of character bigrams and CJK single characters (a gram's weight is its BM25 inverse document frequency in the store); it does not understand meaning, so paraphrase questions are expected to be weak.
 - 备注：ranked scores are the backend's own weighted-containment values, not comparable across systems.
-- 备注：deployed uses the default recall stages (min_score with the sqlite backend's default 0.30, relative_score with its default ratio 0.75, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only.
+- 备注：deployed uses the default recall stages, whose default profile is broad (min_score with the sqlite backend's broad line 0.25, relative_score with its ratio 0.70, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; no profile is passed; ms times that Gateway.recall call only. The broad lines were chosen on the development set by the broad rule of bench/dev_eval.py (precision >= 50 % and at least half of the precise quiet rate, best delivered hit); the precise lines are 0.30 and 0.75 (the -precise run).
 - 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
 - 备注：0 recall call(s) did not answer 200.
 - 备注：Gateway.recall was called directly, so the per-client rate limiter (applied only in admit) was not involved.
 
-### feiyu-memgate-sqlite-broad（0.1.0）
+### feiyu-memgate-sqlite-precise（0.1.0）
 
-- 模式：verbatim ingest, sqlite keyword backend (IDF-weighted grams), default recall stages with the broad profile, no embeddings, no LLM
+- 模式：verbatim ingest, sqlite keyword backend (IDF-weighted grams), default recall stages, precise recall profile, no embeddings, no LLM
 - 调用：config.build_gateway(dict); SQLiteBackend.put(text, ref, date) per memory; SQLiteBackend.find(query, 10) for ranked; Gateway.recall('owner', {'query': q}) for deployed
-- 注意：和 feiyu-memgate-sqlite 完全一样，只是 [recall] profile = "broad"：min_score 0.25、比例 0.70（默认 0.30 / 0.75），这是开发集上按事先写定的规则选的宽松档，多答题、少安静。
-- 这是同一个后端的另一档配置（别的模型或宽松档），不在五张基准图里画，表里保留。
+- 注意：和 feiyu-memgate-sqlite 完全一样，只是固定 [recall] profile = "precise"：min_score 0.30、比例 0.75（默认的宽松档是 0.25 / 0.70）。留出集上，默认档 → 精确档：交付命中 46.7% → 39.2%，精确率 89.3% → 93.0%，安静率 70.0% → 75.0%，每题交付 0.55 → 0.41 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。
+- 这是同一个后端的另一档配置（别的模型或精确档），不在五张基准图里画，表里保留。
 - 备注：Backend is the sqlite keyword backend: IDF-weighted containment of character bigrams and CJK single characters (a gram's weight is its BM25 inverse document frequency in the store); it does not understand meaning, so paraphrase questions are expected to be weak.
 - 备注：ranked scores are the backend's own weighted-containment values, not comparable across systems.
-- 备注：deployed uses the default recall stages (min_score with the sqlite backend's default 0.30, relative_score with its default ratio 0.75, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only.
+- 备注：deployed uses the default recall stages with [recall] profile = 'precise' pinned (min_score with the sqlite backend's precise line 0.30, relative_score with its ratio 0.75, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only. The plain run of this backend uses the broad lines 0.25 and 0.70 instead.
 - 备注：Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.
 - 备注：0 recall call(s) did not answer 200.
 - 备注：Gateway.recall was called directly, so the per-client rate limiter (applied only in admit) was not involved.
-- 备注：Broad profile: [recall] profile = 'broad': min_score 0.25 and relative_score ratio 0.70 (the backend's broad_min_score and broad_relative_ratio) instead of 0.30 and 0.75, chosen on the development set by the rule of bench/dev_eval.py --profile broad (precision >= 50 % and at least half of the default quiet rate, best delivered hit). It trades precision and silence for answered questions.
+- 备注：Precise profile: [recall] profile = 'precise': min_score 0.30 and relative_score ratio 0.75 (the backend's default_min_score and default_relative_ratio, the precise lines) instead of the broad 0.25 and 0.70, chosen on the development set by the balanced rule of bench/dev_eval.py (delivered F1 weighted with the quiet rate). It answers fewer questions and stays quiet more often than the default.
 
 ### lingshu-dsh-memory（0.10.1）
 

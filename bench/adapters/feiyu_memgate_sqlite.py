@@ -1,11 +1,12 @@
 """Reference adapter: feiyu-memgate with its built-in sqlite backend, no model, no network.
 
-    python bench/adapters/feiyu_memgate_sqlite.py [--out DIR] [--data DIR] [--profile precise|broad]
+    python bench/adapters/feiyu_memgate_sqlite.py [--out DIR] [--data DIR] [--profile precise]
 
---profile broad writes feiyu-memgate-sqlite-broad.json: the same run with `[recall] profile = "broad"` (the sqlite
-backend's recall-leaning lines, min_score 0.25 and ratio 0.70 instead of 0.30 and 0.75, chosen on the development set).
-
-Writes bench/results/raw/feiyu-memgate-sqlite.json (the contract is bench/CONTRACT.md).
+Writes bench/results/raw/feiyu-memgate-sqlite.json (the contract is bench/CONTRACT.md): the gateway's defaults, which
+are the broad profile since 2026-11-16 (the sqlite backend's recall-leaning lines, min_score 0.25 and ratio 0.70,
+chosen on the development set); no profile is passed.
+--profile precise writes feiyu-memgate-sqlite-precise.json: the same run with `[recall] profile = "precise"` pinned
+(min_score 0.30 and ratio 0.75, also chosen on the development set).
 
 How the system is driven, all in-process:
 - ingest: backend.put(text, ref=<memory id>, date=<date>) on the sqlite backend, in date order;
@@ -16,8 +17,9 @@ How the system is driven, all in-process:
 Each recall item carries the id of its memory (the ref it was stored under), so deployed
 answers are reported by that id; an item whose id is not a dataset memory would be id null.
 
-Every setting is the documented default of the backend and the stages (default_min_score 0.30,
-default_relative_ratio 0.75), chosen on the development set bench/dev with bench/dev_eval.py, never on bench/data.
+Every setting is the documented default of the backend and the stages (broad_min_score 0.25 and
+broad_relative_ratio 0.70 by default; default_min_score 0.30 and default_relative_ratio 0.75 are the precise lines),
+chosen on the development set bench/dev with bench/dev_eval.py, never on bench/data.
 """
 import argparse
 import json
@@ -51,7 +53,7 @@ def build(profile=None):
         "clients": {"owner": {"token_env": "GATEWAY_TOKEN_OWNER", "recall": ["private"],
                               "write": "private"}},
     }
-    if profile not in (None, "precise"):
+    if profile is not None:  # an explicit profile is always passed on, "precise" included
         cfg["recall"] = {"profile": profile}
     return config.build_gateway(cfg, env={"GATEWAY_TOKEN_OWNER": FAKE_TOKEN}, log=lambda line: None)
 
@@ -66,9 +68,9 @@ def item(mid, score):
     return {"id": mid, "score": round(float(score), 4)}
 
 
-def run(out_path=OUT_PATH, profile="precise"):
+def run(out_path=OUT_PATH, profile=None):
     memories, queries = load("memories.json"), load("queries.json")
-    broad = profile == "broad"
+    precise = profile == "precise"
     gw = build(profile)
     backend = gw.stores["private"]
     start = time.perf_counter()
@@ -102,24 +104,33 @@ def run(out_path=OUT_PATH, profile="precise"):
         "characters (a gram's weight is its BM25 inverse document frequency in the store); it does not understand "
         "meaning, so paraphrase questions are expected to be weak.",
         "ranked scores are the backend's own weighted-containment values, not comparable across systems.",
-        "deployed uses the default recall stages (min_score with the sqlite backend's default 0.30, relative_score "
-        "with its default ratio 0.75, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; "
-        "ms times that Gateway.recall call only.",
+        None,  # the stage note, filled in below
         "Deployed items are reported by the id field of each recall item; %d item(s) named no dataset memory."
         % unmapped,
         "%d recall call(s) did not answer 200." % failures,
         "Gateway.recall was called directly, so the per-client rate limiter (applied only in admit) was not involved.",
     ]
-    if broad:
-        notes.append("Broad profile: [recall] profile = 'broad': min_score 0.25 and relative_score ratio 0.70 (the "
-                     "backend's broad_min_score and broad_relative_ratio) instead of 0.30 and 0.75, chosen on the "
-                     "development set by the rule of bench/dev_eval.py --profile broad (precision >= 50 % and at least "
-                     "half of the default quiet rate, best delivered hit). It trades precision and silence for answered "
-                     "questions.")
+    if precise:
+        notes[2] = ("deployed uses the default recall stages with [recall] profile = 'precise' pinned (min_score with "
+                    "the sqlite backend's precise line 0.30, relative_score with its ratio 0.75, fill_text, "
+                    "drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall "
+                    "call only. The plain run of this backend uses the broad lines 0.25 and 0.70 instead.")
+        notes.append("Precise profile: [recall] profile = 'precise': min_score 0.30 and relative_score ratio 0.75 (the "
+                     "backend's default_min_score and default_relative_ratio, the precise lines) instead of the broad "
+                     "0.25 and 0.70, chosen on the development set by the balanced rule of bench/dev_eval.py "
+                     "(delivered F1 weighted with the quiet rate). It answers fewer questions and stays quiet more "
+                     "often than the default.")
+    else:
+        notes[2] = ("deployed uses the default recall stages, whose default profile is broad (min_score with the "
+                    "sqlite backend's broad line 0.25, relative_score with its ratio 0.70, fill_text, drop_oversize, "
+                    "redact, dedupe, budget) and the default limit of 5; no profile is passed; ms times that "
+                    "Gateway.recall call only. The broad lines were chosen on the development set by the broad rule "
+                    "of bench/dev_eval.py (precision >= 50 % and at least half of the precise quiet rate, best "
+                    "delivered hit); the precise lines are 0.30 and 0.75 (the -precise run).")
     result = {
-        "system": "feiyu-memgate-sqlite-broad" if broad else "feiyu-memgate-sqlite", "version": __version__,
+        "system": "feiyu-memgate-sqlite-precise" if precise else "feiyu-memgate-sqlite", "version": __version__,
         "mode": "verbatim ingest, sqlite keyword backend (IDF-weighted grams), default recall stages%s, no embeddings, "
-                "no LLM" % (" with the broad profile" if broad else ""),
+                "no LLM" % (", precise recall profile" if precise else " (broad profile)"),
         "how": "config.build_gateway(dict); SQLiteBackend.put(text, ref, date) per memory; "
                "SQLiteBackend.find(query, 10) for ranked; Gateway.recall('owner', {'query': q}) for deployed",
         "ingest_seconds": round(ingest_seconds, 3), "llm_tokens": 0, "llm_cost_cny": 0.0,
@@ -137,12 +148,12 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--out", default=os.path.dirname(OUT_PATH), help="directory for the result file")
     parser.add_argument("--data", default=DATA_DIR, help="dataset directory (default: bench/data)")
-    parser.add_argument("--profile", choices=("precise", "broad"), default="precise",
-                        help="score-line profile of the recall stages (default: precise; broad writes "
-                             "feiyu-memgate-sqlite-broad.json)")
+    parser.add_argument("--profile", choices=("precise",), default=None,
+                        help="pin the precise score lines (writes feiyu-memgate-sqlite-precise.json); without it the "
+                             "gateway's defaults run, which are the broad profile")
     args = parser.parse_args(argv)
     DATA_DIR = args.data
-    name = "feiyu-memgate-sqlite-broad.json" if args.profile == "broad" else os.path.basename(OUT_PATH)
+    name = "feiyu-memgate-sqlite-precise.json" if args.profile == "precise" else os.path.basename(OUT_PATH)
     print("wrote " + run(os.path.join(args.out, name), args.profile))
 
 

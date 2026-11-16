@@ -1,7 +1,7 @@
 {
- "system": "feiyu-memgate-sqlite-broad",
+ "system": "feiyu-memgate-sqlite-precise",
  "version": "0.1.0",
- "mode": "verbatim ingest, sqlite keyword backend (IDF-weighted grams), default recall stages with the broad profile, no embeddings, no LLM",
+ "mode": "verbatim ingest, sqlite keyword backend (IDF-weighted grams), default recall stages, precise recall profile, no embeddings, no LLM",
  "how": "config.build_gateway(dict); SQLiteBackend.put(text, ref, date) per memory; SQLiteBackend.find(query, 10) for ranked; Gateway.recall('owner', {'query': q}) for deployed",
  "ingest_seconds": 0.015,
  "llm_tokens": 0,
@@ -56,7 +56,7 @@
      "score": 0.4575
     }
    ],
-   "ms": 3.57
+   "ms": 2.98
   },
   "q002": {
    "ranked": [
@@ -107,7 +107,7 @@
      "score": 0.7433
     }
    ],
-   "ms": 1.231
+   "ms": 1.177
   },
   "q003": {
    "ranked": [
@@ -158,7 +158,7 @@
      "score": 0.595
     }
    ],
-   "ms": 1.829
+   "ms": 2.175
   },
   "q004": {
    "ranked": [
@@ -209,7 +209,7 @@
      "score": 0.6251
     }
    ],
-   "ms": 1.111
+   "ms": 1.167
   },
   "q005": {
    "ranked": [
@@ -260,7 +260,7 @@
      "score": 0.4731
     }
    ],
-   "ms": 1.94
+   "ms": 1.911
   },
   "q006": {
    "ranked": [
@@ -311,7 +311,7 @@
      "score": 0.4379
     }
    ],
-   "ms": 1.702
+   "ms": 1.567
   },
   "q007": {
    "ranked": [
@@ -362,7 +362,7 @@
      "score": 0.6384
     }
    ],
-   "ms": 2.109
+   "ms": 2.149
   },
   "q008": {
    "ranked": [
@@ -407,13 +407,8 @@
      "score": 0.0598
     }
    ],
-   "deployed": [
-    {
-     "id": "m035",
-     "score": 0.2964
-    }
-   ],
-   "ms": 2.332
+   "deployed": [],
+   "ms": 2.239
   },
   "q009": {
    "ranked": [
@@ -464,7 +459,7 @@
      "score": 0.5208
     }
    ],
-   "ms": 1.959
+   "ms": 1.977
   },
   "q010": {
    "ranked": [
@@ -510,7 +505,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.858
+   "ms": 2.509
   },
   "q011": {
    "ranked": [
@@ -561,7 +556,7 @@
      "score": 0.4483
     }
    ],
-   "ms": 0.96
+   "ms": 0.949
   },
   "q012": {
    "ranked": [
@@ -612,7 +607,7 @@
      "score": 0.375
     }
    ],
-   "ms": 1.483
+   "ms": 1.534
   },
   "q013": {
    "ranked": [
@@ -663,7 +658,7 @@
      "score": 0.701
     }
    ],
-   "ms": 1.888
+   "ms": 2.028
   },
   "q014": {
    "ranked": [
@@ -714,7 +709,7 @@
      "score": 0.5751
     }
    ],
-   "ms": 1.511
+   "ms": 1.64
   },
   "q015": {
    "ranked": [
@@ -765,7 +760,7 @@
      "score": 0.5342
     }
    ],
-   "ms": 1.752
+   "ms": 1.758
   },
   "q016": {
    "ranked": [
@@ -816,7 +811,7 @@
      "score": 0.8337
     }
    ],
-   "ms": 1.842
+   "ms": 1.824
   },
   "q017": {
    "ranked": [
@@ -867,7 +862,7 @@
      "score": 0.4134
     }
    ],
-   "ms": 1.971
+   "ms": 2.917
   },
   "q018": {
    "ranked": [
@@ -918,7 +913,7 @@
      "score": 0.6313
     }
    ],
-   "ms": 0.909
+   "ms": 0.9
   },
   "q019": {
    "ranked": [
@@ -969,7 +964,7 @@
      "score": 0.4463
     }
    ],
-   "ms": 1.791
+   "ms": 1.781
   },
   "q020": {
    "ranked": [
@@ -1020,7 +1015,7 @@
      "score": 0.3508
     }
    ],
-   "ms": 1.322
+   "ms": 1.27
   },
   "q021": {
    "ranked": [
@@ -1071,7 +1066,7 @@
      "score": 0.4082
     }
    ],
-   "ms": 0.835
+   "ms": 0.94
   },
   "q022": {
    "ranked": [
@@ -1122,7 +1117,7 @@
      "score": 0.4716
     }
    ],
-   "ms": 0.757
+   "ms": 0.776
   },
   "q023": {
    "ranked": [
@@ -1173,7 +1168,7 @@
      "score": 0.3789
     }
    ],
-   "ms": 0.941
+   "ms": 0.696
   },
   "q024": {
    "ranked": [
@@ -1224,7 +1219,7 @@
      "score": 0.5544
     }
    ],
-   "ms": 0.988
+   "ms": 1.214
   },
   "q025": {
    "ranked": [
@@ -1275,7 +1270,7 @@
      "score": 0.6063
     }
    ],
-   "ms": 1.465
+   "ms": 1.527
   },
   "q026": {
    "ranked": [
@@ -1326,7 +1321,7 @@
      "score": 0.4694
     }
    ],
-   "ms": 1.877
+   "ms": 2.075
   },
   "q027": {
    "ranked": [
@@ -1377,7 +1372,7 @@
      "score": 0.5586
     }
    ],
-   "ms": 2.527
+   "ms": 2.487
   },
   "q028": {
    "ranked": [
@@ -1428,7 +1423,7 @@
      "score": 0.6629
     }
    ],
-   "ms": 2.17
+   "ms": 1.694
   },
   "q029": {
    "ranked": [
@@ -1479,7 +1474,7 @@
      "score": 0.5637
     }
    ],
-   "ms": 2.505
+   "ms": 3.05
   },
   "q030": {
    "ranked": [
@@ -1530,7 +1525,7 @@
      "score": 0.572
     }
    ],
-   "ms": 1.811
+   "ms": 2.429
   },
   "q031": {
    "ranked": [
@@ -1581,7 +1576,7 @@
      "score": 0.7552
     }
    ],
-   "ms": 2.048
+   "ms": 2.035
   },
   "q032": {
    "ranked": [
@@ -1632,7 +1627,7 @@
      "score": 0.4818
     }
    ],
-   "ms": 3.014
+   "ms": 2.439
   },
   "q033": {
    "ranked": [
@@ -1683,7 +1678,7 @@
      "score": 0.7836
     }
    ],
-   "ms": 1.73
+   "ms": 1.69
   },
   "q034": {
    "ranked": [
@@ -1734,7 +1729,7 @@
      "score": 0.7538
     }
    ],
-   "ms": 3.34
+   "ms": 3.261
   },
   "q035": {
    "ranked": [
@@ -1785,7 +1780,7 @@
      "score": 0.5423
     }
    ],
-   "ms": 2.347
+   "ms": 2.312
   },
   "q036": {
    "ranked": [
@@ -1836,7 +1831,7 @@
      "score": 0.5201
     }
    ],
-   "ms": 1.776
+   "ms": 1.856
   },
   "q037": {
    "ranked": [
@@ -1887,7 +1882,7 @@
      "score": 0.8053
     }
    ],
-   "ms": 2.146
+   "ms": 2.267
   },
   "q038": {
    "ranked": [
@@ -1938,7 +1933,7 @@
      "score": 0.4726
     }
    ],
-   "ms": 2.956
+   "ms": 2.753
   },
   "q039": {
    "ranked": [
@@ -1989,7 +1984,7 @@
      "score": 0.3936
     }
    ],
-   "ms": 1.738
+   "ms": 1.797
   },
   "q040": {
    "ranked": [
@@ -2040,7 +2035,7 @@
      "score": 0.5009
     }
    ],
-   "ms": 2.623
+   "ms": 2.747
   },
   "q041": {
    "ranked": [
@@ -2091,7 +2086,7 @@
      "score": 0.629
     }
    ],
-   "ms": 2.735
+   "ms": 2.851
   },
   "q042": {
    "ranked": [
@@ -2142,7 +2137,7 @@
      "score": 0.5008
     }
    ],
-   "ms": 1.09
+   "ms": 1.071
   },
   "q043": {
    "ranked": [
@@ -2193,7 +2188,7 @@
      "score": 0.7098
     }
    ],
-   "ms": 2.195
+   "ms": 2.131
   },
   "q044": {
    "ranked": [
@@ -2244,7 +2239,7 @@
      "score": 0.4326
     }
    ],
-   "ms": 2.657
+   "ms": 3.042
   },
   "q045": {
    "ranked": [
@@ -2295,7 +2290,7 @@
      "score": 0.5221
     }
    ],
-   "ms": 1.802
+   "ms": 1.829
   },
   "q046": {
    "ranked": [
@@ -2341,7 +2336,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.53
+   "ms": 2.525
   },
   "q047": {
    "ranked": [
@@ -2387,7 +2382,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.258
+   "ms": 2.453
   },
   "q048": {
    "ranked": [
@@ -2433,7 +2428,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.944
+   "ms": 2.074
   },
   "q049": {
    "ranked": [
@@ -2479,7 +2474,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.99
+   "ms": 1.999
   },
   "q050": {
    "ranked": [
@@ -2525,7 +2520,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.321
+   "ms": 1.339
   },
   "q051": {
    "ranked": [
@@ -2571,7 +2566,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.068
+   "ms": 1.071
   },
   "q052": {
    "ranked": [
@@ -2617,7 +2612,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.474
+   "ms": 2.072
   },
   "q053": {
    "ranked": [
@@ -2663,7 +2658,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.937
+   "ms": 1.996
   },
   "q054": {
    "ranked": [
@@ -2709,7 +2704,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.013
+   "ms": 2.21
   },
   "q055": {
    "ranked": [
@@ -2755,7 +2750,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.904
+   "ms": 3.17
   },
   "q056": {
    "ranked": [
@@ -2801,7 +2796,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.982
+   "ms": 2.268
   },
   "q057": {
    "ranked": [
@@ -2847,7 +2842,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.596
+   "ms": 1.165
   },
   "q058": {
    "ranked": [
@@ -2893,7 +2888,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.9
+   "ms": 1.844
   },
   "q059": {
    "ranked": [
@@ -2938,13 +2933,8 @@
      "score": 0.0834
     }
    ],
-   "deployed": [
-    {
-     "id": "m169",
-     "score": 0.2509
-    }
-   ],
-   "ms": 1.968
+   "deployed": [],
+   "ms": 2.202
   },
   "q060": {
    "ranked": [
@@ -2989,13 +2979,8 @@
      "score": 0.0534
     }
    ],
-   "deployed": [
-    {
-     "id": "m076",
-     "score": 0.2751
-    }
-   ],
-   "ms": 3.041
+   "deployed": [],
+   "ms": 3.055
   },
   "q061": {
    "ranked": [
@@ -3041,7 +3026,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.019
+   "ms": 2.001
   },
   "q062": {
    "ranked": [
@@ -3087,7 +3072,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.337
+   "ms": 2.371
   },
   "q063": {
    "ranked": [
@@ -3133,7 +3118,7 @@
     }
    ],
    "deployed": [],
-   "ms": 3.051
+   "ms": 3.137
   },
   "q064": {
    "ranked": [
@@ -3179,7 +3164,7 @@
     }
    ],
    "deployed": [],
-   "ms": 3.013
+   "ms": 2.972
   },
   "q065": {
    "ranked": [
@@ -3225,7 +3210,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.94
+   "ms": 1.849
   },
   "q066": {
    "ranked": [
@@ -3271,7 +3256,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.695
+   "ms": 2.722
   },
   "q067": {
    "ranked": [
@@ -3317,7 +3302,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.377
+   "ms": 2.413
   },
   "q068": {
    "ranked": [
@@ -3363,7 +3348,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.377
+   "ms": 2.382
   },
   "q069": {
    "ranked": [
@@ -3409,7 +3394,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.495
+   "ms": 2.464
   },
   "q070": {
    "ranked": [
@@ -3455,7 +3440,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.652
+   "ms": 2.304
   },
   "q071": {
    "ranked": [
@@ -3501,7 +3486,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.654
+   "ms": 2.711
   },
   "q072": {
    "ranked": [
@@ -3547,7 +3532,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.546
+   "ms": 2.637
   },
   "q073": {
    "ranked": [
@@ -3593,7 +3578,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.03
+   "ms": 2.218
   },
   "q074": {
    "ranked": [
@@ -3639,7 +3624,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.989
+   "ms": 2.091
   },
   "q075": {
    "ranked": [
@@ -3685,7 +3670,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.047
+   "ms": 2.24
   },
   "q076": {
    "ranked": [
@@ -3731,7 +3716,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.51
+   "ms": 1.515
   },
   "q077": {
    "ranked": [
@@ -3777,7 +3762,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.809
+   "ms": 2.761
   },
   "q078": {
    "ranked": [
@@ -3823,7 +3808,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.15
+   "ms": 2.254
   },
   "q079": {
    "ranked": [
@@ -3869,7 +3854,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.288
+   "ms": 2.646
   },
   "q080": {
    "ranked": [
@@ -3915,7 +3900,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.473
+   "ms": 2.908
   },
   "q081": {
    "ranked": [
@@ -3961,7 +3946,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.535
+   "ms": 2.577
   },
   "q082": {
    "ranked": [
@@ -4007,7 +3992,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.19
+   "ms": 2.303
   },
   "q083": {
    "ranked": [
@@ -4053,7 +4038,7 @@
     }
    ],
    "deployed": [],
-   "ms": 3.005
+   "ms": 3.617
   },
   "q084": {
    "ranked": [
@@ -4099,7 +4084,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.214
+   "ms": 2.231
   },
   "q085": {
    "ranked": [
@@ -4145,7 +4130,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.119
+   "ms": 3.098
   },
   "q086": {
    "ranked": [
@@ -4191,7 +4176,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.814
+   "ms": 2.655
   },
   "q087": {
    "ranked": [
@@ -4237,7 +4222,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.587
+   "ms": 2.421
   },
   "q088": {
    "ranked": [
@@ -4283,7 +4268,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.695
+   "ms": 2.744
   },
   "q089": {
    "ranked": [
@@ -4329,7 +4314,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.458
+   "ms": 2.558
   },
   "q090": {
    "ranked": [
@@ -4375,7 +4360,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.424
+   "ms": 2.877
   },
   "q091": {
    "ranked": [
@@ -4421,7 +4406,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.829
+   "ms": 2.853
   },
   "q092": {
    "ranked": [
@@ -4467,7 +4452,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.426
+   "ms": 2.538
   },
   "q093": {
    "ranked": [
@@ -4513,7 +4498,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.564
+   "ms": 2.788
   },
   "q094": {
    "ranked": [
@@ -4559,7 +4544,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.976
+   "ms": 2.967
   },
   "q095": {
    "ranked": [
@@ -4605,7 +4590,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.199
+   "ms": 2.283
   },
   "q096": {
    "ranked": [
@@ -4651,7 +4636,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.594
+   "ms": 2.432
   },
   "q097": {
    "ranked": [
@@ -4697,7 +4682,7 @@
     }
    ],
    "deployed": [],
-   "ms": 3.239
+   "ms": 2.837
   },
   "q098": {
    "ranked": [
@@ -4743,7 +4728,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.563
+   "ms": 2.612
   },
   "q099": {
    "ranked": [
@@ -4789,7 +4774,7 @@
     }
    ],
    "deployed": [],
-   "ms": 3.243
+   "ms": 3.44
   },
   "q100": {
    "ranked": [
@@ -4835,7 +4820,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.297
+   "ms": 2.742
   },
   "q101": {
    "ranked": [
@@ -4886,7 +4871,7 @@
      "score": 0.3387
     }
    ],
-   "ms": 1.335
+   "ms": 1.88
   },
   "q102": {
    "ranked": [
@@ -4932,7 +4917,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.47
+   "ms": 2.464
   },
   "q103": {
    "ranked": [
@@ -4978,7 +4963,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.828
+   "ms": 2.191
   },
   "q104": {
    "ranked": [
@@ -5029,7 +5014,7 @@
      "score": 0.3055
     }
    ],
-   "ms": 2.48
+   "ms": 2.487
   },
   "q105": {
    "ranked": [
@@ -5075,7 +5060,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.076
+   "ms": 2.146
   },
   "q106": {
    "ranked": [
@@ -5121,7 +5106,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.858
+   "ms": 1.914
   },
   "q107": {
    "ranked": [
@@ -5170,17 +5155,9 @@
     {
      "id": "m220",
      "score": 0.3151
-    },
-    {
-     "id": "m208",
-     "score": 0.2917
-    },
-    {
-     "id": "m059",
-     "score": 0.2917
     }
    ],
-   "ms": 2.301
+   "ms": 1.731
   },
   "q108": {
    "ranked": [
@@ -5229,13 +5206,9 @@
     {
      "id": "m093",
      "score": 0.4122
-    },
-    {
-     "id": "m216",
-     "score": 0.2986
     }
    ],
-   "ms": 1.63
+   "ms": 1.744
   },
   "q109": {
    "ranked": [
@@ -5280,17 +5253,8 @@
      "score": 0.0678
     }
    ],
-   "deployed": [
-    {
-     "id": "m179",
-     "score": 0.2767
-    },
-    {
-     "id": "m145",
-     "score": 0.2767
-    }
-   ],
-   "ms": 2.388
+   "deployed": [],
+   "ms": 2.483
   },
   "q110": {
    "ranked": [
@@ -5335,13 +5299,8 @@
      "score": 0.1138
     }
    ],
-   "deployed": [
-    {
-     "id": "m003",
-     "score": 0.2959
-    }
-   ],
-   "ms": 1.7
+   "deployed": [],
+   "ms": 1.179
   },
   "q111": {
    "ranked": [
@@ -5386,13 +5345,8 @@
      "score": 0.0555
     }
    ],
-   "deployed": [
-    {
-     "id": "m178",
-     "score": 0.2638
-    }
-   ],
-   "ms": 2.09
+   "deployed": [],
+   "ms": 2.008
   },
   "q112": {
    "ranked": [
@@ -5438,7 +5392,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.106
+   "ms": 2.154
   },
   "q113": {
    "ranked": [
@@ -5484,7 +5438,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.884
+   "ms": 1.905
   },
   "q114": {
    "ranked": [
@@ -5530,7 +5484,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.393
+   "ms": 1.335
   },
   "q115": {
    "ranked": [
@@ -5575,13 +5529,8 @@
      "score": 0.1246
     }
    ],
-   "deployed": [
-    {
-     "id": "m166",
-     "score": 0.2768
-    }
-   ],
-   "ms": 2.335
+   "deployed": [],
+   "ms": 2.137
   },
   "q116": {
    "ranked": [
@@ -5632,7 +5581,7 @@
      "score": 0.3473
     }
    ],
-   "ms": 1.668
+   "ms": 1.588
   },
   "q117": {
    "ranked": [
@@ -5681,13 +5630,9 @@
     {
      "id": "m212",
      "score": 0.3177
-    },
-    {
-     "id": "m070",
-     "score": 0.2561
     }
    ],
-   "ms": 2.156
+   "ms": 1.774
   },
   "q118": {
    "ranked": [
@@ -5732,17 +5677,8 @@
      "score": 0.1377
     }
    ],
-   "deployed": [
-    {
-     "id": "m214",
-     "score": 0.2708
-    },
-    {
-     "id": "m205",
-     "score": 0.2624
-    }
-   ],
-   "ms": 1.465
+   "deployed": [],
+   "ms": 1.469
   },
   "q119": {
    "ranked": [
@@ -5787,13 +5723,8 @@
      "score": 0.1408
     }
    ],
-   "deployed": [
-    {
-     "id": "m003",
-     "score": 0.2731
-    }
-   ],
-   "ms": 1.406
+   "deployed": [],
+   "ms": 1.381
   },
   "q120": {
    "ranked": [
@@ -5846,13 +5777,9 @@
     {
      "id": "m191",
      "score": 0.3992
-    },
-    {
-     "id": "m224",
-     "score": 0.3878
     }
    ],
-   "ms": 1.606
+   "ms": 1.501
   },
   "q121": {
    "ranked": [
@@ -5897,13 +5824,8 @@
      "score": 0.1054
     }
    ],
-   "deployed": [
-    {
-     "id": "m072",
-     "score": 0.2983
-    }
-   ],
-   "ms": 2.232
+   "deployed": [],
+   "ms": 2.303
   },
   "q122": {
    "ranked": [
@@ -5956,13 +5878,9 @@
     {
      "id": "m142",
      "score": 0.3304
-    },
-    {
-     "id": "m035",
-     "score": 0.2848
     }
    ],
-   "ms": 2.503
+   "ms": 2.61
   },
   "q123": {
    "ranked": [
@@ -6008,7 +5926,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.278
+   "ms": 2.19
   },
   "q124": {
    "ranked": [
@@ -6054,7 +5972,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.173
+   "ms": 1.101
   },
   "q125": {
    "ranked": [
@@ -6105,7 +6023,7 @@
      "score": 0.3362
     }
    ],
-   "ms": 2.068
+   "ms": 2.055
   },
   "q126": {
    "ranked": [
@@ -6151,7 +6069,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.861
+   "ms": 1.906
   },
   "q127": {
    "ranked": [
@@ -6200,13 +6118,9 @@
     {
      "id": "m061",
      "score": 0.3561
-    },
-    {
-     "id": "m056",
-     "score": 0.2789
     }
    ],
-   "ms": 1.973
+   "ms": 2.732
   },
   "q128": {
    "ranked": [
@@ -6257,19 +6171,11 @@
      "score": 0.3096
     },
     {
-     "id": "m207",
-     "score": 0.3096
-    },
-    {
      "id": "m009",
-     "score": 0.2653
-    },
-    {
-     "id": "m123",
-     "score": 0.2587
+     "score": 0.3096
     }
    ],
-   "ms": 2.606
+   "ms": 2.613
   },
   "q129": {
    "ranked": [
@@ -6315,7 +6221,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.038
+   "ms": 2.074
   },
   "q130": {
    "ranked": [
@@ -6366,7 +6272,7 @@
      "score": 0.3319
     }
    ],
-   "ms": 1.929
+   "ms": 1.819
   },
   "q131": {
    "ranked": [
@@ -6421,7 +6327,7 @@
      "score": 0.3849
     }
    ],
-   "ms": 2.827
+   "ms": 2.31
   },
   "q132": {
    "ranked": [
@@ -6467,7 +6373,7 @@
     }
    ],
    "deployed": [],
-   "ms": 0.535
+   "ms": 0.539
   },
   "q133": {
    "ranked": [
@@ -6512,13 +6418,8 @@
      "score": 0.0665
     }
    ],
-   "deployed": [
-    {
-     "id": "m212",
-     "score": 0.2731
-    }
-   ],
-   "ms": 2.167
+   "deployed": [],
+   "ms": 2.06
   },
   "q134": {
    "ranked": [
@@ -6573,7 +6474,7 @@
      "score": 0.4285
     }
    ],
-   "ms": 2.051
+   "ms": 2.073
   },
   "q135": {
    "ranked": [
@@ -6624,7 +6525,7 @@
      "score": 0.3992
     }
    ],
-   "ms": 1.933
+   "ms": 2.076
   },
   "q136": {
    "ranked": [
@@ -6670,7 +6571,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.048
+   "ms": 2.058
   },
   "q137": {
    "ranked": [
@@ -6716,7 +6617,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.731
+   "ms": 1.824
   },
   "q138": {
    "ranked": [
@@ -6767,7 +6668,7 @@
      "score": 0.4762
     }
    ],
-   "ms": 1.825
+   "ms": 1.92
   },
   "q139": {
    "ranked": [
@@ -6813,7 +6714,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.088
+   "ms": 2.234
   },
   "q140": {
    "ranked": [
@@ -6868,7 +6769,7 @@
      "score": 0.3546
     }
    ],
-   "ms": 2.306
+   "ms": 2.479
   },
   "q141": {
    "ranked": [
@@ -6914,7 +6815,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.788
+   "ms": 1.869
   },
   "q142": {
    "ranked": [
@@ -6960,7 +6861,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.702
+   "ms": 2.513
   },
   "q143": {
    "ranked": [
@@ -7006,7 +6907,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.992
+   "ms": 2.06
   },
   "q144": {
    "ranked": [
@@ -7052,7 +6953,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.357
+   "ms": 2.556
   },
   "q145": {
    "ranked": [
@@ -7098,7 +6999,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.143
+   "ms": 2.132
   },
   "q146": {
    "ranked": [
@@ -7144,7 +7045,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.5
+   "ms": 2.492
   },
   "q147": {
    "ranked": [
@@ -7190,7 +7091,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.017
+   "ms": 1.885
   },
   "q148": {
    "ranked": [
@@ -7236,7 +7137,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.41
+   "ms": 2.418
   },
   "q149": {
    "ranked": [
@@ -7282,7 +7183,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.258
+   "ms": 1.26
   },
   "q150": {
    "ranked": [
@@ -7328,7 +7229,7 @@
     }
    ],
    "deployed": [],
-   "ms": 0.738
+   "ms": 0.702
   },
   "q151": {
    "ranked": [
@@ -7374,7 +7275,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.124
+   "ms": 2.112
   },
   "q152": {
    "ranked": [
@@ -7420,7 +7321,7 @@
     }
    ],
    "deployed": [],
-   "ms": 0.574
+   "ms": 0.547
   },
   "q153": {
    "ranked": [
@@ -7466,7 +7367,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.875
+   "ms": 2.727
   },
   "q154": {
    "ranked": [
@@ -7512,7 +7413,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.462
+   "ms": 2.274
   },
   "q155": {
    "ranked": [
@@ -7558,7 +7459,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.855
+   "ms": 1.886
   },
   "q156": {
    "ranked": [
@@ -7604,7 +7505,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.265
+   "ms": 2.255
   },
   "q157": {
    "ranked": [
@@ -7650,7 +7551,7 @@
     }
    ],
    "deployed": [],
-   "ms": 0.617
+   "ms": 0.775
   },
   "q158": {
    "ranked": [
@@ -7696,7 +7597,7 @@
     }
    ],
    "deployed": [],
-   "ms": 1.599
+   "ms": 1.748
   },
   "q159": {
    "ranked": [
@@ -7742,7 +7643,7 @@
     }
    ],
    "deployed": [],
-   "ms": 2.362
+   "ms": 2.429
   },
   "q160": {
    "ranked": [
@@ -7788,16 +7689,16 @@
     }
    ],
    "deployed": [],
-   "ms": 1.723
+   "ms": 1.823
   }
  },
  "notes": [
   "Backend is the sqlite keyword backend: IDF-weighted containment of character bigrams and CJK single characters (a gram's weight is its BM25 inverse document frequency in the store); it does not understand meaning, so paraphrase questions are expected to be weak.",
   "ranked scores are the backend's own weighted-containment values, not comparable across systems.",
-  "deployed uses the default recall stages (min_score with the sqlite backend's default 0.30, relative_score with its default ratio 0.75, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only.",
+  "deployed uses the default recall stages with [recall] profile = 'precise' pinned (min_score with the sqlite backend's precise line 0.30, relative_score with its ratio 0.75, fill_text, drop_oversize, redact, dedupe, budget) and the default limit of 5; ms times that Gateway.recall call only. The plain run of this backend uses the broad lines 0.25 and 0.70 instead.",
   "Deployed items are reported by the id field of each recall item; 0 item(s) named no dataset memory.",
   "0 recall call(s) did not answer 200.",
   "Gateway.recall was called directly, so the per-client rate limiter (applied only in admit) was not involved.",
-  "Broad profile: [recall] profile = 'broad': min_score 0.25 and relative_score ratio 0.70 (the backend's broad_min_score and broad_relative_ratio) instead of 0.30 and 0.75, chosen on the development set by the rule of bench/dev_eval.py --profile broad (precision >= 50 % and at least half of the default quiet rate, best delivered hit). It trades precision and silence for answered questions."
+  "Precise profile: [recall] profile = 'precise': min_score 0.30 and relative_score ratio 0.75 (the backend's default_min_score and default_relative_ratio, the precise lines) instead of the broad 0.25 and 0.70, chosen on the development set by the balanced rule of bench/dev_eval.py (delivered F1 weighted with the quiet rate). It answers fewer questions and stays quiet more often than the default."
  ]
 }

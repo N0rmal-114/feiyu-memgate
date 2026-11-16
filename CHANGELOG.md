@@ -6,6 +6,7 @@
 
 ### 要改的地方
 
+- 分数线的默认档位从 `precise` 改成 `broad`：`min_score` 和 `relative_score` 不写 `profile` 时用每个存储的 `broad_*` 分数线。用向量存储时每个问题平均交约 2.5 条记忆（以前约 1 条），漏答更少，交出去的杂项更多，对没有答案的问题更少保持安静。原因：项目用在聊天陪伴上，一个话题通常牵到好几条记忆，每轮 1 条太少。两档的数值没有改。要回到以前的行为，在配置里写 `[recall] profile = "precise"`（或只在某一步上写 `profile = "precise"`）。`default_min_score` 等属性名不变，它们是 `precise` 档的分数线（`default_` 是历史命名）；没有声明 `broad_*` 的存储两档都用 `default_*`。每题交得更多，记忆块也更长：记忆块会留在对话历史里的聊天程序，上下文会涨得更快。
 - 默认召回步骤多了一步 `newer_first`（在 `relative_score` 后面）：通过分数线的候选里，分数不低于最高分 85% 的几条按日期新的在前。它不改变交付哪些记忆，只改顺序；记忆没有日期时不起作用。不想要它，在 `stages` 里自己列一套不含它的。
 - `embedding` 后端按模型名选用预设（`floor`、`ceil`、默认分数线、查询前缀）。`bge-m3` 的行为不变；配置里用的是 bge-small-zh-v1.5、bge-base-zh-v1.5、embeddinggemma、qwen3-embedding 的，默认分数线会变成各自的预设；其他模型沿用 bge-m3 的数值并在启动时给一行警告。手写过 `floor`、`ceil` 或分数线的不受影响。向量库现在还记着建库时的文档前缀，不一致会拒绝打开。
 - 配置里的普通令牌不能以 `fmg1.` 开头（这个前缀留给租户绑定令牌），否则启动报错。
@@ -15,7 +16,7 @@
 - 格式不对的 `tenant_id` 现在是 400 `bad_tenant`（以前是 403）；没登记的租户仍是 403，`code` 为 `unknown_tenant`。
 - 召回时网关内部的意外错误是 500 `internal`（以前是 503）。
 - 召回步骤的默认一套里去掉了 `drop_marker`，要用请自己加在 `fill_text` 后面。
-- `min_score` 不写 `value` 时用存储自己的默认分数线（`sqlite` 等是 0.3），都没有才是 0.5；例子里手写的 0.3 去掉了。
+- `min_score` 不写 `value` 时用存储自己声明的分数线（`sqlite` 等的 `precise` 档是 0.3，默认档位的值见最上面一条），都没有才是 0.5；例子里手写的 0.3 去掉了。
 - `openviking` 存储的分数现在是换算后的 0..1（原来是 OpenViking 的原始分数）；手写过它的 `min_score` 的，原始分数 x 对应现在的 `(x - 0.5) / 0.5`，或在存储里写 `floor = 0`、`ceil = 1` 保持原样。
 - `cold_deadline` 默认是 `deadline` 和 8 秒中大的那个；`tenant_pool_total` 默认是 `pool_size - 2`（以前是 3）。
 - `[server]`、`[recall]`、`[write]`、`[redaction]`、`[forgetting]` 里不认识的设置名、类型不对、超出范围，启动时报错。
@@ -46,7 +47,7 @@
 - 召回步骤 `newer_first`（见上）。在开发集和测试集上，新旧两条记忆都被交付时新的排在前面的比例，默认的向量配置从约六成到全部；两份数据里这类问题分别只有 12 和 20 道。
 - 租户绑定令牌：多租户客户端写 `tenant_binding = "token"` 后，`token_env` 里的密钥只用来铸造令牌，每个租户一个派生令牌（`feiyu-memgate tenants token --config <文件> --client <名字> --tenant <租户号>`），网关无状态校验，请求里的 `tenant_id` 可以不写，写了且和令牌不一致回 403 `tenant_mismatch`。`tenant_token_generation` 加一即吊销该客户端的全部派生令牌。这种客户端的限流先查每个租户自己的额度、通过了才扣总量，一个租户不能把别的租户挤掉。默认仍是原来的自报租户号，`check` 会对它给一行提醒。细节和限度见 security.md。
 - 进程内客户端 `feiyu_memgate.client.LocalClient`：和 `MemoryClient` 同样的方法和返回值，不起服务、不占端口、不需要令牌，走的是网关自己的准入、召回和写入入口。代价（没有信任边界）和用法见 embedded.md，例子在 `examples/embedded/`。
-- 分数线档位：`[recall] profile = "broad"`（或 `min_score`、`relative_score` 的 `profile` 选项）切到每个后端声明的宽松分数线，默认的 `precise` 不变。两档的数值、选法和实测取舍见 backends.md。
+- 分数线档位：`[recall] profile`（或 `min_score`、`relative_score` 的 `profile` 选项）在每个后端声明的两套分数线之间选择：`broad`（宽松，现在的默认，见“要改的地方”第一条）和 `precise`（少而准）。两档的数值、选法和实测取舍见 backends.md。
 - `embedding` 后端的 `query_prefix`、`document_prefix` 选项，和上面说的五个模型的预设。
 - `feiyu-memgate check` 会提醒：放错位置的召回步骤、自报租户号的多租户客户端、看起来不随机的铸造密钥、只设了合计每日上限的绑定客户端；并显示当前的分数线档位。
 - 文档 deployment.md：进程形态、检索档位（从不用模型到 1.16 GB 共六档，各自的内存、延迟和质量）、分数线档位。

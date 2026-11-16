@@ -58,54 +58,103 @@ class SqliteAdapterTest(unittest.TestCase):
         self.assertIn("0 item(s) named no dataset memory", " ".join(result["notes"]))
 
 
-class BroadProfileAdapterTest(unittest.TestCase):
-    def test_sqlite_broad_writes_its_own_file_and_names_the_profile(self):
+class DefaultProfileAdapterTest(unittest.TestCase):
+    """The plain ids run the gateway's defaults (the broad profile) and pass no profile; --profile precise pins the
+    precise lines and writes the -precise id."""
+
+    @staticmethod
+    def _dataset(data):
+        for name, content in (("memories.json", MEMORIES), ("queries.json", QUERIES)):
+            with open(os.path.join(data, name), "w", encoding="utf-8") as f:
+                json.dump(content, f, ensure_ascii=False)
+
+    def test_sqlite_without_a_profile_writes_the_plain_file_and_names_the_broad_lines(self):
         with tempfile.TemporaryDirectory() as data, tempfile.TemporaryDirectory() as out:
-            for name, content in (("memories.json", MEMORIES), ("queries.json", QUERIES)):
-                with open(os.path.join(data, name), "w", encoding="utf-8") as f:
-                    json.dump(content, f, ensure_ascii=False)
+            self._dataset(data)
             with contextlib.redirect_stdout(io.StringIO()):
-                sqlite_adapter.main(["--data", data, "--out", out, "--profile", "broad"])
-            self.assertEqual(sorted(os.listdir(out)), ["feiyu-memgate-sqlite-broad.json"])
-            with open(os.path.join(out, "feiyu-memgate-sqlite-broad.json"), encoding="utf-8") as f:
+                sqlite_adapter.main(["--data", data, "--out", out])
+            self.assertEqual(sorted(os.listdir(out)), ["feiyu-memgate-sqlite.json"])
+            with open(os.path.join(out, "feiyu-memgate-sqlite.json"), encoding="utf-8") as f:
+                result = json.load(f)
+        self.assertEqual(result["system"], "feiyu-memgate-sqlite")
+        self.assertIn("broad profile", result["mode"])
+        self.assertNotIn("precise", result["mode"])
+        self.assertIn("broad line 0.25", " ".join(result["notes"]))
+
+    def test_sqlite_precise_writes_its_own_file_and_names_the_profile(self):
+        with tempfile.TemporaryDirectory() as data, tempfile.TemporaryDirectory() as out:
+            self._dataset(data)
+            with contextlib.redirect_stdout(io.StringIO()):
+                sqlite_adapter.main(["--data", data, "--out", out, "--profile", "precise"])
+            self.assertEqual(sorted(os.listdir(out)), ["feiyu-memgate-sqlite-precise.json"])
+            with open(os.path.join(out, "feiyu-memgate-sqlite-precise.json"), encoding="utf-8") as f:
                 result = json.load(f)
         self.assertEqual(score.validate_result(result, MEMORIES, QUERIES), [])
-        self.assertEqual(result["system"], "feiyu-memgate-sqlite-broad")
-        self.assertIn("broad profile", result["mode"])
-        self.assertIn("0.25", " ".join(result["notes"]))
+        self.assertEqual(result["system"], "feiyu-memgate-sqlite-precise")
+        self.assertIn("precise recall profile", result["mode"])
+        self.assertIn("precise line 0.30", " ".join(result["notes"]))
 
     def test_the_gateway_is_built_with_the_profile(self):
-        gw = sqlite_adapter.build("broad")
-        try:
-            self.assertEqual([s.profile for s in gw.stages if hasattr(s, "profile")], ["broad", "broad"])
-        finally:
-            gw.close()
-        gw = sqlite_adapter.build()
-        try:
-            self.assertEqual([s.profile for s in gw.stages if hasattr(s, "profile")], ["precise", "precise"])
-        finally:
-            gw.close()
+        stage_profiles = lambda gw: [s.profile for s in gw.stages if hasattr(s, "profile")]  # noqa: E731
+        for profile, expected in ((None, ["broad", "broad"]), ("precise", ["precise", "precise"]),
+                                  ("broad", ["broad", "broad"])):
+            gw = sqlite_adapter.build(profile)
+            try:
+                self.assertEqual(stage_profiles(gw), expected)
+            finally:
+                gw.close()
 
-    def test_the_vector_adapters_need_a_broad_suffix_for_a_broad_run(self):
-        with self.assertRaises(SystemExit):
-            embedding_adapter.parse_args("doc", ["--profile", "broad"])
-        args = embedding_adapter.parse_args("doc", ["--profile", "broad", "--system-suffix", "broad"])
-        self.assertEqual(embedding_adapter.system_name(embedding_adapter.SYSTEM, args.system_suffix),
-                         "feiyu-memgate-embedding-broad")
-        self.assertEqual(embedding_adapter.parse_args("doc", []).profile, "precise")
+    def test_an_explicit_precise_is_passed_on_to_the_gateway_config(self):
+        built = []
+        original = sqlite_adapter.config.build_gateway
+        sqlite_adapter.config.build_gateway = lambda cfg, **kw: built.append(cfg) or original(cfg, **kw)
+        try:
+            sqlite_adapter.build().close()
+            sqlite_adapter.build("precise").close()
+        finally:
+            sqlite_adapter.config.build_gateway = original
+        self.assertNotIn("recall", built[0])                      # plain: no profile passed at all
+        self.assertEqual(built[1]["recall"], {"profile": "precise"})
+
+    def test_the_vector_adapters_name_the_precise_twin(self):
+        args = embedding_adapter.parse_args("doc", ["--profile", "precise"])
+        self.assertEqual(embedding_adapter.system_name(embedding_adapter.SYSTEM, args.system_suffix, args.profile),
+                         "feiyu-memgate-embedding-precise")
+        args = embedding_adapter.parse_args("doc", ["--system-suffix", "bge-small-zh", "--profile", "precise"])
+        self.assertEqual(embedding_adapter.system_name(embedding_adapter.SYSTEM, args.system_suffix, args.profile),
+                         "feiyu-memgate-embedding-bge-small-zh-precise")
+        plain = embedding_adapter.parse_args("doc", ["--system-suffix", "bge-small-zh"])
+        self.assertIsNone(plain.profile)
+        self.assertEqual(embedding_adapter.system_name(embedding_adapter.SYSTEM, plain.system_suffix, plain.profile),
+                         "feiyu-memgate-embedding-bge-small-zh")
+        with self.assertRaises(SystemExit):                       # the -broad ids are gone
+            embedding_adapter.parse_args("doc", ["--profile", "broad", "--system-suffix", "broad"])
 
     def test_the_embedding_adapter_builds_a_gateway_with_the_profile(self):
         spec = embedding_adapter.store_spec("http://127.0.0.1:1/v1", "bge-m3")
-        gw = embedding_adapter.build(spec, profile="broad")
-        try:
-            self.assertEqual([s.profile for s in gw.stages if hasattr(s, "profile")], ["broad", "broad"])
-        finally:
-            gw.close()
+        stage_profiles = lambda gw: [s.profile for s in gw.stages if hasattr(s, "profile")]  # noqa: E731
+        for profile, expected in ((None, ["broad", "broad"]), ("precise", ["precise", "precise"])):
+            gw = embedding_adapter.build(spec, profile=profile)
+            try:
+                self.assertEqual(stage_profiles(gw), expected)
+            finally:
+                gw.close()
         notes = []
-        args = embedding_adapter.parse_args("doc", ["--profile", "broad", "--system-suffix", "broad"])
+        args = embedding_adapter.parse_args("doc", ["--profile", "precise"])
         suffix = embedding_adapter.profile_notes(args, spec, notes)
-        self.assertEqual(suffix, ", broad recall profile")
-        self.assertIn("min_score 0.30, ratio 0.60 instead of 0.50 and 0.85", notes[0])
+        self.assertEqual(suffix, ", precise recall profile")
+        self.assertIn("min_score 0.50, ratio 0.85 instead of the broad 0.30 and 0.60", notes[0])
+        self.assertEqual(embedding_adapter.profile_notes(embedding_adapter.parse_args("doc", []), spec, []), "")
+
+    def test_the_stage_note_names_the_lines_that_applied(self):
+        lines = embedding_adapter.embedding_lines(embedding_adapter.store_spec("http://127.0.0.1:1/v1", "bge-m3"))
+        self.assertEqual(lines, (0.50, 0.85, 0.30, 0.60))
+        plain = embedding_adapter.stage_note(None, lines)
+        self.assertIn("default profile is broad", plain)
+        self.assertIn("broad line 0.30", plain)
+        precise = embedding_adapter.stage_note("precise", lines)
+        self.assertIn("'precise' pinned", precise)
+        self.assertIn("precise line 0.50", precise)
 
 
 class FullAdapterTest(unittest.TestCase):

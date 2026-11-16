@@ -26,6 +26,8 @@ class OpenVikingBackend(_OpenVikingBackend):
     the backend's own defaults are chosen on bench/dev and are pinned in test_backend_openviking_manage."""
     default_min_score = 0.5
     default_relative_ratio = 0.6
+    broad_min_score = None  # no broad lines: the default lines above apply under every profile
+    broad_relative_ratio = None
 
 CHAN_KEY = "chan-key-fake"
 OTHER_KEY = "other-key-fake"
@@ -638,6 +640,11 @@ class LogTests(GatewayTestCase):
 
     def test_injected_log_lines_have_no_content(self):
         self.recall(query="QUERYTEXT-yyy")
+        # The server writes the request line after it has sent the reply, so the line can arrive a moment
+        # after the client has its answer.
+        deadline = time.monotonic() + 2.0
+        while not self.logs and time.monotonic() < deadline:
+            time.sleep(0.01)
         self.assertTrue(self.logs)
         self.assertNotIn("QUERYTEXT", " ".join(self.logs))
         self.assertIn("client=owner", " ".join(self.logs))

@@ -44,12 +44,13 @@ SUMMARY = {
         "other-b": record("other-b", "other", 0.2, 0.3, precision=0.4, avg_items=1.3, chars=5.0, f1=0.35,
                           hitk=[0.2, 0.25, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3], wins=1, fresh_q=2),
         "variant": record("variant", "other", 0.9, 0.9, experiment=True),
-        # the pair the `profiles` chart reads; marked as variants so the other charts leave them out
-        "feiyu-memgate-embedding": record("feiyu-memgate-embedding", "feiyu-memgate", 0.6, 0.9, quiet=0.6,
-                                          precision=0.8, avg_items=1.0, variant=True, wins=3, fresh_q=3),
-        "feiyu-memgate-embedding-broad": record("feiyu-memgate-embedding-broad", "feiyu-memgate", 0.6, 0.9,
-                                                quiet=0.3, precision=0.5, avg_items=2.5, variant=True,
-                                                wins=4, fresh_q=5),
+        # the pair the `profiles` chart reads (the plain id is the default, broad profile; the -precise id pins the
+        # other one); marked as variants so the other charts leave them out
+        "feiyu-memgate-embedding": record("feiyu-memgate-embedding", "feiyu-memgate", 0.6, 0.9, quiet=0.3,
+                                          precision=0.5, avg_items=2.5, variant=True, wins=3, fresh_q=3),
+        "feiyu-memgate-embedding-precise": record("feiyu-memgate-embedding-precise", "feiyu-memgate", 0.6, 0.9,
+                                                  quiet=0.6, precision=0.8, avg_items=1.0, variant=True,
+                                                  wins=4, fresh_q=5),
         "tier-none": record("tier-none", "feiyu-memgate", 0.5, 0.8, quiet=0.9, precision=0.85, variant=True),
         "tier-small": record("tier-small", "feiyu-memgate", 0.7, 0.9, quiet=0.5, precision=0.8, variant=True),
         "tier-large": record("tier-large", "feiyu-memgate", 0.8, 0.95, quiet=0.6, precision=0.82, variant=True),
@@ -64,8 +65,8 @@ TIERS = [  # deliberately not in memory order: the chart sorts
 ]
 SYSTEMS = {"fmg-a": {"label": {"zh": "甲", "en": "A"}}, "other-a": {"label": {"zh": "乙", "en": "B"}},
            "feiyu-memgate-embedding": {"label": {"zh": "feiyu-memgate embedding", "en": "feiyu-memgate embedding"}},
-           "feiyu-memgate-embedding-broad": {"label": {"zh": "feiyu-memgate embedding（宽松档）",
-                                                       "en": "feiyu-memgate embedding (broad profile)"}}}
+           "feiyu-memgate-embedding-precise": {"label": {"zh": "feiyu-memgate embedding（精确档）",
+                                                         "en": "feiyu-memgate embedding (precise profile)"}}}
 FORGETTING = {"sqlite": {"memories": 20, "timeline": [
     {"arm": arm, "day": day, "in_store": store, "hit5_hot": hit}
     for arm, rows in (("baseline", ((0, 20, 0.7), (540, 20, 0.7))),
@@ -210,6 +211,21 @@ class RenderTest(unittest.TestCase):
         for expected in ("ranked Hit@5", "delivered hit", "precision", "quiet rate", "90%", "95%"):
             self.assertIn(expected, found)
 
+    def test_tiers_marks_the_precise_profile_of_a_tier_with_a_tick_in_the_last_three_columns(self):
+        summary = copy.deepcopy(SUMMARY)
+        summary["systems"]["tier-small-precise"] = record("tier-small-precise", "feiyu-memgate", 0.7, 0.6, quiet=0.8,
+                                                          precision=0.9, variant=True)
+        ink = charts.PALETTE["light"]["ink"]
+
+        def ticks(s):
+            root = parse(charts.render_chart("tiers", s, SYSTEMS, "light", "en", None, TIERS))
+            return [ln for ln in root.iter(SVG + "line") if ln.get("stroke") == ink and ln.get("stroke-width") == "2.5"]
+
+        self.assertEqual(len(ticks(SUMMARY)), 0)
+        self.assertEqual(len(ticks(summary)), 3)                # not in the Hit@5 column: the ranking is the same
+        self.assertIn("precise profile pinned", " ".join(texts(parse(
+            charts.render_chart("tiers", summary, SYSTEMS, "light", "en", None, TIERS)))))
+
     def test_tiers_footnote_says_resources_come_from_the_development_run(self):
         for lang, word in (("en", "development run"), ("zh", "开发集运行")):
             found = " ".join(texts(parse(charts.render_chart("tiers", SUMMARY, SYSTEMS, "dark", lang, None, TIERS))))
@@ -347,7 +363,7 @@ class NewChartsTest(unittest.TestCase):
     def test_fresh_leaves_systems_with_too_few_questions_to_the_footnote(self):
         root = render("fresh")
         found = texts(root)
-        for expected in ("7/7", "9/18", "4/5"):         # fmg-a, other-a, the broad variant
+        for expected in ("7/7", "9/18", "4/5"):         # fmg-a, other-a, the precise variant
             self.assertIn(expected, found)
         self.assertNotIn("1/2", found)                  # other-b: fewer than 5 questions, not drawn
         self.assertEqual(len(list(root.iter(SVG + "path"))), 3)
@@ -358,17 +374,16 @@ class NewChartsTest(unittest.TestCase):
     def test_profiles_has_a_pair_of_marks_an_arrow_and_labels_with_the_delivered_hit(self):
         root = render("profiles")
         found = texts(root)
-        self.assertIn("embedding precise 90%", found)
-        self.assertIn("embedding broad 90%", found)
+        self.assertEqual(found.count("embedding 90%"), 2)        # one label per profile: hollow precise, filled broad
         self.assertEqual(len(list(root.iter(SVG + "polygon"))), 1)        # one arrowhead per pair
         accent = charts.PALETTE["light"]["accent"]
         marks = [c for c in root.iter(SVG + "circle") if accent in (c.get("fill"), c.get("stroke"))]
         self.assertEqual(len(marks), 2)
         self.assertTrue(any("unlabelled" in t for t in found))
 
-    def test_profiles_without_the_broad_variant_is_skipped(self):
+    def test_profiles_without_the_precise_variant_is_skipped(self):
         summary = copy.deepcopy(SUMMARY)
-        del summary["systems"]["feiyu-memgate-embedding-broad"]
+        del summary["systems"]["feiyu-memgate-embedding-precise"]
         self.assertIsNone(charts.render_chart("profiles", summary, SYSTEMS, "light", "en"))
 
     def test_new_titles_fit_the_chart_width(self):
@@ -406,7 +421,7 @@ class NewChartsTest(unittest.TestCase):
                 self.assertIn("%d/%d" % (wins, questions), fresh)
         profiles = texts(render("profiles", summary, systems))
         for base in charts.PROFILE_BASES:
-            for name in (base, base + "-broad"):
+            for name in (base, base + "-precise"):
                 tail = charts.pct(summary["systems"][name]["overall"]["deployed_hit"], 0)
                 self.assertTrue(any(t.endswith(tail) for t in profiles), name)
 
@@ -422,7 +437,7 @@ class NewChartsTest(unittest.TestCase):
         summary, systems = real_summary(), real_systems()
         for name in ("quality", "hit-at-k", "context", "delivered-by-type"):
             found = " ".join(texts(render(name, summary, systems)))
-            for hidden in ("bge-small-zh", "unfiltered", "aged", "broad"):
+            for hidden in ("bge-small-zh", "unfiltered", "aged", "precise"):
                 self.assertNotIn(hidden, found, name)
 
 

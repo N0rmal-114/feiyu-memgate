@@ -4,7 +4,7 @@
 
 ## 方法
 
-- 每一组用一个进程内的网关和一个存储：关键词后端 `sqlite`（只有关键词），或混合后端 `hybrid`（sqlite + `bge-m3` 向量）。没有手设任何分数线：`min_score`、`relative_score` 和向量的 `floor`/`ceil` 都用各后端自己的默认值。召回阶段是网关的默认一套（`min_score`、`relative_score`、`newer_first`、`fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`），有遗忘的组在 `min_score` 后面、`relative_score` 前面加 `freshness`，让相对分数线看到打过新鲜度的分数；基线没有 `[forgetting]`，所以也没有 `freshness`。
+- 每一组用一个进程内的网关和一个存储：关键词后端 `sqlite`（只有关键词），或混合后端 `hybrid`（sqlite + `bge-m3` 向量）。没有手设任何分数线：`min_score`、`relative_score` 和向量的 `floor`/`ceil` 都用各后端自己的值，分数线档位固定为精确档（`[recall] profile = "precise"`）：这批数字是网关默认还是精确档时测的，固定后重跑能得到同样的数；默认改成宽松档之后没有用宽松档重做这个模拟。召回阶段是网关的默认一套（`min_score`、`relative_score`、`newer_first`、`fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`），有遗忘的组在 `min_score` 后面、`relative_score` 前面加 `freshness`，让相对分数线看到打过新鲜度的分数；基线没有 `[forgetting]`，所以也没有 `freshness`。
 - 假时钟：`build_gateway(..., wall=时钟)`。240 条记忆带着自己的日期写入；模拟从最新一条记忆的后一天（2026-10-21）开始，共 540 天。
 - 每天问 0 到 6 个问题（平均 3 个），从 120 个可回答的问题（lexical、paraphrase、updated）里抽：固定的“热”三分之一（40 题）占 80% 的流量，“温”三分之一（40 题）占其余，“冷”三分之一（40 题）从不被问。540 天共 1564 次提问：热 1238 次，温 326 次。
 - 每天问完后时钟再走 24 小时，网关跑一次清理（`Gateway.sweep()`，后台清理，从不解除限速），所以每个存储每天最多忘 max(5, 2%×条数) 条。所有组用同一份随机抽签（种子 20261114）。
@@ -80,7 +80,7 @@
 - 默认设置 + 钉住身份类（identity）：运行 394 天后，冷门题 q020 的记忆 m047 已被遗忘并在存档里（恢复前查得到：否）；`forget restore` 之后查得到：是，全文与原文一致：是。
 - 激进设置（半衰期除以 3）：运行 131 天后，冷门题 q009 的记忆 m007 已被遗忘并在存档里（恢复前查得到：否）；`forget restore` 之后查得到：是，全文与原文一致：是。
 
-（这个后端跑了 42 秒。）
+（这个后端跑了 35 秒。）
 
 ## 时间线：混合后端（sqlite + 向量 bge-m3）
 
@@ -136,7 +136,7 @@
 - 默认设置 + 钉住身份类（identity）：运行 393 天后，冷门题 q020 的记忆 m047 已被遗忘并在存档里（恢复前查得到：否）；`forget restore` 之后查得到：是，全文与原文一致：是。
 - 激进设置（半衰期除以 3）：运行 131 天后，冷门题 q009 的记忆 m007 已被遗忘并在存档里（恢复前查得到：否）；`forget restore` 之后查得到：是，全文与原文一致：是。
 
-（这个后端跑了 191 秒。）
+（这个后端跑了 186 秒。）
 
 ## 怎么读这个结果
 

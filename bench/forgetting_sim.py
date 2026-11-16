@@ -14,7 +14,7 @@ One in-process gateway per arm with a fake wall clock (config.build_gateway(...,
 `sqlite` (keyword search only) or `hybrid` (sqlite + an embedding child, as in examples/hybrid/gateway.toml).
 Recall stages: the gateway's default list (core.stages.DEFAULT_STAGES: min_score, relative_score, newer_first, fill_text,
 drop_oversize, redact, dedupe, budget) with freshness inserted right after min_score, so the relative cut-off
-sees freshness-adjusted scores; no hand-set thresholds: each backend's own defaults apply (the baseline has no [forgetting] section and
+sees freshness-adjusted scores; no hand-set thresholds: each backend's own lines of the "precise" profile apply (pinned, see PROFILE; the baseline has no [forgetting] section and
 therefore no freshness stage). The 240 memories are loaded with their own dates; 540 days are simulated
 starting the day after the newest memory. Every day 0 to 6 questions are asked, drawn from the answerable
 questions (lexical, paraphrase, updated): a fixed "hot" third gets about 80% of the traffic, a "warm" third
@@ -60,6 +60,10 @@ from feiyu_memgate.forgetting.engine import date_to_epoch  # noqa: E402
 
 DATA_DIR = os.path.join(ROOT, "bench", "data")
 OUT_DIR = os.path.join(HERE, "results", "forgetting")
+# The score-line profile of every arm. The committed results were measured when "precise" was what the gateway used
+# without a setting; the default has been "broad" since 2026-11-16, so the profile is pinned here and the numbers
+# stay reproducible. The simulation has not been repeated with the broad profile.
+PROFILE = "precise"
 DAY = 86400.0
 
 # ---- the scenario (fixed before looking at results)
@@ -181,7 +185,7 @@ class Arm:
         cfg = {
             "stores": {STORE: store_spec(backend, embed_url)},
             "clients": {"owner": {"token_env": "SIM_TOKEN", "recall": [STORE], "write": STORE}},
-            "recall": {"stages": stages},
+            "recall": {"stages": stages, "profile": PROFILE},
         }
         if spec is not None:
             curve = dict({"type": "ebbinghaus"}, **spec.get("curve", {}))
@@ -510,7 +514,8 @@ def write_combined(out_dir, reading=""):
         "只在容器里跑（命令见文末）。" % first["memories"], "",
         "## 方法", "",
         "- 每一组用一个进程内的网关和一个存储：关键词后端 `sqlite`（只有关键词），或混合后端 `hybrid`（sqlite + `bge-m3` 向量）。"
-        "没有手设任何分数线：`min_score`、`relative_score` 和向量的 `floor`/`ceil` 都用各后端自己的默认值。召回阶段是网关的默认一套"
+        "没有手设任何分数线：`min_score`、`relative_score` 和向量的 `floor`/`ceil` 都用各后端自己的值，分数线档位固定为精确档"
+        "（`[recall] profile = \"precise\"`）：这批数字是网关默认还是精确档时测的，固定后重跑能得到同样的数；默认改成宽松档之后没有用宽松档重做这个模拟。召回阶段是网关的默认一套"
         "（`min_score`、`relative_score`、`newer_first`、`fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`），有遗忘的组在 `min_score` 后面、"
         "`relative_score` 前面加 `freshness`，让相对分数线看到打过新鲜度的分数；"
         "基线没有 `[forgetting]`，所以也没有 `freshness`。",

@@ -53,7 +53,7 @@ daily_writes_total = 500              # 所有群加起来每天；换着群号�
 # daily_writes_total = 500
 
 [recall]
-# min_score 不写分数线：sqlite 存储自己的默认分数线是 0.3。
+# min_score 不写分数线：默认的 broad 档用 sqlite 存储自己声明的 0.25（[recall] profile = "precise" 时是 0.3）。
 stages = [
     "min_score",
     { type = "source_weight", weights = { private = 1.0, public_list = 0.9, group = 0.6 } },

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="598" viewBox="0 0 1000 598" role="img" lang="zh">
 <style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#52514e;font-size:13px}.t{font-size:17px;font-weight:600;fill:#0b0b0b}.l{font-size:13px;fill:#0b0b0b}.lb{font-size:13px;font-weight:600;fill:#0b0b0b}.s{font-size:11px;fill:#52514e}.grid{stroke:#e1e0d9;stroke-width:1;fill:none}.axis{stroke:#c3c2b7;stroke-width:1;fill:none}.tick{stroke:#0b0b0b;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#2a78d6}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
 <rect width="1000" height="598" fill="#fcfcfb"/>
-<text x="24.0" y="32.0" class="t">精确档与宽松档：同一配置多交付一些，命中升多少、精确率降多少（横轴每题平均交付条数，对数轴）</text>
+<text x="24.0" y="32.0" class="t">宽松档（默认）与精确档：同一配置换到精确档，命中降多少、精确率升多少（横轴每题平均交付条数，对数轴）</text>
 <rect x="24.0" y="47.0" width="14" height="8" rx="2" class="fa"/>
 <text x="46.0" y="56.0" class="s">feiyu-memgate 的配置</text>
 <rect x="186.1" y="47.0" width="14" height="8" rx="2" class="fo"/>
@@ -46,22 +46,36 @@
 <circle cx="107.5" cy="307.2" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <line x1="327.7" y1="173.3" x2="483.7" y2="262.8" class="lead" stroke-width="2" stroke="#2a78d6"/>
 <polygon points="487.2,264.8 479.2,264.1 482.6,258.2" fill="#2a78d6"/>
-<circle cx="322.5" cy="170.3" r="6" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="492.4" cy="267.8" r="5" fill="#fcfcfb" stroke="#2a78d6" stroke-width="2.5"/>
+<circle cx="322.5" cy="170.3" r="5" fill="#fcfcfb" stroke="#2a78d6" stroke-width="2.5"/>
+<circle cx="492.4" cy="267.8" r="6" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<line x1="360.4" y1="181.3" x2="391.5" y2="192.4" class="lead" stroke-width="2" stroke="#2a78d6"/>
+<polygon points="395.2,193.7 387.3,194.5 389.5,188.1" fill="#2a78d6"/>
+<circle cx="354.8" cy="179.2" r="5" fill="#fcfcfb" stroke="#2a78d6" stroke-width="2.5"/>
+<circle cx="400.9" cy="195.8" r="6" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<line x1="255.3" y1="143.2" x2="446.3" y2="241.5" class="lead" stroke-width="2" stroke="#2a78d6"/>
+<polygon points="449.8,243.3 441.8,243.0 444.9,237.0" fill="#2a78d6"/>
+<circle cx="250.0" cy="140.4" r="5" fill="#fcfcfb" stroke="#2a78d6" stroke-width="2.5"/>
+<circle cx="455.2" cy="246.1" r="6" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
 <line x1="168.3" y1="132.1" x2="205.9" y2="142.2" class="lead" stroke-width="2" stroke="#2a78d6"/>
 <polygon points="209.8,143.2 201.9,144.6 203.7,138.1" fill="#2a78d6"/>
-<circle cx="162.5" cy="130.6" r="6" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="215.6" cy="144.8" r="5" fill="#fcfcfb" stroke="#2a78d6" stroke-width="2.5"/>
+<circle cx="162.5" cy="130.6" r="5" fill="#fcfcfb" stroke="#2a78d6" stroke-width="2.5"/>
+<circle cx="215.6" cy="144.8" r="6" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
 <line x1="322.5" y1="170.3" x2="336.5" y2="157.8" class="lead" stroke="#52514e"/>
-<line x1="162.5" y1="130.6" x2="162.5" y2="162.6" class="lead" stroke="#52514e"/>
+<line x1="354.8" y1="179.2" x2="331.0" y2="201.0" class="lead" stroke="#52514e"/>
+<line x1="250.0" y1="140.4" x2="250.0" y2="124.4" class="lead" stroke="#52514e"/>
+<line x1="455.2" y1="246.1" x2="469.2" y2="233.6" class="lead" stroke="#52514e"/>
 <text x="632.2" y="412.3" class="l">memsearch</text>
 <text x="870.2" y="468.0" class="l" text-anchor="end">mem0（逐字）</text>
 <text x="741.2" y="449.3" class="l" text-anchor="end">OpenViking</text>
-<text x="336.5" y="153.3" class="l">embedding 精确档 82%</text>
-<text x="501.4" y="270.8" class="l">embedding 宽松档 97%</text>
-<text x="162.5" y="173.1" class="l" text-anchor="middle">sqlite 精确档 39%</text>
-<text x="224.6" y="147.8" class="l">sqlite 宽松档 47%</text>
-<text x="24.0" y="546.0" class="s">标签后的数字：默认交付的命中率；实心是精确档（默认），空心是宽松档，箭头从精确档指向宽松档。 灰点是其他项目；未标注的：mem0（LLM 提取）, dsh-mnemon + 向量, lingshu,</text>
-<text x="24.0" y="564.0" class="s">SeekMemory, meow-memory, dsh-mnemon, Graphiti。</text>
-<text x="24.0" y="582.0" class="s">bench/results/summary.md · 240 条记忆，160 个问题 · 2026-11-15</text>
+<text x="336.5" y="153.3" class="l">embedding 82%</text>
+<text x="501.4" y="270.8" class="l">embedding 97%</text>
+<text x="331.0" y="211.5" class="l" text-anchor="end">openviking 88%</text>
+<text x="409.9" y="198.8" class="l">openviking 91%</text>
+<text x="250.0" y="119.9" class="l" text-anchor="middle">hybrid 65%</text>
+<text x="469.2" y="229.1" class="l">hybrid 92%</text>
+<text x="153.5" y="133.6" class="l" text-anchor="end">sqlite 39%</text>
+<text x="215.6" y="162.3" class="l" text-anchor="middle">sqlite 47%</text>
+<text x="24.0" y="546.0" class="s">标签后的数字：交付命中率；实心是宽松档（默认），空心是精确档，箭头从精确档指向宽松档，也就是多交付的方向。 full 的两个点和 hybrid 的几乎重合（只多了新鲜度），没有单独画。</text>
+<text x="24.0" y="564.0" class="s">灰点是其他项目；未标注的：mem0（LLM 提取）, dsh-mnemon + 向量, lingshu, SeekMemory, meow-memory, dsh-mnemon, Graphiti。</text>
+<text x="24.0" y="582.0" class="s">bench/results/summary.md · 240 条记忆，160 个问题 · 2026-11-16</text>
 </svg>

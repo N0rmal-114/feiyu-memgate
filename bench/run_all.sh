@@ -15,10 +15,12 @@
 # image is current; their source variables must be set (see bench/README.md, section "复现").
 #
 # Order, with the approximate time of each step on the reference machine:
-#   sqlite, sqlite-broad, embedding, embedding-broad, hybrid, full (feiyu-memgate; the two "-broad" rows are the
-#   same backends with `[recall] profile = "broad"`), openviking pair (its run.sh runs `openviking` and
-#   `feiyu-memgate-openviking`), the four lighter embedding models (bge-small-zh, bge-base-zh, embeddinggemma,
-#   qwen3-embedding, each with its preset, through the light embedder), meow-memory, seekmemory (three result files), dsh-mnemon (both modes),
+#   sqlite, embedding, hybrid, full (feiyu-memgate with the gateway's defaults, which are the broad profile; no
+#   profile is passed), each followed by its `-precise` twin (the same backend with `[recall] profile = "precise"`
+#   pinned), the openviking trio (its run.sh runs `openviking`, `feiyu-memgate-openviking` and
+#   `feiyu-memgate-openviking-precise`), the four lighter embedding models (bge-small-zh, bge-base-zh,
+#   embeddinggemma, qwen3-embedding, each with its preset, through the light embedder, each with its `-precise`
+#   twin), meow-memory, seekmemory (three result files), dsh-mnemon (both modes),
 #   memsearch, mem0 with MODE=verbatim, lingshu-dsh-memory (about 30 minutes: it paces its writes to respect
 #   that plugin's own rate limit, so it runs last and alone), then score.py, forgetting_sim.py, charts.py.
 #
@@ -58,20 +60,25 @@ in_docker() {  # in_docker <python args...>
 }
 
 fmg_sqlite()    { PYTHONUTF8=1 python bench/adapters/feiyu_memgate_sqlite.py; }
-fmg_sqlite_broad() { PYTHONUTF8=1 python bench/adapters/feiyu_memgate_sqlite.py --profile broad; }
+fmg_sqlite_precise() { PYTHONUTF8=1 python bench/adapters/feiyu_memgate_sqlite.py --profile precise; }
 fmg_embedding() { in_docker bench/adapters/feiyu_memgate_embedding.py --embed-url "$EMBED_URL"; }
-fmg_embedding_broad() {
-  in_docker bench/adapters/feiyu_memgate_embedding.py --embed-url "$EMBED_URL" --profile broad --system-suffix broad
+fmg_embedding_precise() { in_docker bench/adapters/feiyu_memgate_embedding.py --embed-url "$EMBED_URL" --profile precise; }
+light() {  # light <model name at the endpoint> <suffix> [--profile precise]
+  local model=$1 suffix=$2; shift 2
+  in_docker bench/adapters/feiyu_memgate_embedding.py --embed-url "$LIGHT_URL" --model "$model" --system-suffix "$suffix" "$@"
 }
-light() {  # light <model name at the endpoint> <suffix>
-  in_docker bench/adapters/feiyu_memgate_embedding.py --embed-url "$LIGHT_URL" --model "$1" --system-suffix "$2"
-}
-light_small()   { light hf.co/CompendiumLabs/bge-small-zh-v1.5-gguf:F16 bge-small-zh; }
-light_base()    { light hf.co/CompendiumLabs/bge-base-zh-v1.5-gguf:Q8_0 bge-base-zh; }
-light_gemma()   { light embeddinggemma embeddinggemma; }
-light_qwen()    { light qwen3-embedding:0.6b qwen3-embedding; }
+light_small()   { light hf.co/CompendiumLabs/bge-small-zh-v1.5-gguf:F16 bge-small-zh "$@"; }
+light_base()    { light hf.co/CompendiumLabs/bge-base-zh-v1.5-gguf:Q8_0 bge-base-zh "$@"; }
+light_gemma()   { light embeddinggemma embeddinggemma "$@"; }
+light_qwen()    { light qwen3-embedding:0.6b qwen3-embedding "$@"; }
+light_small_precise() { light_small --profile precise; }
+light_base_precise()  { light_base --profile precise; }
+light_gemma_precise() { light_gemma --profile precise; }
+light_qwen_precise()  { light_qwen --profile precise; }
 fmg_hybrid()    { in_docker bench/adapters/feiyu_memgate_hybrid.py --embed-url "$EMBED_URL"; }
+fmg_hybrid_precise() { in_docker bench/adapters/feiyu_memgate_hybrid.py --embed-url "$EMBED_URL" --profile precise; }
 fmg_full()      { in_docker bench/adapters/feiyu_memgate_full.py --embed-url "$EMBED_URL"; }
+fmg_full_precise() { in_docker bench/adapters/feiyu_memgate_full.py --embed-url "$EMBED_URL" --profile precise; }
 openviking()    { bash bench/adapters/openviking/run.sh; }
 meow()          { bash bench/adapters/meow-memory/run.sh; }
 seekmemory()    { bash bench/adapters/seekmemory/run.sh; }
@@ -81,16 +88,22 @@ mem0_verbatim() { MODE=verbatim bash bench/adapters/mem0/run.sh; }
 lingshu()       { bash bench/adapters/lingshu-dsh-memory/run.sh; }
 
 step sqlite     fmg_sqlite
-step sqlite-broad fmg_sqlite_broad
+step sqlite-precise fmg_sqlite_precise
 step embedding  fmg_embedding
-step embedding-broad fmg_embedding_broad
+step embedding-precise fmg_embedding_precise
 step hybrid     fmg_hybrid
+step hybrid-precise fmg_hybrid_precise
 step full       fmg_full
+step full-precise fmg_full_precise
 step openviking openviking
 step bge-small-zh light_small
+step bge-small-zh-precise light_small_precise
 step bge-base-zh  light_base
+step bge-base-zh-precise light_base_precise
 step embeddinggemma light_gemma
+step embeddinggemma-precise light_gemma_precise
 step qwen3-embedding light_qwen
+step qwen3-embedding-precise light_qwen_precise
 step meow       meow
 step seekmemory seekmemory
 step mnemon     mnemon

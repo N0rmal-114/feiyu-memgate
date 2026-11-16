@@ -176,7 +176,7 @@ feiyu-memgate tenants token --config gateway.toml --client group_bot --tenant 10
 | `cold_deadline` | `deadline` 和 `8.0` 中大的那个 | 隔了 `cold_after` 秒没有召回后，第一次召回的时限 |
 | `cold_after` | `600` | 多久算“冷”。对上你的向量模型空闲多久被卸载 |
 | `stages` | 见下 | 召回步骤，按顺序 |
-| `profile` | `"precise"` | 分数线的档位，`"precise"` 或 `"broad"`，见下 |
+| `profile` | `"broad"` | 分数线的档位，`"broad"` 或 `"precise"`，见下 |
 
 时限管整个召回：存储的搜索最多用到时限前一点（留出时限的 20%，最多 0.5 秒给召回步骤），时限一到，还没问到的候选不再放进结果，计入 `more`，访问日志里记 `deadline`。
 
@@ -197,20 +197,21 @@ stages = [
 
 不写 `stages` 时用默认的一套：`min_score`、`relative_score`、`newer_first`、`fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`。`drop_marker`（丢掉写入自检留下的标记）不在默认里，要用就加在 `fill_text` 后面。要用遗忘曲线的 `freshness`（选项 `floor` 默认 0.7、`credit` 默认 `"top"`、`credit_ratio` 默认 0.9，见 [forgetting.md](forgetting.md)），放在 `min_score` 后面、`relative_score` 前面（它们都改分数或按分数比较，顺序见 [pieces.md](pieces.md)）。每个步骤的选项见 [pieces.md](pieces.md)。
 
-`min_score` 不写 `value` 时，每条候选的分数线依次看：`per_store` 里这个存储的值，`value`，存储自己声明的默认分数线（`sqlite`、`inmemory` 是 0.30，`embedding` 按模型预设（bge-m3 是 0.50，其余见 [backends.md](backends.md)），`hybrid` 是 0.70，`openviking` 是 0.55；每个数是怎么来的见 [backends.md](backends.md)），都没有就是 0.5。`relative_score` 不写 `ratio` 时同理用存储的 `default_relative_ratio`（`sqlite`、`inmemory` 是 0.75，`embedding` 按模型预设（bge-m3 是 0.85），`hybrid` 是 0.85，`openviking` 是 0.95），都没有就是 0.6。所以一般不用手写分数线；要调，最好用 `feiyu-memgate eval` 或 `bench/dev_eval.py` 在自己的数据上量一下再定：
+`min_score` 不写 `value` 时，每条候选的分数线依次看：`per_store` 里这个存储的值，`value`，存储按分数线档位声明的分数线：默认档位 `broad` 用 `broad_min_score`（`sqlite`、`inmemory` 是 0.25，`embedding` 按模型预设（bge-m3 是 0.30，其余见 [backends.md](backends.md)），`hybrid` 是 0.40，`openviking` 是 0.55），`precise` 档用 `default_min_score`（`sqlite`、`inmemory` 是 0.30，bge-m3 是 0.50，`hybrid` 是 0.70，`openviking` 是 0.55；每个数是怎么来的见 [backends.md](backends.md)）；存储没有声明某一档就用它的 `default_min_score`，都没有就是 0.5。`relative_score` 不写 `ratio` 时同理：`broad` 档用 `broad_relative_ratio`（`sqlite`、`inmemory` 是 0.70，bge-m3 是 0.60，`hybrid` 是 0.65，`openviking` 是 0.90），`precise` 档用 `default_relative_ratio`（`sqlite`、`inmemory` 是 0.75，bge-m3 是 0.85，`hybrid` 是 0.85，`openviking` 是 0.95），都没有就是 0.6。`default_` 前缀是历史命名，指的是 `precise` 这一档，不是默认档位。所以一般不用手写分数线；要调，最好用 `feiyu-memgate eval` 或 `bench/dev_eval.py` 在自己的数据上量一下再定：
 
-`profile = "broad"` 是一个快捷方式：`min_score` 和 `relative_score` 两步改用存储声明的宽松分数线（`broad_min_score`、`broad_relative_ratio`），
-多答对一些换了说法的问题，代价是交出去的条目更杂、对没有答案的问题更容易开口（每个后端在开发集上的得失见 [backends.md](backends.md) 的“两档分数线”）。
-不写它就是默认的 `"precise"`，行为和以前完全一样。它只加到**自己没有写 `profile` 的** `min_score` 和 `relative_score` 上，
+`profile` 是 `min_score` 和 `relative_score` 两步共用的快捷方式，默认是 `"broad"`：用存储声明的宽松分数线（`broad_min_score`、`broad_relative_ratio`），
+聊天里一个话题通常牵到好几条记忆，所以默认每题交得多一些（用向量存储时约 2.5 条，`precise` 约 1 条）；代价是交出去的条目更杂、对没有答案的问题更容易开口（每个后端在开发集上的得失见 [backends.md](backends.md) 的“两档分数线”）。
+写 `profile = "precise"` 就回到以前的分数线：每题约 1 条，交出去的大部分是对的，漏答更多。
+不写它就是 `"broad"`。它只加到**自己没有写 `profile` 的** `min_score` 和 `relative_score` 上，
 不管 `stages` 是默认的还是自己写出来的；某一步自己写了 `profile = "precise"` 或 `"broad"`，就以它自己的为准；写了 `value` / `ratio` 的，数字永远优先于档位。
-存储没有声明宽松值时（比如自己写的后端），`"broad"` 对它就是默认分数线。`profile` 不是这两个名字之一是配置错误；`feiyu-memgate check` 会打印当前档位。
+存储没有声明宽松值时（比如自己写的后端），两档对它都用 `default_min_score` / `default_relative_ratio`。`profile` 不是这两个名字之一是配置错误；`feiyu-memgate check` 会打印当前档位。
 
 ```toml
 [recall]
-profile = "broad"
+profile = "precise"   # 回到以前的分数线；不写这一项就是 "broad"
 ```
 
-在步骤上也可以单独设，只让其中一步宽松：`{ type = "relative_score", profile = "broad" }`。
+在步骤上也可以单独设，只让其中一步用另一档：`{ type = "relative_score", profile = "precise" }`。
 
 ```bash
 feiyu-memgate eval --store-type sqlite --store-option path=:memory: \
@@ -218,7 +219,7 @@ feiyu-memgate eval --store-type sqlite --store-option path=:memory: \
   --memories examples/eval/memories.json --queries examples/eval/queries.json
 ```
 
-在仓库自带的那批小虚构数据 `examples/eval` 上（问题多数是换了说法问的，对关键词检索不利；这是旧开发集，现在的默认值是在 `bench/dev` 上选的），`sqlite` 后端最多 5 条时：分数线 0.10 命中 100%、噪声 62%、安静 88%；0.20 命中 100%、噪声 31%、安静 100%；0.30 命中 77%、噪声 12%。再加上 `relative_score`（比例 0.6），0.20 时噪声降到 8%、命中仍是 100%（`bench/dev_eval.py` 的口径，噪声按问题平均）。关键词后端找的是“用词相同”的记忆，换个说法就可能找不到，这是它和向量后端的取舍。
+在仓库自带的那批小虚构数据 `examples/eval` 上（问题多数是换了说法问的，对关键词检索不利；这是旧开发集，现在两档的分数线是在 `bench/dev` 上选的；下面的数字是用手写的 `--thresholds` 量的，与档位无关），`sqlite` 后端最多 5 条时：分数线 0.10 命中 100%、噪声 62%、安静 88%；0.20 命中 100%、噪声 31%、安静 100%；0.30 命中 77%、噪声 12%。再加上 `relative_score`（比例 0.6），0.20 时噪声降到 8%、命中仍是 100%（`bench/dev_eval.py` 的口径，噪声按问题平均）。关键词后端找的是“用词相同”的记忆，换个说法就可能找不到，这是它和向量后端的取舍。
 
 ## `[write]`
 

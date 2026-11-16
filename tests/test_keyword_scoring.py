@@ -289,7 +289,10 @@ class DevSetDefaultsTest(unittest.TestCase):
             self.addCleanup(backend.close) if hasattr(backend, "close") else None
             for ref, m in memories.items():
                 backend.put(m["text"], ref=ref)
-            chain = [registry.create("recall_stage", name) for name in stages_module.DEFAULT_STAGES]
+            # these are the lines of the "precise" profile, so the two score stages are pinned to it
+            chain = [registry.create("recall_stage", {"type": name, "profile": "precise"}
+                                     if name in ("min_score", "relative_score") else name)
+                     for name in stages_module.DEFAULT_STAGES]
             hit = answerable = quiet = silent = 0
             precisions = []
             for q in queries.values():

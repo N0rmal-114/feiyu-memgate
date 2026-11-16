@@ -19,7 +19,9 @@ MIN_SCORE = 0.5
 RELATIVE_RATIO = 0.6
 
 
+# "broad" is the default of the stages that take a profile; "precise" is the profile a user switches to.
 PROFILES = ("precise", "broad")
+DEFAULT_PROFILE = "broad"
 
 
 def _fraction(value):
@@ -56,12 +58,13 @@ class MinScore(RecallStage):
     store's own default_min_score (a keyword backend declares a lower one than a vector
     backend, whose scores live on another scale), else 0.5.
     Options: value (default None: each store's own default), per_store ({store name: threshold}),
-    profile ("precise", the default, or "broad": the store's `broad_min_score`, a lower line that
-    answers more questions and lets more noise through; a store that declares none keeps its default).
+    profile ("broad", the default: the store's `broad_min_score`, a lower line that answers more questions
+    and lets more noise through; or "precise": the store's `default_min_score`, about one memory per question).
+    A store that declares no broad line keeps its `default_` line under either profile.
     An explicit value or per_store entry wins over the profile.
     """
 
-    def __init__(self, value=None, per_store=None, profile="precise"):
+    def __init__(self, value=None, per_store=None, profile="broad"):
         self.value = value
         self.per_store = dict(per_store or {})
         self.profile = check_profile("min_score", profile)
@@ -96,13 +99,14 @@ class RelativeScore(RecallStage):
     Put it after every stage that changes scores (`min_score`, `source_weight`, `freshness`): it
     then compares the scores that decide the order. Options: ratio (0..1; default None: each
     store's own; 0 keeps everything), gap (a score difference, default None: no gap rule), profile
-    ("precise", the default, or "broad": the store's `broad_relative_ratio`, which keeps more candidates; a
-    store that declares none keeps its default). An explicit ratio wins over the profile.
+    ("broad", the default: the store's `broad_relative_ratio`, which keeps more candidates; or "precise": the
+    store's `default_relative_ratio`; a store that declares no broad line keeps its `default_` line under
+    either profile). An explicit ratio wins over the profile.
     """
 
     cheap = True
 
-    def __init__(self, ratio=None, gap=None, profile="precise"):
+    def __init__(self, ratio=None, gap=None, profile="broad"):
         self.profile = check_profile("relative_score", profile)
         if ratio is not None and not _fraction(ratio):
             raise ConfigError("relative_score: ratio must be a number between 0 and 1")

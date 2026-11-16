@@ -20,7 +20,7 @@ write = "private"
 daily_writes = 50
 
 [recall]
-# min_score 不写分数线时用每个存储自己的默认值（sqlite 是 0.3），存储没有默认值时是 0.5。
+# min_score 不写分数线时用每个存储自己声明的值：默认的 broad 档下 sqlite 是 0.25，[recall] profile = "precise" 时是 0.3；存储没有声明时是 0.5。
 stages = ["min_score", "redact", "dedupe", "budget"]
 
 [write]

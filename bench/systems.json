@@ -3,78 +3,64 @@
   "label": {"zh": "feiyu-memgate sqlite", "en": "feiyu-memgate sqlite"},
   "project": "feiyu-memgate", "kind": "keyword", "llm": false,
   "caveat": {
-   "zh": "关键词后端（字符二元组 + IDF），不需要任何服务；默认召回步骤，默认值在开发集上选定。",
-   "en": "Keyword backend (character bigrams + IDF), no services needed; default recall stages, defaults chosen on the dev set."}
+   "zh": "关键词后端（字符二元组 + IDF），不需要任何服务；默认召回步骤（宽松档 broad：min_score 0.25、比例 0.70），分数线在开发集上选定。",
+   "en": "Keyword backend (character bigrams + IDF), no services needed; default recall stages (broad profile: min_score 0.25, ratio 0.70), lines chosen on the dev set."}
  },
  "feiyu-memgate-embedding": {
   "label": {"zh": "feiyu-memgate embedding", "en": "feiyu-memgate embedding"},
   "project": "feiyu-memgate", "kind": "vector", "llm": false,
   "caveat": {
-   "zh": "向量后端（bge-m3，暴力余弦），默认召回步骤；需要一个 embeddings 接口。",
-   "en": "Vector backend (bge-m3, brute-force cosine), default recall stages; needs an embeddings endpoint."}
+   "zh": "向量后端（bge-m3，暴力余弦），默认召回步骤（宽松档 broad：min_score 0.30、比例 0.60）；需要一个 embeddings 接口。",
+   "en": "Vector backend (bge-m3, brute-force cosine), default recall stages (broad profile: min_score 0.30, ratio 0.60); needs an embeddings endpoint."}
  },
  "feiyu-memgate-hybrid": {
   "label": {"zh": "feiyu-memgate hybrid", "en": "feiyu-memgate hybrid"},
   "project": "feiyu-memgate", "kind": "hybrid", "llm": false,
   "caveat": {
-   "zh": "关键词 + 向量，概率“或”融合，默认召回步骤；需要一个 embeddings 接口。",
-   "en": "Keyword + vector with probabilistic-OR fusion, default recall stages; needs an embeddings endpoint."}
+   "zh": "关键词 + 向量，概率“或”融合，默认召回步骤（宽松档 broad：min_score 0.40、比例 0.65）；需要一个 embeddings 接口。",
+   "en": "Keyword + vector with probabilistic-OR fusion, default recall stages (broad profile: min_score 0.40, ratio 0.65); needs an embeddings endpoint."}
  },
  "feiyu-memgate-embedding-bge-small-zh": {
   "label": {"zh": "feiyu-memgate embedding（bge-small-zh）", "en": "feiyu-memgate embedding (bge-small-zh)"},
   "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
   "caveat": {
-   "zh": "向量后端换成较轻的模型 bge-small-zh-v1.5（F16，47.9 MB，512 维，只支持中文），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤；需要一个 embeddings 接口。",
-   "en": "Vector backend with the lighter model bge-small-zh-v1.5 (F16, 47.9 MB, 512 dims, Chinese only), that model's preset (floor, ceil, score lines, prefixes), default recall stages; needs an embeddings endpoint."}
+   "zh": "向量后端换成较轻的模型 bge-small-zh-v1.5（F16，47.9 MB，512 维，只支持中文），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤（宽松档 broad：min_score 0.10、比例 0.65）；需要一个 embeddings 接口。",
+   "en": "Vector backend with the lighter model bge-small-zh-v1.5 (F16, 47.9 MB, 512 dims, Chinese only), that model's preset (floor, ceil, score lines, prefixes), default recall stages (broad profile: min_score 0.10, ratio 0.65); needs an embeddings endpoint."}
  },
  "feiyu-memgate-embedding-bge-base-zh": {
   "label": {"zh": "feiyu-memgate embedding（bge-base-zh）", "en": "feiyu-memgate embedding (bge-base-zh)"},
   "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
   "caveat": {
-   "zh": "向量后端换成较轻的模型 bge-base-zh-v1.5（Q8_0，110 MB，768 维，只支持中文），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤；需要一个 embeddings 接口。",
-   "en": "Vector backend with the lighter model bge-base-zh-v1.5 (Q8_0, 110 MB, 768 dims, Chinese only), that model's preset (floor, ceil, score lines, prefixes), default recall stages; needs an embeddings endpoint."}
+   "zh": "向量后端换成较轻的模型 bge-base-zh-v1.5（Q8_0，110 MB，768 维，只支持中文），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤（宽松档 broad：min_score 0.05、比例 0.50）；需要一个 embeddings 接口。",
+   "en": "Vector backend with the lighter model bge-base-zh-v1.5 (Q8_0, 110 MB, 768 dims, Chinese only), that model's preset (floor, ceil, score lines, prefixes), default recall stages (broad profile: min_score 0.05, ratio 0.50); needs an embeddings endpoint."}
  },
  "feiyu-memgate-embedding-embeddinggemma": {
   "label": {"zh": "feiyu-memgate embedding（embeddinggemma）", "en": "feiyu-memgate embedding (embeddinggemma)"},
   "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
   "caveat": {
-   "zh": "向量后端换成较轻的模型 embeddinggemma（622 MB，768 维，多语言），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤；需要一个 embeddings 接口。",
-   "en": "Vector backend with the lighter model embeddinggemma (622 MB, 768 dims, multilingual), that model's preset (floor, ceil, score lines, prefixes), default recall stages; needs an embeddings endpoint."}
+   "zh": "向量后端换成较轻的模型 embeddinggemma（622 MB，768 维，多语言），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤（宽松档 broad：min_score 0.30、比例 0.60）；需要一个 embeddings 接口。",
+   "en": "Vector backend with the lighter model embeddinggemma (622 MB, 768 dims, multilingual), that model's preset (floor, ceil, score lines, prefixes), default recall stages (broad profile: min_score 0.30, ratio 0.60); needs an embeddings endpoint."}
  },
  "feiyu-memgate-embedding-qwen3-embedding": {
   "label": {"zh": "feiyu-memgate embedding（qwen3-embedding）", "en": "feiyu-memgate embedding (qwen3-embedding)"},
   "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
   "caveat": {
-   "zh": "向量后端换成较轻的模型 qwen3-embedding 0.6B（639 MB，1024 维，多语言），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤；需要一个 embeddings 接口。",
-   "en": "Vector backend with the lighter model qwen3-embedding 0.6B (639 MB, 1024 dims, multilingual), that model's preset (floor, ceil, score lines, prefixes), default recall stages; needs an embeddings endpoint."}
- },
- "feiyu-memgate-sqlite-broad": {
-  "label": {"zh": "feiyu-memgate sqlite（宽松档）", "en": "feiyu-memgate sqlite (broad profile)"},
-  "project": "feiyu-memgate", "kind": "keyword", "llm": false, "variant": true,
-  "caveat": {
-   "zh": "和 feiyu-memgate-sqlite 完全一样，只是 [recall] profile = \"broad\"：min_score 0.25、比例 0.70（默认 0.30 / 0.75），这是开发集上按事先写定的规则选的宽松档，多答题、少安静。",
-   "en": "Identical to feiyu-memgate-sqlite except [recall] profile = \"broad\": min_score 0.25, ratio 0.70 (default 0.30 / 0.75), the recall-leaning profile chosen on the dev set by a rule fixed in advance; answers more, stays quiet less."}
- },
- "feiyu-memgate-embedding-broad": {
-  "label": {"zh": "feiyu-memgate embedding（bge-m3，宽松档）", "en": "feiyu-memgate embedding (bge-m3, broad profile)"},
-  "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
-  "caveat": {
-   "zh": "和 feiyu-memgate-embedding（bge-m3）完全一样，只是 [recall] profile = \"broad\"：min_score 0.30、比例 0.60（默认 0.50 / 0.85），开发集上按事先写定的规则选的宽松档，多答题，交出的条目更杂、对没有答案的问题更容易开口。",
-   "en": "Identical to feiyu-memgate-embedding (bge-m3) except [recall] profile = \"broad\": min_score 0.30, ratio 0.60 (default 0.50 / 0.85), the recall-leaning profile chosen on the dev set by a rule fixed in advance; answers more, delivers noisier items and speaks up more often when there is no answer."}
+   "zh": "向量后端换成较轻的模型 qwen3-embedding 0.6B（639 MB，1024 维，多语言），该模型的预设（floor、ceil、分数线、前缀），默认召回步骤（宽松档 broad：min_score 0.15、比例 0.65）；需要一个 embeddings 接口。",
+   "en": "Vector backend with the lighter model qwen3-embedding 0.6B (639 MB, 1024 dims, multilingual), that model's preset (floor, ceil, score lines, prefixes), default recall stages (broad profile: min_score 0.15, ratio 0.65); needs an embeddings endpoint."}
  },
  "feiyu-memgate-full": {
   "label": {"zh": "feiyu-memgate full", "en": "feiyu-memgate full"},
   "project": "feiyu-memgate", "kind": "hybrid", "llm": false,
   "caveat": {
-   "zh": "混合后端 + 默认召回步骤 + freshness（遗忘账本，默认设置，不做清理）；记忆带自己的日期。",
-   "en": "Hybrid backend + default recall stages + freshness (forgetting ledger, default settings, no sweep); memories carry their own dates."}
+   "zh": "混合后端 + 默认召回步骤（宽松档 broad：min_score 0.40、比例 0.65）+ freshness（遗忘账本，默认设置，不做清理）；记忆带自己的日期。",
+   "en": "Hybrid backend + default recall stages (broad profile: min_score 0.40, ratio 0.65) + freshness (forgetting ledger, default settings, no sweep); memories carry their own dates."}
  },
  "feiyu-memgate-openviking": {
   "label": {"zh": "feiyu-memgate openviking", "en": "feiyu-memgate openviking"},
   "project": "feiyu-memgate", "kind": "vector", "llm": false,
   "caveat": {
-   "zh": "网关接在 OpenViking（只读存储）前面，默认召回步骤。",
-   "en": "The gateway in front of OpenViking (read-only store), default recall stages."}
+   "zh": "网关接在 OpenViking（只读存储）前面，默认召回步骤（宽松档 broad：min_score 0.55、比例 0.90）。",
+   "en": "The gateway in front of OpenViking (read-only store), default recall stages (broad profile: min_score 0.55, ratio 0.90)."}
  },
  "mem0-verbatim": {
   "label": {"zh": "mem0（逐字）", "en": "mem0 (verbatim)"},
@@ -166,5 +152,68 @@
   "caveat": {
    "zh": "365 天老化实验，不是默认运行：记忆按 detail 级写入，老化后 240 条全部被标记为遗忘，什么都召回不到（Hit@5 0%，安静率 100%）。",
    "en": "A 365-day ageing experiment, not a default run: memories written at detail level, all 240 are marked forgotten after ageing, so nothing is recalled (Hit@5 0%, quiet rate 100%)."}
+ },
+ "feiyu-memgate-sqlite-precise": {
+  "label": {"zh": "feiyu-memgate sqlite（精确档）", "en": "feiyu-memgate sqlite (precise profile)"},
+  "project": "feiyu-memgate", "kind": "keyword", "llm": false, "variant": true,
+  "caveat": {
+   "zh": "和 feiyu-memgate-sqlite 完全一样，只是固定 [recall] profile = \"precise\"：min_score 0.30、比例 0.75（默认的宽松档是 0.25 / 0.70）。留出集上，默认档 → 精确档：交付命中 46.7% → 39.2%，精确率 89.3% → 93.0%，安静率 70.0% → 75.0%，每题交付 0.55 → 0.41 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。",
+   "en": "Identical to feiyu-memgate-sqlite except [recall] profile = \"precise\" is pinned: min_score 0.30, ratio 0.75 (the default broad profile uses 0.25 / 0.70). On the held-out set, default -> precise: delivered hit 46.7% -> 39.2%, precision 89.3% -> 93.0%, quiet rate 70.0% -> 75.0%, items per question 0.55 -> 0.41; it delivers less and more precisely, stays quiet more often when there is no answer, and misses more questions."}
+ },
+ "feiyu-memgate-embedding-precise": {
+  "label": {"zh": "feiyu-memgate embedding（bge-m3，精确档）", "en": "feiyu-memgate embedding (bge-m3, precise profile)"},
+  "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
+  "caveat": {
+   "zh": "和 feiyu-memgate-embedding 完全一样，只是固定 [recall] profile = \"precise\"：min_score 0.50、比例 0.85（默认的宽松档是 0.30 / 0.60）。留出集上，默认档 → 精确档：交付命中 96.7% → 81.7%，精确率 56.9% → 82.5%，安静率 32.5% → 65.0%，每题交付 2.46 → 0.98 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。",
+   "en": "Identical to feiyu-memgate-embedding except [recall] profile = \"precise\" is pinned: min_score 0.50, ratio 0.85 (the default broad profile uses 0.30 / 0.60). On the held-out set, default -> precise: delivered hit 96.7% -> 81.7%, precision 56.9% -> 82.5%, quiet rate 32.5% -> 65.0%, items per question 2.46 -> 0.98; it delivers less and more precisely, stays quiet more often when there is no answer, and misses more questions."}
+ },
+ "feiyu-memgate-hybrid-precise": {
+  "label": {"zh": "feiyu-memgate hybrid（精确档）", "en": "feiyu-memgate hybrid (precise profile)"},
+  "project": "feiyu-memgate", "kind": "hybrid", "llm": false, "variant": true,
+  "caveat": {
+   "zh": "和 feiyu-memgate-hybrid 完全一样，只是固定 [recall] profile = \"precise\"：min_score 0.70、比例 0.85（默认的宽松档是 0.40 / 0.65）。留出集上，默认档 → 精确档：交付命中 92.5% → 65.0%，精确率 62.6% → 90.4%，安静率 35.0% → 75.0%，每题交付 2.01 → 0.66 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。",
+   "en": "Identical to feiyu-memgate-hybrid except [recall] profile = \"precise\" is pinned: min_score 0.70, ratio 0.85 (the default broad profile uses 0.40 / 0.65). On the held-out set, default -> precise: delivered hit 92.5% -> 65.0%, precision 62.6% -> 90.4%, quiet rate 35.0% -> 75.0%, items per question 2.01 -> 0.66; it delivers less and more precisely, stays quiet more often when there is no answer, and misses more questions."}
+ },
+ "feiyu-memgate-full-precise": {
+  "label": {"zh": "feiyu-memgate full（精确档）", "en": "feiyu-memgate full (precise profile)"},
+  "project": "feiyu-memgate", "kind": "hybrid", "llm": false, "variant": true,
+  "caveat": {
+   "zh": "和 feiyu-memgate-full 完全一样，只是固定 [recall] profile = \"precise\"：min_score 0.70、比例 0.85（默认的宽松档是 0.40 / 0.65）。留出集上，默认档 → 精确档：交付命中 93.3% → 65.0%，精确率 60.1% → 90.2%，安静率 35.0% → 75.0%，每题交付 2.08 → 0.67 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。",
+   "en": "Identical to feiyu-memgate-full except [recall] profile = \"precise\" is pinned: min_score 0.70, ratio 0.85 (the default broad profile uses 0.40 / 0.65). On the held-out set, default -> precise: delivered hit 93.3% -> 65.0%, precision 60.1% -> 90.2%, quiet rate 35.0% -> 75.0%, items per question 2.08 -> 0.67; it delivers less and more precisely, stays quiet more often when there is no answer, and misses more questions."}
+ },
+ "feiyu-memgate-openviking-precise": {
+  "label": {"zh": "feiyu-memgate openviking（精确档）", "en": "feiyu-memgate openviking (precise profile)"},
+  "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
+  "caveat": {
+   "zh": "和 feiyu-memgate-openviking 完全一样，只是固定 [recall] profile = \"precise\"：min_score 0.55、比例 0.95（默认的宽松档是 0.55 / 0.90）。留出集上，默认档 → 精确档：交付命中 90.8% → 87.5%，精确率 75.9% → 80.2%，安静率 40.0% → 40.0%，每题交付 1.50 → 1.17 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。",
+   "en": "Identical to feiyu-memgate-openviking except [recall] profile = \"precise\" is pinned: min_score 0.55, ratio 0.95 (the default broad profile uses 0.55 / 0.90). On the held-out set, default -> precise: delivered hit 90.8% -> 87.5%, precision 75.9% -> 80.2%, quiet rate 40.0% -> 40.0%, items per question 1.50 -> 1.17; it delivers less and more precisely, stays quiet more often when there is no answer, and misses more questions."}
+ },
+ "feiyu-memgate-embedding-bge-small-zh-precise": {
+  "label": {"zh": "feiyu-memgate embedding（bge-small-zh，精确档）", "en": "feiyu-memgate embedding (bge-small-zh, precise profile)"},
+  "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
+  "caveat": {
+   "zh": "和 feiyu-memgate-embedding-bge-small-zh 完全一样，只是固定 [recall] profile = \"precise\"：min_score 0.30、比例 0.90（默认的宽松档是 0.10 / 0.65）。留出集上，默认档 → 精确档：交付命中 86.7% → 76.7%，精确率 69.0% → 79.4%，安静率 20.0% → 47.5%，每题交付 1.79 → 0.94 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。",
+   "en": "Identical to feiyu-memgate-embedding-bge-small-zh except [recall] profile = \"precise\" is pinned: min_score 0.30, ratio 0.90 (the default broad profile uses 0.10 / 0.65). On the held-out set, default -> precise: delivered hit 86.7% -> 76.7%, precision 69.0% -> 79.4%, quiet rate 20.0% -> 47.5%, items per question 1.79 -> 0.94; it delivers less and more precisely, stays quiet more often when there is no answer, and misses more questions."}
+ },
+ "feiyu-memgate-embedding-bge-base-zh-precise": {
+  "label": {"zh": "feiyu-memgate embedding（bge-base-zh，精确档）", "en": "feiyu-memgate embedding (bge-base-zh, precise profile)"},
+  "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
+  "caveat": {
+   "zh": "和 feiyu-memgate-embedding-bge-base-zh 完全一样，只是固定 [recall] profile = \"precise\"：min_score 0.25、比例 0.75（默认的宽松档是 0.05 / 0.50）。留出集上，默认档 → 精确档：交付命中 88.3% → 72.5%，精确率 70.2% → 86.2%，安静率 37.5% → 65.0%，每题交付 1.51 → 0.77 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。",
+   "en": "Identical to feiyu-memgate-embedding-bge-base-zh except [recall] profile = \"precise\" is pinned: min_score 0.25, ratio 0.75 (the default broad profile uses 0.05 / 0.50). On the held-out set, default -> precise: delivered hit 88.3% -> 72.5%, precision 70.2% -> 86.2%, quiet rate 37.5% -> 65.0%, items per question 1.51 -> 0.77; it delivers less and more precisely, stays quiet more often when there is no answer, and misses more questions."}
+ },
+ "feiyu-memgate-embedding-embeddinggemma-precise": {
+  "label": {"zh": "feiyu-memgate embedding（embeddinggemma，精确档）", "en": "feiyu-memgate embedding (embeddinggemma, precise profile)"},
+  "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
+  "caveat": {
+   "zh": "和 feiyu-memgate-embedding-embeddinggemma 完全一样，只是固定 [recall] profile = \"precise\"：min_score 0.55、比例 0.85（默认的宽松档是 0.30 / 0.60）。留出集上，默认档 → 精确档：交付命中 97.5% → 76.7%，精确率 63.8% → 85.8%，安静率 37.5% → 72.5%，每题交付 2.04 → 0.81 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。",
+   "en": "Identical to feiyu-memgate-embedding-embeddinggemma except [recall] profile = \"precise\" is pinned: min_score 0.55, ratio 0.85 (the default broad profile uses 0.30 / 0.60). On the held-out set, default -> precise: delivered hit 97.5% -> 76.7%, precision 63.8% -> 85.8%, quiet rate 37.5% -> 72.5%, items per question 2.04 -> 0.81; it delivers less and more precisely, stays quiet more often when there is no answer, and misses more questions."}
+ },
+ "feiyu-memgate-embedding-qwen3-embedding-precise": {
+  "label": {"zh": "feiyu-memgate embedding（qwen3-embedding，精确档）", "en": "feiyu-memgate embedding (qwen3-embedding, precise profile)"},
+  "project": "feiyu-memgate", "kind": "vector", "llm": false, "variant": true,
+  "caveat": {
+   "zh": "和 feiyu-memgate-embedding-qwen3-embedding 完全一样，只是固定 [recall] profile = \"precise\"：min_score 0.20、比例 0.95（默认的宽松档是 0.15 / 0.65）。留出集上，默认档 → 精确档：交付命中 94.2% → 85.0%，精确率 70.7% → 81.9%，安静率 32.5% → 37.5%，每题交付 1.76 → 0.97 条；交得少而准，对没有答案的问题更常保持安静，漏答更多。",
+   "en": "Identical to feiyu-memgate-embedding-qwen3-embedding except [recall] profile = \"precise\" is pinned: min_score 0.20, ratio 0.95 (the default broad profile uses 0.15 / 0.65). On the held-out set, default -> precise: delivered hit 94.2% -> 85.0%, precision 70.7% -> 81.9%, quiet rate 32.5% -> 37.5%, items per question 1.76 -> 0.97; it delivers less and more precisely, stays quiet more often when there is no answer, and misses more questions."}
  }
 }

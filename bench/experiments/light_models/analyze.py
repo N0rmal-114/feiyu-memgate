@@ -297,7 +297,9 @@ def cmd_calibrate(args, queries):
 
 
 def write_md(per, kept, queries, memories, z_setting):
-    """results/dev/embedding-<key>.md for the four new models, in the format of dev_eval.report()."""
+    """results/dev/embedding-<key>-precise.md (the precise profile's record) for the four new models, in the format
+    of dev_eval.report(); the plain results/dev/embedding-<key>.md (the default, broad profile) comes from
+    bench/dev_eval.py --search --profile broad --name embedding-<key>."""
     out_dir = dev.OUT_DIR
     for model in models.MODELS:
         key = model["key"]
@@ -311,7 +313,7 @@ def write_md(per, kept, queries, memories, z_setting):
         text += ("\n上面的“before”是同一份余弦用 bge-m3 的旧默认（floor 0.40、ceil 0.80、min_score 0.50、比例 0.85）换算"
                  "的结果；“chosen”是按静态配方（floor %.2f、ceil %.2f）换算后的最优点。"
                  "模型：`%s`，前缀方案：%s。\n" % (p["floor"], p["ceil"], model["name"], kept[key]))
-        with open(os.path.join(out_dir, "embedding-%s.md" % key), "w", encoding="utf-8", newline="\n") as f:
+        with open(os.path.join(out_dir, "embedding-%s-precise.md" % key), "w", encoding="utf-8", newline="\n") as f:
             f.write(text)
 
 

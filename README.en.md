@@ -21,16 +21,16 @@ It does not compete on retrieval algorithms. Storage and retrieval belong to the
 
 The result of comparing it with 8 other memory projects on the same held-out test set comes first:
 
-| | feiyu-memgate (5 configurations) | The other 8 projects (10 configurations) |
+| | feiyu-memgate (5 configurations; precise profile in brackets) | The other 8 projects (10 configurations) |
 |---|---|---|
-| Items delivered to the model by default (average per question) | 0.4 – 1.2 | 0.3 – 20 |
-| Share of delivered items that are correct | 80% – 93% | 0% – 47% |
-| Share of questions with no answer in memory where nothing is delivered | 40% – 75% | mostly 0%, highest 82.5% |
+| Items delivered to the model by default (average per question) | 0.6 – 2.5 (0.4 – 1.2) | 0.3 – 20 |
+| Share of delivered items that are correct | 57% – 89% (80% – 93%) | 0% – 47% |
+| Share of questions with no answer in memory where nothing is delivered | 32.5% – 70.0% (40.0% – 75.0%) | mostly 0%, highest 82.5% |
 | Retrieval ranking Hit@5 (no score threshold) | 81.7% – 98.3% | 13.3% – 98.3% |
-| Share of questions where the default delivery contains the correct memory | 39% – 88% | 0% – 100% |
-| When both the newer and the older memory are delivered, the newer one comes first | 75% – 100% (100% for the default vector configuration) | 50% – 80% |
+| Share of questions where the default delivery contains the correct memory | 47% – 97% (39% – 88%) | 0% – 100% |
+| When both the newer and the older memory are delivered, the newer one comes first | 80% – 100% (75% – 100%) | 50% – 80% |
 
-The first three rows and the last row are what this gateway layer does. The fourth row shows that retrieval itself is not better than the others: the vector configuration matches the systems that also use bge-m3. The fifth row is the cost: it delivers less, so it also misses more. If that is not acceptable, switch to the "broad" threshold profile, see [Deployment tiers](#deployment-tiers). Full data, method and limits are in the [Benchmark](#benchmark).
+The default threshold profile is the broad one (`broad`, since 2026-11-16). The first number in rows two to five is its value, the number in brackets is the precise profile (`[recall] profile = "precise"`, the previous default). The broad profile almost never misses an answer. The cost is that what it delivers is noisier, it speaks up more often when there is no answer, and the context per question is longer. The precise profile delivers about 1 item per question and most of it is correct. The cost is missed answers. The fourth row shows that retrieval itself is not better than the others: the vector configuration matches the systems that also use bge-m3, and this row does not change with the profile. The number in the last row also depends on the profile: with the broad profile more items are delivered, so the older memory more often comes along. Full data, method and limits are in the [Benchmark](#benchmark).
 
 ## What it solves
 
@@ -97,7 +97,7 @@ The same memories and the same questions, 15 configurations of 9 projects. Each 
 
 | Project | Version tested | Form | Retrieval | Default write calls an LLM | Default delivery |
 |---|---|---|---|---|---|
-| **feiyu-memgate** (this project) | 0.1.0 | Gateway: HTTP service or in-process | Keyword, vector, hybrid, or OpenViking | No | 5 items by default, with score thresholds and a character budget |
+| **feiyu-memgate** (this project) | 0.1.0 | Gateway: HTTP service or in-process | Keyword, vector, hybrid, or OpenViking | No | Up to 5 items, with score thresholds and a character budget; the default broad profile delivers about 0.6 – 2.5 items per question, `profile = "precise"` about 0.4 – 1.2 |
 | [memsearch](https://github.com/zilliztech/memsearch) | 0.4.23 | Library plus DSH plugin | Hybrid: vector plus BM25 | The library does not; the plugin summarizes each turn with a model by default | Top 5, no score threshold, the model decides whether to retrieve |
 | [mem0](https://github.com/mem0ai/mem0) | 2.2.1 | Library | Vector plus BM25 plus entities | Yes (can be turned off) | 20 items, score threshold 0.1 |
 | [OpenViking](https://github.com/volcengine/OpenViking) | v0.5.3 | Service plus DSH plugin | Vector | Yes (not when memory files are written directly) | API default 10 items, no score threshold |
@@ -107,14 +107,15 @@ The same memories and the same questions, 15 configurations of 9 projects. Each 
 | [lingshu (dsh-memory)](https://github.com/FuRongJun-1999/dsh-memory) | 0.10.1 | DSH plugin | Keyword: BM25 | No | Automatic injection of the 4 most recent items of the session on every turn |
 | [meow-memory](https://github.com/Phant0Meow/dsh-meow-memory) | 0.32.6 | DSH plugin | Keyword: BM25 | Written by the host model through a tool | Top 2 matches injected before every message |
 
-mem0 was tested in two modes, verbatim ingest and LLM extraction. dsh-mnemon was tested in its default mode and with vectors turned on. This project was tested in 5 configurations. That makes 15 in total. This project has 6 more variants (4 lighter vector models and 2 broad profiles), covered in [Deployment tiers](#deployment-tiers). Facts such as each project's forgetting mechanism and license are in [bench/results/design/features.en.md](bench/results/design/features.en.md).
+mem0 was tested in two modes, verbatim ingest and LLM extraction. dsh-mnemon was tested in its default mode and with vectors turned on. This project was tested in 5 configurations. That makes 15 in total. This project has 13 more variants: 4 lighter vector models, and for each configuration a version with the precise profile pinned (`-precise`; 9 in all, 5 of them in the tables below and the 4 for the lighter models in [Deployment tiers](#deployment-tiers)). Facts such as each project's forgetting mechanism and license are in [bench/results/design/features.en.md](bench/results/design/features.en.md).
 
 ### Method
 
 - **Data**. 240 memories and 160 questions, in Chinese, about a fictional person. The questions fall into four types: 45 lexical (the question uses the same words as the memory), 55 paraphrase (reworded), 20 updated (the same fact has an old and a new memory), and 40 quiet questions (no answer in memory, so the correct behavior is to deliver nothing).
 - **Two kinds of metric**. *Ranking*: no score threshold, look at where the correct memory ranks (Hit@1, Hit@5). This measures retrieval itself. *Delivered by default*: with each system's default settings, what it actually hands to the model. This measures out-of-the-box behavior.
 - **Fairness**. Each system uses its own real retrieval code and default settings. All systems that need vectors share one model (bge-m3). Third-party code runs only in containers with no network. Each adapter runs alone, one after another.
-- **No tuning on the test set**. The test set is frozen. This project's default score thresholds were chosen on a separate development set with completely different text (160 memories, 110 questions), by a rule written down in advance. The held-out test set was run only after the thresholds were fixed, and no setting was changed after the run.
+- **No tuning on the test set**. The test set is frozen. This project's two sets of score thresholds (precise and broad profile) were chosen on a separate development set with completely different text (160 memories, 110 questions), by a rule written down in advance. The held-out test set was run only after the thresholds were fixed, and no setting was changed after the run. Both profiles were run once on the test set, and neither was chosen again for the sake of its numbers.
+- **Default profile**. The gateway has two sets of score thresholds: `precise` and `broad`. Since 2026-11-16 the default is `broad`, because the project is used for chat companions, where a topic usually touches several memories and one item per turn is too few. This was a product decision, not a tuning step, and the values of both sets did not change. In the tables below, a row of "this project" means the result with the default profile (broad) unless it is marked "precise profile", which is the same configuration with the precise profile pinned.
 
 The full rules are in [bench/CONTRACT.md](bench/CONTRACT.md) (Chinese). What each system was called with and what was bypassed is in the notes of [bench/results/summary.md](bench/results/summary.md) (Chinese). Reproduction steps and run logs are in [bench/README.md](bench/README.md) (Chinese).
 
@@ -127,7 +128,7 @@ The full rules are in [bench/CONTRACT.md](bench/CONTRACT.md) (Chinese). What eac
   </picture>
 </p>
 
-*Delivered F1* is the harmonic mean of "the delivery contains the correct memory" and "the share of delivered items that are correct". It is high only when both are high. This project's four vector configurations are at 75.6% – 83.7%, and the keyword configuration is at 55.1%. Among the other projects the highest is dsh-mnemon with vectors turned on (53.6%), and the rest are at 0% – 40%. The gap comes mainly from precision: most systems deliver the top N items by default.
+*Delivered F1* is the harmonic mean of "the delivery contains the correct memory" and "the share of delivered items that are correct". It is high only when both are high. This project's four vector and hybrid configurations are at 71.6% – 82.7% by default (broad profile) and the keyword configuration is at 61.3%; with the precise profile pinned they are at 75.6% – 83.7% and 55.1%. Among the other projects the highest is dsh-mnemon with vectors turned on (53.6%), and the rest are at 0% – 40%. The gap comes mainly from precision: most systems deliver the top N items by default. The broad profile has lower precision than the precise one, so the delivered F1 of the vector and hybrid configurations is lower with it (`embedding` 82.1% → 71.6%, `hybrid` 75.6% → 74.7%); only the keyword configuration rises.
 
 ### Retrieval ranking
 
@@ -147,7 +148,7 @@ The full rules are in [bench/CONTRACT.md](bench/CONTRACT.md) (Chinese). What eac
 
 - The vector configuration's Hit@5 is 98.3%, the same as memsearch, mem0 and OpenViking, which also use bge-m3. This column is decided mainly by the embedding model, not by the gateway.
 - memsearch ranks best: Hit@1 is 85.0%, and the correct memory is always within the top 8. This project's vector backend has a Hit@1 of 81.7%.
-- The vector systems reach 93% – 96% within the top 2, and growth after that is slow. This is the basis for delivering 1 to 2 items per question.
+- The vector systems reach 93% – 96% within the top 2, and growth after that is slow. This is the basis for delivering 1 to 2 items per question with the precise profile.
 - The curves of the keyword systems are flatter: this project's keyword backend and lingshu reach 88.3% at the 10th item, and SeekMemory and meow-memory about 70%. They do not understand semantics, and paraphrase questions are their ceiling.
 - The hybrid backend has a slightly higher Hit@1 (83.3%) and a slightly lower Hit@5 (96.7%). Both differences are within two or three questions.
 
@@ -162,14 +163,19 @@ The full rules are in [bench/CONTRACT.md](bench/CONTRACT.md) (Chinese). What eac
 
 | System | Retrieval type | Hit@1 | Hit@5 | Avg. items delivered | Delivered hit | Precision | Delivered F1 | Quiet rate | p50 latency |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| **feiyu-memgate embedding** | vector | 81.7% | 98.3% | 0.98 | 81.7% | 82.5% | 82.1% | 65.0% | 25 ms |
-| **feiyu-memgate openviking** | vector | 81.7% | 98.3% | 1.17 | 87.5% | 80.2% | 83.7% | 40.0% | 26 ms |
-| **feiyu-memgate hybrid** | hybrid | 83.3% | 96.7% | 0.66 | 65.0% | 90.4% | 75.6% | 75.0% | 29 ms |
-| **feiyu-memgate full** | hybrid + freshness | 84.2% | 95.0% | 0.67 | 65.0% | 90.2% | 75.6% | 75.0% | 32 ms |
-| **feiyu-memgate sqlite** | keyword | 61.7% | 81.7% | 0.41 | 39.2% | 93.0% | 55.1% | 75.0% | 2 ms |
+| **feiyu-memgate embedding** | vector | 81.7% | 98.3% | 2.46 | 96.7% | 56.9% | 71.6% | 32.5% | 24 ms |
+| feiyu-memgate embedding (precise profile) | vector | 81.7% | 98.3% | 0.98 | 81.7% | 82.5% | 82.1% | 65.0% | 25 ms |
+| **feiyu-memgate openviking** | vector | 81.7% | 98.3% | 1.50 | 90.8% | 75.9% | 82.7% | 40.0% | 26 ms |
+| feiyu-memgate openviking (precise profile) | vector | 81.7% | 98.3% | 1.17 | 87.5% | 80.2% | 83.7% | 40.0% | 25 ms |
+| **feiyu-memgate hybrid** | hybrid | 83.3% | 96.7% | 2.01 | 92.5% | 62.6% | 74.7% | 35.0% | 28 ms |
+| feiyu-memgate hybrid (precise profile) | hybrid | 83.3% | 96.7% | 0.66 | 65.0% | 90.4% | 75.6% | 75.0% | 28 ms |
+| **feiyu-memgate full** | hybrid + freshness | 83.3% | 95.0% | 2.08 | 93.3% | 60.1% | 73.1% | 35.0% | 33 ms |
+| feiyu-memgate full (precise profile) | hybrid + freshness | 84.2% | 95.0% | 0.67 | 65.0% | 90.2% | 75.6% | 75.0% | 33 ms |
+| **feiyu-memgate sqlite** | keyword | 61.7% | 81.7% | 0.55 | 46.7% | 89.3% | 61.3% | 70.0% | 2 ms |
+| feiyu-memgate sqlite (precise profile) | keyword | 61.7% | 81.7% | 0.41 | 39.2% | 93.0% | 55.1% | 75.0% | 2 ms |
 | memsearch | hybrid | 85.0% | 98.3% | 5.00 | 98.3% | 19.7% | 32.8% | 0.0% | 26 ms |
 | mem0 (verbatim ingest) | vector | 81.7% | 98.3% | 20.00 | 100.0% | 5.0% | 9.5% | 0.0% | 35 ms |
-| OpenViking | vector | 81.7% | 98.3% | 9.94 | 99.2% | 9.9% | 18.0% | 0.0% | 26 ms |
+| OpenViking | vector | 81.7% | 98.3% | 9.94 | 99.2% | 9.9% | 18.0% | 0.0% | 25 ms |
 | mem0 (LLM extraction) | extraction | 77.5% | 95.0% | 19.76 | 99.2% | 5.0% | 9.6% | 0.0% | 69 ms ‡ |
 | dsh-mnemon + vector | hybrid | 80.0% | 90.8% | 2.24 | 87.5% | 38.6% | 53.6% | 0.0% | 78 ms |
 | lingshu | keyword | 65.0% | 81.7% | 4.00 | 0.0% | 0.0% | 0.0% | 0.0% | 2 ms |
@@ -178,15 +184,16 @@ The full rules are in [bench/CONTRACT.md](bench/CONTRACT.md) (Chinese). What eac
 | dsh-mnemon | keyword | 38.3% | 42.5% | 1.02 | 38.3% | 37.1% | 37.7% | 0.0% | 33 ms |
 | Graphiti | graph | 12.5% | 13.3% | 0.31 | 13.3% | 46.5% | 20.7% | 82.5% | 391 ms ‡ |
 
-*Delivered hit*: the share of questions where the default delivery contains the correct memory. *Precision*: the share of delivered items that are correct, counted only over answerable questions where something was delivered. *Delivered F1*: the harmonic mean of the two. *Quiet rate*: the share of the 40 quiet questions where nothing was delivered. ‡ These two rows use a paid mode and were not rerun in the final sequential run. Their latency comes from a machine that was also running other jobs.
+*Delivered hit*: the share of questions where the default delivery contains the correct memory. *Precision*: the share of delivered items that are correct, counted only over answerable questions where something was delivered. *Delivered F1*: the harmonic mean of the two. *Quiet rate*: the share of the 40 quiet questions where nothing was delivered. Rows of this project: the bold one is the default (broad profile), the "precise profile" row after it is the same configuration with `[recall] profile = "precise"` pinned. The Hit@1 of `full` differs by one question between the profiles (83.3% against 84.2%): in this configuration the ranking is measured after the deliveries of the same question have been recorded as used, freshness reads that record, and the broad profile records more items. The ranking of the other configurations does not depend on the profile. ‡ These two rows use a paid mode and were not rerun in the final sequential run. Their latency comes from a machine that was also running other jobs.
 
-The table shows three things:
+The table shows four things:
 
-1. **Most systems deliver the top N items by default.** So their delivered hit is close to 100%, their precision is only 5% – 39%, and they almost never stay quiet on quiet questions. This project delivers about 1 item per question by default, with precision of 80% – 93%.
-2. **The cost is missed answers.** This project's delivered hit is 39% – 88%, lower than the systems that "give a few more". Paraphrase questions suffer most, see the next subsection.
-3. **On this data the hybrid backend is no better than vector alone.** Its default score threshold is stricter, so it delivers less. Afterwards, five fusion methods were compared on the development set, and two small models were tried in combination. None clearly beat vector alone: on reworded questions, the keyword score of the correct memory is lower than that of unrelated memories. If you have an embeddings endpoint, use `embedding`. If you do not, use `sqlite`.
+1. **Most systems deliver the top N items by default.** So their delivered hit is close to 100%, their precision is only 5% – 39%, and they almost never stay quiet on quiet questions. This project by default (broad profile) delivers 0.55 – 2.46 items per question, with precision of 56.9% – 89.3% (56.9% – 75.9% for the vector and hybrid configurations) and a delivered hit of 46.7% – 96.7%; with the precise profile pinned it delivers 0.41 – 1.17 items per question, with precision of 80.2% – 93.0%.
+2. **The default profile misses far fewer answers, and the cost is noise and less silence.** 24% – 43% of what the vector and hybrid configurations deliver is wrong. Of the 40 quiet questions only 32.5% – 40.0% get nothing (precise profile: 40.0% – 75.0%), so 60.0% – 67.5% of the questions with no answer get unrelated memories; and the characters delivered per question are 1.3 – 3.1 times those of the precise profile. This is the reverse of the earlier "few and accurate": more questions are answered, but there is more risk of forcing an unrelated memory into the conversation, and the context is longer.
+3. **The cost of the precise profile is missed answers.** With `profile = "precise"` pinned, the delivered hit is 39.2% – 87.5%, lower than the systems that "give a few more". Paraphrase questions suffer most, see the next subsection.
+4. **The hybrid backend does not beat vector alone on hits.** Delivered hit is 92.5% against 96.7% and ranking Hit@5 96.7% against 98.3%; its score thresholds are stricter, so it delivers less (2.01 items against 2.46). Afterwards, five fusion methods were compared on the development set, and two small models were tried in combination. None clearly beat vector alone: on reworded questions, the keyword score of the correct memory is lower than that of unrelated memories. If you have an embeddings endpoint, use `embedding`. If you do not, use `sqlite`.
 
-Score thresholds are configuration. If missing fewer answers matters more, switch to the broad profile (`[recall] profile = "broad"`). The measured trade-off is in [Deployment tiers](#deployment-tiers). [docs/backends.md](docs/backends.md) (Chinese) explains how the values of both profiles were chosen for each backend and how to choose again with your own data.
+Score thresholds are configuration. The default is the broad profile. If few and accurate items matter more (or the memory block stays in the conversation history and context has to be saved), write `[recall] profile = "precise"` to get the previous behavior. The measured trade-off is in [Deployment tiers](#deployment-tiers). [docs/backends.md](docs/backends.md) (Chinese) explains how the values of both profiles were chosen for each backend and how to choose again with your own data.
 
 ### By question type
 
@@ -208,11 +215,16 @@ Each cell is "ranking Hit@5 / delivered hit by default":
 
 | System | Lexical (45) | Paraphrase (55) | Updated (20) |
 |---|---:|---:|---:|
-| **feiyu-memgate embedding** | 100.0% / 100.0% | 96.4% / 69.1% | 100.0% / 75.0% |
-| **feiyu-memgate openviking** | 100.0% / 100.0% | 96.4% / 81.8% | 100.0% / 75.0% |
-| **feiyu-memgate hybrid** | 100.0% / 100.0% | 92.7% / 34.5% | 100.0% / 70.0% |
-| **feiyu-memgate full** | 100.0% / 100.0% | 89.1% / 34.5% | 100.0% / 70.0% |
-| **feiyu-memgate sqlite** | 100.0% / 95.6% | 63.6% / 0.0% | 90.0% / 20.0% |
+| **feiyu-memgate embedding** | 100.0% / 100.0% | 96.4% / 92.7% | 100.0% / 100.0% |
+| feiyu-memgate embedding (precise profile) | 100.0% / 100.0% | 96.4% / 69.1% | 100.0% / 75.0% |
+| **feiyu-memgate openviking** | 100.0% / 100.0% | 96.4% / 81.8% | 100.0% / 95.0% |
+| feiyu-memgate openviking (precise profile) | 100.0% / 100.0% | 96.4% / 81.8% | 100.0% / 75.0% |
+| **feiyu-memgate hybrid** | 100.0% / 100.0% | 92.7% / 85.5% | 100.0% / 95.0% |
+| feiyu-memgate hybrid (precise profile) | 100.0% / 100.0% | 92.7% / 34.5% | 100.0% / 70.0% |
+| **feiyu-memgate full** | 100.0% / 100.0% | 89.1% / 85.5% | 100.0% / 100.0% |
+| feiyu-memgate full (precise profile) | 100.0% / 100.0% | 89.1% / 34.5% | 100.0% / 70.0% |
+| **feiyu-memgate sqlite** | 100.0% / 97.8% | 63.6% / 3.6% | 90.0% / 50.0% |
+| feiyu-memgate sqlite (precise profile) | 100.0% / 95.6% | 63.6% / 0.0% | 90.0% / 20.0% |
 | memsearch | 100.0% / 100.0% | 96.4% / 96.4% | 100.0% / 100.0% |
 | mem0 (verbatim ingest) | 100.0% / 100.0% | 96.4% / 100.0% | 100.0% / 100.0% |
 | OpenViking | 100.0% / 100.0% | 96.4% / 98.2% | 100.0% / 100.0% |
@@ -226,9 +238,9 @@ Each cell is "ranking Hit@5 / delivered hit by default":
 
 - **Lexical questions do not separate the systems.** When the question uses the same words as the memory, every system except Graphiti ranks above 95%.
 - **Paraphrase questions separate keyword from vector.** The vector systems rank at 85% – 96% and the keyword systems at 11% – 64%.
-- **This project's misses are concentrated in paraphrase questions.** The vector backend ranks 96.4% but delivers 69.1%: the correct memory was found, but its score did not pass the threshold. The hybrid backend delivers only 34.5%, and the keyword backend 0%. On lexical questions, delivery and ranking are almost the same.
+- **The precise profile's misses are concentrated in paraphrase questions.** With the precise profile pinned, the vector backend ranks 96.4% but delivers 69.1%: the correct memory was found, but its score did not pass the threshold. The hybrid backend delivers only 34.5%, and the keyword backend 0.0%. The default broad profile closes that gap: the vector backend delivers 92.7%, the hybrid backend 85.5%, and the keyword backend still only 3.6% (its problem is retrieval, not the threshold). On lexical questions, delivery and ranking are almost the same.
 - **Delivered hit can be higher than ranking Hit@5.** A system that delivers 10 to 20 items by default covers a wider range than the top 5.
-- **On updated questions** this project delivers 70% – 75%, lower than the systems that deliver everything. When it does deliver, the order of newer and older is correct, see "Order of newer and older facts" below.
+- **On updated questions** this project delivers 95.0% – 100.0% by default (keyword backend 50.0%) and 70.0% – 75.0% with the precise profile (keyword backend 20.0%). When it does deliver, the order of newer and older is covered in "Order of newer and older facts" below.
 
 ### Questions with no answer
 
@@ -239,7 +251,7 @@ Each cell is "ranking Hit@5 / delivered hit by default":
   </picture>
 </p>
 
-40 questions have no answer in memory. Delivering anything counts as not staying quiet. This project's configurations are at 40% – 75%. SeekMemory is at 22.5%, meow-memory at 10%, and the other systems with no default score threshold at 0%. Graphiti is at 82.5%, and it also delivers very little on answerable questions (see the limits section). For a companion bot, this measure decides whether it forces an unrelated old fact into the conversation.
+40 questions have no answer in memory. Delivering anything counts as not staying quiet. This project's configurations are at 32.5% – 70.0% by default (broad profile; 32.5% – 40.0% for the vector and hybrid configurations) and at 40.0% – 75.0% with the precise profile pinned. SeekMemory is at 22.5%, meow-memory at 10%, and the other systems with no default score threshold at 0%. Graphiti is at 82.5%, and it also delivers very little on answerable questions (see the limits section). The new default is worse on this measure than the previous one: `embedding` falls from 65.0% to 32.5%, and on the questions with no answer it still delivers 2.12 items per question on average (precise profile: 0.57). For a companion bot, this measure decides whether it forces an unrelated old fact into the conversation.
 
 ### Context spent
 
@@ -250,7 +262,7 @@ Each cell is "ranking Hit@5 / delivered hit by default":
   </picture>
 </p>
 
-A memory in this data set is about 24 characters on average, so the character count follows the item count: this project delivers 10 – 28 characters per question, meow-memory 44, dsh-mnemon with vectors turned on 54, lingshu 90, SeekMemory 98, memsearch 120, OpenViking 240, and mem0 about 480. Memories in real conversations are longer, and the absolute values scale up in proportion. Delivered content counts toward the prompt on every turn, so this measure maps directly to cost and to the chance that the model is distracted by unrelated content.
+A memory in this data set is about 24 characters on average, so the character count follows the item count: this project delivers 14 – 59 characters per question by default (broad profile; 10 – 28 with the precise profile), meow-memory 44, dsh-mnemon with vectors turned on 54, lingshu 90, SeekMemory 98, memsearch 120, OpenViking 240, and mem0 about 480. With the broad profile the vector and hybrid configurations (36 – 59 characters) are in the same range as meow-memory and dsh-mnemon with vectors, and still below lingshu and everything after it. Memories in real conversations are longer, and the absolute values scale up in proportion. Delivered content counts toward the prompt on every turn, so this measure maps directly to cost and to the chance that the model is distracted by unrelated content.
 
 ### Order of newer and older facts
 
@@ -265,17 +277,23 @@ In an updated question, the same fact has a newer and an older memory. The table
 
 | System | Before adding `newer_first` | After |
 |---|---:|---:|
-| feiyu-memgate embedding | 9/15 | 15/15 |
-| feiyu-memgate openviking | 9/15 | 15/15 |
-| feiyu-memgate hybrid | 8/14 | 14/14 |
-| feiyu-memgate sqlite | 3/4 | 3/4 |
+| feiyu-memgate embedding |  | 16/20 |
+| feiyu-memgate embedding (precise profile) | 9/15 | 15/15 |
+| feiyu-memgate openviking |  | 19/19 |
+| feiyu-memgate openviking (precise profile) | 9/15 | 15/15 |
+| feiyu-memgate hybrid |  | 16/19 |
+| feiyu-memgate hybrid (precise profile) | 8/14 | 14/14 |
+| feiyu-memgate full |  | 19/20 |
+| feiyu-memgate full (precise profile) |  | 14/14 |
+| feiyu-memgate sqlite |  | 8/10 |
+| feiyu-memgate sqlite (precise profile) | 3/4 | 3/4 |
 | memsearch, mem0 (LLM extraction) | | 12/20 |
 | dsh-mnemon + vector | | 11/17 |
 | mem0 (verbatim ingest), OpenViking | | 10/20 |
 | SeekMemory | | 9/16 |
 | meow-memory | | 8/10 |
 
-Systems where the newer memory was delivered on fewer than 5 questions are not listed. Other configurations of this project: bge-small-zh 11/11, embeddinggemma 9/9, qwen3-embedding 10/10, bge-base-zh 8/10, `embedding` broad profile 16/20. The last two are not all correct because their score thresholds are wider than the range `newer_first` works on: this stage reorders only among candidates whose score is at least 85% of the best score, and candidates outside that range keep their original position.
+Systems where the newer memory was delivered on fewer than 5 questions are not listed (the keyword backend's 3/4 with the precise profile is left over from the earlier table). Other configurations of this project, default (broad profile): bge-small-zh 11/15, bge-base-zh 12/15, embeddinggemma 12/19, qwen3-embedding 14/19; precise profile: 11/11, 8/10, 9/9, 10/10. With the broad profile every configuration except `openviking` is short of all correct, because its score thresholds are wider than the range `newer_first` works on: this stage reorders only among candidates whose score is at least 85% of the best score, and candidates outside that range keep their original position.
 
 `newer_first` reorders only the candidates that passed the score thresholds. It does not change which memories are delivered, so the numbers in the default delivery table above did not change because of it. It does not judge whether two memories contradict each other, and it does not invalidate the older one. It has no effect on a memory without a date. By the backend's own ranking (without the recall stages), every system ranks the newer memory before the older one between 5% and 60% of the time, and this project is also at 50% – 55%. The test set has only 20 updated questions and the development set has 12, so the sample is small.
 
@@ -290,14 +308,14 @@ Systems where the newer memory was delivered on fewer than 5 questions are not l
 
 | System | Latency p50 | Latency p95 | Ingest of 240 memories | LLM tokens used for writes | Cost |
 |---|---:|---:|---:|---:|---:|
-| **feiyu-memgate sqlite** | 2 ms | 3 ms | 0.02 s | 0 | 0 |
-| **feiyu-memgate embedding** | 25 ms | 52 ms | 6.6 s | 0 | 0 |
-| **feiyu-memgate hybrid** | 29 ms | 56 ms | 6.5 s | 0 | 0 |
-| **feiyu-memgate full** | 32 ms | 58 ms | 6.6 s | 0 | 0 |
-| **feiyu-memgate openviking** | 26 ms | 53 ms | 69.8 s | 0 | 0 |
+| **feiyu-memgate sqlite** | 2 ms | 3 ms | 0.01 s | 0 | 0 |
+| **feiyu-memgate embedding** | 24 ms | 51 ms | 6.4 s | 0 | 0 |
+| **feiyu-memgate hybrid** | 28 ms | 55 ms | 6.4 s | 0 | 0 |
+| **feiyu-memgate full** | 33 ms | 54 ms | 6.4 s | 0 | 0 |
+| **feiyu-memgate openviking** | 26 ms | 53 ms | 69.3 s | 0 | 0 |
 | memsearch | 26 ms | 53 ms | 13.6 s | 0 | 0 |
 | mem0 (verbatim ingest) | 35 ms | 80 ms | 9.3 s | 0 | 0 |
-| OpenViking | 26 ms | 52 ms | 72.2 s | 0 | 0 |
+| OpenViking | 25 ms | 52 ms | 71.8 s | 0 | 0 |
 | mem0 (LLM extraction) | 69 ms ‡ | 610 ms ‡ | 471 s ‡ | 2.06 million | 0.53 CNY |
 | dsh-mnemon + vector | 78 ms | 105 ms | 12.2 s | 0 | 0 |
 | lingshu | 2 ms | 3 ms | 4.1 s | 0 | 0 |
@@ -306,7 +324,7 @@ Systems where the newer memory was delivered on fewer than 5 questions are not l
 | dsh-mnemon | 33 ms | 39 ms | 3.0 s | 0 | 0 |
 | Graphiti | 391 ms ‡ | 848 ms ‡ | 1347 s ‡ | 1.18 million | about 2 CNY |
 
-- The latency of the vector configurations is spent mainly on one query embedding (bge-m3 on CPU). It differs little between systems. The keyword systems are all at 2 – 3 ms.
+- The latency of the vector configurations is spent mainly on one query embedding (bge-m3 on CPU). It differs little between systems. The keyword systems are all at 2 – 3 ms. The rows of this project are the default profile; with the precise profile pinned the latency differs by at most 1 ms and the ingest time is of the same order.
 - This project makes no LLM calls on write. For most third-party systems the default write path needs an LLM. We bypassed it (verbatim ingest), so their token column is 0. Only mem0's LLM extraction mode and Graphiti were run on the default path.
 - The two rows connected to OpenViking ingest slowly because its index is asynchronous, and the time includes waiting for indexing to finish.
 - lingshu's ingest time does not include the waiting caused by its own write rate limit.
@@ -333,7 +351,7 @@ Model providers bill a repeated prompt prefix at a low price. So content that ch
 
 | Project | Put into the prompt without a model request | Position | Changes every turn | Background model calls and limits |
 |---|---|---|---|---|
-| feiyu-memgate 0.1.0 | The recalled data block, fixed format, no current time | Recommended: appended to the end of the current message and kept out of history; the integrator decides | Varies with the question; placed as recommended, it affects only the end | None |
+| feiyu-memgate 0.1.0 | The recalled data block, fixed format, no current time | Recommended: appended to the end of the current message and kept out of history; the integrator decides. The default broad profile delivers more items per turn, so context grows faster when the block stays in the history | Varies with the question; placed as recommended, it affects only the end | None |
 | memsearch 0.4.23 (DSH plugin 0.1.8) | A fixed retrieval hint, with no memory content | After this turn's message | No | The plugin summarizes the conversation with a model once per turn by default; no per-session limit on the count was found |
 | mem0 2.2.1 | None; the application assembles the prompt | – | – | Each default write calls a model once |
 | OpenViking v0.5.3 | Not checked | Not checked | Not checked | Extracts with a model when a session is committed |
@@ -350,13 +368,13 @@ The host program assembles the final prompt. What this table verified is what ea
 A gateway layer outside storage and retrieval. Retrieval is left to the backend.
 
 - **Strengths**
-  - Few and accurate items by default: about 1 per question, precision 80% – 93%, and nothing delivered in 40% – 75% of the cases where there is no answer.
+  - More complete delivery by default (broad profile): the vector and hybrid configurations deliver about 1.5 – 2.5 items per question with a delivered hit of 90.8% – 96.7%, and the vector backend delivers 92.7% on paraphrase questions. For few and accurate items, write `[recall] profile = "precise"`: about 0.4 – 1.2 items per question, precision of 80.2% – 93.0%, and nothing delivered in 40.0% – 75.0% of the cases where there is no answer.
   - Writes call no LLM, and there are no background model calls. The keyword tier needs no service.
   - Access policy, rate limits, the daily write cap, redaction, and the distinction between failure and empty result are enforced by the gateway in one place. The chat program never gets the store keys.
   - The retrieval backend, the recall stages and the threshold profiles can all be replaced. There are measured data for six tiers, from no model to a 1.16 GB model.
-  - When both the newer and the older memory are delivered, the newer one comes first (15/15 for the default vector configuration).
+  - When both the newer and the older memory are delivered, the newer one comes first (15/15 for the vector configuration with the precise profile; 16/20 for the default broad profile, see "Order of newer and older facts" above).
 - **Costs**
-  - Missed answers: the delivered hit is 39% – 88%. On paraphrase questions the vector backend delivers only 69.1%, the hybrid backend 34.5%, and the keyword backend 0%.
+  - The default broad profile delivers noisier items: precision of 56.9% – 75.9% for the vector and hybrid configurations, 60.0% – 67.5% of the questions with no answer get something (quiet rate 32.5% – 40.0%), 1.5 – 2.5 items per question, and about 1.3 – 3.1 times the context of the precise profile. Switching to `profile = "precise"` gives the previous behavior, at the cost of missed answers: a delivered hit of 39.2% – 87.5%; on paraphrase questions the vector backend delivers only 69.1%, the hybrid backend 34.5%, and the keyword backend 0.0%.
   - Retrieval itself is not better than that of systems using the same model. Hit@1 is lower than memsearch.
   - It stores original text only, with no extraction, merging or rewriting. An old fact is not invalidated, only ranked later.
   - It is a service or library that you have to integrate yourself, not a plugin that works once installed.
@@ -381,7 +399,7 @@ A library that, by default, uses an LLM at write time to extract the conversatio
 
 A standalone memory service. It extracts with a model when a session is committed, and retrieves by vector.
 
-- **Strengths**: Ranking is level with the other systems that use bge-m3 (Hit@5 98.3%). The service form can be shared by several programs. Connected behind this project's gateway, it is the combination with the highest delivered F1 in this test (83.7%).
+- **Strengths**: Ranking is level with the other systems that use bge-m3 (Hit@5 98.3%). The service form can be shared by several programs. Connected behind this project's gateway, it is the combination with the highest delivered F1 in this test (82.7% with the default broad profile, 83.7% with the precise profile).
 - **Costs**: The API returns 10 items by default with no score threshold (precision 9.9%, quiet rate 0%). The index is asynchronous, and after 240 items are written it takes about 70 seconds before they can be retrieved. The normal write path needs model extraction, which was not tested here. The service and the vector model have to be deployed separately. The default behavior of its DSH plugin was not verified.
 
 ### [Graphiti](https://github.com/getzep/graphiti)
@@ -469,31 +487,45 @@ Deployment has three independent choices, and the calling code does not change w
 
 | Tier | Model file | Resident memory | Hit@1 | Hit@5 | Delivered hit | Precision | Delivered F1 | Quiet rate | p50 latency |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `sqlite` (no model) | none | negligible | 61.7% | 81.7% | 39.2% | 93.0% | 55.1% | 75.0% | 2 ms |
-| bge-small-zh-v1.5 | 48 MB | 175 MiB | 75.8% | 92.5% | 76.7% | 79.4% | 78.0% | 47.5% | 7 ms |
-| bge-base-zh-v1.5 | 110 MB | 238 MiB | 82.5% | 93.3% | 72.5% | 86.2% | 78.7% | 65.0% | 19 ms |
-| embeddinggemma | 622 MB | 761 MiB | 81.7% | 99.2% | 76.7% | 85.8% | 81.0% | 72.5% | 13 ms |
-| qwen3-embedding 0.6B | 639 MB | 1.20 GiB | 84.2% | 95.8% | 85.0% | 81.9% | 83.4% | 37.5% | 77 ms |
-| bge-m3 | 1.16 GB | 1.36 GiB | 81.7% | 98.3% | 81.7% | 82.5% | 82.1% | 65.0% | 25 ms |
+| `sqlite` (no model) | none | negligible | 61.7% | 81.7% | 46.7% | 89.3% | 61.3% | 70.0% | 2 ms |
+| bge-small-zh-v1.5 | 48 MB | 175 MiB | 75.8% | 92.5% | 86.7% | 69.0% | 76.8% | 20.0% | 6 ms |
+| bge-base-zh-v1.5 | 110 MB | 238 MiB | 82.5% | 93.3% | 88.3% | 70.2% | 78.2% | 37.5% | 19 ms |
+| embeddinggemma | 622 MB | 761 MiB | 81.7% | 99.2% | 97.5% | 63.8% | 77.1% | 37.5% | 13 ms |
+| qwen3-embedding 0.6B | 639 MB | 1.20 GiB | 84.2% | 95.8% | 94.2% | 70.7% | 80.8% | 32.5% | 75 ms |
+| bge-m3 | 1.16 GB | 1.36 GiB | 81.7% | 98.3% | 96.7% | 56.9% | 71.6% | 32.5% | 24 ms |
 
-The quality columns come from the held-out test set, with each model using its own preset. Model file size and resident memory were measured during the development-set run (CPU, with the container loading only that one model).
+The quality columns come from the held-out test set, with each model using its own preset and the default profile (broad); the numbers with the precise profile pinned are in the threshold profile table below. Model file size and resident memory were measured during the development-set run (CPU, with the container loading only that one model).
 
-- **The smallest vector model is already much better than keywords.** At 175 MiB of memory, delivered F1 goes from 55.1% to 78.0%, and paraphrase questions are no longer a blind spot.
-- **The cost of a small model is in ranking.** The two small Chinese models have a Hit@5 about 5 percentage points below bge-m3, and they support Chinese only.
+- **The smallest vector model is already much better than keywords.** At 175 MiB of memory, delivered F1 goes from 61.3% to 76.8% (precise profile: 55.1% to 78.0%), and the delivered hit on paraphrase questions from 3.6% to 80.0%, so they are no longer a blind spot.
+- **The cost of a small model is in ranking.** The two small Chinese models have a Hit@5 5 – 6 percentage points below bge-m3 (92.5% and 93.3% against 98.3%), and they support Chinese only.
 - **embeddinggemma matches bge-m3 with a little over half the memory.** Its Hit@5 and quiet rate are both at least as high as bge-m3, and the same holds on the development set.
-- **The order between neighboring tiers is not stable.** qwen3-embedding was the worst on the development set, and on the test set it has the highest delivered hit but the lowest quiet rate and the highest latency. bge-base-zh matched bge-m3 on the development set and falls a little below it on the test set. Only the three points above are reliable.
-- **The score threshold has to follow the model.** Using bge-m3's score thresholds unchanged on bge-base-zh gives a delivered hit of only 27.5% on the development set. For a model outside the built-in presets, the backend prints a one-line warning at startup.
+- **The order between neighboring tiers is not stable, and it changes with the threshold profile.** qwen3-embedding was the worst on the development set. On the test set, with the precise profile it has the highest delivered hit (85.0%) and delivered F1 (83.4%) but the lowest quiet rate (37.5%) and the highest latency (75 ms); with the broad profile the highest delivered hit is embeddinggemma's (97.5%) and qwen3-embedding has 94.2%. bge-base-zh matched bge-m3 on the development set and ranks a little below it on the test set; its delivered F1 is above bge-m3's with the broad profile (78.2% against 71.6%) and below it with the precise profile (78.7% against 82.1%). Only the three points above are reliable.
+- **The score threshold has to follow the model.** Using bge-m3's precise-profile score thresholds unchanged on bge-base-zh gives a delivered hit of only 27.5% on the development set. For a model outside the built-in presets, the backend prints a one-line warning at startup.
 
-**Threshold profile.** The default profile favors few and accurate items. The measured change after switching to the broad profile:
+**Threshold profile.** The default is the broad profile (`broad`): it delivers more and almost never misses an answer. `[recall] profile = "precise"` is the precise profile (the previous default): few and accurate. The measured comparison on the test set, default profile first for each configuration:
 
 | Configuration | Profile | Delivered hit | Precision | Items delivered per question | Quiet rate |
 |---|---|---:|---:|---:|---:|
-| `embedding` (bge-m3) | precise (default) | 81.7% | 82.5% | 0.98 | 65.0% |
-| | broad | 96.7% | 56.9% | 2.46 | 32.5% |
-| `sqlite` | precise (default) | 39.2% | 93.0% | 0.41 | 75.0% |
-| | broad | 46.7% | 89.3% | 0.55 | 70.0% |
+| `sqlite` | broad (default) | 46.7% | 89.3% | 0.55 | 70.0% |
+|  | precise | 39.2% | 93.0% | 0.41 | 75.0% |
+| `embedding` (bge-m3) | broad (default) | 96.7% | 56.9% | 2.46 | 32.5% |
+|  | precise | 81.7% | 82.5% | 0.98 | 65.0% |
+| `hybrid` | broad (default) | 92.5% | 62.6% | 2.01 | 35.0% |
+|  | precise | 65.0% | 90.4% | 0.66 | 75.0% |
+| `full` | broad (default) | 93.3% | 60.1% | 2.08 | 35.0% |
+|  | precise | 65.0% | 90.2% | 0.67 | 75.0% |
+| `openviking` | broad (default) | 90.8% | 75.9% | 1.50 | 40.0% |
+|  | precise | 87.5% | 80.2% | 1.17 | 40.0% |
+| `embedding` (bge-small-zh) | broad (default) | 86.7% | 69.0% | 1.79 | 20.0% |
+|  | precise | 76.7% | 79.4% | 0.94 | 47.5% |
+| `embedding` (bge-base-zh) | broad (default) | 88.3% | 70.2% | 1.51 | 37.5% |
+|  | precise | 72.5% | 86.2% | 0.77 | 65.0% |
+| `embedding` (embeddinggemma) | broad (default) | 97.5% | 63.8% | 2.04 | 37.5% |
+|  | precise | 76.7% | 85.8% | 0.81 | 72.5% |
+| `embedding` (qwen3-embedding) | broad (default) | 94.2% | 70.7% | 1.76 | 32.5% |
+|  | precise | 85.0% | 81.9% | 0.97 | 37.5% |
 
-The broad profile of the vector backend almost never misses an answer. The cost is one and a half more items per question and half the quiet rate. More than half of what it delivers is still correct, while systems that deliver the top 5 to 20 items by default are at 5% – 20%. For the keyword backend the gain from switching is small, because its misses come from retrieval itself.
+For the eight vector and hybrid configurations (everything except `sqlite`), the broad profile has a delivered hit 3.3 – 28.3 points higher than the precise one, precision 4.3 – 30.2 points lower, a quiet rate 0.0 – 40.0 points lower, and delivers 0.33 – 1.48 more items per question. The broad profile of `embedding` (bge-m3) almost never misses an answer (96.7%). The cost is one and a half more items per question and half the quiet rate. More than half of what it delivers is still correct (56.9% – 75.9% for the vector and hybrid configurations), while systems that deliver the top 5 to 20 items by default are at 5% – 20%. `openviking` differs least, because its precise thresholds are already wide. For the keyword backend the change is small (delivered hit 39.2% → 46.7%), because its misses come from retrieval itself.
 
 <p align="center">
   <picture>
@@ -517,7 +549,7 @@ The broad profile of the vector backend almost never misses an answer. The cost 
 - **Sweep**. Expired memories are written to the archive and then deleted. Each sweep handles at most `max(5, 2%)` items per store. The archive is kept for 90 days, and during that time `feiyu-memgate forget restore` writes an item back unchanged.
 - **Pin**. Memories pinned by address wildcard, by client or by hand are not down-weighted and not forgotten.
 
-Simulation results (hybrid backend, 540 days, all 240 memories ingested on the same day; the questions fall into three groups: asked often, asked occasionally, never asked):
+Simulation results (hybrid backend, 540 days, all 240 memories ingested on the same day; the score-threshold profile is pinned to precise and the simulation was not repeated with the broad profile; the questions fall into three groups: asked often, asked occasionally, never asked):
 
 | Setting | Items in store | Asked often Hit@5 | Asked occasionally Hit@5 | Never asked Hit@5 | Items delivered per question | Noise |
 |---|---:|---:|---:|---:|---:|---:|
@@ -730,7 +762,7 @@ There are currently 1394 tests. The gateway's approach comes from the version th
 - When running in-process (`LocalClient`) there is no trust boundary, see "Deployment tiers" above.
 - Redaction is regex-based. It cannot recognize an isolated key with no keyword hint, and instruction-like text inside memories is not rewritten.
 - Limit counters are in memory and reset on restart. The forgetting archive is stored unencrypted. `/healthz?deep=1` needs no token.
-- The default score thresholds favor "few and accurate", and paraphrase questions are missed often. The broad profile recovers most of them, at the cost of noise, see the data above.
+- The default broad profile delivers more items and noisier ones, speaks up more often when there is no answer, and makes the context grow faster when the memory block stays in the conversation history. For few and accurate items write `[recall] profile = "precise"`; the cost is that paraphrase questions are missed often, see the data above.
 - `newer_first` reorders by date only. It does not recognize whether two memories really contradict each other.
 - The score threshold presets of the lighter models were each chosen on a single Chinese development set only. Multilingual behavior, concurrency, and scale beyond a few tens of thousands of items have not been tested.
 

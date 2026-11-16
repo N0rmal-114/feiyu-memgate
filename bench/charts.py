@@ -76,7 +76,7 @@ TXT = {
         "t_tiers": "部署档位：从不用模型到最大的模型，每一档的得失（左四栏）和 embedder 的内存（右两栏）",
         "tiers_cols": ("排名 Hit@5", "交付命中", "精确率", "安静率"),
         "tiers_mem": "embedder 内存（MiB，对数轴）", "tiers_file": "模型文件", "tiers_none": "无",
-        "tiers_note": "四栏柱子来自留出集的运行（各档用各自模型的预设分数线、默认召回步骤）。内存和模型文件大小是在开发集运行时测的"
+        "tiers_note": "四栏柱子来自留出集的运行（各档用各自模型的预设分数线、默认召回步骤，默认是宽松档）；后三栏里的黑色短竖线是同一档固定为精确档（profile = precise）的值。内存和模型文件大小是在开发集运行时测的"
                       "（见 bench/tiers.json 和 bench/experiments/light_models/）：模型加载后 embedder 容器的常驻内存，测量时机器上还有别的容器，只当量级看。"
                       "按内存从小到大排列；sqlite 不需要模型和服务。",
         "hit1_tick": "刻度：Hit@1", "bar_hit5": "柱：Hit@5",
@@ -117,11 +117,11 @@ TXT = {
         "t_fresh": "更新题的交付新旧优先：新记忆交付了的题里，旧记忆没一起交付或排在新记忆后面的占比",
         "fresh_note": "标签是 成立题数/题数。分母只数新记忆被交付了的更新题，所以每个系统不同；这样的题不足 5 个的系统没有画，列在这里：%s。",
         "fresh_variants": "其余变体：%s。",
-        "fresh_broad_in": "两个宽松档变体也在图里。",
-        "t_profiles": "精确档与宽松档：同一配置多交付一些，命中升多少、精确率降多少（横轴每题平均交付条数，对数轴）",
-        "profiles_precise": "精确档", "profiles_broad": "宽松档",
-        "profiles_hint": "标签后的数字：默认交付的命中率；实心是精确档（默认），空心是宽松档，箭头从精确档指向宽松档。",
+        "fresh_precise_in": "五个配置的精确档变体也在图里。",
+        "t_profiles": "宽松档（默认）与精确档：同一配置换到精确档，命中降多少、精确率升多少（横轴每题平均交付条数，对数轴）",
+        "profiles_hint": "标签后的数字：交付命中率；实心是宽松档（默认），空心是精确档，箭头从精确档指向宽松档，也就是多交付的方向。",
         "profiles_others": "灰点是其他项目；未标注的：%s。",
+        "profiles_full": "full 的两个点和 hybrid 的几乎重合（只多了新鲜度），没有单独画。",
     },
     "en": {
         "family_fmg": "feiyu-memgate configurations", "family_other": "other projects",
@@ -139,7 +139,7 @@ TXT = {
         "t_tiers": "Deployment tiers, no model to largest: what each gives (left) and what its embedder needs (right)",
         "tiers_cols": ("ranked Hit@5", "delivered hit", "precision", "quiet rate"),
         "tiers_mem": "embedder memory (MiB, log scale)", "tiers_file": "model file", "tiers_none": "none",
-        "tiers_note": "The four bar columns come from the held-out run (each tier with its model's preset score lines and the default recall stages). "
+        "tiers_note": "The four bar columns come from the held-out run (each tier with its model's preset score lines and the default recall stages, whose profile is broad); the short black tick in the last three columns is the same tier with the precise profile pinned. "
                       "Memory and model file size were measured on the development run (bench/tiers.json, bench/experiments/light_models/): resident memory of the embedder container with the model loaded; "
                       "other containers were running, so read them as orders of magnitude. Ordered by memory use; sqlite needs no model and no service.",
         "hit1_tick": "tick: Hit@1", "bar_hit5": "bar: Hit@5",
@@ -180,11 +180,11 @@ TXT = {
         "t_fresh": "Fresh-first among delivered answers to updated questions: new memory before the old one",
         "fresh_note": "Label = wins/questions; a win is a question where the old memory was not delivered with the new one or came after it. The denominator counts only updated questions where the new memory was delivered, so it differs per system; systems with fewer than 5 such questions are not drawn: %s.",
         "fresh_variants": "Other variants: %s.",
-        "fresh_broad_in": "Both broad-profile variants are drawn.",
-        "t_profiles": "Precise versus broad profile: delivering more raises the hit, lowers precision (log x)",
-        "profiles_precise": "precise", "profiles_broad": "broad",
-        "profiles_hint": "number after a label: deployed hit; filled = precise profile (the default), hollow = broad profile, the arrow points from precise to broad.",
+        "fresh_precise_in": "The precise-profile variants of the five configurations are drawn too.",
+        "t_profiles": "Broad (default) versus precise profile: switching to precise lowers the hit, raises precision (log x)",
+        "profiles_hint": "number after a label: deployed hit; filled = broad profile (the default), hollow = precise profile, the arrow points from precise to broad, the direction of delivering more.",
         "profiles_others": "Grey dots are other projects; unlabelled: %s.",
+        "profiles_full": "full sits almost on top of hybrid at both profiles (it only adds freshness) and is not drawn separately.",
     },
 }
 
@@ -483,7 +483,7 @@ def place_labels(points, obstacles, bounds, size=SIZE_LABEL, dot_r=5.0):
         x, y, text = points[i]
         w = text_width(text, size)
         cands = []
-        for dist in (9, 20, 34, 50):
+        for dist in (9, 20, 34, 50, 70, 95):
             cands += [("start", x + dist, y - h / 2), ("end", x - dist, y - h / 2),
                       ("middle", x, y - dist - h + 4), ("middle", x, y + dist - 2),
                       ("start", x + dist * 0.7, y - dist - h * 0.5), ("start", x + dist * 0.7, y + dist * 0.7 - 2),
@@ -910,6 +910,7 @@ def chart_tiers(summary, systems, theme, lang, tiers=None):
     for i, (row, rec) in enumerate(rows):
         yc = top + i * row_h + row_h / 2
         doc.text(LABEL_X, yc + 4.5, (row.get("label") or {}).get(lang) or row["system"], "l")
+        twin = summary["systems"].get(row["system"] + "-precise")
         for j, get in enumerate(measures):
             v = get(rec)
             px0 = x0 + j * pitch
@@ -917,7 +918,11 @@ def chart_tiers(summary, systems, theme, lang, tiers=None):
                 doc.text(px0 + 4, yc + 4, "-", "s")
                 continue
             doc.bar(px0, yc - BAR_H / 2, v * scale, BAR_H, fill)
-            doc.text(px0 + v * scale + 5, yc + 4, pct(v, 0), "s")
+            tv = get(twin) if twin is not None and j > 0 else None   # precise profile pinned; the ranking is the same
+            if tv is not None:
+                tx = px0 + tv * scale
+                doc.line(tx, yc - BAR_H / 2 - 3, tx, yc + BAR_H / 2 + 3, "lead", width=2.5, color=doc.pal["ink"])
+            doc.text(px0 + max(v, tv or 0.0) * scale + 6, yc + 4, pct(v, 0), "s")
         mem, size = row.get("resident_mib"), row.get("file_mb")
         if mem is None:
             doc.text(mem_x0 + 4, yc + 4, t["tiers_none"], "s")
@@ -1120,11 +1125,12 @@ def fresh_counts(rec):
 
 def chart_fresh(summary, systems, theme, lang):
     t = TXT[lang]
-    broad = [s for s in summary["systems"].values() if s.get("variant") and s["system"].endswith("-broad")]
+    twins = {base + "-precise" for base in TWIN_BASES}
+    precise = [s for s in summary["systems"].values() if s.get("variant") and s["system"] in twins]
     others = [s for s in summary["systems"].values()
-              if s.get("variant") and is_fmg(s) and not s["system"].endswith("-broad")]
+              if s.get("variant") and is_fmg(s) and not s["system"].endswith("-precise")]
     recs, small = [], []
-    for rec in rank_order(charted(summary) + broad):
+    for rec in rank_order(charted(summary) + precise):
         (recs if fresh_counts(rec)[1] >= FRESH_MIN else small).append(rec)
     if not recs:
         return None
@@ -1147,8 +1153,8 @@ def chart_fresh(summary, systems, theme, lang):
     if small:
         parts.append(t["fresh_note"] % ", ".join(
             "%s %d/%d" % ((label_of(r["system"], systems, lang),) + fresh_counts(r)) for r in small))
-    if broad:
-        parts.append(t["fresh_broad_in"])
+    if precise:
+        parts.append(t["fresh_precise_in"])
     if others:
         parts.append(t["fresh_variants"] % ", ".join(
             "%s %d/%d" % ((label_of(r["system"], systems, lang).replace("feiyu-memgate embedding", "embedding"),)
@@ -1159,7 +1165,10 @@ def chart_fresh(summary, systems, theme, lang):
 
 # ------------------------------------------------------------------ l. precise versus broad profile
 
-PROFILE_BASES = ("feiyu-memgate-embedding", "feiyu-memgate-sqlite")
+# The plain id is the broad (default) profile, base + "-precise" the other. `full` is hybrid plus freshness: its two
+# points sit on top of hybrid's, so the `profiles` chart leaves it out (and says so); `fresh` draws all five twins.
+PROFILE_BASES = ("feiyu-memgate-embedding", "feiyu-memgate-openviking", "feiyu-memgate-hybrid", "feiyu-memgate-sqlite")
+TWIN_BASES = PROFILE_BASES + ("feiyu-memgate-full",)
 ORIENTATION = ("memsearch", "mem0-verbatim", "openviking")     # the grey dots that carry a name
 
 
@@ -1174,8 +1183,8 @@ def arrow_head(doc, x1, y1, x2, y2, colour, size=8.0):
 
 def chart_profiles(summary, systems, theme, lang):
     t = TXT[lang]
-    pairs = [(summary["systems"][b], summary["systems"][b + "-broad"]) for b in PROFILE_BASES
-             if b in summary["systems"] and b + "-broad" in summary["systems"]]
+    pairs = [(summary["systems"][b + "-precise"], summary["systems"][b]) for b in PROFILE_BASES
+             if b in summary["systems"] and b + "-precise" in summary["systems"]]
     if not pairs:
         return None
     pair_names = {r["system"] for pair in pairs for r in pair}
@@ -1209,13 +1218,14 @@ def chart_profiles(summary, systems, theme, lang):
         ux, uy = (x2 - x1) / length, (y2 - y1) / length
         doc.line(x1 + ux * 6, y1 + uy * 6, x2 - ux * 10, y2 - uy * 10, "lead", width=2, color=accent)
         arrow_head(doc, x1, y1, x2 - ux * 6, y2 - uy * 6, accent)
-        doc.circle(x1, y1, 6, accent)
-        doc.add('<circle cx="%.1f" cy="%.1f" r="5" fill="%s" stroke="%s" stroke-width="2.5"/>' % (x2, y2, surface, accent))
-        short = label_of(precise["system"], systems, lang).replace("feiyu-memgate ", "")
-        for rec, (x, y), word in ((precise, (x1, y1), t["profiles_precise"]), (wide, (x2, y2), t["profiles_broad"])):
-            points.append((x, y, "%s %s %s" % (short, word, pct(rec["overall"].get("deployed_hit") or 0.0, 0))))
-        for k in range(1, 8):       # the arrow is an obstacle for the labels
-            ax, ay = x1 + (x2 - x1) * k / 8.0, y1 + (y2 - y1) * k / 8.0
+        doc.add('<circle cx="%.1f" cy="%.1f" r="5" fill="%s" stroke="%s" stroke-width="2.5"/>' % (x1, y1, surface, accent))
+        doc.circle(x2, y2, 6, accent)
+        short = label_of(wide["system"], systems, lang).replace("feiyu-memgate ", "")
+        for rec, (x, y) in ((precise, (x1, y1)), (wide, (x2, y2))):   # hollow = precise, filled = broad: no word needed
+            points.append((x, y, "%s %s" % (short, pct(rec["overall"].get("deployed_hit") or 0.0, 0))))
+        steps = max(8, int(length / 8))      # the arrow is an obstacle for the labels: a box every 8 px or so
+        for k in range(1, steps):
+            ax, ay = x1 + (x2 - x1) * k / float(steps), y1 + (y2 - y1) * k / float(steps)
             obstacles.append((ax - 3, ay - 3, ax + 3, ay + 3))
     placement = place_labels(points, obstacles, (left, top, right, top + plot_h + 14))
     for (x, y, _), (tx, ty, anchor, box, leader) in zip(points, placement):
@@ -1225,6 +1235,8 @@ def chart_profiles(summary, systems, theme, lang):
         doc.text(tx, ty - 2.5, label, "l", anchor)
     unnamed = [label_of(r["system"], systems, lang) for r in greys if r["system"] not in ORIENTATION]
     note = t["profiles_hint"]
+    if "feiyu-memgate-full" in summary["systems"]:
+        note += " " + t["profiles_full"]
     if unnamed:
         note += " " + t["profiles_others"] % ", ".join(unnamed)
     if skipped:

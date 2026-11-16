@@ -2,15 +2,16 @@
 
     python bench/adapters/feiyu_memgate_embedding.py [--out DIR] [--embed-url URL] [--model NAME]
                                                      [--system-suffix SUFFIX] [--option KEY=JSON ...]
-                                                     [--profile precise|broad]
+                                                     [--profile precise]
 
 Writes <out>/feiyu-memgate-embedding.json (the contract is bench/CONTRACT.md; default out is
 bench/results/raw). With --system-suffix small-zh the system is called feiyu-memgate-embedding-small-zh and the
 file <out>/feiyu-memgate-embedding-small-zh.json, so one run per model can sit next to the default one;
 --option sets an option of the embedding backend (a JSON value, e.g. --option floor=0.35).
---profile broad sets `[recall] profile = "broad"` of the gateway (the recall-leaning score lines the backend declares,
-backends/embedding.py PRESETS; chosen on the development set), and needs a suffix that contains "broad", so the broad
-run never overwrites the default one. A model the backend has a preset for (backends/embedding.py) runs with that preset's floor, ceil, prefixes
+the run without --profile uses the gateway's own defaults, which are the broad profile since 2026-11-16 (the
+recall-leaning score lines the backend declares, backends/embedding.py PRESETS; chosen on the development set); no
+profile is passed. --profile precise pins `[recall] profile = "precise"` (the other pair of lines, same rule) and
+appends "-precise" to the system name and the file name, so the precise run never overwrites the default one. A model the backend has a preset for (backends/embedding.py) runs with that preset's floor, ceil, prefixes
 and default score lines, nothing is passed here; the notes of the result file say which values applied. The embeddings service is not part of this repository: the default URL is the
 shared benchmark embedder, which is only reachable from inside the docker network that hosts it.
 
@@ -25,9 +26,9 @@ How the system is driven, all in-process:
 Each recall item carries the id of its memory (the ref it was stored under), so deployed answers are
 reported by that id; an item whose id is not a dataset memory would be id null.
 
-Every setting is the documented default of the backend and the stages (for bge-m3: floor 0.40, ceil 0.80,
-default_min_score 0.50, default_relative_ratio 0.85), chosen on the development sets with bench/dev_eval.py,
-never on bench/data.
+Every setting is the documented default of the backend and the stages (for bge-m3: floor 0.40, ceil 0.80; the
+broad lines 0.30 / 0.60 are used by default, the precise lines default_min_score 0.50 / default_relative_ratio 0.85
+by --profile precise), chosen on the development sets with bench/dev_eval.py, never on bench/data.
 
 feiyu_memgate_hybrid.py and feiyu_memgate_full.py reuse run_system() from this file.
 """
@@ -56,7 +57,7 @@ BACKEND_TIMEOUT = 60.0
 
 SYSTEM = "feiyu-memgate-embedding"
 MODE = ("verbatim ingest, embedding backend (bge-m3 via an OpenAI-compatible endpoint, brute-force cosine), "
-        "default recall stages, no LLM")
+        "default recall stages (broad profile), no LLM")
 HOW = ("config.build_gateway(dict); EmbeddingBackend.put_many([(text, id, date)]) once for all memories; "
        "Gateway.recall('owner', {'query': q}) for deployed; EmbeddingBackend.find(query, 10) for ranked")
 
@@ -83,7 +84,7 @@ def build(spec, stages=None, forgetting=None, wall=None, profile=None):
         cfg["recall"] = {"stages": stages}
     if forgetting is not None:
         cfg["forgetting"] = forgetting
-    if profile not in (None, "precise"):
+    if profile is not None:  # an explicit profile is always passed on, "precise" included
         cfg.setdefault("recall", {})["profile"] = profile
     extra = {} if wall is None else {"wall": wall}
     return config.build_gateway(cfg, env={"GATEWAY_TOKEN_OWNER": FAKE_TOKEN}, log=lambda line: None, **extra)
@@ -168,9 +169,11 @@ def run_system(spec, out_dir, system, mode, how, notes_head, stages=None, forget
     return path
 
 
-def system_name(system, suffix):
-    """`system` with an optional suffix: feiyu-memgate-embedding + small-zh -> feiyu-memgate-embedding-small-zh."""
-    return system + "-" + suffix if suffix else system
+def system_name(system, suffix, profile=None):
+    """`system` with an optional suffix and, for a pinned profile, the profile name last:
+    feiyu-memgate-embedding + small-zh + precise -> feiyu-memgate-embedding-small-zh-precise."""
+    name = system + "-" + suffix if suffix else system
+    return name + "-" + profile if profile else name
 
 
 def parse_options(pairs):
@@ -200,23 +203,51 @@ def effective(spec):
         be.close()
 
 
-def profile_notes(args, spec, notes):
-    """For a broad run: add a note naming the broad score lines of this backend (changes `notes` in place) and
-    return the mode suffix; an empty string for the default profile."""
-    if args.profile != "broad":
-        return ""
+def lines_of(store):
+    """(precise min_score, precise ratio, broad min_score, broad ratio) of a backend instance or class."""
+    return (store.default_min_score, store.default_relative_ratio, store.broad_min_score, store.broad_relative_ratio)
+
+
+def embedding_lines(spec):
+    """lines_of() for the embedding backend that `spec` describes (a throw-away in-memory store, nothing embedded)."""
     from feiyu_memgate.backends.embedding import EmbeddingBackend
     options = {k: v for k, v in spec.items() if k not in ("type", "path", "timeout")}
     be = EmbeddingBackend(":memory:", **options)
     try:
-        notes.append("Broad profile: [recall] profile = 'broad' makes min_score and relative_score use the recall-leaning "
-                     "lines of this backend (min_score %.2f, ratio %.2f instead of %.2f and %.2f), chosen on the development "
-                     "set by the rule of bench/dev_eval.py --profile broad: precision >= 50 %% and at least half of the "
-                     "default quiet rate, best delivered hit. It trades precision and silence for answered questions."
-                     % (be.broad_min_score, be.broad_relative_ratio, be.default_min_score, be.default_relative_ratio))
+        return lines_of(be)
     finally:
         be.close()
-    return ", broad recall profile"
+
+
+def stage_note(profile, lines, owner="the backend's"):
+    """The note that says which score lines the deployed recall used. `lines` is lines_of(); `owner` is how the
+    text names the store ("the backend's", "the hybrid's")."""
+    pmin, pratio, bmin, bratio = lines
+    if profile == "precise":
+        return ("deployed uses the default recall stages with [recall] profile = 'precise' pinned (min_score with %s "
+                "precise line %.2f, relative_score with its ratio %.2f, fill_text, drop_oversize, redact, dedupe, "
+                "budget) and the default limit of 5; ms times that Gateway.recall call only. The plain run of this "
+                "backend uses the broad lines %.2f and %.2f instead." % (owner, pmin, pratio, bmin, bratio))
+    return ("deployed uses the default recall stages, whose default profile is broad (min_score with %s broad line "
+            "%.2f, relative_score with its ratio %.2f, fill_text, drop_oversize, redact, dedupe, budget) and the "
+            "default limit of 5; no profile is passed; ms times that Gateway.recall call only. The broad lines were chosen "
+            "on the development set by the broad rule of bench/dev_eval.py (precision >= 50 %% and at least half of "
+            "the precise quiet rate, best delivered hit); the precise lines are %.2f and %.2f (the -precise run)."
+            % (owner, bmin, bratio, pmin, pratio))
+
+
+def profile_notes(args, spec, notes):
+    """For a precise run: add a note naming the precise score lines of this backend (changes `notes` in place) and
+    return the mode suffix; an empty string for the default profile."""
+    if args.profile != "precise":
+        return ""
+    pmin, pratio, bmin, bratio = embedding_lines(spec)
+    notes.append("Precise profile: [recall] profile = 'precise' makes min_score and relative_score use the precision-"
+                 "leaning lines of this backend (min_score %.2f, ratio %.2f instead of the broad %.2f and %.2f), chosen "
+                 "on the development set by the balanced rule of bench/dev_eval.py (delivered F1 weighted with the "
+                 "quiet rate). It answers fewer questions and stays quiet more often than the default."
+                 % (pmin, pratio, bmin, bratio))
+    return ", precise recall profile"
 
 
 def parse_args(doc, argv=None):
@@ -232,11 +263,10 @@ def parse_args(doc, argv=None):
                         help="appended to the system name and the result file name (default: none)")
     parser.add_argument("--option", action="append", metavar="KEY=JSON",
                         help="option of the embedding backend (repeatable)")
-    parser.add_argument("--profile", choices=("precise", "broad"), default="precise",
-                        help="score-line profile of the recall stages (default: precise, the backend's defaults)")
+    parser.add_argument("--profile", choices=("precise",), default=None,
+                        help="pin the precise score lines (writes the -precise system); without it the gateway's "
+                             "defaults run, which are the broad profile")
     args = parser.parse_args(argv)
-    if args.profile == "broad" and "broad" not in args.system_suffix:
-        raise SystemExit("--profile broad needs a --system-suffix that contains 'broad' (its own result file)")
     DATA_DIR = args.data
     return args
 
@@ -247,22 +277,22 @@ def main(argv=None):
         "Backend is the embedding backend: bge-m3 vectors (1024 dimensions) from an embeddings endpoint, "
         "cosine mapped to 0..1 with floor 0.40 and ceil 0.80 (chosen on the development sets, not on this data).",
         "ranked scores are the mapped relevance values, not comparable across systems.",
-        "deployed uses the default recall stages (min_score with the backend's default 0.50, relative_score with "
-        "the backend's default ratio 0.85, fill_text, drop_oversize, redact, dedupe, budget) and the default limit "
-        "of 5; ms times that Gateway.recall call only.",
+        None,  # the stage note, filled in below once the score lines of the backend are known
     ]
     spec = store_spec(args.embed_url, args.model, parse_options(args.option))
     if args.model != DEFAULT_MODEL or args.option or args.system_suffix:
-        floor, ceil, min_score, ratio, qp, dp = effective(spec)
+        floor, ceil, min_score, ratio, qp, dp = effective(spec)  # min_score and ratio: the precise lines
         notes[0] = ("Backend is the embedding backend: model %s, cosine mapped to 0..1 with floor %.2f and ceil %.2f "
                     "(the backend's values for this model, chosen on the development sets, not on this data); "
                     "query prefix %s, document prefix %s." % (args.model, floor, ceil, "set" if qp else "none",
                                                               "set" if dp else "none"))
-        notes[2] = notes[2].replace("the backend's default 0.50", "the backend's default %.2f" % min_score) \
-                           .replace("the backend's default ratio 0.85", "the backend's default ratio %.2f" % ratio)
+    notes[2] = stage_note(args.profile, embedding_lines(spec))
     mode = MODE if args.model == DEFAULT_MODEL else MODE.replace("bge-m3", args.model)
+    if args.profile == "precise":
+        mode = mode.replace("default recall stages (broad profile)", "default recall stages")
     mode += profile_notes(args, spec, notes)
-    path = run_system(spec, args.out, system_name(SYSTEM, args.system_suffix), mode, HOW, notes, profile=args.profile)
+    path = run_system(spec, args.out, system_name(SYSTEM, args.system_suffix, args.profile), mode, HOW, notes,
+                      profile=args.profile)
     print("wrote " + path)
 
 
