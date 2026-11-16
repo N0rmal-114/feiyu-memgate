@@ -434,20 +434,20 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
         {
           "key": "profile",
           "kind": "choice",
-          "default": "precise",
+          "default": "broad",
           "options": [
-            {
-              "value": "precise",
-              "label": {
-                "en": "precise: fewer, closer matches",
-                "zh": "precise：条数少，更贴题"
-              }
-            },
             {
               "value": "broad",
               "label": {
-                "en": "broad: more matches, more noise",
-                "zh": "broad：条数多，杂讯也多"
+                "en": "broad: more memories per turn, misses less, more noise",
+                "zh": "broad：每轮条数多，漏得少，杂讯也多"
+              }
+            },
+            {
+              "value": "precise",
+              "label": {
+                "en": "precise: about one memory per turn, closer matches, misses more",
+                "zh": "precise：每轮约一条，更贴题，漏得也多"
               }
             }
           ],
@@ -456,8 +456,8 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
             "zh": "召回档位"
           },
           "help": {
-            "en": "How strict the gateway is about what counts as related.",
-            "zh": "网关判断“相关”的严格程度。"
+            "en": "How strict the gateway is about what counts as related. The memory block stays in the conversation, so broad makes the context grow faster.",
+            "zh": "网关判断“相关”的严格程度。记忆块会留在对话里，broad 会让上下文涨得更快。"
           }
         },
         {

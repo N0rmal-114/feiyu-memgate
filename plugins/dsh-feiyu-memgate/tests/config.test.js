@@ -13,7 +13,7 @@ test('defaults', () => {
     retrieval: { tier: 'auto', url: '', model: '', apiKey: '' },
     gateway: { mode: 'managed', python: '', dataDir: '' },
     external: { url: '', token: '' },
-    advanced: { recallLimit: 5, recallTimeoutMs: 4000, language: 'auto', profile: 'precise', dailyWrites: 50, redaction: true, newerFirst: true, forgetting: false },
+    advanced: { recallLimit: 5, recallTimeoutMs: 4000, language: 'auto', profile: 'broad', dailyWrites: 50, redaction: true, newerFirst: true, forgetting: false },
   })
   assert.ok(Object.isFrozen(DEFAULTS.modules))
 })
@@ -36,7 +36,7 @@ test('bad values fall back to the default, strings are trimmed', () => {
   assert.equal(s.advanced.recallLimit, 5)
   assert.equal(s.advanced.recallTimeoutMs, 4000)
   assert.equal(s.advanced.language, 'auto')
-  assert.equal(s.advanced.profile, 'precise')
+  assert.equal(s.advanced.profile, 'broad')
   assert.equal(s.advanced.dailyWrites, 50)
   assert.equal(s.advanced.forgetting, false)
   assert.equal(readConfig({ advanced: { dailyWrites: 0 } }).advanced.dailyWrites, 0, '0 means no cap')

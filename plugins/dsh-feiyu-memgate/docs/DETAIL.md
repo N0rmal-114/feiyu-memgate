@@ -39,7 +39,7 @@ dsh plugin --profile <name> add dsh-feiyu-memgate
 | `modules.autoCapture` | 每轮结束后把你的消息直接存入记忆 | 关 |
 | `retrieval.tier` | 检索方式：`auto`、`keyword`、`endpoint`、`local` | `auto` |
 | `advanced.recallLimit` | 每轮最多加入几条记忆 | 5 |
-| `advanced.profile` | `precise` 条数少、更贴题；`broad` 条数多、杂讯也多 | `precise` |
+| `advanced.profile` | `broad` 每轮条数多、漏得少、杂讯也多，上下文涨得更快；`precise` 每轮约一条、更贴题 | `broad` |
 | `advanced.dailyWrites` | 每天最多写入几条，0 为不限 | 50 |
 | `advanced.redaction` | 保存和召回时去掉密钥、令牌、密码 | 开 |
 | `gateway.mode` | `managed` 用自带网关，`external` 连接你自己运行的网关 | `managed` |
@@ -73,7 +73,7 @@ dsh plugin --profile <name> add dsh-feiyu-memgate
 - 每日写入上限在内存里计数，按 DSH 进程计，网关重启后重新开始。
 - 设置页面依赖宿主里仍在变化的界面接口；没有它，用 `/memgate` 或 profile 文件也能改全部设置。
 - 真实环境测试：在 Windows 11 上已安装的 DeepSeek Harness 0.2.2-rc.1 里，用一个隔离的配置测过：插件能加载，自带网关用 PATH 上的 Python 启动，设置页面能显示和保存，状态接口和模型接口只回应所有者的会话，聊天命令可用；装上向量插件和 bge-small-zh-v1.5 后用的是 local 检索方式，换了说法的问题能找到对应的记忆。通过设置页面从 npm 安装向量插件也测过，测的是拒绝依赖的安装脚本这条路：向量插件装好并启用，模型下载完成，检索方式换成 local（允许脚本的那条路没有跑过）。没有测过：macOS 和 Linux 桌面、桌面应用自己的窗口（用的是同一宿主的 web 配置）、和真实模型的对话（自动召回和两个工具只在测试里和对着网关测过，没有在实际聊天里用过）。
-- 当前版本是 0.1.1。
+- 当前版本是 0.2.0。它改了一个默认值：`advanced.profile` 现在是 `broad`（原来是 `precise`）。
 
 ## 遇到问题
 
@@ -81,4 +81,4 @@ dsh plugin --profile <name> add dsh-feiyu-memgate
 
 ## 许可
 
-MIT。自带的网关是同一作者的项目 [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate)，许可相同，版本 0.1.0，提交 `2f63e7512eec2091433bdc4e7650f28df23f2f11`。
+MIT。自带的网关是同一作者的项目 [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate)，许可相同，版本 0.1.0，提交 `403931fee02961435abe9b09245781afcdcb19de`。

@@ -154,13 +154,15 @@ const GROUPS = [
         ],
         label: { en: 'Language', zh: '语言' },
         help: { en: 'Language of the memory block, the tool replies and the /memgate command.', zh: '记忆块、工具回复和 /memgate 命令用的语言。' } },
-      { key: 'profile', kind: 'choice', default: 'precise',
+      // broad is the default since 0.2.0, like the gateway's own default: in a chat a topic usually touches
+      // several memories. The block stays in the history, so precise is there for those who want less context.
+      { key: 'profile', kind: 'choice', default: 'broad',
         options: [
-          { value: 'precise', label: { en: 'precise: fewer, closer matches', zh: 'precise：条数少，更贴题' } },
-          { value: 'broad', label: { en: 'broad: more matches, more noise', zh: 'broad：条数多，杂讯也多' } },
+          { value: 'broad', label: { en: 'broad: more memories per turn, misses less, more noise', zh: 'broad：每轮条数多，漏得少，杂讯也多' } },
+          { value: 'precise', label: { en: 'precise: about one memory per turn, closer matches, misses more', zh: 'precise：每轮约一条，更贴题，漏得也多' } },
         ],
         label: { en: 'Recall profile', zh: '召回档位' },
-        help: { en: 'How strict the gateway is about what counts as related.', zh: '网关判断“相关”的严格程度。' } },
+        help: { en: 'How strict the gateway is about what counts as related. The memory block stays in the conversation, so broad makes the context grow faster.', zh: '网关判断“相关”的严格程度。记忆块会留在对话里，broad 会让上下文涨得更快。' } },
       { key: 'dailyWrites', kind: 'integer', default: 50, min: 0, max: 100000,
         label: { en: 'Daily write cap', zh: '每日写入上限' },
         help: { en: 'Most memories the gateway accepts per day; 0 means no cap. The count starts again whenever the gateway restarts.', zh: '网关每天最多收下几条记忆；0 表示不限。网关重启后重新计数。' } },

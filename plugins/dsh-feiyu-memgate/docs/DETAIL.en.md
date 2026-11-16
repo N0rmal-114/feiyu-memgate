@@ -39,7 +39,7 @@ Every setting can be changed in three places: this plugin's settings page on the
 | `modules.autoCapture` | Store your messages after each turn | off |
 | `retrieval.tier` | How memories are found: `auto`, `keyword`, `endpoint`, `local` | `auto` |
 | `advanced.recallLimit` | Most memories added per turn | 5 |
-| `advanced.profile` | `precise`: fewer, closer matches; `broad`: more matches, more noise | `precise` |
+| `advanced.profile` | `broad`: more memories per turn, misses less, more noise, faster context growth; `precise`: about one close match per turn | `broad` |
 | `advanced.dailyWrites` | Most memories written per day, 0 for no cap | 50 |
 | `advanced.redaction` | Remove keys, tokens and passwords when saving and recalling | on |
 | `gateway.mode` | `managed` uses the bundled gateway, `external` a gateway you run | `managed` |
@@ -73,7 +73,7 @@ An add-on that is installed but not switched on (for example after a `dsh plugin
 - The daily write cap is counted in memory, per DSH process, and starts again when the gateway restarts.
 - The settings page depends on host UI interfaces that are still changing; without it, every setting can be changed with `/memgate` or in the profile file.
 - Real-host testing. Tested in the installed DeepSeek Harness 0.2.2-rc.1 on Windows 11 with an isolated profile: the plugin loads, the bundled gateway starts with a Python from PATH, the settings page renders and saves, the status and model routes answer only to the owner session, the chat command works, and with the add-on and bge-small-zh-v1.5 the local tier is used and reworded questions find their memories. Installing the add-on from npm through the settings page was run too, with the dependency's install script refused: the add-on is installed and enabled, the model is downloaded and the local tier takes over (the path that allows the script was not run). Not tested: macOS and Linux desktops, the Desktop application's own window (the web profile of the same host was used), and a conversation with a real model (automatic recall and the two tools were exercised in tests and against the gateway, not in a live chat).
-- This is version 0.1.1.
+- This is version 0.2.0. It changes one default: `advanced.profile` is now `broad` (it was `precise`).
 
 ## Troubleshooting
 
@@ -81,4 +81,4 @@ Start with `/memgate status`. If no Python is found, install Python 3.11 or late
 
 ## Licence
 
-MIT. The bundled gateway is the same author's project [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate), under the same licence, version 0.1.0 at commit `2f63e7512eec2091433bdc4e7650f28df23f2f11`.
+MIT. The bundled gateway is the same author's project [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate), under the same licence, version 0.1.0 at commit `403931fee02961435abe9b09245781afcdcb19de`.

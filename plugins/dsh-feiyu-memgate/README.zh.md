@@ -82,7 +82,7 @@ dsh plugin --profile desktop add dsh-feiyu-memgate
 | `advanced.recallLimit` | 每轮最多加入几条记忆（1 到 10），也是 `memgate_search` 默认返回的条数。 | 5 | 你自己运行的网关同样适用。 |
 | `advanced.recallTimeoutMs` | 每轮最多等自动召回多少毫秒（500 到 20000）。更慢的查找跳过。 | 4000 | |
 | `advanced.language` | 记忆块、工具回复和 `/memgate` 用的语言：`auto`（跟随系统语言）、`zh` 或 `en`。 | `auto` | 记忆本身不会被翻译。 |
-| `advanced.profile` | 网关判断“相关”的严格程度：`precise` 或 `broad`。 | `precise` | `precise` 返回的条数少、更贴题，漏得也多；`broad` 返回的条数多，杂讯也多。实测数字见网关文档的[部署档位](https://github.com/N0rmal-114/feiyu-memgate#部署档位)；在关键词存储上，网关实测换成 `broad` 的收益很小。只用于 managed 模式。 |
+| `advanced.profile` | 网关判断“相关”的严格程度：`broad` 或 `precise`。 | `broad` | `broad` 每轮返回的条数多，漏得少，杂讯也多；记忆块会留在对话里，所以上下文也涨得更快。`precise` 每轮约一条、更贴题，漏得也多。0.1.1 及之前默认是 `precise`，想要原来的行为就改回 `precise`。实测数字见网关文档的[部署档位](https://github.com/N0rmal-114/feiyu-memgate#部署档位)；在关键词存储上，网关实测换成 `broad` 的收益很小。只用于 managed 模式。 |
 | `advanced.dailyWrites` | 网关每天最多收下几条记忆（0 到 100000），0 表示不限。 | 50 | 一天从本地时间零点算起。网关每次重启，计数重新开始。只用于 managed 模式。 |
 | `advanced.redaction` | 保存和召回记忆时，去掉密钥、令牌、密码这类秘密。 | 开 | 基于模式匹配，认不出旁边没有关键词提示的孤立秘密。只用于 managed 模式。 |
 | `advanced.newerFirst` | 相关度差不多时，较新的记忆排在前面。 | 开 | 只看日期，不判断两条记忆是否矛盾。只用于 managed 模式。 |
@@ -218,7 +218,7 @@ profile 的 `cordis.patch.yml` 里，一行会整个替换同一个 `id` 那一�
 - **遗忘是实验性的**，只在模拟里测过。
 - **真实环境测试。** 在 Windows 11 上已安装的 DeepSeek Harness 0.2.2-rc.1 里，用一个隔离的配置测过：插件能加载，自带网关用 PATH 上的 Python 启动，设置页面能显示和保存，状态接口和模型接口只回应所有者的会话，聊天命令可用；装上向量插件和 bge-small-zh-v1.5 后用的是 local 检索方式，换了说法的问题能找到对应的记忆。通过设置页面从 npm 安装向量插件也测过，测的是拒绝依赖的安装脚本这条路：向量插件装好并启用，模型下载完成，检索方式换成 local（允许脚本的那条路没有跑过）。没有测过：macOS 和 Linux 桌面、桌面应用自己的窗口（用的是同一宿主的 web 配置）、和真实模型的对话（自动召回和两个工具只在测试里和对着网关测过，没有在实际聊天里用过）。
 - **其他版本和系统。** 可接受范围内的其他 DSH 版本、其他操作系统和其他 Python 构建，都没有在真实宿主里测过。
-- 当前版本是 0.1.1。
+- 当前版本是 0.2.0。它改了一个默认值：`advanced.profile` 现在是 `broad`（原来是 `precise`）。
 
 ## 故障排查
 
@@ -236,4 +236,4 @@ profile 的 `cordis.patch.yml` 里，一行会整个替换同一个 `id` 那一�
 
 ## 许可
 
-MIT，见 [LICENSE](LICENSE)。`python/` 里自带的网关是同一作者的项目 [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate)，许可相同（[python/LICENSE](python/LICENSE)）。版本是 0.1.0，提交是 `2f63e7512eec2091433bdc4e7650f28df23f2f11`，记录在 [python/GATEWAY_VERSION.json](python/GATEWAY_VERSION.json) 里。
+MIT，见 [LICENSE](LICENSE)。`python/` 里自带的网关是同一作者的项目 [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate)，许可相同（[python/LICENSE](python/LICENSE)）。版本是 0.1.0，提交是 `403931fee02961435abe9b09245781afcdcb19de`，记录在 [python/GATEWAY_VERSION.json](python/GATEWAY_VERSION.json) 里。

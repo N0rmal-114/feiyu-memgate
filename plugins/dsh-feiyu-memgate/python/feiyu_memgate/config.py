@@ -239,9 +239,9 @@ _PROFILE_STAGES = ("min_score", "relative_score")
 
 def _with_profile(specs, profile):
     """`specs` (a recall stage list, or None for the default one) with `profile` added to every min_score and
-    relative_score entry that does not set its own `profile`. "precise" is what the stages do anyway: the
-    list is then returned untouched. Entries that are not a name or a table are left for _pieces to refuse."""
-    if profile in (None, "precise"):
+    relative_score entry that does not set its own `profile`. No profile (None) leaves the entries alone: the
+    stages then use their own default, "broad". An explicit "precise" is added like any other. Entries that are not a name or a table are left for _pieces to refuse."""
+    if profile is None:
         return specs
     if specs is None:
         specs = list(stages_module.DEFAULT_STAGES)

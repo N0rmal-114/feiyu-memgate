@@ -82,7 +82,7 @@ Most settings take effect at once. A change of `gateway.mode`, `gateway.python`,
 | `advanced.recallLimit` | Most memories added per turn (1 to 10). Also the default number of `memgate_search` results. | 5 | Applies to a gateway you run yourself as well. |
 | `advanced.recallTimeoutMs` | How long a turn waits for automatic recall (500 to 20000 ms). A slower lookup is skipped. | 4000 | |
 | `advanced.language` | Language of the memory block, the tool replies and `/memgate`: `auto` (follow the system language), `zh` or `en`. | `auto` | Memories themselves are never translated. |
-| `advanced.profile` | How strict the gateway is about what counts as related: `precise` or `broad`. | `precise` | `precise` returns fewer, closer matches and misses more. `broad` returns more matches and more noise. The measured numbers are in the [gateway's deployment tiers](https://github.com/N0rmal-114/feiyu-memgate#部署档位) (in Chinese); on the keyword store the gateway measured only a small gain from `broad`. Managed mode only. |
+| `advanced.profile` | How strict the gateway is about what counts as related: `broad` or `precise`. | `broad` | `broad` returns more memories per turn, misses less and lets more noise through; because the memory block stays in the conversation, the context also grows faster. `precise` returns about one close match per turn and misses more. Up to 0.1.1 the default was `precise`; set it to `precise` to get that behaviour back. The measured numbers are in the [gateway's deployment tiers](https://github.com/N0rmal-114/feiyu-memgate#部署档位) (in Chinese); on the keyword store the gateway measured only a small gain from `broad`. Managed mode only. |
 | `advanced.dailyWrites` | Most memories the gateway accepts per day (0 to 100000). 0 means no cap. | 50 | The day starts at local midnight. The count starts again whenever the gateway restarts. Managed mode only. |
 | `advanced.redaction` | Remove secrets such as keys, tokens and passwords from memories when they are saved and when they are recalled. | on | Pattern based. It does not recognize a bare secret that has no keyword next to it. Managed mode only. |
 | `advanced.newerFirst` | Among nearly equal matches, put newer memories first. | on | It looks only at dates. It does not detect that two memories contradict each other. Managed mode only. |
@@ -218,7 +218,7 @@ The setup survives closing or reloading the page. After a DSH restart in the mid
 - **Forgetting is experimental** and has been tested only in simulations.
 - **Real-host testing.** Tested in the installed DeepSeek Harness 0.2.2-rc.1 on Windows 11 with an isolated profile: the plugin loads, the bundled gateway starts with a Python from PATH, the settings page renders and saves, the status and model routes answer only to the owner session, the chat command works, and with the add-on and bge-small-zh-v1.5 the local tier is used and reworded questions find their memories. Installing the add-on from npm through the settings page was run too, with the dependency's install script refused: the add-on is installed and enabled, the model is downloaded and the local tier takes over (the path that allows the script was not run). Not tested: macOS and Linux desktops, the Desktop application's own window (the web profile of the same host was used), and a conversation with a real model (automatic recall and the two tools were exercised in tests and against the gateway, not in a live chat).
 - **Other versions and systems.** Other DSH versions in the accepted ranges, other operating systems and other Python builds are not covered by a real-host test.
-- This is version 0.1.1.
+- This is version 0.2.0. It changes one default: `advanced.profile` is now `broad` (it was `precise`).
 
 ## Troubleshooting
 
@@ -236,4 +236,4 @@ Start with `/memgate status`. It shows the state of the gateway, the Python that
 
 ## Licence
 
-MIT, see [LICENSE](LICENSE). The bundled gateway in `python/` is the same author's project, [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate), under the same licence ([python/LICENSE](python/LICENSE)). It is version 0.1.0 at commit `2f63e7512eec2091433bdc4e7650f28df23f2f11` as recorded in [python/GATEWAY_VERSION.json](python/GATEWAY_VERSION.json).
+MIT, see [LICENSE](LICENSE). The bundled gateway in `python/` is the same author's project, [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate), under the same licence ([python/LICENSE](python/LICENSE)). It is version 0.1.0 at commit `403931fee02961435abe9b09245781afcdcb19de` as recorded in [python/GATEWAY_VERSION.json](python/GATEWAY_VERSION.json).

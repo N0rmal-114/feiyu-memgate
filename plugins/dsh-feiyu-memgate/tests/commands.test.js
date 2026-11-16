@@ -165,9 +165,9 @@ test('a secret is written but never echoed; reset clears it', async () => {
 })
 
 test('reset returns a setting to its default', async () => {
-  const { run, writes } = harness({ values: { advanced: { profile: 'broad' } } })
+  const { run, writes } = harness({ values: { advanced: { profile: 'precise' } } })
   const reply = await run('reset advanced.profile')
-  assert.equal(reply.text, 'Reset: advanced.profile is back to its default (precise).')
+  assert.equal(reply.text, 'Reset: advanced.profile is back to its default (broad).')
   assert.deepEqual(writes, [[{ op: 'unset', path: ['advanced', 'profile'] }]])
   assert.equal((await run('reset')).kind, 'error')
   assert.equal((await run('reset a b')).kind, 'error')

@@ -145,7 +145,7 @@ test('the gateway accepts every generated configuration', { skip }, async (t) =>
   })
   const variants = [
     [{}],
-    [{ advanced: { profile: 'broad' } }],
+    [{ advanced: { profile: 'precise' } }],
     [{ advanced: { redaction: false, newerFirst: false, dailyWrites: 0 } }],
     [{ advanced: { forgetting: true } }],
     [{ retrieval: { tier: 'endpoint', url: 'http://127.0.0.1:9/v1', model: 'bge-m3' } }],
