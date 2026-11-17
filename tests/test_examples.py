@@ -133,8 +133,10 @@ class JsonLinesBackendExample(unittest.TestCase):
     def test_an_unwritable_path_is_a_backend_error_without_the_text(self):
         blocker = self.tmp / "file"
         blocker.write_text("x", encoding="utf-8")
-        store = self.backend(path=str(blocker / "notes.jsonl"))  # a file where a folder should be
+        # A file where a folder should be. Windows reports the store file as missing, so the backend opens
+        # empty and the write fails; Linux refuses already when the backend opens. Either is a BackendError.
         with self.assertRaises(BackendError) as caught:
+            store = self.backend(path=str(blocker / "notes.jsonl"))
             store.remember([{"role": "user", "content": "secret memory text"}])
         self.assertNotIn("secret memory text", str(caught.exception))
 

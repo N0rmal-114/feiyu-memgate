@@ -77,6 +77,7 @@
 
 ### 修好的
 
+- 命令行在写不出中文的控制台或管道上（例如语言设为西文的 Windows，编码是 cp1252）不再以 `UnicodeEncodeError` 和退出码 1 结束：写不出的字符显示成替代符号，命令照常完成。要看到正常的中文，设环境变量 `PYTHONUTF8=1`。
 - `pyproject.toml` 的构建要求改成 `setuptools>=77`：`license = "MIT"` 加 `license-files` 的写法从这个版本起才被接受。
 - 没装 `cryptography` 时，测试 `test_a_wrong_key` 报错而不是跳过。
 - 文档里和代码不一致的几处：`healthz?deep=1` 里 `stores` 的取值（`ok` 或 `down`）、`limit` 类型不对时的错误码、`/v1/remember` 对 `role` 和空内容的要求、`/v1/used` 的上限、`WriteRejected` 按状态码取的默认错误码。

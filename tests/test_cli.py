@@ -356,5 +356,34 @@ class EntryPointTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, 2)
 
 
+class ConsoleEncodingTests(unittest.TestCase):
+    """The messages are Chinese. A console that cannot write them (cp1252 on a Windows set to a Western
+    language) must not turn a command that worked into a traceback."""
+
+    def run_with_encoding(self, encoding, *argv):
+        import subprocess
+        code = ("import sys; sys.path.insert(0, %r); from feiyu_memgate.cli import main; sys.exit(main(%r))"
+                % (str(Path(cli.__file__).resolve().parents[1]), list(argv)))
+        env = dict(os.environ, PYTHONIOENCODING=encoding)
+        env.pop("PYTHONUTF8", None)
+        return subprocess.run([sys.executable, "-B", "-c", code], env=env, capture_output=True, timeout=60)
+
+    def test_a_console_that_cannot_write_the_text_gets_marks_not_a_traceback(self):
+        for encoding in ("cp1252", "ascii"):
+            with self.subTest(encoding=encoding):
+                done = self.run_with_encoding(encoding, "pieces")
+                self.assertEqual(done.returncode, 0, done.stderr.decode("ascii", "replace")[-400:])
+                self.assertNotIn(b"Traceback", done.stderr)
+                self.assertIn(b"sqlite", done.stdout)  # the piece names are ASCII and still readable
+                self.assertIn(b"?", done.stdout)  # what the console cannot write is replaced
+
+    def test_a_console_that_can_write_the_text_is_not_changed(self):
+        done = self.run_with_encoding("utf-8", "pieces")
+        self.assertEqual(done.returncode, 0)
+        text = done.stdout.decode("utf-8")
+        self.assertNotIn("�", text)
+        self.assertTrue(any("一" <= ch <= "鿿" for ch in text), "the Chinese text is written as it is")
+
+
 if __name__ == "__main__":
     unittest.main()

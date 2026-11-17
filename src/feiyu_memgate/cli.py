@@ -733,7 +733,23 @@ def build_parser():
     return parser
 
 
+def _lenient_output():
+    """Let a message that the console cannot write come out with replacement marks.
+
+    The messages are Chinese. On a console or a pipe in another encoding (cp1252 on a Windows set to a
+    Western language) print() raised UnicodeEncodeError, and a command that had done its work ended in
+    a traceback with exit code 1. The encoding itself is left alone: setting PYTHONUTF8=1 is the way to
+    get readable text there. Streams that cannot be reconfigured (a test's StringIO) are left as they are.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(errors="replace")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
 def main(argv=None):
+    _lenient_output()
     args = build_parser().parse_args(argv)
     try:
         return args.func(args)
