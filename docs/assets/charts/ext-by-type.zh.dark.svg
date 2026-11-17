@@ -1,0 +1,354 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="682" viewBox="0 0 1000 682" role="img" lang="zh">
+<style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#c3c2b7;font-size:13px}.t{font-size:17px;font-weight:600;fill:#f0efec}.l{font-size:13px;fill:#f0efec}.lb{font-size:13px;font-weight:600;fill:#f0efec}.s{font-size:11px;fill:#c3c2b7}.grid{stroke:#2c2c2a;stroke-width:1;fill:none}.axis{stroke:#383835;stroke-width:1;fill:none}.tick{stroke:#f0efec;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#3987e5}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
+<rect width="1000" height="682" fill="#1a1a19"/>
+<text x="24.0" y="32.0" class="t">分题型的 Hit@5</text>
+<rect x="24.0" y="47.0" width="14" height="8" rx="2" class="fa"/>
+<text x="46.0" y="56.0" class="s">feiyu-memgate 的配置</text>
+<rect x="186.1" y="47.0" width="14" height="8" rx="2" class="fo"/>
+<text x="208.1" y="56.0" class="s">其他项目</text>
+<rect x="804.0" y="47.0" width="12" height="8" fill="#1a1a19"/>
+<rect x="816.0" y="47.0" width="12" height="8" fill="#1c2129"/>
+<rect x="828.0" y="47.0" width="12" height="8" fill="#1e2938"/>
+<rect x="840.0" y="47.0" width="12" height="8" fill="#203048"/>
+<rect x="852.0" y="47.0" width="12" height="8" fill="#223858"/>
+<rect x="864.0" y="47.0" width="12" height="8" fill="#243f68"/>
+<rect x="876.0" y="47.0" width="12" height="8" fill="#254677"/>
+<rect x="888.0" y="47.0" width="12" height="8" fill="#274e87"/>
+<rect x="900.0" y="47.0" width="12" height="8" fill="#295597"/>
+<rect x="912.0" y="47.0" width="12" height="8" fill="#2b5da6"/>
+<rect x="924.0" y="47.0" width="12" height="8" fill="#2d64b6"/>
+<rect x="804.0" y="47.0" width="132" height="8" fill="none" class="axis"/>
+<text x="798.0" y="56.0" class="s" text-anchor="end">0%</text>
+<text x="942.0" y="56.0" class="s">100%</text>
+<text x="870.0" y="70.0" class="s" text-anchor="middle">50%</text>
+<text x="412.0" y="86.0" class="lb" text-anchor="middle">PerLTQA</text>
+<line x1="240.0" y1="94.0" x2="584.0" y2="94.0" class="axis"/>
+<text x="778.0" y="86.0" class="lb" text-anchor="middle">LoCoMo</text>
+<line x1="606.0" y1="94.0" x2="950.0" y2="94.0" class="axis"/>
+<text x="280.0" y="114.0" class="l" text-anchor="middle">人物档案</text>
+<text x="280.0" y="130.0" class="s" text-anchor="middle">n = 357</text>
+<text x="368.0" y="114.0" class="l" text-anchor="middle">社会关系</text>
+<text x="368.0" y="130.0" class="s" text-anchor="middle">n = 897</text>
+<text x="456.0" y="114.0" class="l" text-anchor="middle">事件</text>
+<text x="456.0" y="130.0" class="s" text-anchor="middle">n = 4,501</text>
+<text x="544.0" y="114.0" class="l" text-anchor="middle">对话</text>
+<text x="544.0" y="130.0" class="s" text-anchor="middle">n = 2,833</text>
+<text x="646.0" y="114.0" class="l" text-anchor="middle">单跳</text>
+<text x="646.0" y="130.0" class="s" text-anchor="middle">n = 841</text>
+<text x="734.0" y="114.0" class="l" text-anchor="middle">多跳</text>
+<text x="734.0" y="130.0" class="s" text-anchor="middle">n = 282</text>
+<text x="822.0" y="114.0" class="l" text-anchor="middle">时间</text>
+<text x="822.0" y="130.0" class="s" text-anchor="middle">n = 320</text>
+<text x="910.0" y="114.0" class="l" text-anchor="middle">开放域</text>
+<text x="910.0" y="130.0" class="s" text-anchor="middle">n = 92</text>
+<rect x="24.0" y="151.0" width="5" height="14" rx="2" class="fa"/>
+<text x="36.0" y="162.5" class="l">feiyu-memgate sqlite</text>
+<rect x="237.0" y="145.0" width="86.0" height="26.0" rx="3" fill="#1b1d1f"/>
+<text x="280.0" y="162.5" class="l" text-anchor="middle" style="fill:#f0efec">3.6%</text>
+<rect x="325.0" y="145.0" width="86.0" height="26.0" rx="3" fill="#233e65"/>
+<text x="368.0" y="162.5" class="l" text-anchor="middle" style="fill:#f0efec">48.4%</text>
+<rect x="413.0" y="145.0" width="86.0" height="26.0" rx="3" fill="#2c61b0"/>
+<text x="456.0" y="162.5" class="l" text-anchor="middle" style="fill:#f0efec">96.3%</text>
+<rect x="501.0" y="145.0" width="86.0" height="26.0" rx="3" fill="#2c61af"/>
+<text x="544.0" y="162.5" class="l" text-anchor="middle" style="fill:#f0efec">95.8%</text>
+<rect x="603.0" y="145.0" width="86.0" height="26.0" rx="3" fill="#213653"/>
+<text x="646.0" y="162.5" class="l" text-anchor="middle" style="fill:#f0efec">37.2%</text>
+<rect x="691.0" y="145.0" width="86.0" height="26.0" rx="3" fill="#20314b"/>
+<text x="734.0" y="162.5" class="l" text-anchor="middle" style="fill:#f0efec">31.6%</text>
+<rect x="779.0" y="145.0" width="86.0" height="26.0" rx="3" fill="#223b5e"/>
+<text x="822.0" y="162.5" class="l" text-anchor="middle" style="fill:#f0efec">44.1%</text>
+<rect x="867.0" y="145.0" width="86.0" height="26.0" rx="3" fill="#1d2633"/>
+<text x="910.0" y="162.5" class="l" text-anchor="middle" style="fill:#f0efec">16.3%</text>
+<rect x="24.0" y="179.0" width="5" height="14" rx="2" class="fa"/>
+<text x="36.0" y="190.5" class="l">feiyu-memgate embedding</text>
+<rect x="237.0" y="173.0" width="86.0" height="26.0" rx="3" fill="#2b5da8"/>
+<text x="280.0" y="190.5" class="l" text-anchor="middle" style="fill:#f0efec">91.0%</text>
+<rect x="325.0" y="173.0" width="86.0" height="26.0" rx="3" fill="#2c60ae"/>
+<text x="368.0" y="190.5" class="l" text-anchor="middle" style="fill:#f0efec">95.2%</text>
+<rect x="413.0" y="173.0" width="86.0" height="26.0" rx="3" fill="#2a5aa1"/>
+<text x="456.0" y="190.5" class="l" text-anchor="middle" style="fill:#f0efec">86.4%</text>
+<rect x="501.0" y="173.0" width="86.0" height="26.0" rx="3" fill="#28508d"/>
+<text x="544.0" y="190.5" class="l" text-anchor="middle" style="fill:#f0efec">73.6%</text>
+<rect x="603.0" y="173.0" width="86.0" height="26.0" rx="3" fill="#24426f"/>
+<text x="646.0" y="190.5" class="l" text-anchor="middle" style="fill:#f0efec">54.6%</text>
+<rect x="691.0" y="173.0" width="86.0" height="26.0" rx="3" fill="#223858"/>
+<text x="734.0" y="190.5" class="l" text-anchor="middle" style="fill:#f0efec">40.4%</text>
+<rect x="779.0" y="173.0" width="86.0" height="26.0" rx="3" fill="#254676"/>
+<text x="822.0" y="190.5" class="l" text-anchor="middle" style="fill:#f0efec">59.4%</text>
+<rect x="867.0" y="173.0" width="86.0" height="26.0" rx="3" fill="#20314a"/>
+<text x="910.0" y="190.5" class="l" text-anchor="middle" style="fill:#f0efec">31.5%</text>
+<rect x="24.0" y="207.0" width="5" height="14" rx="2" class="fa"/>
+<text x="36.0" y="218.5" class="l">feiyu-memgate hybrid</text>
+<rect x="237.0" y="201.0" width="86.0" height="26.0" rx="3" fill="#2b5ea9"/>
+<text x="280.0" y="218.5" class="l" text-anchor="middle" style="fill:#f0efec">91.6%</text>
+<rect x="325.0" y="201.0" width="86.0" height="26.0" rx="3" fill="#2c61b0"/>
+<text x="368.0" y="218.5" class="l" text-anchor="middle" style="fill:#f0efec">96.3%</text>
+<rect x="413.0" y="201.0" width="86.0" height="26.0" rx="3" fill="#2c61b0"/>
+<text x="456.0" y="218.5" class="l" text-anchor="middle" style="fill:#f0efec">96.0%</text>
+<rect x="501.0" y="201.0" width="86.0" height="26.0" rx="3" fill="#2c5fac"/>
+<text x="544.0" y="218.5" class="l" text-anchor="middle" style="fill:#f0efec">93.4%</text>
+<rect x="603.0" y="201.0" width="86.0" height="26.0" rx="3" fill="#254778"/>
+<text x="646.0" y="218.5" class="l" text-anchor="middle" style="fill:#f0efec">60.4%</text>
+<rect x="691.0" y="201.0" width="86.0" height="26.0" rx="3" fill="#24416b"/>
+<text x="734.0" y="218.5" class="l" text-anchor="middle" style="fill:#f0efec">52.1%</text>
+<rect x="779.0" y="201.0" width="86.0" height="26.0" rx="3" fill="#264a7f"/>
+<text x="822.0" y="218.5" class="l" text-anchor="middle" style="fill:#f0efec">65.0%</text>
+<rect x="867.0" y="201.0" width="86.0" height="26.0" rx="3" fill="#203047"/>
+<text x="910.0" y="218.5" class="l" text-anchor="middle" style="fill:#f0efec">29.3%</text>
+<rect x="24.0" y="235.0" width="5" height="14" rx="2" class="fo"/>
+<text x="36.0" y="246.5" class="l">dsh-mnemon + 向量</text>
+<rect x="237.0" y="229.0" width="86.0" height="26.0" rx="3" fill="#2b5da6"/>
+<text x="280.0" y="246.5" class="l" text-anchor="middle" style="fill:#f0efec">89.9%</text>
+<rect x="325.0" y="229.0" width="86.0" height="26.0" rx="3" fill="#2c5fab"/>
+<text x="368.0" y="246.5" class="l" text-anchor="middle" style="fill:#f0efec">92.8%</text>
+<rect x="413.0" y="229.0" width="86.0" height="26.0" rx="3" fill="#2c5eaa"/>
+<text x="456.0" y="246.5" class="l" text-anchor="middle" style="fill:#f0efec">92.4%</text>
+<rect x="501.0" y="229.0" width="86.0" height="26.0" rx="3" fill="#2a599e"/>
+<text x="544.0" y="246.5" class="l" text-anchor="middle" style="fill:#f0efec">84.5%</text>
+<rect x="603.0" y="229.0" width="86.0" height="26.0" rx="3" fill="#254574"/>
+<text x="646.0" y="246.5" class="l" text-anchor="middle" style="fill:#f0efec">58.3%</text>
+<rect x="691.0" y="229.0" width="86.0" height="26.0" rx="3" fill="#223b5f"/>
+<text x="734.0" y="246.5" class="l" text-anchor="middle" style="fill:#f0efec">44.7%</text>
+<rect x="779.0" y="229.0" width="86.0" height="26.0" rx="3" fill="#274c83"/>
+<text x="822.0" y="246.5" class="l" text-anchor="middle" style="fill:#f0efec">67.5%</text>
+<rect x="867.0" y="229.0" width="86.0" height="26.0" rx="3" fill="#20324c"/>
+<text x="910.0" y="246.5" class="l" text-anchor="middle" style="fill:#f0efec">32.6%</text>
+<rect x="24.0" y="263.0" width="5" height="14" rx="2" class="fo"/>
+<text x="36.0" y="274.5" class="l">lingshu</text>
+<rect x="237.0" y="257.0" width="86.0" height="26.0" rx="3" fill="#1b1e20"/>
+<text x="280.0" y="274.5" class="l" text-anchor="middle" style="fill:#f0efec">4.8%</text>
+<rect x="325.0" y="257.0" width="86.0" height="26.0" rx="3" fill="#274c83"/>
+<text x="368.0" y="274.5" class="l" text-anchor="middle" style="fill:#f0efec">67.7%</text>
+<rect x="413.0" y="257.0" width="86.0" height="26.0" rx="3" fill="#2c62b1"/>
+<text x="456.0" y="274.5" class="l" text-anchor="middle" style="fill:#f0efec">96.6%</text>
+<rect x="501.0" y="257.0" width="86.0" height="26.0" rx="3" fill="#2c5fab"/>
+<text x="544.0" y="274.5" class="l" text-anchor="middle" style="fill:#f0efec">93.1%</text>
+<rect x="603.0" y="257.0" width="86.0" height="26.0" rx="3" fill="#21344f"/>
+<text x="646.0" y="274.5" class="l" text-anchor="middle" style="fill:#f0efec">34.5%</text>
+<rect x="691.0" y="257.0" width="86.0" height="26.0" rx="3" fill="#203048"/>
+<text x="734.0" y="274.5" class="l" text-anchor="middle" style="fill:#f0efec">30.1%</text>
+<rect x="779.0" y="257.0" width="86.0" height="26.0" rx="3" fill="#213655"/>
+<text x="822.0" y="274.5" class="l" text-anchor="middle" style="fill:#f0efec">38.4%</text>
+<rect x="867.0" y="257.0" width="86.0" height="26.0" rx="3" fill="#1e2939"/>
+<text x="910.0" y="274.5" class="l" text-anchor="middle" style="fill:#f0efec">20.7%</text>
+<rect x="24.0" y="291.0" width="5" height="14" rx="2" class="fo"/>
+<text x="36.0" y="302.5" class="l">memsearch</text>
+<rect x="237.0" y="285.0" width="86.0" height="26.0" rx="3" fill="#2b5ea9"/>
+<text x="280.0" y="302.5" class="l" text-anchor="middle" style="fill:#f0efec">91.6%</text>
+<rect x="325.0" y="285.0" width="86.0" height="26.0" rx="3" fill="#2c60ae"/>
+<text x="368.0" y="302.5" class="l" text-anchor="middle" style="fill:#f0efec">94.9%</text>
+<rect x="413.0" y="285.0" width="86.0" height="26.0" rx="3" fill="#2b5da7"/>
+<text x="456.0" y="302.5" class="l" text-anchor="middle" style="fill:#f0efec">90.7%</text>
+<rect x="501.0" y="285.0" width="86.0" height="26.0" rx="3" fill="#295597"/>
+<text x="544.0" y="302.5" class="l" text-anchor="middle" style="fill:#f0efec">80.0%</text>
+<rect x="603.0" y="285.0" width="86.0" height="26.0" rx="3" fill="#274c82"/>
+<text x="646.0" y="302.5" class="l" text-anchor="middle" style="fill:#f0efec">67.1%</text>
+<rect x="691.0" y="285.0" width="86.0" height="26.0" rx="3" fill="#24426e"/>
+<text x="734.0" y="302.5" class="l" text-anchor="middle" style="fill:#f0efec">53.9%</text>
+<rect x="779.0" y="285.0" width="86.0" height="26.0" rx="3" fill="#28508c"/>
+<text x="822.0" y="302.5" class="l" text-anchor="middle" style="fill:#f0efec">73.1%</text>
+<rect x="867.0" y="285.0" width="86.0" height="26.0" rx="3" fill="#213553"/>
+<text x="910.0" y="302.5" class="l" text-anchor="middle" style="fill:#f0efec">37.0%</text>
+<rect x="24.0" y="319.0" width="5" height="14" rx="2" class="fo"/>
+<text x="36.0" y="330.5" class="l">meow-memory</text>
+<rect x="237.0" y="313.0" width="86.0" height="26.0" rx="3" fill="#1b1e22"/>
+<text x="280.0" y="330.5" class="l" text-anchor="middle" style="fill:#f0efec">5.6%</text>
+<rect x="325.0" y="313.0" width="86.0" height="26.0" rx="3" fill="#254471"/>
+<text x="368.0" y="330.5" class="l" text-anchor="middle" style="fill:#f0efec">56.3%</text>
+<rect x="413.0" y="313.0" width="86.0" height="26.0" rx="3" fill="#2c61b0"/>
+<text x="456.0" y="330.5" class="l" text-anchor="middle" style="fill:#f0efec">95.9%</text>
+<rect x="501.0" y="313.0" width="86.0" height="26.0" rx="3" fill="#2c60ad"/>
+<text x="544.0" y="330.5" class="l" text-anchor="middle" style="fill:#f0efec">94.1%</text>
+<rect x="603.0" y="313.0" width="86.0" height="26.0" rx="3" fill="#233e64"/>
+<text x="646.0" y="330.5" class="l" text-anchor="middle" style="fill:#f0efec">48.0%</text>
+<rect x="691.0" y="313.0" width="86.0" height="26.0" rx="3" fill="#1f2d41"/>
+<text x="734.0" y="330.5" class="l" text-anchor="middle" style="fill:#f0efec">25.2%</text>
+<rect x="779.0" y="313.0" width="86.0" height="26.0" rx="3" fill="#233c62"/>
+<text x="822.0" y="330.5" class="l" text-anchor="middle" style="fill:#f0efec">46.6%</text>
+<rect x="867.0" y="313.0" width="86.0" height="26.0" rx="3" fill="#1e2a3b"/>
+<text x="910.0" y="330.5" class="l" text-anchor="middle" style="fill:#f0efec">21.7%</text>
+<rect x="24.0" y="347.0" width="5" height="14" rx="2" class="fo"/>
+<text x="36.0" y="358.5" class="l">dsh-soul-md</text>
+<rect x="237.0" y="341.0" width="86.0" height="26.0" rx="3" fill="#203149"/>
+<text x="280.0" y="358.5" class="l" text-anchor="middle" style="fill:#f0efec">30.5%</text>
+<rect x="325.0" y="341.0" width="86.0" height="26.0" rx="3" fill="#274e87"/>
+<text x="368.0" y="358.5" class="l" text-anchor="middle" style="fill:#f0efec">70.2%</text>
+<rect x="413.0" y="341.0" width="86.0" height="26.0" rx="3" fill="#2c62b2"/>
+<text x="456.0" y="358.5" class="l" text-anchor="middle" style="fill:#f0efec">97.3%</text>
+<rect x="501.0" y="341.0" width="86.0" height="26.0" rx="3" fill="#2a589c"/>
+<text x="544.0" y="358.5" class="l" text-anchor="middle" style="fill:#f0efec">83.6%</text>
+<rect x="603.0" y="341.0" width="86.0" height="26.0" rx="3" fill="#233c61"/>
+<text x="646.0" y="358.5" class="l" text-anchor="middle" style="fill:#f0efec">45.7%</text>
+<rect x="691.0" y="341.0" width="86.0" height="26.0" rx="3" fill="#203149"/>
+<text x="734.0" y="358.5" class="l" text-anchor="middle" style="fill:#f0efec">30.9%</text>
+<rect x="779.0" y="341.0" width="86.0" height="26.0" rx="3" fill="#24416c"/>
+<text x="822.0" y="358.5" class="l" text-anchor="middle" style="fill:#f0efec">53.1%</text>
+<rect x="867.0" y="341.0" width="86.0" height="26.0" rx="3" fill="#1e2939"/>
+<text x="910.0" y="358.5" class="l" text-anchor="middle" style="fill:#f0efec">20.7%</text>
+<rect x="24.0" y="375.0" width="5" height="14" rx="2" class="fo"/>
+<text x="36.0" y="386.5" class="l">dsh-prime-memory</text>
+<rect x="237.0" y="369.0" width="86.0" height="26.0" rx="3" fill="#1b1f23"/>
+<text x="280.0" y="386.5" class="l" text-anchor="middle" style="fill:#f0efec">6.4%</text>
+<rect x="325.0" y="369.0" width="86.0" height="26.0" rx="3" fill="#274c83"/>
+<text x="368.0" y="386.5" class="l" text-anchor="middle" style="fill:#f0efec">67.8%</text>
+<rect x="413.0" y="369.0" width="86.0" height="26.0" rx="3" fill="#2b5eaa"/>
+<text x="456.0" y="386.5" class="l" text-anchor="middle" style="fill:#f0efec">92.0%</text>
+<rect x="501.0" y="369.0" width="86.0" height="26.0" rx="3" fill="#2b5da7"/>
+<text x="544.0" y="386.5" class="l" text-anchor="middle" style="fill:#f0efec">90.5%</text>
+<rect x="603.0" y="369.0" width="86.0" height="26.0" rx="3" fill="#1e2b3e"/>
+<text x="646.0" y="386.5" class="l" text-anchor="middle" style="fill:#f0efec">23.3%</text>
+<rect x="691.0" y="369.0" width="86.0" height="26.0" rx="3" fill="#1d242f"/>
+<text x="734.0" y="386.5" class="l" text-anchor="middle" style="fill:#f0efec">13.8%</text>
+<rect x="779.0" y="369.0" width="86.0" height="26.0" rx="3" fill="#1f2d42"/>
+<text x="822.0" y="386.5" class="l" text-anchor="middle" style="fill:#f0efec">26.2%</text>
+<rect x="867.0" y="369.0" width="86.0" height="26.0" rx="3" fill="#1c2128"/>
+<text x="910.0" y="386.5" class="l" text-anchor="middle" style="fill:#f0efec">9.8%</text>
+<rect x="24.0" y="403.0" width="5" height="14" rx="2" class="fo"/>
+<text x="36.0" y="414.5" class="l">dsh-prime-memory + 向量</text>
+<rect x="237.0" y="397.0" width="86.0" height="26.0" rx="3" fill="#223858"/>
+<text x="280.0" y="414.5" class="l" text-anchor="middle" style="fill:#f0efec">40.1%</text>
+<rect x="325.0" y="397.0" width="86.0" height="26.0" rx="3" fill="#2b5ba3"/>
+<text x="368.0" y="414.5" class="l" text-anchor="middle" style="fill:#f0efec">87.8%</text>
+<rect x="413.0" y="397.0" width="86.0" height="26.0" rx="3" fill="#2a5aa1"/>
+<text x="456.0" y="414.5" class="l" text-anchor="middle" style="fill:#f0efec">86.8%</text>
+<rect x="501.0" y="397.0" width="86.0" height="26.0" rx="3" fill="#2a589c"/>
+<text x="544.0" y="414.5" class="l" text-anchor="middle" style="fill:#f0efec">83.6%</text>
+<rect x="603.0" y="397.0" width="86.0" height="26.0" rx="3" fill="#213450"/>
+<text x="646.0" y="414.5" class="l" text-anchor="middle" style="fill:#f0efec">34.7%</text>
+<rect x="691.0" y="397.0" width="86.0" height="26.0" rx="3" fill="#1e2836"/>
+<text x="734.0" y="414.5" class="l" text-anchor="middle" style="fill:#f0efec">18.4%</text>
+<rect x="779.0" y="397.0" width="86.0" height="26.0" rx="3" fill="#20324c"/>
+<text x="822.0" y="414.5" class="l" text-anchor="middle" style="fill:#f0efec">32.5%</text>
+<rect x="867.0" y="397.0" width="86.0" height="26.0" rx="3" fill="#1e2836"/>
+<text x="910.0" y="414.5" class="l" text-anchor="middle" style="fill:#f0efec">18.5%</text>
+<rect x="24.0" y="431.0" width="5" height="14" rx="2" class="fo"/>
+<text x="36.0" y="442.5" class="l">mem0（逐字）</text>
+<rect x="237.0" y="425.0" width="86.0" height="26.0" rx="3" fill="#2b5da8"/>
+<text x="280.0" y="442.5" class="l" text-anchor="middle" style="fill:#f0efec">91.0%</text>
+<rect x="325.0" y="425.0" width="86.0" height="26.0" rx="3" fill="#2c60ae"/>
+<text x="368.0" y="442.5" class="l" text-anchor="middle" style="fill:#f0efec">95.2%</text>
+<rect x="413.0" y="425.0" width="86.0" height="26.0" rx="3" fill="#2a5aa1"/>
+<text x="456.0" y="442.5" class="l" text-anchor="middle" style="fill:#f0efec">86.5%</text>
+<rect x="501.0" y="425.0" width="86.0" height="26.0" rx="3" fill="#28518d"/>
+<text x="544.0" y="442.5" class="l" text-anchor="middle" style="fill:#f0efec">73.7%</text>
+<rect x="603.0" y="425.0" width="86.0" height="26.0" rx="3" fill="#274b82"/>
+<text x="646.0" y="442.5" class="l" text-anchor="middle" style="fill:#f0efec">66.7%</text>
+<rect x="691.0" y="425.0" width="86.0" height="26.0" rx="3" fill="#264779"/>
+<text x="734.0" y="442.5" class="l" text-anchor="middle" style="fill:#f0efec">61.3%</text>
+<rect x="779.0" y="425.0" width="86.0" height="26.0" rx="3" fill="#284f8a"/>
+<text x="822.0" y="442.5" class="l" text-anchor="middle" style="fill:#f0efec">71.9%</text>
+<rect x="867.0" y="425.0" width="86.0" height="26.0" rx="3" fill="#213756"/>
+<text x="910.0" y="442.5" class="l" text-anchor="middle" style="fill:#f0efec">39.1%</text>
+<rect x="24.0" y="459.0" width="5" height="14" rx="2" class="fo"/>
+<text x="36.0" y="470.5" class="l">OpenViking</text>
+<rect x="237.0" y="453.0" width="86.0" height="26.0" rx="3" fill="#2b5da8"/>
+<text x="280.0" y="470.5" class="l" text-anchor="middle" style="fill:#f0efec">91.0%</text>
+<rect x="325.0" y="453.0" width="86.0" height="26.0" rx="3" fill="#2c60ae"/>
+<text x="368.0" y="470.5" class="l" text-anchor="middle" style="fill:#f0efec">95.1%</text>
+<rect x="413.0" y="453.0" width="86.0" height="26.0" rx="3" fill="#2a5aa1"/>
+<text x="456.0" y="470.5" class="l" text-anchor="middle" style="fill:#f0efec">86.4%</text>
+<rect x="501.0" y="453.0" width="86.0" height="26.0" rx="3" fill="#28518d"/>
+<text x="544.0" y="470.5" class="l" text-anchor="middle" style="fill:#f0efec">73.7%</text>
+<rect x="603.0" y="453.0" width="86.0" height="26.0" rx="3" fill="#244370"/>
+<text x="646.0" y="470.5" class="l" text-anchor="middle" style="fill:#f0efec">55.2%</text>
+<rect x="691.0" y="453.0" width="86.0" height="26.0" rx="3" fill="#223858"/>
+<text x="734.0" y="470.5" class="l" text-anchor="middle" style="fill:#f0efec">40.1%</text>
+<rect x="779.0" y="453.0" width="86.0" height="26.0" rx="3" fill="#254676"/>
+<text x="822.0" y="470.5" class="l" text-anchor="middle" style="fill:#f0efec">59.4%</text>
+<rect x="867.0" y="453.0" width="86.0" height="26.0" rx="3" fill="#20314a"/>
+<text x="910.0" y="470.5" class="l" text-anchor="middle" style="fill:#f0efec">31.5%</text>
+<rect x="24.0" y="487.0" width="5" height="14" rx="2" class="fo"/>
+<text x="36.0" y="492.5" class="l">mem0</text>
+<text x="36.0" y="504.5" class="s">（LLM 提取，claude-haiku-5-5）</text>
+<rect x="237.0" y="481.0" width="86.0" height="26.0" rx="3" fill="#2a589d"/>
+<text x="280.0" y="498.5" class="l" text-anchor="middle" style="fill:#f0efec">84.3%</text>
+<rect x="325.0" y="481.0" width="86.0" height="26.0" rx="3" fill="#295698"/>
+<text x="368.0" y="498.5" class="l" text-anchor="middle" style="fill:#f0efec">80.6%</text>
+<rect x="413.0" y="481.0" width="86.0" height="26.0" rx="3" fill="#2a579a"/>
+<text x="456.0" y="498.5" class="l" text-anchor="middle" style="fill:#f0efec">82.1%</text>
+<rect x="501.0" y="481.0" width="86.0" height="26.0" rx="3" fill="#285290"/>
+<text x="544.0" y="498.5" class="l" text-anchor="middle" style="fill:#f0efec">75.8%</text>
+<rect x="603.0" y="481.0" width="86.0" height="26.0" rx="3" fill="#295392"/>
+<text x="646.0" y="498.5" class="l" text-anchor="middle" style="fill:#f0efec">77.3%</text>
+<rect x="691.0" y="481.0" width="86.0" height="26.0" rx="3" fill="#28508b"/>
+<text x="734.0" y="498.5" class="l" text-anchor="middle" style="fill:#f0efec">72.3%</text>
+<rect x="779.0" y="481.0" width="86.0" height="26.0" rx="3" fill="#28518d"/>
+<text x="822.0" y="498.5" class="l" text-anchor="middle" style="fill:#f0efec">73.8%</text>
+<rect x="867.0" y="481.0" width="86.0" height="26.0" rx="3" fill="#233c61"/>
+<text x="910.0" y="498.5" class="l" text-anchor="middle" style="fill:#f0efec">45.7%</text>
+<rect x="24.0" y="515.0" width="5" height="14" rx="2" class="fo"/>
+<text x="36.0" y="520.5" class="l">mem0</text>
+<text x="36.0" y="532.5" class="s">（LLM 提取，deepseek-flash）</text>
+<rect x="237.0" y="509.0" width="86.0" height="26.0" rx="3" fill="#295495"/>
+<text x="280.0" y="526.5" class="l" text-anchor="middle" style="fill:#f0efec">78.7%</text>
+<rect x="325.0" y="509.0" width="86.0" height="26.0" rx="3" fill="#295596"/>
+<text x="368.0" y="526.5" class="l" text-anchor="middle" style="fill:#f0efec">79.4%</text>
+<rect x="413.0" y="509.0" width="86.0" height="26.0" rx="3" fill="#2a5aa0"/>
+<text x="456.0" y="526.5" class="l" text-anchor="middle" style="fill:#f0efec">85.9%</text>
+<rect x="501.0" y="509.0" width="86.0" height="26.0" rx="3" fill="#274c83"/>
+<text x="544.0" y="526.5" class="l" text-anchor="middle" style="fill:#f0efec">67.8%</text>
+<rect x="603.0" y="509.0" width="86.0" height="26.0" rx="3" fill="#28518f"/>
+<text x="646.0" y="526.5" class="l" text-anchor="middle" style="fill:#f0efec">74.9%</text>
+<rect x="691.0" y="509.0" width="86.0" height="26.0" rx="3" fill="#26497e"/>
+<text x="734.0" y="526.5" class="l" text-anchor="middle" style="fill:#f0efec">64.2%</text>
+<rect x="779.0" y="509.0" width="86.0" height="26.0" rx="3" fill="#284f89"/>
+<text x="822.0" y="526.5" class="l" text-anchor="middle" style="fill:#f0efec">71.2%</text>
+<rect x="867.0" y="509.0" width="86.0" height="26.0" rx="3" fill="#213756"/>
+<text x="910.0" y="526.5" class="l" text-anchor="middle" style="fill:#f0efec">39.1%</text>
+<rect x="24.0" y="543.0" width="5" height="14" rx="2" class="fo"/>
+<text x="36.0" y="554.5" class="l">dsh-mnemon</text>
+<rect x="237.0" y="537.0" width="86.0" height="26.0" rx="3" fill="#1b1e22"/>
+<text x="280.0" y="554.5" class="l" text-anchor="middle" style="fill:#f0efec">5.9%</text>
+<rect x="325.0" y="537.0" width="86.0" height="26.0" rx="3" fill="#213451"/>
+<text x="368.0" y="554.5" class="l" text-anchor="middle" style="fill:#f0efec">35.8%</text>
+<rect x="413.0" y="537.0" width="86.0" height="26.0" rx="3" fill="#295698"/>
+<text x="456.0" y="554.5" class="l" text-anchor="middle" style="fill:#f0efec">80.6%</text>
+<rect x="501.0" y="537.0" width="86.0" height="26.0" rx="3" fill="#295699"/>
+<text x="544.0" y="554.5" class="l" text-anchor="middle" style="fill:#f0efec">81.3%</text>
+<rect x="603.0" y="537.0" width="86.0" height="26.0" rx="3" fill="#20324d"/>
+<text x="646.0" y="554.5" class="l" text-anchor="middle" style="fill:#f0efec">33.1%</text>
+<rect x="691.0" y="537.0" width="86.0" height="26.0" rx="3" fill="#1e2939"/>
+<text x="734.0" y="554.5" class="l" text-anchor="middle" style="fill:#f0efec">20.2%</text>
+<rect x="779.0" y="537.0" width="86.0" height="26.0" rx="3" fill="#22395a"/>
+<text x="822.0" y="554.5" class="l" text-anchor="middle" style="fill:#f0efec">41.2%</text>
+<rect x="867.0" y="537.0" width="86.0" height="26.0" rx="3" fill="#1c242d"/>
+<text x="910.0" y="554.5" class="l" text-anchor="middle" style="fill:#f0efec">13.0%</text>
+<rect x="24.0" y="571.0" width="5" height="14" rx="2" class="fo"/>
+<text x="36.0" y="582.5" class="l">dsh-fish-memory</text>
+<rect x="237.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#1a1a19"/>
+<text x="280.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">0.3%</text>
+<rect x="325.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#1a1a19"/>
+<text x="368.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">0.0%</text>
+<rect x="413.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#274f88"/>
+<text x="456.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">71.0%</text>
+<rect x="501.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#274e86"/>
+<text x="544.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">69.6%</text>
+<rect x="603.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#203149"/>
+<text x="646.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">30.4%</text>
+<rect x="691.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#1f2e43"/>
+<text x="734.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">26.6%</text>
+<rect x="779.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#223a5c"/>
+<text x="822.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">42.8%</text>
+<rect x="867.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#1d2531"/>
+<text x="910.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">15.2%</text>
+<rect x="24.0" y="599.0" width="5" height="14" rx="2" class="fo"/>
+<text x="36.0" y="610.5" class="l">SeekMemory</text>
+<rect x="237.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#1f2f46"/>
+<text x="280.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">28.9%</text>
+<rect x="325.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#295392"/>
+<text x="368.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">77.1%</text>
+<rect x="413.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#244069"/>
+<text x="456.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">50.8%</text>
+<rect x="501.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#233c61"/>
+<text x="544.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">46.1%</text>
+<rect x="603.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#20314a"/>
+<text x="646.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">31.2%</text>
+<rect x="691.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#1d2632"/>
+<text x="734.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">16.0%</text>
+<rect x="779.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#1f2f45"/>
+<text x="822.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">28.1%</text>
+<rect x="867.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#1b1d20"/>
+<text x="910.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">4.3%</text>
+<text x="24.0" y="648.0" class="s">颜色表示 Hit@5，0% 到 100% 用同一条色阶；行的顺序与排名图相同。每个类型下面是该类型的可答问题数。</text>
+<text x="24.0" y="666.0" class="s">bench/external/results/summary.md · PerLTQA 32 个库、8,588 个问题，LoCoMo 10 个库、1,535 个问题 · 2026-11-17</text>
+</svg>

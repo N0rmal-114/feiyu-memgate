@@ -19,3 +19,9 @@ keys.json
 *.db-wal
 *.db-shm
 data/
+
+# per-question results of the external benchmark are committed gzip-compressed (bench/external/pack.py)
+bench/external/results/*/*.json
+!bench/external/results/*/*.metrics.json
+!bench/external/results/*/latency-summary.json
+!bench/external/results/*/same-stores-*.json

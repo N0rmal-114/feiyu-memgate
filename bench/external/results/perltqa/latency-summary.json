@@ -1,0 +1,218 @@
+{
+ "feiyu-memgate-embedding-precise": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 12.711,
+  "p95_ms": 33.036
+ },
+ "feiyu-memgate-embedding": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 13.867,
+  "p95_ms": 30.556
+ },
+ "feiyu-memgate-hybrid-precise": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 18.533,
+  "p95_ms": 41.394
+ },
+ "feiyu-memgate-hybrid": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 19.746,
+  "p95_ms": 48.996
+ },
+ "feiyu-memgate-sqlite-precise": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 5.437,
+  "p95_ms": 7.435
+ },
+ "feiyu-memgate-sqlite": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 5.436,
+  "p95_ms": 7.509
+ },
+ "seekmemory": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 1.895,
+  "p95_ms": 5.229
+ },
+ "meow-memory": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 2.7233,
+  "p95_ms": 3.9116
+ },
+ "dsh-mnemon": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 18.3696,
+  "p95_ms": 27.1667
+ },
+ "dsh-mnemon-embedding": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 30.84,
+  "p95_ms": 40.2056
+ },
+ "memsearch": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 12.174,
+  "p95_ms": 14.525
+ },
+ "mem0-verbatim": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 14.735,
+  "p95_ms": 28.452
+ },
+ "lingshu-dsh-memory": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 2.093,
+  "p95_ms": 2.387
+ },
+ "openviking": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 14.635,
+  "p95_ms": 29.078
+ },
+ "dsh-fish-memory": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 0.6282,
+  "p95_ms": 1.0458
+ },
+ "dsh-prime-memory": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 0.8898,
+  "p95_ms": 1.2011
+ },
+ "dsh-prime-memory-embedding": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 21.9357,
+  "p95_ms": 23.6353
+ },
+ "dsh-soul-md": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 1.3204,
+  "p95_ms": 1.74
+ },
+ "hindsight-chunks": {
+  "kind": "sequential pass on an idle machine, one world",
+  "world": "p15",
+  "memories": 69,
+  "questions": 214,
+  "p50_ms": 2935.3802,
+  "p95_ms": 3071.4211
+ },
+ "mem0-llm-deepseek-flash": {
+  "kind": "measured under load (parallel run, the worlds it ran on)",
+  "world": null,
+  "memories": null,
+  "questions": 8588,
+  "p50_ms": 86.824,
+  "p95_ms": 261.767
+ },
+ "mem0-llm-claude-haiku-5-5": {
+  "kind": "measured under load (parallel run, the worlds it ran on)",
+  "world": null,
+  "memories": null,
+  "questions": 8588,
+  "p50_ms": 96.608,
+  "p95_ms": 272.573
+ },
+ "graphiti-deepseek-flash": {
+  "kind": "measured under load (parallel run, the worlds it ran on)",
+  "world": null,
+  "memories": null,
+  "questions": 6404,
+  "p50_ms": 51.226,
+  "p95_ms": 173.456
+ },
+ "graphiti-claude-haiku-5-5": {
+  "kind": "measured under load (parallel run, the worlds it ran on)",
+  "world": null,
+  "memories": null,
+  "questions": 2343,
+  "p50_ms": 76.341,
+  "p95_ms": 221.203
+ },
+ "dsh-fish-memory-expand-deepseek-flash": {
+  "kind": "measured under load (parallel run, the worlds it ran on)",
+  "world": null,
+  "memories": null,
+  "questions": 838,
+  "p50_ms": 1.1818,
+  "p95_ms": 1.9078
+ },
+ "dsh-fish-memory-expand-claude-haiku-5-5": {
+  "kind": "measured under load (parallel run, the worlds it ran on)",
+  "world": null,
+  "memories": null,
+  "questions": 838,
+  "p50_ms": 1.348,
+  "p95_ms": 2.3184
+ },
+ "hindsight-llm-deepseek-flash": {
+  "kind": "measured under load (parallel run, the worlds it ran on)",
+  "world": null,
+  "memories": null,
+  "questions": 1352,
+  "p50_ms": 2174.2198,
+  "p95_ms": 2657.538
+ },
+ "hindsight-llm-claude-haiku-5-5": {
+  "kind": "measured under load (parallel run, the worlds it ran on)",
+  "world": null,
+  "memories": null,
+  "questions": 1352,
+  "p50_ms": 2152.2449,
+  "p95_ms": 2798.3767
+ }
+}

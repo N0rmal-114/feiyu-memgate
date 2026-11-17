@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="592" viewBox="0 0 1000 592" role="img" lang="zh">
+<style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#c3c2b7;font-size:13px}.t{font-size:17px;font-weight:600;fill:#f0efec}.l{font-size:13px;fill:#f0efec}.lb{font-size:13px;font-weight:600;fill:#f0efec}.s{font-size:11px;fill:#c3c2b7}.grid{stroke:#2c2c2a;stroke-width:1;fill:none}.axis{stroke:#383835;stroke-width:1;fill:none}.tick{stroke:#f0efec;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#3987e5}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
+<rect width="1000" height="592" fill="#1a1a19"/>
+<text x="24.0" y="32.0" class="t">调用大模型的配置：每千条记忆的写入花费（美元，对数轴）</text>
+<circle cx="30.0" cy="51.5" r="5" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<text x="44.0" y="56.0" class="s">deepseek-flash</text>
+<circle cx="152.7" cy="51.5" r="5" fill="#199e70" stroke="#1a1a19" stroke-width="2"/>
+<text x="166.7" y="56.0" class="s">claude-haiku-5-5</text>
+<line x1="250.0" y1="126.0" x2="250.0" y2="496.0" class="axis"/>
+<text x="250.0" y="514.0" class="s" text-anchor="middle">0.01</text>
+<line x1="376.7" y1="126.0" x2="376.7" y2="496.0" class="grid"/>
+<text x="376.7" y="514.0" class="s" text-anchor="middle">0.1</text>
+<line x1="503.3" y1="126.0" x2="503.3" y2="496.0" class="grid"/>
+<text x="503.3" y="514.0" class="s" text-anchor="middle">1</text>
+<line x1="630.0" y1="126.0" x2="630.0" y2="496.0" class="grid"/>
+<text x="630.0" y="514.0" class="s" text-anchor="middle">10</text>
+<text x="440.0" y="534.0" class="s" text-anchor="middle">每千条记忆的写入花费（美元，对数轴）</text>
+<text x="842.0" y="106.0" class="lb" text-anchor="end">每条记忆的调用次数</text>
+<text x="842.0" y="121.0" class="s" text-anchor="end">两个模型，顺序同图例</text>
+<text x="976.0" y="106.0" class="lb" text-anchor="end">运行的库数</text>
+<text x="24.0" y="149.0" class="lb">PerLTQA</text>
+<line x1="24.0" y1="156.0" x2="976.0" y2="156.0" class="grid"/>
+<text x="36.0" y="186.5" class="l">mem0（LLM 提取）</text>
+<circle cx="486.6" cy="177.5" r="5" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<text x="477.6" y="181.5" class="s" text-anchor="end">0.74</text>
+<circle cx="530.0" cy="186.5" r="5" fill="#199e70" stroke="#1a1a19" stroke-width="2"/>
+<text x="539.0" y="190.5" class="s">1.62</text>
+<text x="842.0" y="186.0" class="s" text-anchor="end">1.0 / 1.0</text>
+<text x="976.0" y="186.0" class="s" text-anchor="end">32 / 32</text>
+<text x="36.0" y="222.5" class="l">Graphiti</text>
+<circle cx="544.3" cy="222.5" r="5" fill="#199e70" stroke="#1a1a19" stroke-width="2"/>
+<text x="535.3" y="226.5" class="s" text-anchor="end">2.10</text>
+<circle cx="577.2" cy="213.5" r="5" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<text x="586.2" y="217.5" class="s">3.83</text>
+<text x="842.0" y="222.0" class="s" text-anchor="end">6.6 / 5.0</text>
+<text x="976.0" y="222.0" class="s" text-anchor="end">24 / 10</text>
+<text x="36.0" y="258.5" class="l">Hindsight</text>
+<circle cx="534.0" cy="249.5" r="5" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<text x="525.0" y="253.5" class="s" text-anchor="end">1.75</text>
+<circle cx="534.0" cy="258.5" r="5" fill="#199e70" stroke="#1a1a19" stroke-width="2"/>
+<text x="543.0" y="262.5" class="s">1.75</text>
+<text x="842.0" y="258.0" class="s" text-anchor="end">2.1 / 2.0</text>
+<text x="976.0" y="258.0" class="s" text-anchor="end">5 / 5</text>
+<text x="36.0" y="294.5" class="l">dsh-fish-memory 扩词</text>
+<circle cx="312.4" cy="285.5" r="5" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<text x="303.4" y="289.5" class="s" text-anchor="end">0.03</text>
+<circle cx="380.2" cy="294.5" r="5" fill="#199e70" stroke="#1a1a19" stroke-width="2"/>
+<text x="389.2" y="298.5" class="s">0.11</text>
+<text x="842.0" y="294.0" class="s" text-anchor="end">0.4 / 0.4</text>
+<text x="976.0" y="294.0" class="s" text-anchor="end">3 / 3</text>
+<text x="24.0" y="337.0" class="lb">LoCoMo</text>
+<line x1="24.0" y1="344.0" x2="976.0" y2="344.0" class="grid"/>
+<text x="36.0" y="374.5" class="l">mem0（LLM 提取）</text>
+<circle cx="456.6" cy="365.5" r="5" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<text x="447.6" y="369.5" class="s" text-anchor="end">0.43</text>
+<circle cx="521.0" cy="374.5" r="5" fill="#199e70" stroke="#1a1a19" stroke-width="2"/>
+<text x="530.0" y="378.5" class="s">1.38</text>
+<text x="842.0" y="374.0" class="s" text-anchor="end">1.0 / 1.0</text>
+<text x="976.0" y="374.0" class="s" text-anchor="end">10 / 10</text>
+<text x="36.0" y="410.5" class="l">Graphiti</text>
+<circle cx="510.2" cy="401.5" r="5" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<text x="501.2" y="405.5" class="s" text-anchor="end">1.13</text>
+<circle cx="515.1" cy="410.5" r="5" fill="#199e70" stroke="#1a1a19" stroke-width="2"/>
+<text x="524.1" y="414.5" class="s">1.24</text>
+<text x="842.0" y="410.0" class="s" text-anchor="end">3.4 / 3.4</text>
+<text x="976.0" y="410.0" class="s" text-anchor="end">3 / 3</text>
+<text x="36.0" y="446.5" class="l">Hindsight</text>
+<circle cx="496.8" cy="437.5" r="5" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<text x="487.8" y="441.5" class="s" text-anchor="end">0.89</text>
+<circle cx="506.4" cy="446.5" r="5" fill="#199e70" stroke="#1a1a19" stroke-width="2"/>
+<text x="515.4" y="450.5" class="s">1.06</text>
+<text x="842.0" y="446.0" class="s" text-anchor="end">1.7 / 1.7</text>
+<text x="976.0" y="446.0" class="s" text-anchor="end">1 / 1</text>
+<text x="36.0" y="482.5" class="l">dsh-fish-memory 扩词</text>
+<circle cx="250.0" cy="473.5" r="5" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<text x="241.0" y="477.5" class="s" text-anchor="end">&lt;0.01</text>
+<circle cx="292.1" cy="482.5" r="5" fill="#199e70" stroke="#1a1a19" stroke-width="2"/>
+<text x="301.1" y="486.5" class="s">0.02</text>
+<text x="842.0" y="482.0" class="s" text-anchor="end">0.2 / 0.2</text>
+<text x="976.0" y="482.0" class="s" text-anchor="end">1 / 1</text>
+<text x="24.0" y="558.0" class="s">按 2026-11-16 的公开标价计算，两个模型都关闭了思考模式；只含有效的运行。 低于 0.01 的点画在坐标轴上。</text>
+<text x="24.0" y="576.0" class="s">bench/external/results/summary.md · PerLTQA 32 个库、8,588 个问题，LoCoMo 10 个库、1,535 个问题 · 2026-11-17</text>
+</svg>

@@ -1,0 +1,6185 @@
+{
+ "generated": "2026-11-17",
+ "perltqa": {
+  "stores": [
+   "p01",
+   "p02",
+   "p03",
+   "p04",
+   "p05",
+   "p06",
+   "p07",
+   "p08",
+   "p09",
+   "p10",
+   "p11",
+   "p12",
+   "p13",
+   "p14",
+   "p15",
+   "p16",
+   "p17",
+   "p18",
+   "p19",
+   "p20",
+   "p21",
+   "p22",
+   "p23",
+   "p24",
+   "p25",
+   "p26",
+   "p27",
+   "p28",
+   "p29",
+   "p30",
+   "p31",
+   "p32"
+  ],
+  "full": [
+   {
+    "system": "dsh-fish-memory",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.3460642757335817,
+    "hit5": 0.6017699115044248,
+    "hit10": 0.6251746623195156,
+    "delivered_hit": 0.45295761527713085,
+    "precision": 0.3111016801601811,
+    "delivered_f1": 0.36886109754979324,
+    "items": 1.51932929669306,
+    "chars": 543.836050302748,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.5411224849982351,
+      "hit5": 0.6964348746911402,
+      "hit10": 0.7211436639604659,
+      "delivered_hit": 0.6007765619484645,
+      "precision": 0.4188914314772438,
+      "items": 1.568655135898341
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.3197067318373695,
+      "hit5": 0.7096200844256831,
+      "hit10": 0.7385025549877805,
+      "delivered_hit": 0.4861141968451455,
+      "precision": 0.307344024254029,
+      "items": 1.5956454121306376
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.0,
+      "hit5": 0.0028011204481792717,
+      "hit10": 0.0056022408963585435,
+      "delivered_hit": 0.0,
+      "precision": 0.0,
+      "items": 0.5630252100840336
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.0,
+      "hit5": 0.0,
+      "hit10": 0.0,
+      "delivered_hit": 0.0,
+      "precision": 0.0,
+      "items": 1.3612040133779264
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 3.685,
+     "question_seconds": 9.669
+    }
+   },
+   {
+    "system": "dsh-mnemon-embedding",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.6938751746623195,
+    "hit5": 0.8971821145784816,
+    "hit10": 0.9090591523055426,
+    "delivered_hit": 0.8351187703772706,
+    "precision": 0.3151781555659059,
+    "delivered_f1": 0.4576404366379708,
+    "items": 3.1521891010712624,
+    "chars": 700.6403120633443,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.6837274973526297,
+      "hit5": 0.8450405930109425,
+      "hit10": 0.8563360395340628,
+      "delivered_hit": 0.7776208965760678,
+      "precision": 0.28838686904341687,
+      "items": 3.2244969996470174
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.7567207287269496,
+      "hit5": 0.9237947122861586,
+      "hit10": 0.926905132192846,
+      "delivered_hit": 0.8529215729837814,
+      "precision": 0.33477745686143817,
+      "items": 3.0586536325261053
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.6106442577030813,
+      "hit5": 0.8991596638655462,
+      "hit10": 0.9411764705882353,
+      "delivered_hit": 0.8795518207282913,
+      "precision": 0.22175536881419236,
+      "items": 3.957983193277311
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.443701226309922,
+      "hit5": 0.927536231884058,
+      "hit10": 0.9732441471571907,
+      "delivered_hit": 0.9096989966555183,
+      "precision": 0.338628762541806,
+      "items": 3.072463768115942
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 342.593,
+     "question_seconds": 1323.448
+    }
+   },
+   {
+    "system": "dsh-mnemon",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.591988821611551,
+    "hit5": 0.73067070330694,
+    "hit10": 0.7444108057755007,
+    "delivered_hit": 0.5869818351187703,
+    "precision": 0.4947213165657507,
+    "delivered_f1": 0.536917038316685,
+    "items": 1.2545412203074058,
+    "chars": 465.65370284117375,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.7003176844334628,
+      "hit5": 0.8132721496646664,
+      "hit10": 0.8220967172608542,
+      "delivered_hit": 0.6953759265795976,
+      "precision": 0.5645075891281327,
+      "items": 1.3956936110130604
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.6483003776938459,
+      "hit5": 0.8062652743834703,
+      "hit10": 0.8122639413463675,
+      "delivered_hit": 0.6398578093756943,
+      "precision": 0.551747759757091,
+      "items": 1.215729837813819
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.01680672268907563,
+      "hit5": 0.058823529411764705,
+      "hit10": 0.16246498599439776,
+      "delivered_hit": 0.0196078431372549,
+      "precision": 0.0196078431372549,
+      "items": 1.0252100840336134
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.19620958751393533,
+      "hit5": 0.35785953177257523,
+      "hit10": 0.39018952062430323,
+      "delivered_hit": 0.20512820512820512,
+      "precision": 0.17725752508361203,
+      "items": 1.0947603121516165
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 54.26,
+     "question_seconds": 345.729
+    }
+   },
+   {
+    "system": "dsh-prime-memory-embedding",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.14986027014438752,
+    "hit5": 0.8390777829529577,
+    "hit10": 0.9219841639496973,
+    "delivered_hit": 0.8874010246856078,
+    "precision": 0.1775617140195622,
+    "delivered_f1": 0.29591353995628283,
+    "items": 4.998369818351188,
+    "chars": 1389.2403353516534,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 13,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.14542887398517473,
+      "hit5": 0.8355100600070596,
+      "hit10": 0.9177550300035299,
+      "delivered_hit": 0.8838686904341687,
+      "precision": 0.17686198376279563,
+      "items": 4.998235086480762
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.14996667407242836,
+      "hit5": 0.8682514996667408,
+      "hit10": 0.9280159964452344,
+      "delivered_hit": 0.9042435014441236,
+      "precision": 0.18094867807153966,
+      "items": 4.998000444345701
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.03361344537815126,
+      "hit5": 0.4005602240896359,
+      "hit10": 0.7254901960784313,
+      "delivered_hit": 0.5574229691876751,
+      "precision": 0.11148459383753502,
+      "items": 5.0
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.20958751393534003,
+      "hit5": 0.8784838350055741,
+      "hit10": 0.9832775919732442,
+      "delivered_hit": 0.9453734671125975,
+      "precision": 0.18907469342251954,
+      "items": 5.0
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 77.144,
+     "question_seconds": 784.677
+    }
+   },
+   {
+    "system": "dsh-prime-memory",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.2501164415463437,
+    "hit5": 0.854331625523987,
+    "hit10": 0.9319981369352585,
+    "delivered_hit": 0.8819282720074523,
+    "precision": 0.17936554245925235,
+    "delivered_f1": 0.29810320339661317,
+    "items": 4.954238472286912,
+    "chars": 1557.2231020027946,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 37,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.2612072008471585,
+      "hit5": 0.9046946699611719,
+      "hit10": 0.968937522061419,
+      "delivered_hit": 0.9346981997882103,
+      "precision": 0.18793975761854337,
+      "items": 4.984468761030709
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.26105309931126414,
+      "hit5": 0.9204621195289936,
+      "hit10": 0.9808931348589203,
+      "delivered_hit": 0.9506776271939569,
+      "precision": 0.19090202177293936,
+      "items": 4.98289269051322
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.0196078431372549,
+      "hit5": 0.06442577030812324,
+      "hit10": 0.1400560224089636,
+      "delivered_hit": 0.047619047619047616,
+      "precision": 0.01,
+      "items": 4.607843137254902
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.25195094760312153,
+      "hit5": 0.6778149386845039,
+      "hit10": 0.8851727982162765,
+      "delivered_hit": 0.7023411371237458,
+      "precision": 0.15854748603351956,
+      "items": 4.852842809364549
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 2.396,
+     "question_seconds": 9.408
+    }
+   },
+   {
+    "system": "dsh-soul-md",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.5887284583139264,
+    "hit5": 0.871448532836516,
+    "hit10": 0.9303679552864462,
+    "delivered_hit": 0.871448532836516,
+    "precision": 0.17625674469158806,
+    "delivered_f1": 0.2932097124229759,
+    "items": 4.982417326502096,
+    "chars": 1556.1712855146716,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.3353335686551359,
+      "hit5": 0.8355100600070596,
+      "hit10": 0.9216378397458524,
+      "delivered_hit": 0.8355100600070596,
+      "precision": 0.16824920578891636,
+      "items": 4.989057536180727
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.8393690291046434,
+      "hit5": 0.9726727393912464,
+      "hit10": 0.9853365918684737,
+      "delivered_hit": 0.9726727393912464,
+      "precision": 0.1956713322965267,
+      "items": 4.987113974672295
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.025210084033613446,
+      "hit5": 0.30532212885154064,
+      "hit10": 0.5462184873949579,
+      "delivered_hit": 0.30532212885154064,
+      "precision": 0.06106442577030813,
+      "items": 5.0
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.3556298773690078,
+      "hit5": 0.7023411371237458,
+      "hit10": 0.835005574136009,
+      "delivered_hit": 0.7023411371237458,
+      "precision": 0.14994419642857143,
+      "items": 4.930880713489409
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 1.193,
+     "question_seconds": 15.568
+    }
+   },
+   {
+    "system": "feiyu-memgate-embedding-precise",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.45423847228691194,
+    "hit5": 0.8329063809967396,
+    "hit10": 0.8965999068467629,
+    "delivered_hit": 0.5597345132743363,
+    "precision": 0.4163118714901397,
+    "delivered_f1": 0.47748575558750944,
+    "items": 1.7632743362831858,
+    "chars": 317.2870284117373,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.31909636427815036,
+      "hit5": 0.7363219202259089,
+      "hit10": 0.833745146487822,
+      "delivered_hit": 0.47476173667490296,
+      "precision": 0.2951312335958005,
+      "items": 2.0780091775503
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.4427904910019996,
+      "hit5": 0.8638080426571872,
+      "hit10": 0.9153521439680071,
+      "delivered_hit": 0.5321039768940236,
+      "precision": 0.4036746071971617,
+      "items": 1.6163074872250611
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.711484593837535,
+      "hit5": 0.9103641456582633,
+      "hit10": 0.9663865546218487,
+      "delivered_hit": 0.8543417366946778,
+      "precision": 0.5483193277310925,
+      "items": 2.1624649859943976
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.8361204013377926,
+      "hit5": 0.9520624303232998,
+      "hit10": 0.9732441471571907,
+      "delivered_hit": 0.8494983277591973,
+      "precision": 0.7978091728091727,
+      "items": 1.3478260869565217
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0,
+     "ingest_seconds": 3.432,
+     "question_seconds": 38.975
+    }
+   },
+   {
+    "system": "feiyu-memgate-embedding",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.45423847228691194,
+    "hit5": 0.8329063809967396,
+    "hit10": 0.8965999068467629,
+    "delivered_hit": 0.7819049836981835,
+    "precision": 0.3012709860487113,
+    "delivered_f1": 0.4349529384227342,
+    "items": 3.5238705170004656,
+    "chars": 635.5415696320447,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.31909636427815036,
+      "hit5": 0.7363219202259089,
+      "hit10": 0.833745146487822,
+      "delivered_hit": 0.6989057536180727,
+      "precision": 0.25193798449612403,
+      "items": 3.7186727850335335
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.4427904910019996,
+      "hit5": 0.8638080426571872,
+      "hit10": 0.9153521439680071,
+      "delivered_hit": 0.790935347700511,
+      "precision": 0.3082371141800619,
+      "items": 3.370139968895801
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.711484593837535,
+      "hit5": 0.9103641456582633,
+      "hit10": 0.9663865546218487,
+      "delivered_hit": 0.9103641456582633,
+      "precision": 0.1934173669467787,
+      "items": 4.815126050420168
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.8361204013377926,
+      "hit5": 0.9520624303232998,
+      "hit10": 0.9732441471571907,
+      "delivered_hit": 0.947603121516165,
+      "precision": 0.4650731158605174,
+      "items": 3.1661092530657746
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0,
+     "ingest_seconds": 252.876,
+     "question_seconds": 448.421
+    }
+   },
+   {
+    "system": "feiyu-memgate-hybrid-precise",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.6730321378667908,
+    "hit5": 0.950279459711225,
+    "hit10": 0.9732184443409408,
+    "delivered_hit": 0.8272007452258966,
+    "precision": 0.5699166145507609,
+    "delivered_f1": 0.674868786038666,
+    "items": 1.8338379133674896,
+    "chars": 498.149394503959,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.6487822096717261,
+      "hit5": 0.9343452170843629,
+      "hit10": 0.9657606777267914,
+      "delivered_hit": 0.8245675961877867,
+      "precision": 0.544486643878972,
+      "items": 1.9099894105188846
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.6598533659186847,
+      "hit5": 0.9604532326149744,
+      "hit10": 0.9782270606531882,
+      "delivered_hit": 0.8320373250388803,
+      "precision": 0.5556708323508607,
+      "items": 1.8682514996667408
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.6834733893557423,
+      "hit5": 0.9159663865546218,
+      "hit10": 0.9551820728291317,
+      "delivered_hit": 0.8011204481792717,
+      "precision": 0.5626843657817109,
+      "items": 1.8935574229691876
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.8115942028985508,
+      "hit5": 0.9632107023411371,
+      "hit10": 0.9788182831661093,
+      "delivered_hit": 0.8216276477146043,
+      "precision": 0.7359335038363172,
+      "items": 1.3968784838350057
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0,
+     "ingest_seconds": 3.786,
+     "question_seconds": 126.358
+    }
+   },
+   {
+    "system": "feiyu-memgate-hybrid",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.6730321378667908,
+    "hit5": 0.950279459711225,
+    "hit10": 0.9732184443409408,
+    "delivered_hit": 0.9349091755938519,
+    "precision": 0.35352523015965504,
+    "delivered_f1": 0.5130474318355345,
+    "items": 3.4438751746623195,
+    "chars": 861.611434559851,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.6487822096717261,
+      "hit5": 0.9343452170843629,
+      "hit10": 0.9657606777267914,
+      "delivered_hit": 0.9142252029650547,
+      "precision": 0.3472153538207936,
+      "items": 3.3819272855630076
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.6598533659186847,
+      "hit5": 0.9604532326149744,
+      "hit10": 0.9782270606531882,
+      "delivered_hit": 0.9444567873805821,
+      "precision": 0.36822256797806924,
+      "items": 3.3505887580537657
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.6834733893557423,
+      "hit5": 0.9159663865546218,
+      "hit10": 0.9551820728291317,
+      "delivered_hit": 0.907563025210084,
+      "precision": 0.21498599439775912,
+      "items": 4.621848739495798
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.8115942028985508,
+      "hit5": 0.9632107023411371,
+      "hit10": 0.9788182831661093,
+      "delivered_hit": 0.9632107023411371,
+      "precision": 0.3548657718120805,
+      "items": 3.6387959866220734
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0,
+     "ingest_seconds": 3.939,
+     "question_seconds": 141.22
+    }
+   },
+   {
+    "system": "feiyu-memgate-sqlite-precise",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.6576618537494178,
+    "hit5": 0.8728458313926409,
+    "hit10": 0.9076618537494178,
+    "delivered_hit": 0.8113646949231486,
+    "precision": 0.5814587796556376,
+    "delivered_f1": 0.6774370679074828,
+    "items": 1.798439683278994,
+    "chars": 670.6220307405682,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.7977409106953759,
+      "hit5": 0.9583480409459937,
+      "hit10": 0.9802329685845393,
+      "delivered_hit": 0.9152841510765972,
+      "precision": 0.6967118563443929,
+      "items": 1.601129544652312
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.7116196400799822,
+      "hit5": 0.9628971339702288,
+      "hit10": 0.9797822706065319,
+      "delivered_hit": 0.9051321928460342,
+      "precision": 0.6211106148578235,
+      "items": 1.8162630526549655
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.0196078431372549,
+      "hit5": 0.036414565826330535,
+      "hit10": 0.05322128851540616,
+      "delivered_hit": 0.022408963585434174,
+      "precision": 0.016666666666666666,
+      "items": 1.596638655462185
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.19843924191750278,
+      "hit5": 0.483835005574136,
+      "hit10": 0.6566332218506131,
+      "delivered_hit": 0.326644370122631,
+      "precision": 0.1714758566978193,
+      "items": 2.4124860646599777
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0,
+     "ingest_seconds": 0.931,
+     "question_seconds": 109.911
+    }
+   },
+   {
+    "system": "feiyu-memgate-sqlite",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.6576618537494178,
+    "hit5": 0.8728458313926409,
+    "hit10": 0.9076618537494178,
+    "delivered_hit": 0.8298789007918025,
+    "precision": 0.5424963755338741,
+    "delivered_f1": 0.6560979399409561,
+    "items": 2.020726595249185,
+    "chars": 748.4989520260829,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.7977409106953759,
+      "hit5": 0.9583480409459937,
+      "hit10": 0.9802329685845393,
+      "delivered_hit": 0.9258736321920226,
+      "precision": 0.6502358212474945,
+      "items": 1.786092481468408
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.7116196400799822,
+      "hit5": 0.9628971339702288,
+      "hit10": 0.9797822706065319,
+      "delivered_hit": 0.9193512552766052,
+      "precision": 0.5831071560993697,
+      "items": 2.0051099755609862
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.0196078431372549,
+      "hit5": 0.036414565826330535,
+      "hit10": 0.05322128851540616,
+      "delivered_hit": 0.022408963585434174,
+      "precision": 0.010076252723311545,
+      "items": 2.0168067226890756
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.19843924191750278,
+      "hit5": 0.483835005574136,
+      "hit10": 0.6566332218506131,
+      "delivered_hit": 0.399108138238573,
+      "precision": 0.1736632536973834,
+      "items": 2.841694537346711
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0,
+     "ingest_seconds": 1.105,
+     "question_seconds": 127.179
+    }
+   },
+   {
+    "system": "lingshu-dsh-memory",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.6942244993013508,
+    "hit5": 0.8862366092221705,
+    "hit10": 0.9205868653935724,
+    "delivered_hit": 0.07405682347461574,
+    "precision": 0.018514205868653936,
+    "delivered_f1": 0.029622729389846298,
+    "items": 4.0,
+    "chars": 1472.782319806707,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 646,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.7398517472643841,
+      "hit5": 0.9311683727497353,
+      "hit10": 0.9463466290151783,
+      "delivered_hit": 0.12248499823508648,
+      "precision": 0.03062124955877162,
+      "items": 4.0
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.7869362363919129,
+      "hit5": 0.9662297267273939,
+      "hit10": 0.9793379249055766,
+      "delivered_hit": 0.06354143523661408,
+      "precision": 0.01588535880915352,
+      "items": 4.0
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.03081232492997199,
+      "hit5": 0.047619047619047616,
+      "hit10": 0.10644257703081232,
+      "delivered_hit": 0.0,
+      "precision": 0.0,
+      "items": 4.0
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.34894091415830547,
+      "hit5": 0.6767001114827201,
+      "hit10": 0.8684503901895206,
+      "delivered_hit": 0.0033444816053511705,
+      "precision": 0.0008361204013377926,
+      "items": 4.0
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 23.408,
+     "question_seconds": 22.471
+    }
+   },
+   {
+    "system": "mem0-llm-claude-haiku-5-5",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.4425943176525384,
+    "hit5": 0.7993712156497438,
+    "hit10": 0.8504890544946437,
+    "delivered_hit": 0.8948532836516069,
+    "precision": 0.0673596995948879,
+    "delivered_f1": 0.12528837049131727,
+    "items": 14.020726595249185,
+    "chars": 3882.120866325105,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": "claude-haiku-5-5",
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.4052241440169432,
+      "hit5": 0.7578538651606072,
+      "hit10": 0.8072714436992587,
+      "delivered_hit": 0.8542181433109778,
+      "precision": 0.06511075553044432,
+      "items": 13.796681962583833
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.47322817151744057,
+      "hit5": 0.820706509664519,
+      "hit10": 0.8655854254610087,
+      "delivered_hit": 0.9046878471450789,
+      "precision": 0.07056661607493277,
+      "items": 13.54565652077316
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.5966386554621849,
+      "hit5": 0.8431372549019608,
+      "hit10": 0.9159663865546218,
+      "delivered_hit": 0.957983193277311,
+      "precision": 0.052325244147902,
+      "items": 18.45098039215686
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.3455964325529543,
+      "hit5": 0.8060200668896321,
+      "hit10": 0.8851727982162765,
+      "delivered_hit": 0.9487179487179487,
+      "precision": 0.06435437969796565,
+      "items": 15.348940914158305
+     }
+    },
+    "usage": {
+     "llm_calls": 2155,
+     "llm_input_tokens": 32527632,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 489304,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 3.497,
+     "ingest_seconds": 4136.439,
+     "question_seconds": 991.712
+    }
+   },
+   {
+    "system": "mem0-llm-deepseek-flash",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.4785747554727527,
+    "hit5": 0.7897065673032138,
+    "hit10": 0.844201210992082,
+    "delivered_hit": 0.8954354913833256,
+    "precision": 0.07357636472704604,
+    "delivered_f1": 0.13597952984397155,
+    "items": 13.078481602235678,
+    "chars": 3575.5591523055427,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": "deepseek-flash",
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.36498411577832685,
+      "hit5": 0.6780797740910696,
+      "hit10": 0.7250264737027886,
+      "delivered_hit": 0.7797387927991528,
+      "precision": 0.06402221969658058,
+      "items": 13.014472290857748
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.5614307931570762,
+      "hit5": 0.8593645856476338,
+      "hit10": 0.9122417240613198,
+      "delivered_hit": 0.9515663185958676,
+      "precision": 0.08211058745571888,
+      "items": 12.408575872028438
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.5014005602240896,
+      "hit5": 0.7871148459383753,
+      "hit10": 0.8851540616246498,
+      "delivered_hit": 0.9859943977591037,
+      "precision": 0.05466384736001251,
+      "items": 18.170868347338935
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.4124860646599777,
+      "hit5": 0.7937569676700111,
+      "hit10": 0.862876254180602,
+      "delivered_hit": 0.9431438127090301,
+      "precision": 0.068454987993025,
+      "items": 14.615384615384615
+     }
+    },
+    "usage": {
+     "llm_calls": 2155,
+     "llm_input_tokens": 20000381,
+     "llm_cached_input_tokens": 16344832,
+     "llm_output_tokens": 328494,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 1.589,
+     "ingest_seconds": 3971.447,
+     "question_seconds": 913.638
+    }
+   },
+   {
+    "system": "mem0-verbatim",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.4552864462040056,
+    "hit5": 0.833605030274802,
+    "hit10": 0.8976478807638566,
+    "delivered_hit": 0.948067070330694,
+    "precision": 0.0474033535165347,
+    "delivered_f1": 0.09029210193625657,
+    "items": 20.0,
+    "chars": 3826.8514205868655,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.3205082950935404,
+      "hit5": 0.7366749029297565,
+      "hit10": 0.8351570773032121,
+      "delivered_hit": 0.9124602894458171,
+      "precision": 0.045623014472290856,
+      "items": 20.0
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.4439013552543879,
+      "hit5": 0.8649189069095756,
+      "hit10": 0.9164630082203955,
+      "delivered_hit": 0.9593423683625861,
+      "precision": 0.047967118418129305,
+      "items": 20.0
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.711484593837535,
+      "hit5": 0.9103641456582633,
+      "hit10": 0.9663865546218487,
+      "delivered_hit": 0.9943977591036415,
+      "precision": 0.04971988795518207,
+      "items": 20.0
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.8361204013377926,
+      "hit5": 0.9520624303232998,
+      "hit10": 0.9732441471571907,
+      "delivered_hit": 0.9855072463768116,
+      "precision": 0.04927536231884058,
+      "items": 20.0
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 242.206,
+     "question_seconds": 968.699
+    }
+   },
+   {
+    "system": "memsearch",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.5187470889613414,
+    "hit5": 0.8765719608756404,
+    "hit10": 0.9261760596180717,
+    "delivered_hit": 0.8765719608756404,
+    "precision": 0.1753143921751281,
+    "delivered_f1": 0.29219065362521346,
+    "items": 5.0,
+    "chars": 1164.9873078714486,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.36074832333215673,
+      "hit5": 0.8002117896223085,
+      "hit10": 0.8810448288033886,
+      "delivered_hit": 0.8002117896223085,
+      "precision": 0.16004235792446173,
+      "items": 5.0
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.5305487669406799,
+      "hit5": 0.9071317485003333,
+      "hit10": 0.9440124416796267,
+      "delivered_hit": 0.9071317485003333,
+      "precision": 0.18142634970006666,
+      "items": 5.0
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.8179271708683473,
+      "hit5": 0.9159663865546218,
+      "hit10": 0.957983193277311,
+      "delivered_hit": 0.9159663865546218,
+      "precision": 0.18319327731092439,
+      "items": 5.0
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.8394648829431438,
+      "hit5": 0.9487179487179487,
+      "hit10": 0.9665551839464883,
+      "delivered_hit": 0.9487179487179487,
+      "precision": 0.18974358974358976,
+      "items": 5.0
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 200.846,
+     "question_seconds": 849.549
+    }
+   },
+   {
+    "system": "meow-memory",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.6952724732184443,
+    "hit5": 0.874126688402422,
+    "hit10": 0.9155798789007918,
+    "delivered_hit": 0.803679552864462,
+    "precision": 0.40252707581227437,
+    "delivered_f1": 0.5363969532476295,
+    "items": 1.9984862598975315,
+    "chars": 643.6377503493246,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.7458524532297918,
+      "hit5": 0.9414048711613131,
+      "hit10": 0.9752912107306742,
+      "delivered_hit": 0.8672785033533357,
+      "precision": 0.4339922343805154,
+      "items": 1.999294034592305
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.7873805820928682,
+      "hit5": 0.9586758498111531,
+      "hit10": 0.9844479004665629,
+      "delivered_hit": 0.8784714507887136,
+      "precision": 0.4393468118195957,
+      "items": 1.9997778271495223
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.025210084033613446,
+      "hit5": 0.056022408963585436,
+      "hit10": 0.13445378151260504,
+      "delivered_hit": 0.058823529411764705,
+      "precision": 0.029411764705882353,
+      "items": 2.0
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.34002229654403565,
+      "hit5": 0.5629877369007804,
+      "hit10": 0.6923076923076923,
+      "delivered_hit": 0.5239687848383501,
+      "precision": 0.26674107142857145,
+      "items": 1.9888517279821627
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 5.605,
+     "question_seconds": 44.958
+    }
+   },
+   {
+    "system": "openviking",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.45423847228691194,
+    "hit5": 0.8333721471821146,
+    "hit10": 0.8968327899394504,
+    "delivered_hit": 0.8968327899394504,
+    "precision": 0.09151772428236853,
+    "delivered_f1": 0.16608702037594192,
+    "items": 9.920586865393572,
+    "chars": 1873.2624592454588,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.3198023296858454,
+      "hit5": 0.7373808683374514,
+      "hit10": 0.8344511118955171,
+      "delivered_hit": 0.8344511118955171,
+      "precision": 0.08606054493805995,
+      "items": 9.903282739145782
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.4423461453010442,
+      "hit5": 0.8642523883581427,
+      "hit10": 0.9153521439680071,
+      "delivered_hit": 0.9153521439680071,
+      "precision": 0.09338959435626103,
+      "items": 9.90935347700511
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.7142857142857143,
+      "hit5": 0.9103641456582633,
+      "hit10": 0.9663865546218487,
+      "delivered_hit": 0.9663865546218487,
+      "precision": 0.09663865546218488,
+      "items": 10.0
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.835005574136009,
+      "hit5": 0.9509476031215162,
+      "hit10": 0.9732441471571907,
+      "delivered_hit": 0.9732441471571907,
+      "precision": 0.09732441471571908,
+      "items": 10.0
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 703.229,
+     "question_seconds": 259.608
+    }
+   },
+   {
+    "system": "seekmemory",
+    "stores": 32,
+    "store_ids": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "p11",
+     "p12",
+     "p13",
+     "p14",
+     "p15",
+     "p16",
+     "p17",
+     "p18",
+     "p19",
+     "p20",
+     "p21",
+     "p22",
+     "p23",
+     "p24",
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ],
+    "answerable": 8588,
+    "hit1": 0.37552398695854683,
+    "hit5": 0.5107126222636237,
+    "hit10": 0.8553795994410806,
+    "delivered_hit": 0.7739869585468095,
+    "precision": 0.1527322803801727,
+    "delivered_f1": 0.25512105111844474,
+    "items": 6.0435491383325575,
+    "chars": 633.481020027946,
+    "no_answer": null,
+    "quiet_rate": null,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "dialogues": {
+      "questions": 2833,
+      "hit1": 0.322273208612778,
+      "hit5": 0.46099541122485,
+      "hit10": 0.8245675961877867,
+      "delivered_hit": 0.7380868337451465,
+      "precision": 0.1515422768888657,
+      "items": 5.878573949876456
+     },
+     "events": {
+      "questions": 4501,
+      "hit1": 0.3719173516996223,
+      "hit5": 0.5076649633414797,
+      "hit10": 0.8755832037325039,
+      "delivered_hit": 0.7933792490557654,
+      "precision": 0.15958987319322515,
+      "items": 5.8913574761164185
+     },
+     "profile": {
+      "questions": 357,
+      "hit1": 0.07282913165266107,
+      "hit5": 0.28851540616246496,
+      "hit10": 0.6246498599439776,
+      "delivered_hit": 0.48739495798319327,
+      "precision": 0.06157462985194078,
+      "items": 7.946778711484594
+     },
+     "social_relationship": {
+      "questions": 897,
+      "hit1": 0.6822742474916388,
+      "hit5": 0.7714604236343366,
+      "hit10": 0.9431438127090301,
+      "delivered_hit": 0.9041248606465998,
+      "precision": 0.15844361181972788,
+      "items": 6.570791527313267
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 5.508,
+     "question_seconds": 34.656
+    }
+   }
+  ],
+  "samples": [
+   {
+    "n": 10,
+    "stores": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10"
+    ],
+    "rows": [
+     {
+      "system": "graphiti-deepseek-flash",
+      "stores": 10,
+      "store_ids": [
+       "p01",
+       "p02",
+       "p03",
+       "p04",
+       "p05",
+       "p06",
+       "p07",
+       "p08",
+       "p09",
+       "p10"
+      ],
+      "answerable": 2343,
+      "hit1": 0.4733247972684592,
+      "hit5": 0.7891591976099018,
+      "hit10": 0.8237302603499786,
+      "delivered_hit": 0.8237302603499786,
+      "precision": 0.2509735006094229,
+      "delivered_f1": 0.38472828421739397,
+      "items": 5.050362782757149,
+      "chars": 1101.2765685019206,
+      "no_answer": null,
+      "quiet_rate": null,
+      "unmapped_items": 0,
+      "llm_model": "deepseek-flash",
+      "by_type": {
+       "dialogues": {
+        "questions": 902,
+        "hit1": 0.37583148558758317,
+        "hit5": 0.6962305986696231,
+        "hit10": 0.7350332594235033,
+        "delivered_hit": 0.7350332594235033,
+        "precision": 0.2339827258816806,
+        "items": 4.939024390243903
+       },
+       "events": {
+        "questions": 1087,
+        "hit1": 0.5059797608095676,
+        "hit5": 0.8417663293468262,
+        "hit10": 0.8684452621895125,
+        "delivered_hit": 0.8684452621895125,
+        "precision": 0.280894777265745,
+        "items": 4.458141674333027
+       },
+       "profile": {
+        "questions": 114,
+        "hit1": 0.6052631578947368,
+        "hit5": 0.8070175438596491,
+        "hit10": 0.8508771929824561,
+        "delivered_hit": 0.8508771929824561,
+        "precision": 0.09357421331105542,
+        "items": 9.140350877192983
+       },
+       "social_relationship": {
+        "questions": 240,
+        "hit1": 0.6291666666666667,
+        "hit5": 0.8916666666666667,
+        "hit10": 0.9416666666666667,
+        "delivered_hit": 0.9416666666666667,
+        "precision": 0.2553429107226575,
+        "items": 6.208333333333333
+       }
+      },
+      "usage": {
+       "llm_calls": 4360,
+       "llm_input_tokens": 7460244,
+       "llm_cached_input_tokens": 905847,
+       "llm_output_tokens": 430147,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 2.487929,
+       "ingest_seconds": 3772.67,
+       "question_seconds": 245.916
+      }
+     },
+     {
+      "system": "graphiti-claude-haiku-5-5",
+      "stores": 10,
+      "store_ids": [
+       "p01",
+       "p02",
+       "p03",
+       "p04",
+       "p05",
+       "p06",
+       "p07",
+       "p08",
+       "p09",
+       "p10"
+      ],
+      "answerable": 2343,
+      "hit1": 0.42851045667947074,
+      "hit5": 0.7268459240290226,
+      "hit10": 0.7652582159624414,
+      "delivered_hit": 0.7652582159624414,
+      "precision": 0.22814100102406554,
+      "delivered_f1": 0.3514936844044911,
+      "items": 5.393939393939394,
+      "chars": 1023.2112676056338,
+      "no_answer": null,
+      "quiet_rate": null,
+      "unmapped_items": 0,
+      "llm_model": "claude-haiku-5-5",
+      "by_type": {
+       "dialogues": {
+        "questions": 902,
+        "hit1": 0.2804878048780488,
+        "hit5": 0.5909090909090909,
+        "hit10": 0.6430155210643016,
+        "delivered_hit": 0.6430155210643016,
+        "precision": 0.1902851263962375,
+        "items": 5.305986696230598
+       },
+       "events": {
+        "questions": 1087,
+        "hit1": 0.49034038638454464,
+        "hit5": 0.8104875804967802,
+        "hit10": 0.8325666973321068,
+        "delivered_hit": 0.8325666973321068,
+        "precision": 0.27300789089582195,
+        "items": 4.811407543698252
+       },
+       "profile": {
+        "questions": 114,
+        "hit1": 0.6403508771929824,
+        "hit5": 0.8421052631578947,
+        "hit10": 0.9035087719298246,
+        "delivered_hit": 0.9035087719298246,
+        "precision": 0.0981829573934837,
+        "items": 9.289473684210526
+       },
+       "social_relationship": {
+        "questions": 240,
+        "hit1": 0.6041666666666666,
+        "hit5": 0.8041666666666667,
+        "hit10": 0.8541666666666666,
+        "delivered_hit": 0.8541666666666666,
+        "precision": 0.22670450740070994,
+        "items": 6.5125
+       }
+      },
+      "usage": {
+       "llm_calls": 3347,
+       "llm_input_tokens": 11144644,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 564289,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 1.396608,
+       "ingest_seconds": 3607.43,
+       "question_seconds": 219.676
+      }
+     },
+     {
+      "system": "feiyu-memgate-sqlite",
+      "stores": 10,
+      "store_ids": [
+       "p01",
+       "p02",
+       "p03",
+       "p04",
+       "p05",
+       "p06",
+       "p07",
+       "p08",
+       "p09",
+       "p10"
+      ],
+      "answerable": 2343,
+      "hit1": 0.6726419120785317,
+      "hit5": 0.8766538625693555,
+      "hit10": 0.9125053350405463,
+      "delivered_hit": 0.8386683738796414,
+      "precision": 0.5590758362168397,
+      "delivered_f1": 0.6709084810346132,
+      "items": 1.948356807511737,
+      "chars": 711.276141698677,
+      "no_answer": null,
+      "quiet_rate": null,
+      "unmapped_items": 0,
+      "llm_model": null,
+      "by_type": {
+       "dialogues": {
+        "questions": 902,
+        "hit1": 0.7982261640798226,
+        "hit5": 0.9656319290465631,
+        "hit10": 0.9822616407982262,
+        "delivered_hit": 0.9312638580931264,
+        "precision": 0.6381613022567518,
+        "items": 1.7993348115299335
+       },
+       "events": {
+        "questions": 1087,
+        "hit1": 0.7249310027598896,
+        "hit5": 0.9613615455381784,
+        "hit10": 0.9816007359705612,
+        "delivered_hit": 0.9319227230910764,
+        "precision": 0.6072830420116528,
+        "items": 1.9282428702851886
+       },
+       "profile": {
+        "questions": 114,
+        "hit1": 0.043859649122807015,
+        "hit5": 0.06140350877192982,
+        "hit10": 0.09649122807017543,
+        "delivered_hit": 0.02631578947368421,
+        "precision": 0.009963768115942028,
+        "items": 1.8070175438596492
+       },
+       "social_relationship": {
+        "questions": 240,
+        "hit1": 0.2625,
+        "hit5": 0.5458333333333333,
+        "hit10": 0.725,
+        "delivered_hit": 0.45416666666666666,
+        "precision": 0.24382183908045976,
+        "items": 2.6666666666666665
+       }
+      },
+      "usage": {
+       "llm_calls": 0,
+       "llm_input_tokens": 0,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 0,
+       "llm_reasoning_tokens": null,
+       "llm_cost_usd": 0,
+       "ingest_seconds": 0.355,
+       "question_seconds": 34.572
+      }
+     },
+     {
+      "system": "feiyu-memgate-hybrid",
+      "stores": 10,
+      "store_ids": [
+       "p01",
+       "p02",
+       "p03",
+       "p04",
+       "p05",
+       "p06",
+       "p07",
+       "p08",
+       "p09",
+       "p10"
+      ],
+      "answerable": 2343,
+      "hit1": 0.6901408450704225,
+      "hit5": 0.9564660691421255,
+      "hit10": 0.9782330345710627,
+      "delivered_hit": 0.9440887750746906,
+      "precision": 0.36188238644453935,
+      "delivered_f1": 0.5232107859749249,
+      "items": 3.369184805804524,
+      "chars": 832.2317541613317,
+      "no_answer": null,
+      "quiet_rate": null,
+      "unmapped_items": 0,
+      "llm_model": null,
+      "by_type": {
+       "dialogues": {
+        "questions": 902,
+        "hit1": 0.614190687361419,
+        "hit5": 0.9467849223946785,
+        "hit10": 0.9722838137472284,
+        "delivered_hit": 0.9323725055432373,
+        "precision": 0.3503884572697003,
+        "items": 3.344789356984479
+       },
+       "events": {
+        "questions": 1087,
+        "hit1": 0.7267709291628335,
+        "hit5": 0.9714811407543699,
+        "hit10": 0.9871205151793928,
+        "delivered_hit": 0.9586016559337627,
+        "precision": 0.3852977286678944,
+        "items": 3.21803127874885
+       },
+       "profile": {
+        "questions": 114,
+        "hit1": 0.7105263157894737,
+        "hit5": 0.9210526315789473,
+        "hit10": 0.9736842105263158,
+        "delivered_hit": 0.9035087719298246,
+        "precision": 0.21432748538011695,
+        "items": 4.62280701754386
+       },
+       "social_relationship": {
+        "questions": 240,
+        "hit1": 0.8,
+        "hit5": 0.9416666666666667,
+        "hit10": 0.9625,
+        "delivered_hit": 0.9416666666666667,
+        "precision": 0.36916666666666664,
+        "items": 3.55
+       }
+      },
+      "usage": {
+       "llm_calls": 0,
+       "llm_input_tokens": 0,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 0,
+       "llm_reasoning_tokens": null,
+       "llm_cost_usd": 0,
+       "ingest_seconds": 1.308,
+       "question_seconds": 42.256
+      }
+     }
+    ]
+   },
+   {
+    "n": 5,
+    "stores": [
+     "p01",
+     "p02",
+     "p03",
+     "p04",
+     "p05"
+    ],
+    "rows": [
+     {
+      "system": "hindsight-chunks",
+      "stores": 5,
+      "store_ids": [
+       "p01",
+       "p02",
+       "p03",
+       "p04",
+       "p05"
+      ],
+      "answerable": 1352,
+      "hit1": 0.7492603550295858,
+      "hit5": 0.9681952662721893,
+      "hit10": 0.9763313609467456,
+      "delivered_hit": 0.9822485207100592,
+      "precision": 0.06785867438608699,
+      "delivered_f1": 0.12694719709443908,
+      "items": 16.758136094674555,
+      "chars": 2708.7418639053253,
+      "no_answer": null,
+      "quiet_rate": null,
+      "unmapped_items": 0,
+      "llm_model": null,
+      "by_type": {
+       "dialogues": {
+        "questions": 505,
+        "hit1": 0.695049504950495,
+        "hit5": 0.9841584158415841,
+        "hit10": 0.9881188118811881,
+        "delivered_hit": 0.9861386138613861,
+        "precision": 0.07293708561123823,
+        "items": 15.665346534653466
+       },
+       "events": {
+        "questions": 664,
+        "hit1": 0.8283132530120482,
+        "hit5": 0.9894578313253012,
+        "hit10": 0.9939759036144579,
+        "delivered_hit": 0.9939759036144579,
+        "precision": 0.0694658352589785,
+        "items": 16.474397590361445
+       },
+       "profile": {
+        "questions": 55,
+        "hit1": 0.6363636363636364,
+        "hit5": 0.9090909090909091,
+        "hit10": 0.9454545454545454,
+        "delivered_hit": 0.9818181818181818,
+        "precision": 0.045364839542805686,
+        "items": 22.78181818181818
+       },
+       "social_relationship": {
+        "questions": 128,
+        "hit1": 0.6015625,
+        "hit5": 0.8203125,
+        "hit10": 0.8515625,
+        "delivered_hit": 0.90625,
+        "precision": 0.04915092773045524,
+        "items": 19.953125
+       }
+      },
+      "usage": {
+       "llm_calls": 0,
+       "llm_input_tokens": 0,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 0,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 0.0,
+       "ingest_seconds": 16.9512,
+       "question_seconds": 5308.653
+      }
+     },
+     {
+      "system": "hindsight-llm-deepseek-flash",
+      "stores": 5,
+      "store_ids": [
+       "p01",
+       "p02",
+       "p03",
+       "p04",
+       "p05"
+      ],
+      "answerable": 1352,
+      "hit1": 0.5717455621301775,
+      "hit5": 0.9304733727810651,
+      "hit10": 0.9630177514792899,
+      "delivered_hit": 0.9674556213017751,
+      "precision": 0.02904008791836179,
+      "delivered_f1": 0.05638759111507701,
+      "items": 35.07396449704142,
+      "chars": 10267.847680029874,
+      "no_answer": null,
+      "quiet_rate": null,
+      "unmapped_items": 2977,
+      "llm_model": "deepseek-flash",
+      "by_type": {
+       "dialogues": {
+        "questions": 505,
+        "hit1": 0.36633663366336633,
+        "hit5": 0.9267326732673268,
+        "hit10": 0.9663366336633663,
+        "delivered_hit": 0.9485148514851485,
+        "precision": 0.029204886321074864,
+        "items": 33.524752475247524
+       },
+       "events": {
+        "questions": 664,
+        "hit1": 0.713855421686747,
+        "hit5": 0.9668674698795181,
+        "hit10": 0.9894578313253012,
+        "delivered_hit": 0.9879518072289156,
+        "precision": 0.03099758433994953,
+        "items": 33.394578313253014
+       },
+       "profile": {
+        "questions": 55,
+        "hit1": 0.6,
+        "hit5": 0.7636363636363637,
+        "hit10": 0.8727272727272727,
+        "delivered_hit": 0.9090909090909091,
+        "precision": 0.018819160279336368,
+        "items": 49.18181818181818
+       },
+       "social_relationship": {
+        "questions": 128,
+        "hit1": 0.6328125,
+        "hit5": 0.828125,
+        "hit10": 0.8515625,
+        "delivered_hit": 0.9609375,
+        "precision": 0.022627198878065184,
+        "items": 43.8359375
+       }
+      },
+      "usage": {
+       "llm_calls": 747,
+       "llm_input_tokens": 5175865,
+       "llm_cached_input_tokens": 2749056,
+       "llm_output_tokens": 429449,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 0.629938,
+       "ingest_seconds": 1239.1746,
+       "question_seconds": 2868.398
+      }
+     },
+     {
+      "system": "hindsight-llm-claude-haiku-5-5",
+      "stores": 5,
+      "store_ids": [
+       "p01",
+       "p02",
+       "p03",
+       "p04",
+       "p05"
+      ],
+      "answerable": 1352,
+      "hit1": 0.5465976331360947,
+      "hit5": 0.9164201183431953,
+      "hit10": 0.959319526627219,
+      "delivered_hit": 0.981508875739645,
+      "precision": 0.025500836986397785,
+      "delivered_f1": 0.04971014186781429,
+      "items": 40.187130177514796,
+      "chars": 11772.396084273449,
+      "no_answer": null,
+      "quiet_rate": null,
+      "unmapped_items": 5833,
+      "llm_model": "claude-haiku-5-5",
+      "by_type": {
+       "dialogues": {
+        "questions": 505,
+        "hit1": 0.3782178217821782,
+        "hit5": 0.902970297029703,
+        "hit10": 0.9564356435643564,
+        "delivered_hit": 0.9782178217821782,
+        "precision": 0.026105543733990943,
+        "items": 38.67920792079208
+       },
+       "events": {
+        "questions": 664,
+        "hit1": 0.6596385542168675,
+        "hit5": 0.947289156626506,
+        "hit10": 0.983433734939759,
+        "delivered_hit": 0.9909638554216867,
+        "precision": 0.026539259236041092,
+        "items": 38.71536144578313
+       },
+       "profile": {
+        "questions": 55,
+        "hit1": 0.5272727272727272,
+        "hit5": 0.8545454545454545,
+        "hit10": 0.9090909090909091,
+        "delivered_hit": 0.9272727272727272,
+        "precision": 0.01755899171300882,
+        "items": 54.2
+       },
+       "social_relationship": {
+        "questions": 128,
+        "hit1": 0.6328125,
+        "hit5": 0.8359375,
+        "hit10": 0.8671875,
+        "delivered_hit": 0.96875,
+        "precision": 0.02114077611716881,
+        "items": 47.75
+       }
+      },
+      "usage": {
+       "llm_calls": 716,
+       "llm_input_tokens": 7047823,
+       "llm_cached_input_tokens": 3646443,
+       "llm_output_tokens": 506158,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 0.629681,
+       "ingest_seconds": 1246.4688,
+       "question_seconds": 2923.77
+      }
+     },
+     {
+      "system": "feiyu-memgate-sqlite",
+      "stores": 5,
+      "store_ids": [
+       "p01",
+       "p02",
+       "p03",
+       "p04",
+       "p05"
+      ],
+      "answerable": 1352,
+      "hit1": 0.6893491124260355,
+      "hit5": 0.8846153846153846,
+      "hit10": 0.9164201183431953,
+      "delivered_hit": 0.8505917159763313,
+      "precision": 0.5672632363907532,
+      "delivered_f1": 0.6806188585741536,
+      "items": 1.9386094674556213,
+      "chars": 724.0613905325444,
+      "no_answer": null,
+      "quiet_rate": null,
+      "unmapped_items": 0,
+      "llm_model": null,
+      "by_type": {
+       "dialogues": {
+        "questions": 505,
+        "hit1": 0.8118811881188119,
+        "hit5": 0.9663366336633663,
+        "hit10": 0.9841584158415841,
+        "delivered_hit": 0.9326732673267327,
+        "precision": 0.644950495049505,
+        "items": 1.7920792079207921
+       },
+       "events": {
+        "questions": 664,
+        "hit1": 0.7349397590361446,
+        "hit5": 0.9683734939759037,
+        "hit10": 0.983433734939759,
+        "delivered_hit": 0.9442771084337349,
+        "precision": 0.6157128514056225,
+        "items": 1.9096385542168675
+       },
+       "profile": {
+        "questions": 55,
+        "hit1": 0.01818181818181818,
+        "hit5": 0.03636363636363636,
+        "hit10": 0.03636363636363636,
+        "delivered_hit": 0.01818181818181818,
+        "precision": 0.006802721088435374,
+        "items": 2.036363636363636
+       },
+       "social_relationship": {
+        "questions": 128,
+        "hit1": 0.2578125,
+        "hit5": 0.4921875,
+        "hit10": 0.6796875,
+        "delivered_hit": 0.3984375,
+        "precision": 0.2100271002710027,
+        "items": 2.625
+       }
+      },
+      "usage": {
+       "llm_calls": 0,
+       "llm_input_tokens": 0,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 0,
+       "llm_reasoning_tokens": null,
+       "llm_cost_usd": 0,
+       "ingest_seconds": 0.204,
+       "question_seconds": 20.643
+      }
+     },
+     {
+      "system": "feiyu-memgate-hybrid",
+      "stores": 5,
+      "store_ids": [
+       "p01",
+       "p02",
+       "p03",
+       "p04",
+       "p05"
+      ],
+      "answerable": 1352,
+      "hit1": 0.7122781065088757,
+      "hit5": 0.9615384615384616,
+      "hit10": 0.9800295857988166,
+      "delivered_hit": 0.9511834319526628,
+      "precision": 0.37203306192943497,
+      "delivered_f1": 0.5348658912309906,
+      "items": 3.3187869822485205,
+      "chars": 847.6930473372781,
+      "no_answer": null,
+      "quiet_rate": null,
+      "unmapped_items": 0,
+      "llm_model": null,
+      "by_type": {
+       "dialogues": {
+        "questions": 505,
+        "hit1": 0.6356435643564357,
+        "hit5": 0.9504950495049505,
+        "hit10": 0.9683168316831683,
+        "delivered_hit": 0.9386138613861386,
+        "precision": 0.35283828382838284,
+        "items": 3.3346534653465345
+       },
+       "events": {
+        "questions": 664,
+        "hit1": 0.7605421686746988,
+        "hit5": 0.9759036144578314,
+        "hit10": 0.9909638554216867,
+        "delivered_hit": 0.9653614457831325,
+        "precision": 0.40432378079436904,
+        "items": 3.121987951807229
+       },
+       "profile": {
+        "questions": 55,
+        "hit1": 0.7272727272727273,
+        "hit5": 0.9636363636363636,
+        "hit10": 1.0,
+        "delivered_hit": 0.9454545454545454,
+        "precision": 0.1987878787878788,
+        "items": 4.872727272727273
+       },
+       "social_relationship": {
+        "questions": 128,
+        "hit1": 0.7578125,
+        "hit5": 0.9296875,
+        "hit10": 0.9609375,
+        "delivered_hit": 0.9296875,
+        "precision": 0.3549479166666667,
+        "items": 3.609375
+       }
+      },
+      "usage": {
+       "llm_calls": 0,
+       "llm_input_tokens": 0,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 0,
+       "llm_reasoning_tokens": null,
+       "llm_cost_usd": 0,
+       "ingest_seconds": 0.783,
+       "question_seconds": 27.152
+      }
+     }
+    ]
+   },
+   {
+    "n": 3,
+    "stores": [
+     "p01",
+     "p02",
+     "p03"
+    ],
+    "rows": [
+     {
+      "system": "dsh-fish-memory",
+      "stores": 3,
+      "store_ids": [
+       "p01",
+       "p02",
+       "p03"
+      ],
+      "answerable": 838,
+      "hit1": 0.4033412887828162,
+      "hit5": 0.662291169451074,
+      "hit10": 0.698090692124105,
+      "delivered_hit": 0.48687350835322196,
+      "precision": 0.35750113999088007,
+      "delivered_f1": 0.4122763150432806,
+      "items": 1.4236276849642004,
+      "chars": 531.4272076372315,
+      "no_answer": null,
+      "quiet_rate": null,
+      "unmapped_items": 0,
+      "llm_model": null,
+      "by_type": {
+       "dialogues": {
+        "questions": 331,
+        "hit1": 0.622356495468278,
+        "hit5": 0.8036253776435045,
+        "hit10": 0.8398791540785498,
+        "delivered_hit": 0.6827794561933535,
+        "precision": 0.4772727272727273,
+        "items": 1.5377643504531722
+       },
+       "events": {
+        "questions": 384,
+        "hit1": 0.34375,
+        "hit5": 0.7526041666666666,
+        "hit10": 0.796875,
+        "delivered_hit": 0.4739583333333333,
+        "precision": 0.3175925925925926,
+        "items": 1.5130208333333333
+       },
+       "profile": {
+        "questions": 39,
+        "hit1": 0.0,
+        "hit5": 0.0,
+        "hit10": 0.02564102564102564,
+        "delivered_hit": 0.0,
+        "precision": 0.0,
+        "items": 0.38461538461538464
+       },
+       "social_relationship": {
+        "questions": 84,
+        "hit1": 0.0,
+        "hit5": 0.0,
+        "hit10": 0.0,
+        "delivered_hit": 0.0,
+        "precision": 0.0,
+        "items": 1.0476190476190477
+       }
+      },
+      "usage": {
+       "llm_calls": 0,
+       "llm_input_tokens": 0,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 0,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 0.0,
+       "ingest_seconds": 1.0025,
+       "question_seconds": 1.532
+      }
+     },
+     {
+      "system": "dsh-fish-memory-expand-deepseek-flash",
+      "stores": 3,
+      "store_ids": [
+       "p01",
+       "p02",
+       "p03"
+      ],
+      "answerable": 838,
+      "hit1": 0.4200477326968974,
+      "hit5": 0.6766109785202864,
+      "hit10": 0.711217183770883,
+      "delivered_hit": 0.49761336515513127,
+      "precision": 0.38850732600732596,
+      "delivered_f1": 0.43634335550456876,
+      "items": 1.3233890214797137,
+      "chars": 491.4773269689737,
+      "no_answer": null,
+      "quiet_rate": null,
+      "unmapped_items": 0,
+      "llm_model": "deepseek-flash",
+      "by_type": {
+       "dialogues": {
+        "questions": 331,
+        "hit1": 0.6132930513595166,
+        "hit5": 0.8036253776435045,
+        "hit10": 0.8429003021148036,
+        "delivered_hit": 0.6797583081570997,
+        "precision": 0.5005464480874317,
+        "items": 1.459214501510574
+       },
+       "events": {
+        "questions": 384,
+        "hit1": 0.375,
+        "hit5": 0.7682291666666666,
+        "hit10": 0.8072916666666666,
+        "delivered_hit": 0.4895833333333333,
+        "precision": 0.35480859010270777,
+        "items": 1.40625
+       },
+       "profile": {
+        "questions": 39,
+        "hit1": 0.1282051282051282,
+        "hit5": 0.15384615384615385,
+        "hit10": 0.1794871794871795,
+        "delivered_hit": 0.10256410256410256,
+        "precision": 0.2692307692307692,
+        "items": 0.41025641025641024
+       },
+       "social_relationship": {
+        "questions": 84,
+        "hit1": 0.0,
+        "hit5": 0.0,
+        "hit10": 0.0,
+        "delivered_hit": 0.0,
+        "precision": 0.0,
+        "items": 0.8333333333333334
+       }
+      },
+      "usage": {
+       "llm_calls": 80,
+       "llm_input_tokens": 65259,
+       "llm_cached_input_tokens": 29184,
+       "llm_output_tokens": 3040,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 0.007323,
+       "ingest_seconds": 79.2525,
+       "question_seconds": 1.044
+      }
+     },
+     {
+      "system": "dsh-fish-memory-expand-claude-haiku-5-5",
+      "stores": 3,
+      "store_ids": [
+       "p01",
+       "p02",
+       "p03"
+      ],
+      "answerable": 838,
+      "hit1": 0.4236276849642005,
+      "hit5": 0.6789976133651552,
+      "hit10": 0.7136038186157518,
+      "delivered_hit": 0.5023866348448688,
+      "precision": 0.3848773841961853,
+      "delivered_f1": 0.435850546679884,
+      "items": 1.3484486873508352,
+      "chars": 495.7601431980907,
+      "no_answer": null,
+      "quiet_rate": null,
+      "unmapped_items": 0,
+      "llm_model": "claude-haiku-5-5",
+      "by_type": {
+       "dialogues": {
+        "questions": 331,
+        "hit1": 0.595166163141994,
+        "hit5": 0.8036253776435045,
+        "hit10": 0.8429003021148036,
+        "delivered_hit": 0.6676737160120846,
+        "precision": 0.48360655737704916,
+        "items": 1.4803625377643506
+       },
+       "events": {
+        "questions": 384,
+        "hit1": 0.3932291666666667,
+        "hit5": 0.7682291666666666,
+        "hit10": 0.8098958333333334,
+        "delivered_hit": 0.5026041666666666,
+        "precision": 0.3599439775910364,
+        "items": 1.4244791666666667
+       },
+       "profile": {
+        "questions": 39,
+        "hit1": 0.1794871794871795,
+        "hit5": 0.20512820512820512,
+        "hit10": 0.20512820512820512,
+        "delivered_hit": 0.1794871794871795,
+        "precision": 0.40625,
+        "items": 0.48717948717948717
+       },
+       "social_relationship": {
+        "questions": 84,
+        "hit1": 0.0,
+        "hit5": 0.0,
+        "hit10": 0.0,
+        "delivered_hit": 0.0,
+        "precision": 0.0,
+        "items": 0.8809523809523809
+       }
+      },
+      "usage": {
+       "llm_calls": 100,
+       "llm_input_tokens": 152190,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 18074,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 0.024256,
+       "ingest_seconds": 171.6329,
+       "question_seconds": 1.203
+      }
+     },
+     {
+      "system": "feiyu-memgate-sqlite",
+      "stores": 3,
+      "store_ids": [
+       "p01",
+       "p02",
+       "p03"
+      ],
+      "answerable": 838,
+      "hit1": 0.6801909307875895,
+      "hit5": 0.8782816229116945,
+      "hit10": 0.9105011933174224,
+      "delivered_hit": 0.8412887828162291,
+      "precision": 0.55841384863124,
+      "delivered_f1": 0.6712673055945927,
+      "items": 1.958233890214797,
+      "chars": 752.6002386634844,
+      "no_answer": null,
+      "quiet_rate": null,
+      "unmapped_items": 0,
+      "llm_model": null,
+      "by_type": {
+       "dialogues": {
+        "questions": 331,
+        "hit1": 0.8126888217522659,
+        "hit5": 0.9697885196374623,
+        "hit10": 0.9848942598187311,
+        "delivered_hit": 0.9305135951661632,
+        "precision": 0.6373111782477341,
+        "items": 1.8066465256797584
+       },
+       "events": {
+        "questions": 384,
+        "hit1": 0.7291666666666666,
+        "hit5": 0.9635416666666666,
+        "hit10": 0.9817708333333334,
+        "delivered_hit": 0.9453125,
+        "precision": 0.6073350694444445,
+        "items": 1.9583333333333333
+       },
+       "profile": {
+        "questions": 39,
+        "hit1": 0.02564102564102564,
+        "hit5": 0.02564102564102564,
+        "hit10": 0.02564102564102564,
+        "delivered_hit": 0.02564102564102564,
+        "precision": 0.00980392156862745,
+        "items": 1.9230769230769231
+       },
+       "social_relationship": {
+        "questions": 84,
+        "hit1": 0.23809523809523808,
+        "hit5": 0.5238095238095238,
+        "hit10": 0.7023809523809523,
+        "delivered_hit": 0.39285714285714285,
+        "precision": 0.22616033755274262,
+        "items": 2.5714285714285716
+       }
+      },
+      "usage": {
+       "llm_calls": 0,
+       "llm_input_tokens": 0,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 0,
+       "llm_reasoning_tokens": null,
+       "llm_cost_usd": 0,
+       "ingest_seconds": 0.135,
+       "question_seconds": 13.501
+      }
+     },
+     {
+      "system": "feiyu-memgate-hybrid",
+      "stores": 3,
+      "store_ids": [
+       "p01",
+       "p02",
+       "p03"
+      ],
+      "answerable": 838,
+      "hit1": 0.7100238663484487,
+      "hit5": 0.9582338902147971,
+      "hit10": 0.9749403341288783,
+      "delivered_hit": 0.9439140811455847,
+      "precision": 0.36141607000795545,
+      "delivered_f1": 0.5226964493715738,
+      "items": 3.347255369928401,
+      "chars": 877.9415274463007,
+      "no_answer": null,
+      "quiet_rate": null,
+      "unmapped_items": 0,
+      "llm_model": null,
+      "by_type": {
+       "dialogues": {
+        "questions": 331,
+        "hit1": 0.6404833836858006,
+        "hit5": 0.9486404833836858,
+        "hit10": 0.9637462235649547,
+        "delivered_hit": 0.9305135951661632,
+        "precision": 0.3444612286002014,
+        "items": 3.3413897280966767
+       },
+       "events": {
+        "questions": 384,
+        "hit1": 0.7526041666666666,
+        "hit5": 0.9739583333333334,
+        "hit10": 0.9895833333333334,
+        "delivered_hit": 0.9609375,
+        "precision": 0.3854600694444445,
+        "items": 3.1901041666666665
+       },
+       "profile": {
+        "questions": 39,
+        "hit1": 0.7435897435897436,
+        "hit5": 1.0,
+        "hit10": 1.0,
+        "delivered_hit": 0.9743589743589743,
+        "precision": 0.20726495726495728,
+        "items": 4.846153846153846
+       },
+       "social_relationship": {
+        "questions": 84,
+        "hit1": 0.7738095238095238,
+        "hit5": 0.9047619047619048,
+        "hit10": 0.9404761904761905,
+        "delivered_hit": 0.9047619047619048,
+        "precision": 0.3898809523809524,
+        "items": 3.392857142857143
+       }
+      },
+      "usage": {
+       "llm_calls": 0,
+       "llm_input_tokens": 0,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 0,
+       "llm_reasoning_tokens": null,
+       "llm_cost_usd": 0,
+       "ingest_seconds": 0.505,
+       "question_seconds": 18.033
+      }
+     }
+    ]
+   }
+  ],
+  "cost": [
+   {
+    "system": "dsh-fish-memory-expand-claude-haiku-5-5",
+    "model": "claude-haiku-5-5",
+    "thinking": "disabled",
+    "stores": 3,
+    "memories": 225,
+    "calls": 100,
+    "input_tokens": 152190,
+    "cached_input_tokens": 0,
+    "output_tokens": 18074,
+    "reasoning_tokens": 0,
+    "usd": 0.024,
+    "usd_per_1000_memories": 0.10666666666666667,
+    "ingest_seconds_per_memory": 0.7628133333333333,
+    "failed_stores": []
+   },
+   {
+    "system": "dsh-fish-memory-expand-deepseek-flash",
+    "model": "deepseek-flash",
+    "thinking": "disabled",
+    "stores": 3,
+    "memories": 225,
+    "calls": 80,
+    "input_tokens": 65259,
+    "cached_input_tokens": 29184,
+    "output_tokens": 3040,
+    "reasoning_tokens": 0,
+    "usd": 0.007,
+    "usd_per_1000_memories": 0.03111111111111111,
+    "ingest_seconds_per_memory": 0.3522311111111111,
+    "failed_stores": []
+   },
+   {
+    "system": "graphiti-claude-haiku-5-5",
+    "model": "claude-haiku-5-5",
+    "thinking": "disabled",
+    "stores": 10,
+    "memories": 664,
+    "calls": 3347,
+    "input_tokens": 11144644,
+    "cached_input_tokens": 0,
+    "output_tokens": 564289,
+    "reasoning_tokens": 0,
+    "usd": 1.397,
+    "usd_per_1000_memories": 2.1039156626506026,
+    "ingest_seconds_per_memory": 5.432876506024096,
+    "failed_stores": []
+   },
+   {
+    "system": "graphiti-deepseek-flash",
+    "model": "deepseek-flash",
+    "thinking": "disabled",
+    "stores": 24,
+    "memories": 1589,
+    "calls": 10553,
+    "input_tokens": 17996457,
+    "cached_input_tokens": 1879415,
+    "output_tokens": 1035447,
+    "reasoning_tokens": 0,
+    "usd": 6.089,
+    "usd_per_1000_memories": 3.8319697923222154,
+    "ingest_seconds_per_memory": 5.970629326620516,
+    "failed_stores": [
+     "p25",
+     "p26",
+     "p27",
+     "p28",
+     "p29",
+     "p30",
+     "p31",
+     "p32"
+    ]
+   },
+   {
+    "system": "hindsight-llm-claude-haiku-5-5",
+    "model": "claude-haiku-5-5",
+    "thinking": "disabled",
+    "stores": 5,
+    "memories": 361,
+    "calls": 716,
+    "input_tokens": 7047823,
+    "cached_input_tokens": 3646443,
+    "output_tokens": 506158,
+    "reasoning_tokens": 0,
+    "usd": 0.63,
+    "usd_per_1000_memories": 1.745152354570637,
+    "ingest_seconds_per_memory": 3.4528227146814405,
+    "failed_stores": []
+   },
+   {
+    "system": "hindsight-llm-deepseek-flash",
+    "model": "deepseek-flash",
+    "thinking": "disabled",
+    "stores": 5,
+    "memories": 361,
+    "calls": 747,
+    "input_tokens": 5175865,
+    "cached_input_tokens": 2749056,
+    "output_tokens": 429449,
+    "reasoning_tokens": 0,
+    "usd": 0.63,
+    "usd_per_1000_memories": 1.745152354570637,
+    "ingest_seconds_per_memory": 3.4326177285318558,
+    "failed_stores": []
+   },
+   {
+    "system": "mem0-llm-claude-haiku-5-5",
+    "model": "claude-haiku-5-5",
+    "thinking": "disabled",
+    "stores": 32,
+    "memories": 2155,
+    "calls": 2155,
+    "input_tokens": 32527632,
+    "cached_input_tokens": 0,
+    "output_tokens": 489304,
+    "reasoning_tokens": 0,
+    "usd": 3.497,
+    "usd_per_1000_memories": 1.622737819025522,
+    "ingest_seconds_per_memory": 1.9194612529002322,
+    "failed_stores": []
+   },
+   {
+    "system": "mem0-llm-deepseek-flash",
+    "model": "deepseek-flash",
+    "thinking": "disabled",
+    "stores": 32,
+    "memories": 2155,
+    "calls": 2155,
+    "input_tokens": 20000381,
+    "cached_input_tokens": 16344832,
+    "output_tokens": 328494,
+    "reasoning_tokens": 0,
+    "usd": 1.589,
+    "usd_per_1000_memories": 0.7373549883990719,
+    "ingest_seconds_per_memory": 1.8428988399071926,
+    "failed_stores": []
+   }
+  ],
+  "latency": {
+   "feiyu-memgate-embedding-precise": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 12.711,
+    "p95_ms": 33.036
+   },
+   "feiyu-memgate-embedding": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 13.867,
+    "p95_ms": 30.556
+   },
+   "feiyu-memgate-hybrid-precise": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 18.533,
+    "p95_ms": 41.394
+   },
+   "feiyu-memgate-hybrid": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 19.746,
+    "p95_ms": 48.996
+   },
+   "feiyu-memgate-sqlite-precise": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 5.437,
+    "p95_ms": 7.435
+   },
+   "feiyu-memgate-sqlite": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 5.436,
+    "p95_ms": 7.509
+   },
+   "seekmemory": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 1.895,
+    "p95_ms": 5.229
+   },
+   "meow-memory": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 2.7233,
+    "p95_ms": 3.9116
+   },
+   "dsh-mnemon": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 18.3696,
+    "p95_ms": 27.1667
+   },
+   "dsh-mnemon-embedding": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 30.84,
+    "p95_ms": 40.2056
+   },
+   "memsearch": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 12.174,
+    "p95_ms": 14.525
+   },
+   "mem0-verbatim": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 14.735,
+    "p95_ms": 28.452
+   },
+   "lingshu-dsh-memory": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 2.093,
+    "p95_ms": 2.387
+   },
+   "openviking": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 14.635,
+    "p95_ms": 29.078
+   },
+   "dsh-fish-memory": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 0.6282,
+    "p95_ms": 1.0458
+   },
+   "dsh-prime-memory": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 0.8898,
+    "p95_ms": 1.2011
+   },
+   "dsh-prime-memory-embedding": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 21.9357,
+    "p95_ms": 23.6353
+   },
+   "dsh-soul-md": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 1.3204,
+    "p95_ms": 1.74
+   },
+   "hindsight-chunks": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "p15",
+    "memories": 69,
+    "questions": 214,
+    "p50_ms": 2935.3802,
+    "p95_ms": 3071.4211
+   },
+   "mem0-llm-deepseek-flash": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 8588,
+    "p50_ms": 86.824,
+    "p95_ms": 261.767
+   },
+   "mem0-llm-claude-haiku-5-5": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 8588,
+    "p50_ms": 96.608,
+    "p95_ms": 272.573
+   },
+   "graphiti-deepseek-flash": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 6404,
+    "p50_ms": 51.226,
+    "p95_ms": 173.456
+   },
+   "graphiti-claude-haiku-5-5": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 2343,
+    "p50_ms": 76.341,
+    "p95_ms": 221.203
+   },
+   "dsh-fish-memory-expand-deepseek-flash": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 838,
+    "p50_ms": 1.1818,
+    "p95_ms": 1.9078
+   },
+   "dsh-fish-memory-expand-claude-haiku-5-5": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 838,
+    "p50_ms": 1.348,
+    "p95_ms": 2.3184
+   },
+   "hindsight-llm-deepseek-flash": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 1352,
+    "p50_ms": 2174.2198,
+    "p95_ms": 2657.538
+   },
+   "hindsight-llm-claude-haiku-5-5": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 1352,
+    "p50_ms": 2152.2449,
+    "p95_ms": 2798.3767
+   }
+  }
+ },
+ "locomo": {
+  "stores": [
+   "conv-26",
+   "conv-30",
+   "conv-41",
+   "conv-42",
+   "conv-43",
+   "conv-44",
+   "conv-47",
+   "conv-48",
+   "conv-49",
+   "conv-50"
+  ],
+  "full": [
+   {
+    "system": "dsh-fish-memory",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.1719869706840391,
+    "hit5": 0.31400651465798046,
+    "hit10": 0.3472312703583062,
+    "delivered_hit": 0.28403908794788274,
+    "precision": 0.10501968503937006,
+    "delivered_f1": 0.15334287581343875,
+    "items": 3.3185667752442995,
+    "chars": 632.7153094462541,
+    "no_answer": 446,
+    "quiet_rate": 0.004484304932735426,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.13120567375886524,
+      "hit5": 0.26595744680851063,
+      "hit10": 0.3120567375886525,
+      "delivered_hit": 0.2198581560283688,
+      "precision": 0.08435990338164251,
+      "items": 3.2588652482269502
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.23125,
+      "hit5": 0.428125,
+      "hit10": 0.484375,
+      "delivered_hit": 0.396875,
+      "precision": 0.15484375,
+      "items": 3.21875
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.05434782608695652,
+      "hit5": 0.15217391304347827,
+      "hit10": 0.18478260869565216,
+      "delivered_hit": 0.13043478260869565,
+      "precision": 0.04063670411985019,
+      "items": 3.239130434782609
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.1759809750297265,
+      "hit5": 0.30439952437574314,
+      "hit10": 0.32461355529131986,
+      "delivered_hit": 0.2794292508917955,
+      "precision": 0.09964243146603098,
+      "items": 3.38525564803805
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 9.991,
+     "question_seconds": 10.069
+    }
+   },
+   {
+    "system": "dsh-mnemon-embedding",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.33876221498371334,
+    "hit5": 0.5615635179153095,
+    "hit10": 0.6338762214983713,
+    "delivered_hit": 0.4905537459283388,
+    "precision": 0.16503800217155268,
+    "delivered_f1": 0.24698300556842498,
+    "items": 3.419543973941368,
+    "chars": 431.69902280130293,
+    "no_answer": 446,
+    "quiet_rate": 0.0,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.2198581560283688,
+      "hit5": 0.44680851063829785,
+      "hit10": 0.5319148936170213,
+      "delivered_hit": 0.37943262411347517,
+      "precision": 0.14450354609929078,
+      "items": 3.617021276595745
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.453125,
+      "hit5": 0.675,
+      "hit10": 0.728125,
+      "delivered_hit": 0.584375,
+      "precision": 0.22135416666666666,
+      "items": 2.978125
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.10869565217391304,
+      "hit5": 0.32608695652173914,
+      "hit10": 0.391304347826087,
+      "delivered_hit": 0.25,
+      "precision": 0.08967391304347826,
+      "items": 3.0869565217391304
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.36028537455410226,
+      "hit5": 0.582639714625446,
+      "hit10": 0.6587395957193817,
+      "delivered_hit": 0.5184304399524375,
+      "precision": 0.15873959571938168,
+      "items": 3.557669441141498
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 616.232,
+     "question_seconds": 297.089
+    }
+   },
+   {
+    "system": "dsh-mnemon",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.21107491856677524,
+    "hit5": 0.31205211726384363,
+    "hit10": 0.33420195439739414,
+    "delivered_hit": 0.21954397394136807,
+    "precision": 0.18517915309446253,
+    "delivered_f1": 0.20090261438336865,
+    "items": 1.1837133550488599,
+    "chars": 225.1211726384365,
+    "no_answer": 446,
+    "quiet_rate": 0.0,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.11347517730496454,
+      "hit5": 0.20212765957446807,
+      "hit10": 0.24468085106382978,
+      "delivered_hit": 0.14893617021276595,
+      "precision": 0.11761229314420803,
+      "items": 1.2907801418439717
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.275,
+      "hit5": 0.4125,
+      "hit10": 0.43125,
+      "delivered_hit": 0.28125,
+      "precision": 0.23359375,
+      "items": 1.184375
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.05434782608695652,
+      "hit5": 0.13043478260869565,
+      "hit10": 0.15217391304347827,
+      "delivered_hit": 0.08695652173913043,
+      "precision": 0.08152173913043478,
+      "items": 1.108695652173913
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.23662306777645659,
+      "hit5": 0.33055885850178357,
+      "hit10": 0.34720570749108204,
+      "delivered_hit": 0.2342449464922711,
+      "precision": 0.20075307173999207,
+      "items": 1.1557669441141498
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 178.216,
+     "question_seconds": 160.95
+    }
+   },
+   {
+    "system": "dsh-prime-memory-embedding",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.07882736156351791,
+    "hit5": 0.30293159609120524,
+    "hit10": 0.5537459283387622,
+    "delivered_hit": 0.4488599348534202,
+    "precision": 0.09420195439739414,
+    "delivered_f1": 0.15572252058494374,
+    "items": 5.0,
+    "chars": 638.7081433224756,
+    "no_answer": 446,
+    "quiet_rate": 0.0,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.05673758865248227,
+      "hit5": 0.18439716312056736,
+      "hit10": 0.4432624113475177,
+      "delivered_hit": 0.3120567375886525,
+      "precision": 0.07588652482269505,
+      "items": 5.0
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.09375,
+      "hit5": 0.325,
+      "hit10": 0.634375,
+      "delivered_hit": 0.540625,
+      "precision": 0.11125,
+      "items": 5.0
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.043478260869565216,
+      "hit5": 0.18478260869565216,
+      "hit10": 0.2608695652173913,
+      "delivered_hit": 0.20652173913043478,
+      "precision": 0.05,
+      "items": 5.0
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.08442330558858502,
+      "hit5": 0.34720570749108204,
+      "hit10": 0.5921521997621879,
+      "delivered_hit": 0.4863258026159334,
+      "precision": 0.09869203329369798,
+      "items": 5.0
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 210.862,
+     "question_seconds": 176.188
+    }
+   },
+   {
+    "system": "dsh-prime-memory",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.038436482084690554,
+    "hit5": 0.21368078175895766,
+    "hit10": 0.48143322475570033,
+    "delivered_hit": 0.39543973941368077,
+    "precision": 0.08169381107491858,
+    "delivered_f1": 0.13541273435957285,
+    "items": 5.0,
+    "chars": 658.1257328990228,
+    "no_answer": 446,
+    "quiet_rate": 0.0,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.04609929078014184,
+      "hit5": 0.13829787234042554,
+      "hit10": 0.3120567375886525,
+      "delivered_hit": 0.2375886524822695,
+      "precision": 0.05460992907801419,
+      "items": 5.0
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.04375,
+      "hit5": 0.2625,
+      "hit10": 0.540625,
+      "delivered_hit": 0.428125,
+      "precision": 0.08812500000000001,
+      "items": 5.0
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.03260869565217391,
+      "hit5": 0.09782608695652174,
+      "hit10": 0.2608695652173913,
+      "delivered_hit": 0.18478260869565216,
+      "precision": 0.043478260869565216,
+      "items": 5.0
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.034482758620689655,
+      "hit5": 0.23305588585017836,
+      "hit10": 0.539833531510107,
+      "delivered_hit": 0.4589774078478002,
+      "precision": 0.09250891795481571,
+      "items": 5.0
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 4.722,
+     "question_seconds": 1.889
+    }
+   },
+   {
+    "system": "dsh-soul-md",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.2469055374592834,
+    "hit5": 0.42996742671009774,
+    "hit10": 0.504885993485342,
+    "delivered_hit": 0.42996742671009774,
+    "precision": 0.09068403908794789,
+    "delivered_f1": 0.14977844293805206,
+    "items": 5.0,
+    "chars": 967.8260586319218,
+    "no_answer": 446,
+    "quiet_rate": 0.0,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.13829787234042554,
+      "hit5": 0.30851063829787234,
+      "hit10": 0.40070921985815605,
+      "delivered_hit": 0.30851063829787234,
+      "precision": 0.07872340425531917,
+      "items": 5.0
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.31875,
+      "hit5": 0.53125,
+      "hit10": 0.615625,
+      "delivered_hit": 0.53125,
+      "precision": 0.108125,
+      "items": 5.0
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.10869565217391304,
+      "hit5": 0.20652173913043478,
+      "hit10": 0.2717391304347826,
+      "delivered_hit": 0.20652173913043478,
+      "precision": 0.04565217391304348,
+      "items": 5.0
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.27110582639714625,
+      "hit5": 0.45659928656361476,
+      "hit10": 0.5231866825208086,
+      "delivered_hit": 0.45659928656361476,
+      "precision": 0.0929845422116528,
+      "items": 5.0
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 2.905,
+     "question_seconds": 29.679
+    }
+   },
+   {
+    "system": "feiyu-memgate-embedding-precise",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.23387622149837134,
+    "hit5": 0.5159609120521172,
+    "hit10": 0.6390879478827362,
+    "delivered_hit": 0.3667752442996743,
+    "precision": 0.21381766381766382,
+    "delivered_f1": 0.2701480668670515,
+    "items": 2.560260586319218,
+    "chars": 293.37328990228013,
+    "no_answer": 446,
+    "quiet_rate": 0.10762331838565023,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.1524822695035461,
+      "hit5": 0.40425531914893614,
+      "hit10": 0.5354609929078015,
+      "delivered_hit": 0.28368794326241137,
+      "precision": 0.1399749373433584,
+      "items": 3.0
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.321875,
+      "hit5": 0.59375,
+      "hit10": 0.725,
+      "delivered_hit": 0.4375,
+      "precision": 0.3113357843137255,
+      "items": 1.9875
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.10869565217391304,
+      "hit5": 0.31521739130434784,
+      "hit10": 0.40217391304347827,
+      "delivered_hit": 0.18478260869565216,
+      "precision": 0.10377777777777777,
+      "items": 2.3043478260869565
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.2413793103448276,
+      "hit5": 0.5457788347205708,
+      "hit10": 0.667063020214031,
+      "delivered_hit": 0.3876337693222354,
+      "precision": 0.21554993678887485,
+      "items": 2.6587395957193816
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0,
+     "ingest_seconds": 8.301,
+     "question_seconds": 35.948
+    }
+   },
+   {
+    "system": "feiyu-memgate-embedding",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.23387622149837134,
+    "hit5": 0.5159609120521172,
+    "hit10": 0.6390879478827362,
+    "delivered_hit": 0.5022801302931597,
+    "precision": 0.1256318082788671,
+    "delivered_f1": 0.20099111724099275,
+    "items": 4.745928338762215,
+    "chars": 535.4006514657981,
+    "no_answer": 446,
+    "quiet_rate": 0.002242152466367713,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.1524822695035461,
+      "hit5": 0.40425531914893614,
+      "hit10": 0.5354609929078015,
+      "delivered_hit": 0.3723404255319149,
+      "precision": 0.1066429418742586,
+      "items": 4.872340425531915
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.321875,
+      "hit5": 0.59375,
+      "hit10": 0.725,
+      "delivered_hit": 0.590625,
+      "precision": 0.1607105538140021,
+      "items": 4.509375
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.10869565217391304,
+      "hit5": 0.31521739130434784,
+      "hit10": 0.40217391304347827,
+      "delivered_hit": 0.30434782608695654,
+      "precision": 0.07985347985347985,
+      "items": 4.771739130434782
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.2413793103448276,
+      "hit5": 0.5457788347205708,
+      "hit10": 0.667063020214031,
+      "delivered_hit": 0.5338882282996433,
+      "precision": 0.12361938816050855,
+      "items": 4.7907253269916765
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0,
+     "ingest_seconds": 230.999,
+     "question_seconds": 132.424
+    }
+   },
+   {
+    "system": "feiyu-memgate-hybrid-precise",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.36351791530944627,
+    "hit5": 0.5798045602605864,
+    "hit10": 0.6605863192182411,
+    "delivered_hit": 0.45667752442996745,
+    "precision": 0.2898773006134969,
+    "delivered_f1": 0.35464360711862275,
+    "items": 2.525732899022801,
+    "chars": 500.58045602605864,
+    "no_answer": 446,
+    "quiet_rate": 0.18385650224215247,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.22695035460992907,
+      "hit5": 0.5212765957446809,
+      "hit10": 0.6205673758865248,
+      "delivered_hit": 0.41843971631205673,
+      "precision": 0.20617760617760617,
+      "items": 3.2872340425531914
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.5,
+      "hit5": 0.65,
+      "hit10": 0.715625,
+      "delivered_hit": 0.565625,
+      "precision": 0.39923954372623577,
+      "items": 2.228125
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.14130434782608695,
+      "hit5": 0.29347826086956524,
+      "hit10": 0.358695652173913,
+      "delivered_hit": 0.16304347826086957,
+      "precision": 0.1424731182795699,
+      "items": 1.75
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.3816884661117717,
+      "hit5": 0.6040428061831153,
+      "hit10": 0.6860879904875149,
+      "delivered_hit": 0.460166468489893,
+      "precision": 0.2927314814814815,
+      "items": 2.4684898929845422
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0,
+     "ingest_seconds": 9.026,
+     "question_seconds": 82.753
+    }
+   },
+   {
+    "system": "feiyu-memgate-hybrid",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.36351791530944627,
+    "hit5": 0.5798045602605864,
+    "hit10": 0.6605863192182411,
+    "delivered_hit": 0.5583061889250814,
+    "precision": 0.13306100217864925,
+    "delivered_f1": 0.21490398149300535,
+    "items": 4.807166123778502,
+    "chars": 952.5263843648208,
+    "no_answer": 446,
+    "quiet_rate": 0.0,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.22695035460992907,
+      "hit5": 0.5212765957446809,
+      "hit10": 0.6205673758865248,
+      "delivered_hit": 0.4716312056737589,
+      "precision": 0.13244365361803084,
+      "items": 4.925531914893617
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.5,
+      "hit5": 0.65,
+      "hit10": 0.715625,
+      "delivered_hit": 0.634375,
+      "precision": 0.14942348008385745,
+      "items": 4.7125
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.14130434782608695,
+      "hit5": 0.29347826086956524,
+      "hit10": 0.358695652173913,
+      "delivered_hit": 0.2826086956521739,
+      "precision": 0.06177536231884058,
+      "items": 4.880434782608695
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.3816884661117717,
+      "hit5": 0.6040428061831153,
+      "hit10": 0.6860879904875149,
+      "delivered_hit": 0.5885850178359097,
+      "precision": 0.13488279698053238,
+      "items": 4.795481569560048
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0,
+     "ingest_seconds": 9.029,
+     "question_seconds": 84.471
+    }
+   },
+   {
+    "system": "feiyu-memgate-sqlite-precise",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.20390879478827362,
+    "hit5": 0.36351791530944627,
+    "hit10": 0.46188925081433224,
+    "delivered_hit": 0.3446254071661238,
+    "precision": 0.10852484132195228,
+    "delivered_f1": 0.16506850764399797,
+    "items": 4.433876221498371,
+    "chars": 1201.3231270358306,
+    "no_answer": 446,
+    "quiet_rate": 0.004484304932735426,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.1347517730496454,
+      "hit5": 0.31560283687943264,
+      "hit10": 0.43617021276595747,
+      "delivered_hit": 0.3120567375886525,
+      "precision": 0.08291962174940898,
+      "items": 4.712765957446808
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.29375,
+      "hit5": 0.440625,
+      "hit10": 0.53125,
+      "delivered_hit": 0.428125,
+      "precision": 0.15356394129979037,
+      "items": 4.309375
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.05434782608695652,
+      "hit5": 0.16304347826086957,
+      "hit10": 0.2717391304347826,
+      "delivered_hit": 0.14130434782608695,
+      "precision": 0.03695652173913044,
+      "items": 4.760869565217392
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.20927467300832342,
+      "hit5": 0.37217598097502974,
+      "hit10": 0.464922711058264,
+      "delivered_hit": 0.3460166468489893,
+      "precision": 0.10790212595266747,
+      "items": 4.351961950059453
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0,
+     "ingest_seconds": 0.696,
+     "question_seconds": 56.331
+    }
+   },
+   {
+    "system": "feiyu-memgate-sqlite",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.20390879478827362,
+    "hit5": 0.36351791530944627,
+    "hit10": 0.46188925081433224,
+    "delivered_hit": 0.3465798045602606,
+    "precision": 0.09062364189482834,
+    "delivered_f1": 0.14367830057659448,
+    "items": 4.702280130293159,
+    "chars": 1273.1250814332248,
+    "no_answer": 446,
+    "quiet_rate": 0.0,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.1347517730496454,
+      "hit5": 0.31560283687943264,
+      "hit10": 0.43617021276595747,
+      "delivered_hit": 0.3120567375886525,
+      "precision": 0.07736406619385343,
+      "items": 4.851063829787234
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.29375,
+      "hit5": 0.440625,
+      "hit10": 0.53125,
+      "delivered_hit": 0.428125,
+      "precision": 0.12203125000000001,
+      "items": 4.61875
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.05434782608695652,
+      "hit5": 0.16304347826086957,
+      "hit10": 0.2717391304347826,
+      "delivered_hit": 0.15217391304347827,
+      "precision": 0.04130434782608696,
+      "items": 4.858695652173913
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.20927467300832342,
+      "hit5": 0.37217598097502974,
+      "hit10": 0.464922711058264,
+      "delivered_hit": 0.34839476813317477,
+      "precision": 0.08851190476190478,
+      "items": 4.667063020214031
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0,
+     "ingest_seconds": 0.676,
+     "question_seconds": 54.93
+    }
+   },
+   {
+    "system": "lingshu-dsh-memory",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.2013029315960912,
+    "hit5": 0.33680781758957656,
+    "hit10": 0.38697068403908796,
+    "delivered_hit": 0.016938110749185668,
+    "precision": 0.004234527687296417,
+    "delivered_f1": 0.006775244299674268,
+    "items": 4.0,
+    "chars": 773.3172638436482,
+    "no_answer": 446,
+    "quiet_rate": 0.0,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.12056737588652482,
+      "hit5": 0.30141843971631205,
+      "hit10": 0.3971631205673759,
+      "delivered_hit": 0.014184397163120567,
+      "precision": 0.0035460992907801418,
+      "items": 4.0
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.240625,
+      "hit5": 0.384375,
+      "hit10": 0.428125,
+      "delivered_hit": 0.015625,
+      "precision": 0.00390625,
+      "items": 4.0
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.10869565217391304,
+      "hit5": 0.20652173913043478,
+      "hit10": 0.29347826086956524,
+      "delivered_hit": 0.021739130434782608,
+      "precision": 0.005434782608695652,
+      "items": 4.0
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.2235434007134364,
+      "hit5": 0.3448275862068966,
+      "hit10": 0.37812128418549346,
+      "delivered_hit": 0.0178359096313912,
+      "precision": 0.0044589774078478,
+      "items": 4.0
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 115.097,
+     "question_seconds": 6.176
+    }
+   },
+   {
+    "system": "mem0-llm-claude-haiku-5-5",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.40651465798045605,
+    "hit5": 0.7374592833876221,
+    "hit10": 0.8117263843648208,
+    "delivered_hit": 0.8625407166123779,
+    "precision": 0.05773909027756307,
+    "delivered_f1": 0.10823298725386907,
+    "items": 19.039087947882734,
+    "chars": 3057.632573289902,
+    "no_answer": 446,
+    "quiet_rate": 0.0,
+    "unmapped_items": 0,
+    "llm_model": "claude-haiku-5-5",
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.3404255319148936,
+      "hit5": 0.723404255319149,
+      "hit10": 0.8262411347517731,
+      "delivered_hit": 0.9078014184397163,
+      "precision": 0.09714550431441611,
+      "items": 19.127659574468087
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.521875,
+      "hit5": 0.7375,
+      "hit10": 0.815625,
+      "delivered_hit": 0.8625,
+      "precision": 0.05021983574131407,
+      "items": 18.971875
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.22826086956521738,
+      "hit5": 0.45652173913043476,
+      "hit10": 0.5652173913043478,
+      "delivered_hit": 0.7065217391304348,
+      "precision": 0.053807806494069785,
+      "items": 19.043478260869566
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.4042806183115339,
+      "hit5": 0.7728894173602854,
+      "hit10": 0.8323424494649228,
+      "delivered_hit": 0.8644470868014269,
+      "precision": 0.04781665365602739,
+      "items": 19.03448275862069
+     }
+    },
+    "usage": {
+     "llm_calls": 5882,
+     "llm_input_tokens": 79031305,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 404502,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 8.105,
+     "ingest_seconds": 6880.746,
+     "question_seconds": 171.954
+    }
+   },
+   {
+    "system": "mem0-llm-deepseek-flash",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.33615635179153097,
+    "hit5": 0.7003257328990228,
+    "hit10": 0.7980456026058632,
+    "delivered_hit": 0.857328990228013,
+    "precision": 0.057501972160255155,
+    "delivered_f1": 0.10777533720453156,
+    "items": 18.679478827361564,
+    "chars": 2917.48664495114,
+    "no_answer": 446,
+    "quiet_rate": 0.0,
+    "unmapped_items": 0,
+    "llm_model": "deepseek-flash",
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.2730496453900709,
+      "hit5": 0.6418439716312057,
+      "hit10": 0.7730496453900709,
+      "delivered_hit": 0.8617021276595744,
+      "precision": 0.09111413415683556,
+      "items": 18.865248226950353
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.3875,
+      "hit5": 0.7125,
+      "hit10": 0.796875,
+      "delivered_hit": 0.85,
+      "precision": 0.04997957390154565,
+      "items": 18.553125
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.21739130434782608,
+      "hit5": 0.391304347826087,
+      "hit10": 0.532608695652174,
+      "delivered_hit": 0.6630434782608695,
+      "precision": 0.050293145480923104,
+      "items": 18.902173913043477
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.3507728894173603,
+      "hit5": 0.7491082045184304,
+      "hit10": 0.835909631391201,
+      "delivered_hit": 0.8799048751486326,
+      "precision": 0.049882174079696195,
+      "items": 18.64090368608799
+     }
+    },
+    "usage": {
+     "llm_calls": 5882,
+     "llm_input_tokens": 50523528,
+     "llm_cached_input_tokens": 44444800,
+     "llm_output_tokens": 355384,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 2.517,
+     "ingest_seconds": 7804.742,
+     "question_seconds": 371.943
+    }
+   },
+   {
+    "system": "mem0-verbatim",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.36482084690553745,
+    "hit5": 0.6514657980456026,
+    "hit10": 0.7198697068403909,
+    "delivered_hit": 0.7824104234527687,
+    "precision": 0.04736156351791531,
+    "delivered_f1": 0.08931653887888245,
+    "items": 20.0,
+    "chars": 2588.0169381107494,
+    "no_answer": 446,
+    "quiet_rate": 0.0,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.2624113475177305,
+      "hit5": 0.6134751773049646,
+      "hit10": 0.6950354609929078,
+      "delivered_hit": 0.74822695035461,
+      "precision": 0.07092198581560284,
+      "items": 20.0
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.49375,
+      "hit5": 0.71875,
+      "hit10": 0.778125,
+      "delivered_hit": 0.83125,
+      "precision": 0.04546875,
+      "items": 20.0
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.16304347826086957,
+      "hit5": 0.391304347826087,
+      "hit10": 0.43478260869565216,
+      "delivered_hit": 0.5217391304347826,
+      "precision": 0.03315217391304348,
+      "items": 20.0
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.37217598097502974,
+      "hit5": 0.667063020214031,
+      "hit10": 0.737217598097503,
+      "delivered_hit": 0.8038049940546967,
+      "precision": 0.041736028537455415,
+      "items": 20.0
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 458.944,
+     "question_seconds": 403.11
+    }
+   },
+   {
+    "system": "memsearch",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.3791530944625407,
+    "hit5": 0.641042345276873,
+    "hit10": 0.7328990228013029,
+    "delivered_hit": 0.637785016286645,
+    "precision": 0.13863192182410425,
+    "delivered_f1": 0.2277574282023797,
+    "items": 5.0,
+    "chars": 688.9693811074918,
+    "no_answer": 446,
+    "quiet_rate": 0.0,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.22695035460992907,
+      "hit5": 0.5390070921985816,
+      "hit10": 0.6631205673758865,
+      "delivered_hit": 0.5390070921985816,
+      "precision": 0.1517730496453901,
+      "items": 5.0
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.5125,
+      "hit5": 0.73125,
+      "hit10": 0.771875,
+      "delivered_hit": 0.703125,
+      "precision": 0.146875,
+      "items": 5.0
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.15217391304347827,
+      "hit5": 0.3695652173913043,
+      "hit10": 0.45652173913043476,
+      "delivered_hit": 0.3695652173913043,
+      "precision": 0.08478260869565218,
+      "items": 5.0
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.4042806183115339,
+      "hit5": 0.6706302021403091,
+      "hit10": 0.7717003567181926,
+      "delivered_hit": 0.6753864447086801,
+      "precision": 0.13697978596908442,
+      "items": 5.0
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 433.444,
+     "question_seconds": 295.365
+    }
+   },
+   {
+    "system": "meow-memory",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.2931596091205212,
+    "hit5": 0.41954397394136805,
+    "hit10": 0.4521172638436482,
+    "delivered_hit": 0.3778501628664495,
+    "precision": 0.19218241042345277,
+    "delivered_f1": 0.25477896696137736,
+    "items": 2.0,
+    "chars": 302.0071661237785,
+    "no_answer": 446,
+    "quiet_rate": 0.0,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.1453900709219858,
+      "hit5": 0.25177304964539005,
+      "hit10": 0.30141843971631205,
+      "delivered_hit": 0.2127659574468085,
+      "precision": 0.11524822695035461,
+      "items": 2.0
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.34375,
+      "hit5": 0.465625,
+      "hit10": 0.4875,
+      "delivered_hit": 0.45,
+      "precision": 0.228125,
+      "items": 2.0
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.10869565217391304,
+      "hit5": 0.21739130434782608,
+      "hit10": 0.2608695652173913,
+      "delivered_hit": 0.18478260869565216,
+      "precision": 0.09782608695652174,
+      "items": 2.0
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.3436385255648038,
+      "hit5": 0.4803804994054697,
+      "hit10": 0.5101070154577884,
+      "delivered_hit": 0.4268727705112961,
+      "precision": 0.2146254458977408,
+      "items": 2.0
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 45.752,
+     "question_seconds": 24.05
+    }
+   },
+   {
+    "system": "openviking",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.23322475570032572,
+    "hit5": 0.5185667752442997,
+    "hit10": 0.6384364820846905,
+    "delivered_hit": 0.6384364820846905,
+    "precision": 0.07092290988056461,
+    "delivered_f1": 0.1276638431695708,
+    "items": 9.997394136807818,
+    "chars": 1123.6899022801304,
+    "no_answer": 446,
+    "quiet_rate": 0.0,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.1524822695035461,
+      "hit5": 0.40070921985815605,
+      "hit10": 0.5354609929078015,
+      "delivered_hit": 0.5354609929078015,
+      "precision": 0.07836879432624114,
+      "items": 10.0
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.31875,
+      "hit5": 0.59375,
+      "hit10": 0.721875,
+      "delivered_hit": 0.721875,
+      "precision": 0.0765625,
+      "items": 10.0
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.10869565217391304,
+      "hit5": 0.31521739130434784,
+      "hit10": 0.40217391304347827,
+      "delivered_hit": 0.40217391304347827,
+      "precision": 0.04565217391304348,
+      "items": 10.0
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.2413793103448276,
+      "hit5": 0.5517241379310345,
+      "hit10": 0.667063020214031,
+      "delivered_hit": 0.667063020214031,
+      "precision": 0.06904478795085216,
+      "items": 9.995243757431629
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": 0,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 1764.512,
+     "question_seconds": 72.367
+    }
+   },
+   {
+    "system": "seekmemory",
+    "stores": 10,
+    "store_ids": [
+     "conv-26",
+     "conv-30",
+     "conv-41",
+     "conv-42",
+     "conv-43",
+     "conv-44",
+     "conv-47",
+     "conv-48",
+     "conv-49",
+     "conv-50"
+    ],
+    "answerable": 1535,
+    "hit1": 0.1511400651465798,
+    "hit5": 0.26123778501628664,
+    "hit10": 0.3856677524429967,
+    "delivered_hit": 0.26775244299674267,
+    "precision": 0.060263688537304176,
+    "delivered_f1": 0.09838387980734516,
+    "items": 5.487947882736156,
+    "chars": 523.542019543974,
+    "no_answer": 446,
+    "quiet_rate": 0.0,
+    "unmapped_items": 0,
+    "llm_model": null,
+    "by_type": {
+     "1-multi-hop": {
+      "questions": 282,
+      "hit1": 0.06382978723404255,
+      "hit5": 0.1595744680851064,
+      "hit10": 0.28368794326241137,
+      "delivered_hit": 0.1773049645390071,
+      "precision": 0.043849206349206346,
+      "items": 5.943262411347518
+     },
+     "2-temporal": {
+      "questions": 320,
+      "hit1": 0.2,
+      "hit5": 0.28125,
+      "hit10": 0.39375,
+      "delivered_hit": 0.29375,
+      "precision": 0.06170758928571428,
+      "items": 5.75625
+     },
+     "3-open-domain": {
+      "questions": 92,
+      "hit1": 0.0,
+      "hit5": 0.043478260869565216,
+      "hit10": 0.15217391304347827,
+      "delivered_hit": 0.021739130434782608,
+      "precision": 0.005175983436853002,
+      "items": 5.467391304347826
+     },
+     "4-single-hop": {
+      "questions": 841,
+      "hit1": 0.178359096313912,
+      "hit5": 0.31153388822829964,
+      "hit10": 0.4423305588585018,
+      "delivered_hit": 0.3151010701545779,
+      "precision": 0.07124455013872374,
+      "items": 5.235434007134364
+     }
+    },
+    "usage": {
+     "llm_calls": 0,
+     "llm_input_tokens": 0,
+     "llm_cached_input_tokens": 0,
+     "llm_output_tokens": 0,
+     "llm_reasoning_tokens": null,
+     "llm_cost_usd": 0.0,
+     "ingest_seconds": 67.162,
+     "question_seconds": 30.471
+    }
+   }
+  ],
+  "samples": [
+   {
+    "n": 3,
+    "stores": [
+     "conv-26",
+     "conv-30",
+     "conv-41"
+    ],
+    "rows": [
+     {
+      "system": "graphiti-deepseek-flash",
+      "stores": 3,
+      "store_ids": [
+       "conv-26",
+       "conv-30",
+       "conv-41"
+      ],
+      "answerable": 383,
+      "hit1": 0.2845953002610966,
+      "hit5": 0.5509138381201044,
+      "hit10": 0.6292428198433421,
+      "delivered_hit": 0.6292428198433421,
+      "precision": 0.08351775871358116,
+      "delivered_f1": 0.14746312178580348,
+      "items": 8.806788511749348,
+      "chars": 1547.8067885117493,
+      "no_answer": 112,
+      "quiet_rate": 0.0,
+      "unmapped_items": 0,
+      "llm_model": "deepseek-flash",
+      "by_type": {
+       "1-multi-hop": {
+        "questions": 74,
+        "hit1": 0.25675675675675674,
+        "hit5": 0.581081081081081,
+        "hit10": 0.6351351351351351,
+        "delivered_hit": 0.6351351351351351,
+        "precision": 0.10564671814671815,
+        "items": 8.824324324324325
+       },
+       "2-temporal": {
+        "questions": 90,
+        "hit1": 0.36666666666666664,
+        "hit5": 0.7,
+        "hit10": 0.7888888888888889,
+        "delivered_hit": 0.7888888888888889,
+        "precision": 0.09361552028218695,
+        "items": 8.811111111111112
+       },
+       "3-open-domain": {
+        "questions": 19,
+        "hit1": 0.05263157894736842,
+        "hit5": 0.15789473684210525,
+        "hit10": 0.3157894736842105,
+        "delivered_hit": 0.3157894736842105,
+        "precision": 0.044005847953216375,
+        "items": 9.210526315789474
+       },
+       "4-single-hop": {
+        "questions": 200,
+        "hit1": 0.28,
+        "hit5": 0.51,
+        "hit10": 0.585,
+        "delivered_hit": 0.585,
+        "precision": 0.07453968253968254,
+        "items": 8.76
+       }
+      },
+      "usage": {
+       "llm_calls": 5001,
+       "llm_input_tokens": 8463882,
+       "llm_cached_input_tokens": 839296,
+       "llm_output_tokens": 326362,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 1.645232,
+       "ingest_seconds": 5468.7,
+       "question_seconds": 38.896
+      }
+     },
+     {
+      "system": "graphiti-claude-haiku-5-5",
+      "stores": 3,
+      "store_ids": [
+       "conv-26",
+       "conv-30",
+       "conv-41"
+      ],
+      "answerable": 383,
+      "hit1": 0.2454308093994778,
+      "hit5": 0.5378590078328982,
+      "hit10": 0.639686684073107,
+      "delivered_hit": 0.639686684073107,
+      "precision": 0.07893717103899871,
+      "delivered_f1": 0.1405326495435405,
+      "items": 9.323759791122715,
+      "chars": 1497.9686684073108,
+      "no_answer": 112,
+      "quiet_rate": 0.0,
+      "unmapped_items": 0,
+      "llm_model": "claude-haiku-5-5",
+      "by_type": {
+       "1-multi-hop": {
+        "questions": 74,
+        "hit1": 0.2702702702702703,
+        "hit5": 0.5405405405405406,
+        "hit10": 0.6891891891891891,
+        "delivered_hit": 0.6891891891891891,
+        "precision": 0.10793650793650794,
+        "items": 9.35135135135135
+       },
+       "2-temporal": {
+        "questions": 90,
+        "hit1": 0.3111111111111111,
+        "hit5": 0.6222222222222222,
+        "hit10": 0.6888888888888889,
+        "delivered_hit": 0.6888888888888889,
+        "precision": 0.07732804232804233,
+        "items": 9.277777777777779
+       },
+       "3-open-domain": {
+        "questions": 19,
+        "hit1": 0.10526315789473684,
+        "hit5": 0.3157894736842105,
+        "hit10": 0.5263157894736842,
+        "delivered_hit": 0.5263157894736842,
+        "precision": 0.07038429406850459,
+        "items": 9.526315789473685
+       },
+       "4-single-hop": {
+        "questions": 200,
+        "hit1": 0.22,
+        "hit5": 0.52,
+        "hit10": 0.61,
+        "delivered_hit": 0.61,
+        "precision": 0.06974404761904762,
+        "items": 9.315
+       }
+      },
+      "usage": {
+       "llm_calls": 4955,
+       "llm_input_tokens": 14865175,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 619415,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 1.796225,
+       "ingest_seconds": 6104.38,
+       "question_seconds": 37.193
+      }
+     },
+     {
+      "system": "feiyu-memgate-sqlite",
+      "stores": 3,
+      "store_ids": [
+       "conv-26",
+       "conv-30",
+       "conv-41"
+      ],
+      "answerable": 383,
+      "hit1": 0.206266318537859,
+      "hit5": 0.36553524804177545,
+      "hit10": 0.4725848563968668,
+      "delivered_hit": 0.3472584856396867,
+      "precision": 0.0934290687554395,
+      "delivered_f1": 0.14724281004609605,
+      "items": 4.702349869451697,
+      "chars": 1284.9321148825065,
+      "no_answer": 112,
+      "quiet_rate": 0.0,
+      "unmapped_items": 0,
+      "llm_model": null,
+      "by_type": {
+       "1-multi-hop": {
+        "questions": 74,
+        "hit1": 0.14864864864864866,
+        "hit5": 0.2702702702702703,
+        "hit10": 0.4189189189189189,
+        "delivered_hit": 0.25675675675675674,
+        "precision": 0.06126126126126126,
+        "items": 4.878378378378378
+       },
+       "2-temporal": {
+        "questions": 90,
+        "hit1": 0.3111111111111111,
+        "hit5": 0.5111111111111111,
+        "hit10": 0.6444444444444445,
+        "delivered_hit": 0.5,
+        "precision": 0.1662962962962963,
+        "items": 4.477777777777778
+       },
+       "3-open-domain": {
+        "questions": 19,
+        "hit1": 0.05263157894736842,
+        "hit5": 0.15789473684210525,
+        "hit10": 0.2631578947368421,
+        "delivered_hit": 0.21052631578947367,
+        "precision": 0.06842105263157895,
+        "items": 4.842105263157895
+       },
+       "4-single-hop": {
+        "questions": 200,
+        "hit1": 0.195,
+        "hit5": 0.355,
+        "hit10": 0.435,
+        "delivered_hit": 0.325,
+        "precision": 0.07491666666666667,
+        "items": 4.725
+       }
+      },
+      "usage": {
+       "llm_calls": 0,
+       "llm_input_tokens": 0,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 0,
+       "llm_reasoning_tokens": null,
+       "llm_cost_usd": 0,
+       "ingest_seconds": 0.173,
+       "question_seconds": 12.322
+      }
+     },
+     {
+      "system": "feiyu-memgate-hybrid",
+      "stores": 3,
+      "store_ids": [
+       "conv-26",
+       "conv-30",
+       "conv-41"
+      ],
+      "answerable": 383,
+      "hit1": 0.3785900783289817,
+      "hit5": 0.6240208877284595,
+      "hit10": 0.6919060052219321,
+      "delivered_hit": 0.556135770234987,
+      "precision": 0.12423447069116361,
+      "delivered_f1": 0.20309892729439813,
+      "items": 4.8433420365535245,
+      "chars": 1013.2532637075718,
+      "no_answer": 112,
+      "quiet_rate": 0.0,
+      "unmapped_items": 0,
+      "llm_model": null,
+      "by_type": {
+       "1-multi-hop": {
+        "questions": 74,
+        "hit1": 0.20270270270270271,
+        "hit5": 0.5540540540540541,
+        "hit10": 0.6216216216216216,
+        "delivered_hit": 0.47297297297297297,
+        "precision": 0.1195945945945946,
+        "items": 4.9324324324324325
+       },
+       "2-temporal": {
+        "questions": 90,
+        "hit1": 0.5777777777777777,
+        "hit5": 0.8111111111111111,
+        "hit10": 0.8444444444444444,
+        "delivered_hit": 0.7666666666666667,
+        "precision": 0.16925925925925928,
+        "items": 4.822222222222222
+       },
+       "3-open-domain": {
+        "questions": 19,
+        "hit1": 0.15789473684210525,
+        "hit5": 0.3157894736842105,
+        "hit10": 0.3157894736842105,
+        "delivered_hit": 0.3157894736842105,
+        "precision": 0.07631578947368423,
+        "items": 4.947368421052632
+       },
+       "4-single-hop": {
+        "questions": 200,
+        "hit1": 0.375,
+        "hit5": 0.595,
+        "hit10": 0.685,
+        "delivered_hit": 0.515,
+        "precision": 0.1101010101010101,
+        "items": 4.81
+       }
+      },
+      "usage": {
+       "llm_calls": 0,
+       "llm_input_tokens": 0,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 0,
+       "llm_reasoning_tokens": null,
+       "llm_cost_usd": 0,
+       "ingest_seconds": 2.247,
+       "question_seconds": 18.478
+      }
+     }
+    ]
+   },
+   {
+    "n": 1,
+    "stores": [
+     "conv-26"
+    ],
+    "rows": [
+     {
+      "system": "hindsight-chunks",
+      "stores": 1,
+      "store_ids": [
+       "conv-26"
+      ],
+      "answerable": 150,
+      "hit1": 0.48,
+      "hit5": 0.76,
+      "hit10": 0.8333333333333334,
+      "delivered_hit": 0.9466666666666667,
+      "precision": 0.02000816389025314,
+      "delivered_f1": 0.03918807279836592,
+      "items": 59.48,
+      "chars": 8988.913333333334,
+      "no_answer": 47,
+      "quiet_rate": 0.0,
+      "unmapped_items": 0,
+      "llm_model": null,
+      "by_type": {
+       "1-multi-hop": {
+        "questions": 32,
+        "hit1": 0.21875,
+        "hit5": 0.6875,
+        "hit10": 0.78125,
+        "delivered_hit": 0.96875,
+        "precision": 0.031067638075464022,
+        "items": 58.28125
+       },
+       "2-temporal": {
+        "questions": 37,
+        "hit1": 0.7567567567567568,
+        "hit5": 0.9459459459459459,
+        "hit10": 0.972972972972973,
+        "delivered_hit": 0.972972972972973,
+        "precision": 0.016877439767673197,
+        "items": 58.5945945945946
+       },
+       "3-open-domain": {
+        "questions": 11,
+        "hit1": 0.2727272727272727,
+        "hit5": 0.6363636363636364,
+        "hit10": 0.7272727272727273,
+        "delivered_hit": 1.0,
+        "precision": 0.025684533051090384,
+        "items": 61.36363636363637
+       },
+       "4-single-hop": {
+        "questions": 70,
+        "hit1": 0.4857142857142857,
+        "hit5": 0.7142857142857143,
+        "hit10": 0.8,
+        "delivered_hit": 0.9142857142857143,
+        "precision": 0.015715214716531718,
+        "items": 60.2
+       }
+      },
+      "usage": {
+       "llm_calls": 0,
+       "llm_input_tokens": 0,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 0,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 0.0,
+       "ingest_seconds": 18.5543,
+       "question_seconds": 396.975
+      }
+     },
+     {
+      "system": "hindsight-llm-deepseek-flash",
+      "stores": 1,
+      "store_ids": [
+       "conv-26"
+      ],
+      "answerable": 150,
+      "hit1": 0.44666666666666666,
+      "hit5": 0.7333333333333333,
+      "hit10": 0.8333333333333334,
+      "delivered_hit": 0.9133333333333333,
+      "precision": 0.01316932599141993,
+      "delivered_f1": 0.025964273894827274,
+      "items": 88.86,
+      "chars": 15298.38509148767,
+      "no_answer": 47,
+      "quiet_rate": 0.0,
+      "unmapped_items": 713,
+      "llm_model": "deepseek-flash",
+      "by_type": {
+       "1-multi-hop": {
+        "questions": 32,
+        "hit1": 0.25,
+        "hit5": 0.65625,
+        "hit10": 0.84375,
+        "delivered_hit": 0.96875,
+        "precision": 0.02161598335485936,
+        "items": 89.8125
+       },
+       "2-temporal": {
+        "questions": 37,
+        "hit1": 0.7297297297297297,
+        "hit5": 0.918918918918919,
+        "hit10": 0.9459459459459459,
+        "delivered_hit": 0.972972972972973,
+        "precision": 0.011966134449009846,
+        "items": 82.91891891891892
+       },
+       "3-open-domain": {
+        "questions": 11,
+        "hit1": 0.36363636363636365,
+        "hit5": 0.45454545454545453,
+        "hit10": 0.6363636363636364,
+        "delivered_hit": 0.8181818181818182,
+        "precision": 0.015051210255522236,
+        "items": 86.81818181818181
+       },
+       "4-single-hop": {
+        "questions": 70,
+        "hit1": 0.4,
+        "hit5": 0.7142857142857143,
+        "hit10": 0.8,
+        "delivered_hit": 0.8714285714285714,
+        "precision": 0.009648244913334016,
+        "items": 91.88571428571429
+       }
+      },
+      "usage": {
+       "llm_calls": 696,
+       "llm_input_tokens": 4312975,
+       "llm_cached_input_tokens": 2438400,
+       "llm_output_tokens": 138612,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 0.371669,
+       "ingest_seconds": 570.9754,
+       "question_seconds": 486.692
+      }
+     },
+     {
+      "system": "hindsight-llm-claude-haiku-5-5",
+      "stores": 1,
+      "store_ids": [
+       "conv-26"
+      ],
+      "answerable": 150,
+      "hit1": 0.43333333333333335,
+      "hit5": 0.7333333333333333,
+      "hit10": 0.8466666666666667,
+      "delivered_hit": 0.9266666666666666,
+      "precision": 0.014221844779130318,
+      "delivered_f1": 0.028013753670084306,
+      "items": 86.82,
+      "chars": 14994.690119331743,
+      "no_answer": 47,
+      "quiet_rate": 0.0,
+      "unmapped_items": 786,
+      "llm_model": "claude-haiku-5-5",
+      "by_type": {
+       "1-multi-hop": {
+        "questions": 32,
+        "hit1": 0.28125,
+        "hit5": 0.625,
+        "hit10": 0.875,
+        "delivered_hit": 0.96875,
+        "precision": 0.024233528557911076,
+        "items": 86.34375
+       },
+       "2-temporal": {
+        "questions": 37,
+        "hit1": 0.6486486486486487,
+        "hit5": 0.9459459459459459,
+        "hit10": 0.9459459459459459,
+        "delivered_hit": 0.9459459459459459,
+        "precision": 0.0115868609197004,
+        "items": 82.02702702702703
+       },
+       "3-open-domain": {
+        "questions": 11,
+        "hit1": 0.18181818181818182,
+        "hit5": 0.45454545454545453,
+        "hit10": 0.8181818181818182,
+        "delivered_hit": 1.0,
+        "precision": 0.01932434026707737,
+        "items": 90.54545454545455
+       },
+       "4-single-hop": {
+        "questions": 70,
+        "hit1": 0.42857142857142855,
+        "hit5": 0.7142857142857143,
+        "hit10": 0.7857142857142857,
+        "delivered_hit": 0.8857142857142857,
+        "precision": 0.010236031514994675,
+        "items": 88.98571428571428
+       }
+      },
+      "usage": {
+       "llm_calls": 697,
+       "llm_input_tokens": 6566072,
+       "llm_cached_input_tokens": 3558585,
+       "llm_output_tokens": 214131,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 0.4434,
+       "ingest_seconds": 673.6264,
+       "question_seconds": 500.094
+      }
+     },
+     {
+      "system": "dsh-fish-memory",
+      "stores": 1,
+      "store_ids": [
+       "conv-26"
+      ],
+      "answerable": 150,
+      "hit1": 0.18666666666666668,
+      "hit5": 0.3466666666666667,
+      "hit10": 0.36666666666666664,
+      "delivered_hit": 0.32666666666666666,
+      "precision": 0.13926940639269406,
+      "delivered_f1": 0.1952828955964981,
+      "items": 2.8666666666666667,
+      "chars": 594.1066666666667,
+      "no_answer": 47,
+      "quiet_rate": 0.02127659574468085,
+      "unmapped_items": 0,
+      "llm_model": null,
+      "by_type": {
+       "1-multi-hop": {
+        "questions": 32,
+        "hit1": 0.125,
+        "hit5": 0.1875,
+        "hit10": 0.25,
+        "delivered_hit": 0.125,
+        "precision": 0.057471264367816084,
+        "items": 2.5
+       },
+       "2-temporal": {
+        "questions": 37,
+        "hit1": 0.2702702702702703,
+        "hit5": 0.6216216216216216,
+        "hit10": 0.6486486486486487,
+        "delivered_hit": 0.6216216216216216,
+        "precision": 0.2454954954954955,
+        "items": 2.864864864864865
+       },
+       "3-open-domain": {
+        "questions": 11,
+        "hit1": 0.09090909090909091,
+        "hit5": 0.2727272727272727,
+        "hit10": 0.2727272727272727,
+        "delivered_hit": 0.2727272727272727,
+        "precision": 0.09848484848484848,
+        "items": 3.0
+       },
+       "4-single-hop": {
+        "questions": 70,
+        "hit1": 0.18571428571428572,
+        "hit5": 0.2857142857142857,
+        "hit10": 0.2857142857142857,
+        "delivered_hit": 0.2714285714285714,
+        "precision": 0.12318840579710146,
+        "items": 3.0142857142857142
+       }
+      },
+      "usage": {
+       "llm_calls": 0,
+       "llm_input_tokens": 0,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 0,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 0.0,
+       "ingest_seconds": 1.1332,
+       "question_seconds": 0.612
+      }
+     },
+     {
+      "system": "dsh-fish-memory-expand-deepseek-flash",
+      "stores": 1,
+      "store_ids": [
+       "conv-26"
+      ],
+      "answerable": 150,
+      "hit1": 0.21333333333333335,
+      "hit5": 0.3466666666666667,
+      "hit10": 0.36666666666666664,
+      "delivered_hit": 0.32,
+      "precision": 0.1364367816091954,
+      "delivered_f1": 0.19130697557290355,
+      "items": 2.72,
+      "chars": 555.8,
+      "no_answer": 47,
+      "quiet_rate": 0.02127659574468085,
+      "unmapped_items": 0,
+      "llm_model": "deepseek-flash",
+      "by_type": {
+       "1-multi-hop": {
+        "questions": 32,
+        "hit1": 0.09375,
+        "hit5": 0.1875,
+        "hit10": 0.21875,
+        "delivered_hit": 0.125,
+        "precision": 0.07471264367816091,
+        "items": 2.15625
+       },
+       "2-temporal": {
+        "questions": 37,
+        "hit1": 0.35135135135135137,
+        "hit5": 0.6216216216216216,
+        "hit10": 0.6486486486486487,
+        "delivered_hit": 0.5945945945945946,
+        "precision": 0.231981981981982,
+        "items": 2.891891891891892
+       },
+       "3-open-domain": {
+        "questions": 11,
+        "hit1": 0.18181818181818182,
+        "hit5": 0.2727272727272727,
+        "hit10": 0.2727272727272727,
+        "delivered_hit": 0.2727272727272727,
+        "precision": 0.09848484848484848,
+        "items": 2.6363636363636362
+       },
+       "4-single-hop": {
+        "questions": 70,
+        "hit1": 0.2,
+        "hit5": 0.2857142857142857,
+        "hit10": 0.3,
+        "delivered_hit": 0.2714285714285714,
+        "precision": 0.11691176470588235,
+        "items": 2.9
+       }
+      },
+      "usage": {
+       "llm_calls": 77,
+       "llm_input_tokens": 43549,
+       "llm_cached_input_tokens": 29312,
+       "llm_output_tokens": 1580,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 0.003171,
+       "ingest_seconds": 73.9795,
+       "question_seconds": 0.472
+      }
+     },
+     {
+      "system": "dsh-fish-memory-expand-claude-haiku-5-5",
+      "stores": 1,
+      "store_ids": [
+       "conv-26"
+      ],
+      "answerable": 150,
+      "hit1": 0.19333333333333333,
+      "hit5": 0.3466666666666667,
+      "hit10": 0.37333333333333335,
+      "delivered_hit": 0.32,
+      "precision": 0.1433333333333333,
+      "delivered_f1": 0.19798561151079133,
+      "items": 2.6533333333333333,
+      "chars": 544.02,
+      "no_answer": 47,
+      "quiet_rate": 0.02127659574468085,
+      "unmapped_items": 0,
+      "llm_model": "claude-haiku-5-5",
+      "by_type": {
+       "1-multi-hop": {
+        "questions": 32,
+        "hit1": 0.09375,
+        "hit5": 0.1875,
+        "hit10": 0.28125,
+        "delivered_hit": 0.125,
+        "precision": 0.08045977011494253,
+        "items": 2.125
+       },
+       "2-temporal": {
+        "questions": 37,
+        "hit1": 0.2972972972972973,
+        "hit5": 0.6216216216216216,
+        "hit10": 0.6486486486486487,
+        "delivered_hit": 0.5945945945945946,
+        "precision": 0.23873873873873874,
+        "items": 2.918918918918919
+       },
+       "3-open-domain": {
+        "questions": 11,
+        "hit1": 0.18181818181818182,
+        "hit5": 0.2727272727272727,
+        "hit10": 0.2727272727272727,
+        "delivered_hit": 0.2727272727272727,
+        "precision": 0.09848484848484848,
+        "items": 2.6363636363636362
+       },
+       "4-single-hop": {
+        "questions": 70,
+        "hit1": 0.18571428571428572,
+        "hit5": 0.2857142857142857,
+        "hit10": 0.2857142857142857,
+        "delivered_hit": 0.2714285714285714,
+        "precision": 0.12549019607843137,
+        "items": 2.757142857142857
+       }
+      },
+      "usage": {
+       "llm_calls": 79,
+       "llm_input_tokens": 69572,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 3851,
+       "llm_reasoning_tokens": 0,
+       "llm_cost_usd": 0.008883,
+       "ingest_seconds": 84.3234,
+       "question_seconds": 0.608
+      }
+     },
+     {
+      "system": "feiyu-memgate-sqlite",
+      "stores": 1,
+      "store_ids": [
+       "conv-26"
+      ],
+      "answerable": 150,
+      "hit1": 0.23333333333333334,
+      "hit5": 0.4066666666666667,
+      "hit10": 0.5266666666666666,
+      "delivered_hit": 0.35333333333333333,
+      "precision": 0.104,
+      "delivered_f1": 0.1606997084548105,
+      "items": 4.506666666666667,
+      "chars": 1297.6133333333332,
+      "no_answer": 47,
+      "quiet_rate": 0.0,
+      "unmapped_items": 0,
+      "llm_model": null,
+      "by_type": {
+       "1-multi-hop": {
+        "questions": 32,
+        "hit1": 0.09375,
+        "hit5": 0.21875,
+        "hit10": 0.40625,
+        "delivered_hit": 0.1875,
+        "precision": 0.040625,
+        "items": 4.8125
+       },
+       "2-temporal": {
+        "questions": 37,
+        "hit1": 0.32432432432432434,
+        "hit5": 0.5135135135135135,
+        "hit10": 0.6486486486486487,
+        "delivered_hit": 0.4864864864864865,
+        "precision": 0.16891891891891891,
+        "items": 4.351351351351352
+       },
+       "3-open-domain": {
+        "questions": 11,
+        "hit1": 0.09090909090909091,
+        "hit5": 0.2727272727272727,
+        "hit10": 0.45454545454545453,
+        "delivered_hit": 0.36363636363636365,
+        "precision": 0.11818181818181818,
+        "items": 4.7272727272727275
+       },
+       "4-single-hop": {
+        "questions": 70,
+        "hit1": 0.2714285714285714,
+        "hit5": 0.45714285714285713,
+        "hit10": 0.5285714285714286,
+        "delivered_hit": 0.35714285714285715,
+        "precision": 0.09642857142857143,
+        "items": 4.414285714285715
+       }
+      },
+      "usage": {
+       "llm_calls": 0,
+       "llm_input_tokens": 0,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 0,
+       "llm_reasoning_tokens": null,
+       "llm_cost_usd": 0,
+       "ingest_seconds": 0.05,
+       "question_seconds": 4.337
+      }
+     },
+     {
+      "system": "feiyu-memgate-hybrid",
+      "stores": 1,
+      "store_ids": [
+       "conv-26"
+      ],
+      "answerable": 150,
+      "hit1": 0.37333333333333335,
+      "hit5": 0.64,
+      "hit10": 0.7266666666666667,
+      "delivered_hit": 0.56,
+      "precision": 0.11822222222222223,
+      "delivered_f1": 0.19522935779816514,
+      "items": 4.866666666666666,
+      "chars": 1022.2,
+      "no_answer": 47,
+      "quiet_rate": 0.0,
+      "unmapped_items": 0,
+      "llm_model": null,
+      "by_type": {
+       "1-multi-hop": {
+        "questions": 32,
+        "hit1": 0.15625,
+        "hit5": 0.53125,
+        "hit10": 0.65625,
+        "delivered_hit": 0.4375,
+        "precision": 0.08750000000000001,
+        "items": 5.0
+       },
+       "2-temporal": {
+        "questions": 37,
+        "hit1": 0.5675675675675675,
+        "hit5": 0.8378378378378378,
+        "hit10": 0.8648648648648649,
+        "delivered_hit": 0.7027027027027027,
+        "precision": 0.15135135135135136,
+        "items": 4.837837837837838
+       },
+       "3-open-domain": {
+        "questions": 11,
+        "hit1": 0.2727272727272727,
+        "hit5": 0.5454545454545454,
+        "hit10": 0.5454545454545454,
+        "delivered_hit": 0.5454545454545454,
+        "precision": 0.13181818181818183,
+        "items": 4.909090909090909
+       },
+       "4-single-hop": {
+        "questions": 70,
+        "hit1": 0.38571428571428573,
+        "hit5": 0.6,
+        "hit10": 0.7142857142857143,
+        "delivered_hit": 0.5428571428571428,
+        "precision": 0.11261904761904762,
+        "items": 4.814285714285714
+       }
+      },
+      "usage": {
+       "llm_calls": 0,
+       "llm_input_tokens": 0,
+       "llm_cached_input_tokens": 0,
+       "llm_output_tokens": 0,
+       "llm_reasoning_tokens": null,
+       "llm_cost_usd": 0,
+       "ingest_seconds": 0.653,
+       "question_seconds": 6.35
+      }
+     }
+    ]
+   }
+  ],
+  "cost": [
+   {
+    "system": "dsh-fish-memory-expand-claude-haiku-5-5",
+    "model": "claude-haiku-5-5",
+    "thinking": "disabled",
+    "stores": 1,
+    "memories": 419,
+    "calls": 79,
+    "input_tokens": 69572,
+    "cached_input_tokens": 0,
+    "output_tokens": 3851,
+    "reasoning_tokens": 0,
+    "usd": 0.009,
+    "usd_per_1000_memories": 0.021479713603818614,
+    "ingest_seconds_per_memory": 0.20124821002386634,
+    "failed_stores": []
+   },
+   {
+    "system": "dsh-fish-memory-expand-deepseek-flash",
+    "model": "deepseek-flash",
+    "thinking": "disabled",
+    "stores": 1,
+    "memories": 419,
+    "calls": 77,
+    "input_tokens": 43549,
+    "cached_input_tokens": 29312,
+    "output_tokens": 1580,
+    "reasoning_tokens": 0,
+    "usd": 0.003,
+    "usd_per_1000_memories": 0.007159904534606206,
+    "ingest_seconds_per_memory": 0.17656324582338903,
+    "failed_stores": []
+   },
+   {
+    "system": "graphiti-claude-haiku-5-5",
+    "model": "claude-haiku-5-5",
+    "thinking": "disabled",
+    "stores": 3,
+    "memories": 1451,
+    "calls": 4955,
+    "input_tokens": 14865175,
+    "cached_input_tokens": 0,
+    "output_tokens": 619415,
+    "reasoning_tokens": 0,
+    "usd": 1.796,
+    "usd_per_1000_memories": 1.2377670572019297,
+    "ingest_seconds_per_memory": 4.207015851137147,
+    "failed_stores": []
+   },
+   {
+    "system": "graphiti-deepseek-flash",
+    "model": "deepseek-flash",
+    "thinking": "disabled",
+    "stores": 3,
+    "memories": 1451,
+    "calls": 5001,
+    "input_tokens": 8463882,
+    "cached_input_tokens": 839296,
+    "output_tokens": 326362,
+    "reasoning_tokens": 0,
+    "usd": 1.645,
+    "usd_per_1000_memories": 1.1337008959338388,
+    "ingest_seconds_per_memory": 3.768917987594762,
+    "failed_stores": []
+   },
+   {
+    "system": "hindsight-llm-claude-haiku-5-5",
+    "model": "claude-haiku-5-5",
+    "thinking": "disabled",
+    "stores": 1,
+    "memories": 419,
+    "calls": 697,
+    "input_tokens": 6566072,
+    "cached_input_tokens": 3558585,
+    "output_tokens": 214131,
+    "reasoning_tokens": 0,
+    "usd": 0.443,
+    "usd_per_1000_memories": 1.0572792362768497,
+    "ingest_seconds_per_memory": 1.6076992840095465,
+    "failed_stores": []
+   },
+   {
+    "system": "hindsight-llm-deepseek-flash",
+    "model": "deepseek-flash",
+    "thinking": "disabled",
+    "stores": 1,
+    "memories": 419,
+    "calls": 696,
+    "input_tokens": 4312975,
+    "cached_input_tokens": 2438400,
+    "output_tokens": 138612,
+    "reasoning_tokens": 0,
+    "usd": 0.372,
+    "usd_per_1000_memories": 0.8878281622911695,
+    "ingest_seconds_per_memory": 1.362708830548926,
+    "failed_stores": []
+   },
+   {
+    "system": "mem0-llm-claude-haiku-5-5",
+    "model": "claude-haiku-5-5",
+    "thinking": "disabled",
+    "stores": 10,
+    "memories": 5882,
+    "calls": 5882,
+    "input_tokens": 79031305,
+    "cached_input_tokens": 0,
+    "output_tokens": 404502,
+    "reasoning_tokens": 0,
+    "usd": 8.105,
+    "usd_per_1000_memories": 1.3779326759605577,
+    "ingest_seconds_per_memory": 1.1697970078204691,
+    "failed_stores": []
+   },
+   {
+    "system": "mem0-llm-deepseek-flash",
+    "model": "deepseek-flash",
+    "thinking": "disabled",
+    "stores": 10,
+    "memories": 5882,
+    "calls": 5882,
+    "input_tokens": 50523528,
+    "cached_input_tokens": 44444800,
+    "output_tokens": 355384,
+    "reasoning_tokens": 0,
+    "usd": 2.517,
+    "usd_per_1000_memories": 0.4279156749404964,
+    "ingest_seconds_per_memory": 1.3268857531451888,
+    "failed_stores": []
+   }
+  ],
+  "latency": {
+   "feiyu-memgate-embedding-precise": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 22.214,
+    "p95_ms": 50.477
+   },
+   "feiyu-memgate-embedding": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 23.393,
+    "p95_ms": 50.543
+   },
+   "feiyu-memgate-hybrid-precise": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 35.44,
+    "p95_ms": 49.953
+   },
+   "feiyu-memgate-hybrid": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 40.597,
+    "p95_ms": 68.732
+   },
+   "feiyu-memgate-sqlite-precise": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 17.139,
+    "p95_ms": 20.431
+   },
+   "feiyu-memgate-sqlite": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 17.583,
+    "p95_ms": 20.2
+   },
+   "seekmemory": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 10.56,
+    "p95_ms": 12.838
+   },
+   "meow-memory": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 7.3107,
+    "p95_ms": 8.7686
+   },
+   "dsh-mnemon": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 38.8518,
+    "p95_ms": 50.8961
+   },
+   "dsh-mnemon-embedding": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 69.6333,
+    "p95_ms": 88.7789
+   },
+   "memsearch": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 88.119,
+    "p95_ms": 174.093
+   },
+   "mem0-verbatim": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 98.749,
+    "p95_ms": 122.594
+   },
+   "lingshu-dsh-memory": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 2.122,
+    "p95_ms": 2.594
+   },
+   "openviking": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 16.317,
+    "p95_ms": 30.13
+   },
+   "dsh-fish-memory": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 1.8133,
+    "p95_ms": 3.5468
+   },
+   "dsh-prime-memory": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 0.8174,
+    "p95_ms": 1.1665
+   },
+   "dsh-prime-memory-embedding": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 22.0121,
+    "p95_ms": 23.2433
+   },
+   "dsh-soul-md": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 12.6,
+    "p95_ms": 14.3296
+   },
+   "hindsight-chunks": {
+    "kind": "sequential pass on an idle machine, one world",
+    "world": "conv-41",
+    "memories": 663,
+    "questions": 193,
+    "p50_ms": 1800.1586,
+    "p95_ms": 2233.6554
+   },
+   "mem0-llm-deepseek-flash": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 1981,
+    "p50_ms": 178.693,
+    "p95_ms": 342.796
+   },
+   "mem0-llm-claude-haiku-5-5": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 1981,
+    "p50_ms": 70.314,
+    "p95_ms": 202.253
+   },
+   "graphiti-deepseek-flash": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 495,
+    "p50_ms": 78.114,
+    "p95_ms": 110.662
+   },
+   "graphiti-claude-haiku-5-5": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 495,
+    "p50_ms": 72.612,
+    "p95_ms": 104.924
+   },
+   "dsh-fish-memory-expand-deepseek-flash": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 197,
+    "p50_ms": 2.0039,
+    "p95_ms": 3.9421
+   },
+   "dsh-fish-memory-expand-claude-haiku-5-5": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 197,
+    "p50_ms": 2.836,
+    "p95_ms": 5.6825
+   },
+   "hindsight-llm-deepseek-flash": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 197,
+    "p50_ms": 2451.564,
+    "p95_ms": 2859.1767
+   },
+   "hindsight-llm-claude-haiku-5-5": {
+    "kind": "measured under load (parallel run, the worlds it ran on)",
+    "world": null,
+    "memories": null,
+    "questions": 197,
+    "p50_ms": 2558.4805,
+    "p95_ms": 2807.4039
+   }
+  }
+ }
+}

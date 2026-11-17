@@ -1,0 +1,266 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1170" viewBox="0 0 1000 1170" role="img" lang="en">
+<style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#c3c2b7;font-size:13px}.t{font-size:17px;font-weight:600;fill:#f0efec}.l{font-size:13px;fill:#f0efec}.lb{font-size:13px;font-weight:600;fill:#f0efec}.s{font-size:11px;fill:#c3c2b7}.grid{stroke:#2c2c2a;stroke-width:1;fill:none}.axis{stroke:#383835;stroke-width:1;fill:none}.tick{stroke:#f0efec;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#3987e5}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
+<rect width="1000" height="1170" fill="#1a1a19"/>
+<text x="24.0" y="32.0" class="t">Sampled configurations next to this project on the same stores</text>
+<rect x="24.0" y="47.0" width="14" height="8" rx="2" class="fa"/>
+<text x="46.0" y="56.0" class="s">feiyu-memgate configurations</text>
+<rect x="231.5" y="47.0" width="14" height="8" rx="2" class="fo"/>
+<text x="253.5" y="56.0" class="s">other projects</text>
+<line x1="362.2" y1="45.0" x2="362.2" y2="57.0" class="tick"/>
+<text x="374.2" y="56.0" class="s">tick: Hit@1</text>
+<rect x="450.3" y="47.0" width="14" height="8" rx="2" class="tint"/>
+<text x="472.3" y="56.0" class="s">light: Hit@10</text>
+<text x="24.0" y="114.0" class="lb">PerLTQA, the first 10 stores (p01 – p10) · 2,343 answerable questions</text>
+<text x="790.0" y="114.0" class="s" text-anchor="end">delivered hit</text>
+<text x="976.0" y="114.0" class="s" text-anchor="end">items per question</text>
+<line x1="240.0" y1="124.0" x2="240.0" y2="238.0" class="axis"/>
+<text x="240.0" y="254.0" class="s" text-anchor="middle">0%</text>
+<line x1="307.5" y1="124.0" x2="307.5" y2="238.0" class="grid"/>
+<text x="307.5" y="254.0" class="s" text-anchor="middle">25%</text>
+<line x1="375.0" y1="124.0" x2="375.0" y2="238.0" class="grid"/>
+<text x="375.0" y="254.0" class="s" text-anchor="middle">50%</text>
+<line x1="442.5" y1="124.0" x2="442.5" y2="238.0" class="grid"/>
+<text x="442.5" y="254.0" class="s" text-anchor="middle">75%</text>
+<line x1="510.0" y1="124.0" x2="510.0" y2="238.0" class="grid"/>
+<text x="510.0" y="254.0" class="s" text-anchor="middle">100%</text>
+<text x="24.0" y="144.5" class="l">Graphiti (deepseek-flash)</text>
+<path d="M240.0,133.0 H458.4 A4.0,4.0 0 0 1 462.4,137.0 V143.0 A4.0,4.0 0 0 1 458.4,147.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,133.0 H449.1 A4.0,4.0 0 0 1 453.1,137.0 V143.0 A4.0,4.0 0 0 1 449.1,147.0 H240.0 Z" fill="#898781"/>
+<line x1="367.8" y1="130.0" x2="367.8" y2="150.0" class="tick"/>
+<text x="470.4" y="144.5" class="lb">78.9%</text>
+<text x="790.0" y="144.0" class="l" text-anchor="end">82.4%</text>
+<text x="976.0" y="144.0" class="l" text-anchor="end">5.05</text>
+<text x="24.0" y="172.5" class="l">Graphiti (claude-haiku-5-5)</text>
+<path d="M240.0,161.0 H442.6 A4.0,4.0 0 0 1 446.6,165.0 V171.0 A4.0,4.0 0 0 1 442.6,175.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,161.0 H432.2 A4.0,4.0 0 0 1 436.2,165.0 V171.0 A4.0,4.0 0 0 1 432.2,175.0 H240.0 Z" fill="#898781"/>
+<line x1="355.7" y1="158.0" x2="355.7" y2="178.0" class="tick"/>
+<text x="454.6" y="172.5" class="lb">72.7%</text>
+<text x="790.0" y="172.0" class="l" text-anchor="end">76.5%</text>
+<text x="976.0" y="172.0" class="l" text-anchor="end">5.39</text>
+<text x="24.0" y="200.5" class="l">feiyu-memgate sqlite</text>
+<path d="M240.0,189.0 H482.4 A4.0,4.0 0 0 1 486.4,193.0 V199.0 A4.0,4.0 0 0 1 482.4,203.0 H240.0 Z" fill="#3987e5" fill-opacity="0.35"/>
+<path d="M240.0,189.0 H472.7 A4.0,4.0 0 0 1 476.7,193.0 V199.0 A4.0,4.0 0 0 1 472.7,203.0 H240.0 Z" fill="#3987e5"/>
+<line x1="421.6" y1="186.0" x2="421.6" y2="206.0" class="tick"/>
+<text x="494.4" y="200.5" class="lb">87.7%</text>
+<text x="790.0" y="200.0" class="l" text-anchor="end">83.9%</text>
+<text x="976.0" y="200.0" class="l" text-anchor="end">1.95</text>
+<text x="24.0" y="228.5" class="l">feiyu-memgate hybrid</text>
+<path d="M240.0,217.0 H500.1 A4.0,4.0 0 0 1 504.1,221.0 V227.0 A4.0,4.0 0 0 1 500.1,231.0 H240.0 Z" fill="#3987e5" fill-opacity="0.35"/>
+<path d="M240.0,217.0 H494.2 A4.0,4.0 0 0 1 498.2,221.0 V227.0 A4.0,4.0 0 0 1 494.2,231.0 H240.0 Z" fill="#3987e5"/>
+<line x1="426.3" y1="214.0" x2="426.3" y2="234.0" class="tick"/>
+<text x="512.1" y="228.5" class="lb">95.6%</text>
+<text x="790.0" y="228.0" class="l" text-anchor="end">94.4%</text>
+<text x="976.0" y="228.0" class="l" text-anchor="end">3.37</text>
+<text x="24.0" y="286.0" class="lb">PerLTQA, the first 5 stores (p01 – p05) · 1,352 answerable questions</text>
+<text x="790.0" y="286.0" class="s" text-anchor="end">delivered hit</text>
+<text x="976.0" y="286.0" class="s" text-anchor="end">items per question</text>
+<line x1="240.0" y1="296.0" x2="240.0" y2="438.0" class="axis"/>
+<text x="240.0" y="454.0" class="s" text-anchor="middle">0%</text>
+<line x1="307.5" y1="296.0" x2="307.5" y2="438.0" class="grid"/>
+<text x="307.5" y="454.0" class="s" text-anchor="middle">25%</text>
+<line x1="375.0" y1="296.0" x2="375.0" y2="438.0" class="grid"/>
+<text x="375.0" y="454.0" class="s" text-anchor="middle">50%</text>
+<line x1="442.5" y1="296.0" x2="442.5" y2="438.0" class="grid"/>
+<text x="442.5" y="454.0" class="s" text-anchor="middle">75%</text>
+<line x1="510.0" y1="296.0" x2="510.0" y2="438.0" class="grid"/>
+<text x="510.0" y="454.0" class="s" text-anchor="middle">100%</text>
+<text x="24.0" y="316.5" class="l">Hindsight (no model)</text>
+<path d="M240.0,305.0 H499.6 A4.0,4.0 0 0 1 503.6,309.0 V315.0 A4.0,4.0 0 0 1 499.6,319.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,305.0 H497.4 A4.0,4.0 0 0 1 501.4,309.0 V315.0 A4.0,4.0 0 0 1 497.4,319.0 H240.0 Z" fill="#898781"/>
+<line x1="442.3" y1="302.0" x2="442.3" y2="322.0" class="tick"/>
+<text x="511.6" y="316.5" class="lb">96.8%</text>
+<text x="790.0" y="316.0" class="l" text-anchor="end">98.2%</text>
+<text x="976.0" y="316.0" class="l" text-anchor="end">16.76</text>
+<text x="24.0" y="344.5" class="l">Hindsight (deepseek-flash)</text>
+<path d="M240.0,333.0 H496.0 A4.0,4.0 0 0 1 500.0,337.0 V343.0 A4.0,4.0 0 0 1 496.0,347.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,333.0 H487.2 A4.0,4.0 0 0 1 491.2,337.0 V343.0 A4.0,4.0 0 0 1 487.2,347.0 H240.0 Z" fill="#898781"/>
+<line x1="394.4" y1="330.0" x2="394.4" y2="350.0" class="tick"/>
+<text x="508.0" y="344.5" class="lb">93.0%</text>
+<text x="790.0" y="344.0" class="l" text-anchor="end">96.7%</text>
+<text x="976.0" y="344.0" class="l" text-anchor="end">35.07</text>
+<text x="24.0" y="372.5" class="l">Hindsight (claude-haiku-5-5)</text>
+<path d="M240.0,361.0 H495.0 A4.0,4.0 0 0 1 499.0,365.0 V371.0 A4.0,4.0 0 0 1 495.0,375.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,361.0 H483.4 A4.0,4.0 0 0 1 487.4,365.0 V371.0 A4.0,4.0 0 0 1 483.4,375.0 H240.0 Z" fill="#898781"/>
+<line x1="387.6" y1="358.0" x2="387.6" y2="378.0" class="tick"/>
+<text x="507.0" y="372.5" class="lb">91.6%</text>
+<text x="790.0" y="372.0" class="l" text-anchor="end">98.2%</text>
+<text x="976.0" y="372.0" class="l" text-anchor="end">40.19</text>
+<text x="24.0" y="400.5" class="l">feiyu-memgate sqlite</text>
+<path d="M240.0,389.0 H483.4 A4.0,4.0 0 0 1 487.4,393.0 V399.0 A4.0,4.0 0 0 1 483.4,403.0 H240.0 Z" fill="#3987e5" fill-opacity="0.35"/>
+<path d="M240.0,389.0 H474.8 A4.0,4.0 0 0 1 478.8,393.0 V399.0 A4.0,4.0 0 0 1 474.8,403.0 H240.0 Z" fill="#3987e5"/>
+<line x1="426.1" y1="386.0" x2="426.1" y2="406.0" class="tick"/>
+<text x="495.4" y="400.5" class="lb">88.5%</text>
+<text x="790.0" y="400.0" class="l" text-anchor="end">85.1%</text>
+<text x="976.0" y="400.0" class="l" text-anchor="end">1.94</text>
+<text x="24.0" y="428.5" class="l">feiyu-memgate hybrid</text>
+<path d="M240.0,417.0 H500.6 A4.0,4.0 0 0 1 504.6,421.0 V427.0 A4.0,4.0 0 0 1 500.6,431.0 H240.0 Z" fill="#3987e5" fill-opacity="0.35"/>
+<path d="M240.0,417.0 H495.6 A4.0,4.0 0 0 1 499.6,421.0 V427.0 A4.0,4.0 0 0 1 495.6,431.0 H240.0 Z" fill="#3987e5"/>
+<line x1="432.3" y1="414.0" x2="432.3" y2="434.0" class="tick"/>
+<text x="512.6" y="428.5" class="lb">96.2%</text>
+<text x="790.0" y="428.0" class="l" text-anchor="end">95.1%</text>
+<text x="976.0" y="428.0" class="l" text-anchor="end">3.32</text>
+<text x="24.0" y="486.0" class="lb">PerLTQA, the first 3 stores (p01 – p03) · 838 answerable questions</text>
+<text x="790.0" y="486.0" class="s" text-anchor="end">delivered hit</text>
+<text x="976.0" y="486.0" class="s" text-anchor="end">items per question</text>
+<line x1="240.0" y1="496.0" x2="240.0" y2="638.0" class="axis"/>
+<text x="240.0" y="654.0" class="s" text-anchor="middle">0%</text>
+<line x1="307.5" y1="496.0" x2="307.5" y2="638.0" class="grid"/>
+<text x="307.5" y="654.0" class="s" text-anchor="middle">25%</text>
+<line x1="375.0" y1="496.0" x2="375.0" y2="638.0" class="grid"/>
+<text x="375.0" y="654.0" class="s" text-anchor="middle">50%</text>
+<line x1="442.5" y1="496.0" x2="442.5" y2="638.0" class="grid"/>
+<text x="442.5" y="654.0" class="s" text-anchor="middle">75%</text>
+<line x1="510.0" y1="496.0" x2="510.0" y2="638.0" class="grid"/>
+<text x="510.0" y="654.0" class="s" text-anchor="middle">100%</text>
+<text x="24.0" y="516.5" class="l">dsh-fish-memory</text>
+<path d="M240.0,505.0 H424.5 A4.0,4.0 0 0 1 428.5,509.0 V515.0 A4.0,4.0 0 0 1 424.5,519.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,505.0 H414.8 A4.0,4.0 0 0 1 418.8,509.0 V515.0 A4.0,4.0 0 0 1 414.8,519.0 H240.0 Z" fill="#898781"/>
+<line x1="348.9" y1="502.0" x2="348.9" y2="522.0" class="tick"/>
+<text x="436.5" y="516.5" class="lb">66.2%</text>
+<text x="790.0" y="516.0" class="l" text-anchor="end">48.7%</text>
+<text x="976.0" y="516.0" class="l" text-anchor="end">1.42</text>
+<text x="24.0" y="538.5" class="l">dsh-fish-memory</text>
+<text x="24.0" y="550.5" class="s">+ deepseek-flash expansion</text>
+<path d="M240.0,533.0 H428.0 A4.0,4.0 0 0 1 432.0,537.0 V543.0 A4.0,4.0 0 0 1 428.0,547.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,533.0 H418.7 A4.0,4.0 0 0 1 422.7,537.0 V543.0 A4.0,4.0 0 0 1 418.7,547.0 H240.0 Z" fill="#898781"/>
+<line x1="353.4" y1="530.0" x2="353.4" y2="550.0" class="tick"/>
+<text x="440.0" y="544.5" class="lb">67.7%</text>
+<text x="790.0" y="544.0" class="l" text-anchor="end">49.8%</text>
+<text x="976.0" y="544.0" class="l" text-anchor="end">1.32</text>
+<text x="24.0" y="566.5" class="l">dsh-fish-memory</text>
+<text x="24.0" y="578.5" class="s">+ claude-haiku-5-5 expansion</text>
+<path d="M240.0,561.0 H428.7 A4.0,4.0 0 0 1 432.7,565.0 V571.0 A4.0,4.0 0 0 1 428.7,575.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,561.0 H419.3 A4.0,4.0 0 0 1 423.3,565.0 V571.0 A4.0,4.0 0 0 1 419.3,575.0 H240.0 Z" fill="#898781"/>
+<line x1="354.4" y1="558.0" x2="354.4" y2="578.0" class="tick"/>
+<text x="440.7" y="572.5" class="lb">67.9%</text>
+<text x="790.0" y="572.0" class="l" text-anchor="end">50.2%</text>
+<text x="976.0" y="572.0" class="l" text-anchor="end">1.35</text>
+<text x="24.0" y="600.5" class="l">feiyu-memgate sqlite</text>
+<path d="M240.0,589.0 H481.8 A4.0,4.0 0 0 1 485.8,593.0 V599.0 A4.0,4.0 0 0 1 481.8,603.0 H240.0 Z" fill="#3987e5" fill-opacity="0.35"/>
+<path d="M240.0,589.0 H473.1 A4.0,4.0 0 0 1 477.1,593.0 V599.0 A4.0,4.0 0 0 1 473.1,603.0 H240.0 Z" fill="#3987e5"/>
+<line x1="423.7" y1="586.0" x2="423.7" y2="606.0" class="tick"/>
+<text x="493.8" y="600.5" class="lb">87.8%</text>
+<text x="790.0" y="600.0" class="l" text-anchor="end">84.1%</text>
+<text x="976.0" y="600.0" class="l" text-anchor="end">1.96</text>
+<text x="24.0" y="628.5" class="l">feiyu-memgate hybrid</text>
+<path d="M240.0,617.0 H499.2 A4.0,4.0 0 0 1 503.2,621.0 V627.0 A4.0,4.0 0 0 1 499.2,631.0 H240.0 Z" fill="#3987e5" fill-opacity="0.35"/>
+<path d="M240.0,617.0 H494.7 A4.0,4.0 0 0 1 498.7,621.0 V627.0 A4.0,4.0 0 0 1 494.7,631.0 H240.0 Z" fill="#3987e5"/>
+<line x1="431.7" y1="614.0" x2="431.7" y2="634.0" class="tick"/>
+<text x="511.2" y="628.5" class="lb">95.8%</text>
+<text x="790.0" y="628.0" class="l" text-anchor="end">94.4%</text>
+<text x="976.0" y="628.0" class="l" text-anchor="end">3.35</text>
+<text x="24.0" y="686.0" class="lb">LoCoMo, the first 3 stores (conv-26 – conv-41) · 383 answerable questions</text>
+<text x="790.0" y="686.0" class="s" text-anchor="end">delivered hit</text>
+<text x="976.0" y="686.0" class="s" text-anchor="end">items per question</text>
+<line x1="240.0" y1="696.0" x2="240.0" y2="810.0" class="axis"/>
+<text x="240.0" y="826.0" class="s" text-anchor="middle">0%</text>
+<line x1="307.5" y1="696.0" x2="307.5" y2="810.0" class="grid"/>
+<text x="307.5" y="826.0" class="s" text-anchor="middle">25%</text>
+<line x1="375.0" y1="696.0" x2="375.0" y2="810.0" class="grid"/>
+<text x="375.0" y="826.0" class="s" text-anchor="middle">50%</text>
+<line x1="442.5" y1="696.0" x2="442.5" y2="810.0" class="grid"/>
+<text x="442.5" y="826.0" class="s" text-anchor="middle">75%</text>
+<line x1="510.0" y1="696.0" x2="510.0" y2="810.0" class="grid"/>
+<text x="510.0" y="826.0" class="s" text-anchor="middle">100%</text>
+<text x="24.0" y="716.5" class="l">Graphiti (deepseek-flash)</text>
+<path d="M240.0,705.0 H405.9 A4.0,4.0 0 0 1 409.9,709.0 V715.0 A4.0,4.0 0 0 1 405.9,719.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,705.0 H384.7 A4.0,4.0 0 0 1 388.7,709.0 V715.0 A4.0,4.0 0 0 1 384.7,719.0 H240.0 Z" fill="#898781"/>
+<line x1="316.8" y1="702.0" x2="316.8" y2="722.0" class="tick"/>
+<text x="417.9" y="716.5" class="lb">55.1%</text>
+<text x="790.0" y="716.0" class="l" text-anchor="end">62.9%</text>
+<text x="976.0" y="716.0" class="l" text-anchor="end">8.81</text>
+<text x="24.0" y="744.5" class="l">Graphiti (claude-haiku-5-5)</text>
+<path d="M240.0,733.0 H408.7 A4.0,4.0 0 0 1 412.7,737.0 V743.0 A4.0,4.0 0 0 1 408.7,747.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,733.0 H381.2 A4.0,4.0 0 0 1 385.2,737.0 V743.0 A4.0,4.0 0 0 1 381.2,747.0 H240.0 Z" fill="#898781"/>
+<line x1="306.3" y1="730.0" x2="306.3" y2="750.0" class="tick"/>
+<text x="420.7" y="744.5" class="lb">53.8%</text>
+<text x="790.0" y="744.0" class="l" text-anchor="end">64.0%</text>
+<text x="976.0" y="744.0" class="l" text-anchor="end">9.32</text>
+<text x="24.0" y="772.5" class="l">feiyu-memgate sqlite</text>
+<path d="M240.0,761.0 H363.6 A4.0,4.0 0 0 1 367.6,765.0 V771.0 A4.0,4.0 0 0 1 363.6,775.0 H240.0 Z" fill="#3987e5" fill-opacity="0.35"/>
+<path d="M240.0,761.0 H334.7 A4.0,4.0 0 0 1 338.7,765.0 V771.0 A4.0,4.0 0 0 1 334.7,775.0 H240.0 Z" fill="#3987e5"/>
+<line x1="295.7" y1="758.0" x2="295.7" y2="778.0" class="tick"/>
+<text x="375.6" y="772.5" class="lb">36.6%</text>
+<text x="790.0" y="772.0" class="l" text-anchor="end">34.7%</text>
+<text x="976.0" y="772.0" class="l" text-anchor="end">4.70</text>
+<text x="24.0" y="800.5" class="l">feiyu-memgate hybrid</text>
+<path d="M240.0,789.0 H422.8 A4.0,4.0 0 0 1 426.8,793.0 V799.0 A4.0,4.0 0 0 1 422.8,803.0 H240.0 Z" fill="#3987e5" fill-opacity="0.35"/>
+<path d="M240.0,789.0 H404.5 A4.0,4.0 0 0 1 408.5,793.0 V799.0 A4.0,4.0 0 0 1 404.5,803.0 H240.0 Z" fill="#3987e5"/>
+<line x1="342.2" y1="786.0" x2="342.2" y2="806.0" class="tick"/>
+<text x="434.8" y="800.5" class="lb">62.4%</text>
+<text x="790.0" y="800.0" class="l" text-anchor="end">55.6%</text>
+<text x="976.0" y="800.0" class="l" text-anchor="end">4.84</text>
+<text x="24.0" y="858.0" class="lb">LoCoMo, the first store (conv-26) · 150 answerable questions</text>
+<text x="790.0" y="858.0" class="s" text-anchor="end">delivered hit</text>
+<text x="976.0" y="858.0" class="s" text-anchor="end">items per question</text>
+<line x1="240.0" y1="868.0" x2="240.0" y2="1094.0" class="axis"/>
+<text x="240.0" y="1110.0" class="s" text-anchor="middle">0%</text>
+<line x1="307.5" y1="868.0" x2="307.5" y2="1094.0" class="grid"/>
+<text x="307.5" y="1110.0" class="s" text-anchor="middle">25%</text>
+<line x1="375.0" y1="868.0" x2="375.0" y2="1094.0" class="grid"/>
+<text x="375.0" y="1110.0" class="s" text-anchor="middle">50%</text>
+<line x1="442.5" y1="868.0" x2="442.5" y2="1094.0" class="grid"/>
+<text x="442.5" y="1110.0" class="s" text-anchor="middle">75%</text>
+<line x1="510.0" y1="868.0" x2="510.0" y2="1094.0" class="grid"/>
+<text x="510.0" y="1110.0" class="s" text-anchor="middle">100%</text>
+<text x="24.0" y="888.5" class="l">Hindsight (no model)</text>
+<path d="M240.0,877.0 H461.0 A4.0,4.0 0 0 1 465.0,881.0 V887.0 A4.0,4.0 0 0 1 461.0,891.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,877.0 H441.2 A4.0,4.0 0 0 1 445.2,881.0 V887.0 A4.0,4.0 0 0 1 441.2,891.0 H240.0 Z" fill="#898781"/>
+<line x1="369.6" y1="874.0" x2="369.6" y2="894.0" class="tick"/>
+<text x="473.0" y="888.5" class="lb">76.0%</text>
+<text x="790.0" y="888.0" class="l" text-anchor="end">94.7%</text>
+<text x="976.0" y="888.0" class="l" text-anchor="end">59.48</text>
+<text x="24.0" y="916.5" class="l">Hindsight (deepseek-flash)</text>
+<path d="M240.0,905.0 H461.0 A4.0,4.0 0 0 1 465.0,909.0 V915.0 A4.0,4.0 0 0 1 461.0,919.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,905.0 H434.0 A4.0,4.0 0 0 1 438.0,909.0 V915.0 A4.0,4.0 0 0 1 434.0,919.0 H240.0 Z" fill="#898781"/>
+<line x1="360.6" y1="902.0" x2="360.6" y2="922.0" class="tick"/>
+<text x="473.0" y="916.5" class="lb">73.3%</text>
+<text x="790.0" y="916.0" class="l" text-anchor="end">91.3%</text>
+<text x="976.0" y="916.0" class="l" text-anchor="end">88.86</text>
+<text x="24.0" y="944.5" class="l">Hindsight (claude-haiku-5-5)</text>
+<path d="M240.0,933.0 H464.6 A4.0,4.0 0 0 1 468.6,937.0 V943.0 A4.0,4.0 0 0 1 464.6,947.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,933.0 H434.0 A4.0,4.0 0 0 1 438.0,937.0 V943.0 A4.0,4.0 0 0 1 434.0,947.0 H240.0 Z" fill="#898781"/>
+<line x1="357.0" y1="930.0" x2="357.0" y2="950.0" class="tick"/>
+<text x="476.6" y="944.5" class="lb">73.3%</text>
+<text x="790.0" y="944.0" class="l" text-anchor="end">92.7%</text>
+<text x="976.0" y="944.0" class="l" text-anchor="end">86.82</text>
+<text x="24.0" y="972.5" class="l">dsh-fish-memory</text>
+<path d="M240.0,961.0 H335.0 A4.0,4.0 0 0 1 339.0,965.0 V971.0 A4.0,4.0 0 0 1 335.0,975.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,961.0 H329.6 A4.0,4.0 0 0 1 333.6,965.0 V971.0 A4.0,4.0 0 0 1 329.6,975.0 H240.0 Z" fill="#898781"/>
+<line x1="290.4" y1="958.0" x2="290.4" y2="978.0" class="tick"/>
+<text x="347.0" y="972.5" class="lb">34.7%</text>
+<text x="790.0" y="972.0" class="l" text-anchor="end">32.7%</text>
+<text x="976.0" y="972.0" class="l" text-anchor="end">2.87</text>
+<text x="24.0" y="994.5" class="l">dsh-fish-memory</text>
+<text x="24.0" y="1006.5" class="s">+ deepseek-flash expansion</text>
+<path d="M240.0,989.0 H335.0 A4.0,4.0 0 0 1 339.0,993.0 V999.0 A4.0,4.0 0 0 1 335.0,1003.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,989.0 H329.6 A4.0,4.0 0 0 1 333.6,993.0 V999.0 A4.0,4.0 0 0 1 329.6,1003.0 H240.0 Z" fill="#898781"/>
+<line x1="297.6" y1="986.0" x2="297.6" y2="1006.0" class="tick"/>
+<text x="347.0" y="1000.5" class="lb">34.7%</text>
+<text x="790.0" y="1000.0" class="l" text-anchor="end">32.0%</text>
+<text x="976.0" y="1000.0" class="l" text-anchor="end">2.72</text>
+<text x="24.0" y="1022.5" class="l">dsh-fish-memory</text>
+<text x="24.0" y="1034.5" class="s">+ claude-haiku-5-5 expansion</text>
+<path d="M240.0,1017.0 H336.8 A4.0,4.0 0 0 1 340.8,1021.0 V1027.0 A4.0,4.0 0 0 1 336.8,1031.0 H240.0 Z" fill="#898781" fill-opacity="0.35"/>
+<path d="M240.0,1017.0 H329.6 A4.0,4.0 0 0 1 333.6,1021.0 V1027.0 A4.0,4.0 0 0 1 329.6,1031.0 H240.0 Z" fill="#898781"/>
+<line x1="292.2" y1="1014.0" x2="292.2" y2="1034.0" class="tick"/>
+<text x="348.8" y="1028.5" class="lb">34.7%</text>
+<text x="790.0" y="1028.0" class="l" text-anchor="end">32.0%</text>
+<text x="976.0" y="1028.0" class="l" text-anchor="end">2.65</text>
+<text x="24.0" y="1056.5" class="l">feiyu-memgate sqlite</text>
+<path d="M240.0,1045.0 H378.2 A4.0,4.0 0 0 1 382.2,1049.0 V1055.0 A4.0,4.0 0 0 1 378.2,1059.0 H240.0 Z" fill="#3987e5" fill-opacity="0.35"/>
+<path d="M240.0,1045.0 H345.8 A4.0,4.0 0 0 1 349.8,1049.0 V1055.0 A4.0,4.0 0 0 1 345.8,1059.0 H240.0 Z" fill="#3987e5"/>
+<line x1="303.0" y1="1042.0" x2="303.0" y2="1062.0" class="tick"/>
+<text x="390.2" y="1056.5" class="lb">40.7%</text>
+<text x="790.0" y="1056.0" class="l" text-anchor="end">35.3%</text>
+<text x="976.0" y="1056.0" class="l" text-anchor="end">4.51</text>
+<text x="24.0" y="1084.5" class="l">feiyu-memgate hybrid</text>
+<path d="M240.0,1073.0 H432.2 A4.0,4.0 0 0 1 436.2,1077.0 V1083.0 A4.0,4.0 0 0 1 432.2,1087.0 H240.0 Z" fill="#3987e5" fill-opacity="0.35"/>
+<path d="M240.0,1073.0 H408.8 A4.0,4.0 0 0 1 412.8,1077.0 V1083.0 A4.0,4.0 0 0 1 408.8,1087.0 H240.0 Z" fill="#3987e5"/>
+<line x1="340.8" y1="1070.0" x2="340.8" y2="1090.0" class="tick"/>
+<text x="444.2" y="1084.5" class="lb">64.0%</text>
+<text x="790.0" y="1084.0" class="l" text-anchor="end">56.0%</text>
+<text x="976.0" y="1084.0" class="l" text-anchor="end">4.87</text>
+<text x="24.0" y="1136.0" class="s">Bar: Hit@5, light extension to Hit@10, tick: Hit@1. Every configuration of a group is scored on those stores only, this project's sqlite and hybrid included.</text>
+<text x="24.0" y="1154.0" class="s">bench/external/results/summary.md · PerLTQA 32 stores, 8,588 questions; LoCoMo 10 stores, 1,535 questions · 2026-11-17</text>
+</svg>
