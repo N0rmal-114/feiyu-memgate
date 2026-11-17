@@ -53,7 +53,7 @@ function satisfies(version, range, includePrerelease) {
 
 test('manifest fields', () => {
   assert.equal(pkg.name, 'dsh-feiyu-memgate')
-  assert.equal(pkg.version, '0.2.0')
+  assert.equal(pkg.version, '0.3.0')
   assert.equal(pkg.type, 'module')
   assert.equal(pkg.license, 'MIT')
   assert.equal(pkg.author, 'N0rmal')
@@ -192,14 +192,22 @@ test('the entry exports name, inject, Config and apply, and no default export', 
   assert.equal(entry.Config, undefined, 'without the host schema library the plugin loads with defaults')
 })
 
+test('the keyword index helper ships with the plugin and imports only the standard library at the top (the gateway package is added by path inside main)', () => {
+  assert.ok(pkg.files.includes('src/'), 'src/ is published, and with it src/mirror.py')
+  const source = read('src/mirror.py')
+  const imports = [...source.matchAll(/^(?:import|from)\s+([A-Za-z_][\w.]*)/gm)].map((m) => m[1].split('.')[0])
+  assert.deepEqual([...new Set(imports)].sort(), ['json', 'os', 'pathlib', 'sqlite3', 'sys', 'threading', 'time'])
+  assert.match(source, /deadline_seconds/)
+})
+
 test('files of this task hold no local paths, private data or vendor names', () => {
   const own = [
     'index.js', 'package.json', 'cordis.patch.yml', '.gitignore', '.npmignore', 'locale/en.json', 'locale/zh.json',
     'scripts/sync-gateway.mjs', 'scripts/sync-client.mjs', 'scripts/sync-catalogue.mjs', 'client/client.js',
     'src/plugin.js', 'src/config.js', 'src/gateway.js', 'src/tiers.js', 'src/commands.js', 'src/migrate.js', 'src/migrate.py',
-    'src/setup.js', 'src/catalogue.js',
+    'src/mirror.py', 'src/setup.js', 'src/catalogue.js',
     'tests/plugin.test.js', 'tests/plugin-host.test.js', 'tests/gateway.test.js', 'tests/config.test.js', 'tests/package.test.js',
-    'tests/tiers.test.js', 'tests/commands.test.js', 'tests/migrate.test.js', 'tests/client-page.test.js',
+    'tests/tiers.test.js', 'tests/commands.test.js', 'tests/migrate.test.js', 'tests/mirror.test.js', 'tests/client-page.test.js',
     'tests/setup.test.js', 'tests/catalogue.test.js',
     'README.md', 'README.zh.md', 'docs/DETAIL.md', 'docs/DETAIL.en.md',
     ...fs.readdirSync(path.join(ROOT, 'tests', 'helpers')).map((f) => 'tests/helpers/' + f),

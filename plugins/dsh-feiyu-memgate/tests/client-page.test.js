@@ -229,6 +229,24 @@ test('status rows: managed and external, in the page language', async () => {
     ['Embedding add-on', 'ready · bge-small-zh-v1.5 · 512d · scores not calibrated'],
     ['Copy from the keyword store', 'copying · 1 of 3 copied'],
   ])
+  const hybrid = {
+    gateway: { mode: 'managed', state: 'running' },
+    python: { found: true, version: '3.12.4', source: 'path', executable: 'python-for-tests' },
+    retrieval: { setting: 'auto', active: 'local', hybrid: { setting: true, active: true } },
+    store: { type: 'hybrid', file: 'memories-local-x.db', keywordFile: 'memories-local-x-keywords.db', hybrid: true, count: 3 },
+    embed: null,
+  }
+  assert.deepEqual(plain(internals.statusRows(hybrid, translator(dicts.en))).slice(2, 4), [
+    ['Retrieval', 'auto → local + keyword (hybrid)'],
+    ['Store', 'hybrid · memories-local-x.db + memories-local-x-keywords.db · 3 memories'],
+  ])
+  assert.deepEqual(plain(internals.statusRows(hybrid, translator(dicts.zh))).slice(2, 4), [
+    ['检索', 'auto → local + 关键词（混合）'],
+    ['存储', 'hybrid · memories-local-x.db + memories-local-x-keywords.db · 3 条记忆'],
+  ])
+  // The switch is on but the resolved store is not hybrid (keyword): the rows stay as they were.
+  const idle = { ...hybrid, retrieval: { setting: 'keyword', active: 'keyword', hybrid: { setting: true, active: false } }, store: { type: 'sqlite', file: 'memories.db', count: 1 } }
+  assert.deepEqual(plain(internals.statusRows(idle, translator(dicts.en))).slice(2, 4), [['Retrieval', 'keyword → keyword'], ['Store', 'sqlite · memories.db · 1 memories']])
   const external = plain(internals.statusRows({ gateway: { mode: 'external', state: 'configured', url: 'http://127.0.0.1:8080' }, embed: null }, translator(dicts.zh)))
   assert.deepEqual(external, [['网关', '外部 · 已配置 · http://127.0.0.1:8080'], ['检索', '由外部网关决定'], ['向量插件', '未安装']])
   assert.deepEqual(plain(internals.statusRows({ gateway: { mode: 'managed', state: 'brand-new' }, python: { found: false }, retrieval: { setting: 'keyword', active: 'keyword' } }, translator(dicts.en)))[0], ['Gateway', 'managed · brand-new'])

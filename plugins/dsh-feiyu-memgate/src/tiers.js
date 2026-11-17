@@ -16,6 +16,10 @@
 // searched under another, and switching back finds them again; the copy of keyword memories into a
 // vector store (migrateOnTierChange) is the only thing that moves texts between files.
 //
+// The retrieval.hybrid switch adds a keyword index file next to the vector file of a vector tier
+// (resolveStore below). The vector file stays the one that holds every memory; the index is rebuilt
+// from it by src/mirror.py, so switching hybrid on or off loses nothing.
+//
 // `facts` is what the plugin knows about its surroundings at the moment: { embed } is the snapshot
 // of the embedding add-on's service (readEmbed below), or null when the add-on is absent.
 import { createHash } from 'node:crypto'
@@ -209,14 +213,42 @@ export function effectiveTier(setting, facts) {
 }
 
 /**
- * The store the managed gateway runs for these settings: { tier, missing, id, table, env }. While
- * something is missing, id and table are null and nothing may start.
+ * The keyword index file of a hybrid store: next to the vector file of the same store id. Tests and
+ * documents use this one definition.
+ */
+export function keywordIndexFile(dataDir, id) {
+  return path.join(dataDir, `memories-${id}-keywords.db`)
+}
+
+/**
+ * The store the managed gateway runs for these settings:
+ *   { tier, missing, id, table, env, file, hybrid, mirror? }
+ * While something is missing, id, table and file are null and nothing may start.
+ *   file     the store file that holds every memory of this store (the vector file when hybrid)
+ *   hybrid   true when retrieval.hybrid is on, the tier is a vector tier and nothing is missing; the
+ *            table is then a hybrid of a keyword index (first) and the vector table, and `id` stays the
+ *            id of the vector store, so the ledger, the archive and the copy state are the same files
+ *            as without hybrid: it is the same set of memories
+ *   mirror   hybrid only: { keyword, vector }, what src/mirror.py needs to bring the keyword index in
+ *            line with the vector file before the gateway starts
  */
 export function resolveStore(retrieval, dataDir, facts) {
   const tier = effectiveTier(retrieval.tier, facts)
   const entry = TIERS[tier]
   const missing = entry.missing(retrieval, facts)
-  if (missing.length) return { tier, missing, id: null, table: null, env: {} }
+  if (missing.length) return { tier, missing, id: null, table: null, env: {}, file: null, hybrid: false }
   const { id, table } = entry.store(retrieval, dataDir, facts)
-  return { tier, missing, id, table, env: entry.env(retrieval, facts) }
+  const env = entry.env(retrieval, facts)
+  if (!(retrieval.hybrid === true && entry.vector)) return { tier, missing, id, table, env, file: table.path, hybrid: false }
+  // Keyword child first, vector child second, no weights: the order and the default the gateway's
+  // hybrid configurations were measured with. The vector child is the plain table unchanged
+  // (key_env included: the hybrid backend resolves a child's key_env from the environment itself).
+  const keyword = { type: 'sqlite', path: keywordIndexFile(dataDir, id) }
+  return {
+    tier, missing, id, env,
+    table: { type: 'hybrid', children: [keyword, table] },
+    file: table.path,
+    hybrid: true,
+    mirror: { keyword, vector: table.path },
+  }
 }

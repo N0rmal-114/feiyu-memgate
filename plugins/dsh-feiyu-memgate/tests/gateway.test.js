@@ -4,6 +4,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn, spawnSync } from 'node:child_process'
+import { EventEmitter } from 'node:events'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -150,6 +151,9 @@ test('the gateway accepts every generated configuration', { skip }, async (t) =>
     [{ advanced: { forgetting: true } }],
     [{ retrieval: { tier: 'endpoint', url: 'http://127.0.0.1:9/v1', model: 'bge-m3' } }],
     [{ retrieval: { tier: 'endpoint', url: 'http://127.0.0.1:9/v1', model: 'bge-m3', apiKey: 'fake-embeddings-key' }, advanced: { forgetting: true } }],
+    // Hybrid: the keyword index and the vector table side by side; the key still comes from the environment.
+    [{ retrieval: { tier: 'endpoint', hybrid: true, url: 'http://127.0.0.1:9/v1', model: 'bge-m3' } }],
+    [{ retrieval: { tier: 'endpoint', hybrid: true, url: 'http://127.0.0.1:9/v1', model: 'bge-m3', apiKey: 'fake-embeddings-key' }, advanced: { forgetting: true } }],
     // auto with the add-on ready is the local tier; a model the gateway has a preset for gets no calibration.
     [{}, { embed: embed('bge-small-zh-v1.5', { preset: 'bge-small-zh', parity: 'exact', floor: 0.1, ceil: 0.2, query_prefix: 'q: ', document_prefix: '' }) }],
     // A model without a gateway preset takes the add-on's numbers.
@@ -166,6 +170,12 @@ test('the gateway accepts every generated configuration', { skip }, async (t) =>
     assert.equal(result.status, 0, `variant ${index}:\n${result.stdout}\n${result.stderr}`)
     if (settings.advanced.forgetting) assert.match(text, /\[forgetting\]/)
     if (settings.retrieval.apiKey) assert.equal(env[EMBEDDINGS_KEY_ENV], 'fake-embeddings-key')
+    if (settings.retrieval.hybrid) {
+      assert.equal(store.hybrid, true)
+      assert.match(text, /type = "hybrid"/)
+      assert.match(text, /children = \[\{ type = "sqlite", path = /)
+      assert.ok(!text.includes('weights'), 'the default weights are left to the gateway')
+    }
     if (facts.embed) {
       assert.equal(store.tier, 'local')
       assert.equal(env[EMBEDDINGS_KEY_ENV], 'fake-addon-key')
@@ -173,6 +183,158 @@ test('the gateway accepts every generated configuration', { skip }, async (t) =>
       assert.equal(/floor = /.test(text), facts.embed.model === 'tiny-test-embedder', 'calibration only for a model without a gateway preset')
     }
   }
+})
+
+test('a hybrid store is written as a children array of inline tables, backslash paths included', { skip }, async () => {
+  const dataDir = String.raw`D:\data\feiyu data\store`
+  const settings = readConfig({ retrieval: { tier: 'endpoint', hybrid: true, url: 'http://127.0.0.1:9/v1', model: 'bge-m3', apiKey: 'fake-embeddings-key' } })
+  const { text, store, env } = gatewayConfig({ port: 4321, dataDir, settings })
+  const [keyword, vector] = store.table.children
+  assert.match(text, /^type = "hybrid"$/m)
+  // The exact line: keyword child first, then the vector table, key_env by name only.
+  const line = `children = [{ type = "sqlite", path = ${tomlString(keyword.path)} }, { type = "embedding", path = ${tomlString(vector.path)}, url = "http://127.0.0.1:9/v1", model = "bge-m3", key_env = "${EMBEDDINGS_KEY_ENV}" }]`
+  assert.ok(text.split('\n').includes(line), text)
+  assert.ok(text.includes(String.raw`path = "D:\\data\\feiyu data\\store`), 'backslashes are doubled')
+  assert.ok(!text.includes('fake-embeddings-key'))
+  assert.equal(env[EMBEDDINGS_KEY_ENV], 'fake-embeddings-key')
+  // Parsed back by a real TOML reader, the paths are the original ones.
+  const parse = [
+    'import json, sys, tomllib',
+    'print(json.dumps(tomllib.loads(sys.stdin.buffer.read().decode("utf-8"))["stores"]["memories"]))',
+  ].join('\n')
+  const parsed = spawnSync(python.executable, ['-I', '-B', '-c', parse], { input: text, encoding: 'utf8', windowsHide: true })
+  assert.equal(parsed.status, 0, parsed.stderr)
+  const memories = JSON.parse(parsed.stdout)
+  assert.equal(memories.type, 'hybrid')
+  assert.deepEqual(memories.children.map((c) => c.type), ['sqlite', 'embedding'])
+  assert.equal(memories.children[0].path, keyword.path)
+  assert.equal(memories.children[1].path, vector.path)
+  assert.equal(memories.children[1].key_env, EMBEDDINGS_KEY_ENV)
+})
+
+// A gateway process that never answers its health check.
+function fakeSpawn(spawned) {
+  return (command, args, options) => {
+    const child = new EventEmitter()
+    child.exitCode = null
+    child.signalCode = null
+    child.pid = 0
+    child.stdin = Object.assign(new EventEmitter(), { end() {}, write() {}, unref() {} })
+    child.stdout = Object.assign(new EventEmitter(), { unref() {} })
+    child.stderr = Object.assign(new EventEmitter(), { unref() {} })
+    child.unref = () => {}
+    child.kill = () => {
+      if (child.exitCode !== null) return
+      child.exitCode = 0
+      setImmediate(() => child.emit('exit', 0))
+    }
+    spawned.push({ command, args, options, child })
+    return child
+  }
+}
+
+// A manager over a fake interpreter and a fake process; the keyword index update is the test's own.
+function hybridManager(t, dataDir, { retrieval = {}, mirrorImpl, spawned }) {
+  const warnings = []
+  const calls = []
+  const settings = readConfig({
+    retrieval: { tier: 'endpoint', hybrid: true, url: 'http://127.0.0.1:9/v1', model: 'bge-m3', ...retrieval },
+    gateway: { dataDir },
+  })
+  const fake = { argv: ['python-for-tests'], executable: 'python-for-tests', version: '3.12.0', source: 'test' }
+  const m = createGatewayManager({
+    settings,
+    env: ISOLATED_ENV,
+    logger: { warn: (w) => warnings.push(w) },
+    find: async () => fake,
+    spawnImpl: fakeSpawn(spawned),
+    mirrorImpl: (job) => {
+      calls.push({ at: spawned.length, job })
+      return mirrorImpl(job)
+    },
+    healthTimeoutMs: 50,
+    maxRestarts: 0,
+  })
+  managersOf.get(t).push(m)
+  return { m, warnings, calls }
+}
+
+const finished = (result) => ({ done: Promise.resolve(result), stop: async () => {} })
+
+test('the keyword index is updated before the gateway starts, and only for a hybrid store', async (t) => {
+  const dataDir = tempDir(t)
+  const spawned = []
+  const { m, calls, warnings } = hybridManager(t, dataDir, { spawned, mirrorImpl: () => finished({ state: 'done', added: 3, removed: 1, remaining: 0 }) })
+  m.start()
+  await m.ready()
+  assert.equal(calls.length, 1)
+  assert.equal(calls[0].at, 0, 'no gateway process existed when the update started')
+  assert.equal(spawned.length, 1, 'the gateway started after it')
+  assert.deepEqual(calls[0].job.mirror, m.store().mirror)
+  assert.equal(calls[0].job.dataDir, dataDir)
+  assert.deepEqual(warnings.filter((w) => /keyword index/.test(w)), [])
+  const log = fs.readFileSync(path.join(dataDir, 'gateway.log'), 'utf8')
+  assert.match(log, /keyword index done: 3 added, 1 removed, 0 remaining/)
+  assert.ok(log.indexOf('keyword index done') < log.indexOf('gateway starting'), 'logged before the gateway starts')
+
+  for (const retrieval of [{ hybrid: false }, { tier: 'keyword' }]) {
+    const other = tempDir(t)
+    const otherSpawned = []
+    const plain = hybridManager(t, other, { spawned: otherSpawned, retrieval, mirrorImpl: () => finished({ state: 'done' }) })
+    plain.m.start()
+    await plain.m.ready()
+    assert.equal(plain.calls.length, 0, JSON.stringify(retrieval))
+    assert.equal(otherSpawned.length, 1, JSON.stringify(retrieval))
+  }
+})
+
+test('a failed or partial keyword index update still starts the gateway; the failure is warned about once', async (t) => {
+  const dataDir = tempDir(t)
+  const spawned = []
+  const { m, warnings } = hybridManager(t, dataDir, { spawned, mirrorImpl: () => finished({ state: 'failed', kind: 'OperationalError' }) })
+  m.start()
+  await m.ready()
+  assert.ok(spawned.length >= 1, 'the gateway started anyway')
+  assert.equal(warnings.filter((w) => /keyword index could not be updated \(OperationalError\)/.test(w)).length, 1)
+  assert.ok(!warnings.join('\n').includes(dataDir), 'no path in a warning')
+
+  const partialDir = tempDir(t)
+  const partialSpawned = []
+  const partial = hybridManager(t, partialDir, { spawned: partialSpawned, mirrorImpl: () => finished({ state: 'partial', added: 10, removed: 0, remaining: 5 }) })
+  partial.m.start()
+  await partial.m.ready()
+  assert.equal(partialSpawned.length, 1)
+  assert.equal(partial.warnings.filter((w) => /keyword index/.test(w)).length, 0, 'partial is not a failure')
+  assert.match(fs.readFileSync(path.join(partialDir, 'gateway.log'), 'utf8'), /keyword index partial: 10 added, 0 removed, 5 remaining/)
+
+  // A helper that throws instead of answering is a failure too.
+  const throwDir = tempDir(t)
+  const throwSpawned = []
+  const thrown = hybridManager(t, throwDir, { spawned: throwSpawned, mirrorImpl: () => { throw new Error('boom') } })
+  thrown.m.start()
+  await thrown.m.ready()
+  assert.ok(throwSpawned.length >= 1)
+  assert.equal(thrown.warnings.filter((w) => /keyword index could not be updated/.test(w)).length, 1)
+})
+
+test('stopping during the keyword index update ends it and spawns nothing', async (t) => {
+  const dataDir = tempDir(t)
+  const spawned = []
+  let release
+  let stopCalls = 0
+  const done = new Promise((resolve) => { release = resolve })
+  const { m, calls } = hybridManager(t, dataDir, {
+    spawned,
+    mirrorImpl: () => ({ done, stop: async () => { stopCalls += 1; release({ state: 'stopped' }) } }),
+  })
+  m.start()
+  await waitFor(() => calls.length === 1, 5000, 'the update to start')
+  await m.stop()
+  await sleep(50)
+  assert.equal(stopCalls, 1)
+  assert.equal(spawned.length, 0)
+  assert.equal(m.state(), 'stopped')
+  assert.equal(fs.existsSync(m.configFile), false, 'the configuration file is removed')
 })
 
 // ------------------------------------------------------------------ lifecycle

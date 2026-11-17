@@ -28,7 +28,7 @@ const TEXT = {
       '  reset <key>         return a setting to its default',
       '  on <feature>        switch a feature on (see the modules.* settings)',
       '  off <feature>       switch a feature off',
-      '  tiers               the retrieval tiers: availability and what each needs',
+      '  tiers               the retrieval tiers: availability and what each needs, and whether hybrid is on',
       '  use <tier>          choose the retrieval tier: auto, keyword, endpoint or local',
       '  models              local embedding models: size, memory, languages, licence and state',
       '  install <model> [--accept-licence <licence name>] [--confirm]',
@@ -71,6 +71,8 @@ const TEXT = {
     statusTitle: 'feiyu-memgate status',
     tiersTitle: (setting, active) => `Retrieval tier: ${setting}${active ? `, active: ${active}` : ''}.`,
     tiersExternal: 'Retrieval tiers apply to the managed gateway; an external gateway uses its own configuration.',
+    hybridWord: 'keyword (hybrid)',
+    hybridLine: (on, active) => `Hybrid (keyword and vector search together, retrieval.hybrid): ${on ? (active ? 'on' : 'on, but it does nothing under the current tier') : 'off'}.`,
     tierLine: (t) => `- ${t.name}: ${t.available ? 'available' : 'not available'}${t.active ? ' (active)' : ''}. Needs: ${t.needs}.${t.missing.length ? ` Missing: ${t.missing.join(', ')}.` : ''}`,
     labels: {
       gateway: 'Gateway', python: 'Python', retrieval: 'Retrieval', store: 'Store', embed: 'Embedding add-on',
@@ -101,7 +103,7 @@ const TEXT = {
       '  reset <键>          把一项设置恢复默认',
       '  on <功能>           打开一项功能（见 modules.* 设置）',
       '  off <功能>          关闭一项功能',
-      '  tiers               各种检索方式：是否可用，各需要什么',
+      '  tiers               各种检索方式：是否可用，各需要什么，混合检索是否开着',
       '  use <方式>          选择检索方式：auto、keyword、endpoint 或 local',
       '  models              本地向量模型：大小、内存、语言、许可和状态',
       '  install <模型> [--accept-licence <许可名称>] [--confirm]',
@@ -143,6 +145,8 @@ const TEXT = {
     statusTitle: 'feiyu-memgate 状态',
     tiersTitle: (setting, active) => `检索方式设置：${setting}${active ? `，正在使用：${active}` : ''}。`,
     tiersExternal: '检索方式只用于自带网关；外部网关按它自己的配置。',
+    hybridWord: '关键词（混合）',
+    hybridLine: (on, active) => `混合检索（关键词和向量一起查，retrieval.hybrid）：${on ? (active ? '开' : '已开，但当前检索方式下不起作用') : '关'}。`,
     tierLine: (t) => `- ${t.name}：${t.available ? '可用' : '不可用'}${t.active ? '（正在使用）' : ''}。需要：${t.needs}。${t.missing.length ? `还缺：${t.missing.join('、')}。` : ''}`,
     labels: {
       gateway: '网关', python: 'Python', retrieval: '检索', store: '存储', embed: '向量插件',
@@ -198,10 +202,10 @@ export function formatStatus(s, lang) {
     const p = s.python
     lines.push(`${t.labels.python}: ${!p ? t.pythonUnknown : p.found ? `${p.version} (${p.source}) ${p.executable}` : t.pythonNone}`)
     const r = s.retrieval
-    lines.push(`${t.labels.retrieval}: ${r.setting}${r.active ? ` → ${r.active}` : ''}`)
+    lines.push(`${t.labels.retrieval}: ${r.setting}${r.active ? ` → ${r.active}${r.hybrid?.active ? ` + ${t.hybridWord}` : ''}` : ''}`)
     if (s.store) {
       const count = s.store.count === null ? t.countUnknown : t.memories(s.store.count)
-      lines.push(`${t.labels.store}: ${s.store.type}, ${s.store.file}, ${count}`)
+      lines.push(`${t.labels.store}: ${s.store.type}, ${s.store.file}${s.store.keywordFile ? ` + ${s.store.keywordFile}` : ''}, ${count}`)
     }
   }
   const e = s.embed
@@ -356,6 +360,7 @@ function formatTiers(s, lang) {
   const lines = [t.tiersTitle(r.setting, r.active)]
   if (s.gateway.mode === 'external') lines.push(t.tiersExternal)
   for (const tier of r.tiers) lines.push(t.tierLine({ ...tier, needs: TIERS[tier.name].needs[lang] ?? TIERS[tier.name].needs.en }))
+  if (r.hybrid && s.gateway.mode !== 'external') lines.push(t.hybridLine(r.hybrid.setting, r.hybrid.active))
   return lines.join('\n')
 }
 

@@ -4,7 +4,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { MODELS_PATH, ROW_ID, STATUS_PATH, applyPlugin } from '../src/plugin.js'
-import { EMBED_SERVICE, EMBEDDINGS_KEY_ENV } from '../src/tiers.js'
+import { migrationStateFile } from '../src/migrate.js'
+import { EMBED_SERVICE, EMBEDDINGS_KEY_ENV, keywordIndexFile } from '../src/tiers.js'
 import { OWNER, callRoute, createFakeHost, fakeClients, fakeConnection, fakeManagers, tick, volatile } from './helpers/fake-host.js'
 
 const PYTHON = Object.freeze({ executable: 'python-for-tests', argv: ['python-for-tests'], version: '3.12.4', source: 'path' })
@@ -140,7 +141,8 @@ test('the status route: owner only, GET and HEAD, no secret, removed on unload',
   assert.equal(body.gateway.mode, 'managed')
   assert.equal(body.gateway.state, 'running')
   assert.deepEqual(body.python, { found: true, version: '3.12.4', source: 'path', executable: 'python-for-tests' })
-  assert.deepEqual(body.store, { tier: 'keyword', id: 'keyword', type: 'sqlite', file: 'memories.db', count: 12 })
+  assert.deepEqual(body.store, { tier: 'keyword', id: 'keyword', type: 'sqlite', file: 'memories.db', count: 12, hybrid: false })
+  assert.deepEqual(body.retrieval.hybrid, { setting: false, active: false })
   assert.deepEqual(body.secrets, { 'external.token': true, 'retrieval.apiKey': true })
   assert.equal(body.retrieval.setting, 'auto')
   assert.equal(body.retrieval.active, 'keyword')
@@ -387,4 +389,121 @@ test('a failed copy is logged by kind and waits for the next gateway start', asy
   assert.equal(migrations.runs.length, 1)
   assert.ok(host.logs.some((l) => l.level === 'warn' && /stopped \(BackendError\)/.test(l.text)))
   assert.equal(plugin.migration().state, 'failed')
+})
+
+// ------------------------------------------------------------------ hybrid
+
+const ENDPOINT = { tier: 'endpoint', url: 'http://127.0.0.1:9/v1', model: 'bge-m3' }
+const toggle = (host, config, hybrid) => {
+  config.retrieval.set({ ...config.retrieval.get(), hybrid })
+  host.emit('loader/volatile-update', [['retrieval', 'hybrid']])
+}
+
+test('switching retrieval.hybrid restarts the gateway under a vector tier, and not under keyword', async () => {
+  const vector = setup({ values: { retrieval: ENDPOINT } })
+  await vector.plugin.settled()
+  assert.equal(vector.managers.created.length, 1)
+  toggle(vector.host, vector.config, true)
+  await vector.plugin.settled()
+  assert.equal(vector.managers.created.length, 2)
+  assert.equal(vector.managers.created[0].stopped, 1)
+  assert.equal(vector.managers.created[1].store().hybrid, true)
+  toggle(vector.host, vector.config, true)
+  await vector.plugin.settled()
+  assert.equal(vector.managers.created.length, 2, 'the same value does nothing')
+  toggle(vector.host, vector.config, false)
+  await vector.plugin.settled()
+  assert.equal(vector.managers.created.length, 3)
+  assert.equal(vector.managers.created[2].store().hybrid, false)
+
+  const keyword = setup({ values: { retrieval: { tier: 'keyword' } } })
+  await keyword.plugin.settled()
+  toggle(keyword.host, keyword.config, true)
+  await keyword.plugin.settled()
+  assert.equal(keyword.managers.created.length, 1, 'under keyword the switch changes nothing the gateway runs')
+
+  // auto resolves to keyword until the add-on is ready: no restart for the switch; then hybrid follows.
+  const auto = setup()
+  await auto.plugin.settled()
+  toggle(auto.host, auto.config, true)
+  await auto.plugin.settled()
+  assert.equal(auto.managers.created.length, 1)
+  auto.host.provide(EMBED_SERVICE, addon())
+  await auto.plugin.settled()
+  assert.equal(auto.managers.created.length, 2)
+  assert.equal(auto.managers.created[1].store().tier, 'local')
+  assert.equal(auto.managers.created[1].store().hybrid, true)
+})
+
+test('status reports the hybrid switch and the store files; the count comes from the vector file', async () => {
+  const counted = []
+  const { host, plugin } = setup({
+    services: ['webServer'],
+    values: { retrieval: { ...ENDPOINT, hybrid: true } },
+    deps: { countMemories: async ({ file }) => { counted.push(file); return 7 } },
+  })
+  await plugin.settled()
+  const status = await plugin.status()
+  assert.deepEqual(status.retrieval.hybrid, { setting: true, active: true })
+  const { store } = status
+  assert.equal(store.type, 'hybrid')
+  assert.equal(store.hybrid, true)
+  assert.equal(store.tier, 'endpoint')
+  assert.match(store.file, /^memories-endpoint-bge-m3\.db$/)
+  assert.equal(store.keywordFile, 'memories-endpoint-bge-m3-keywords.db')
+  assert.equal(store.count, 7)
+  assert.equal(counted.length, 1)
+  assert.match(counted[0].replaceAll('\\', '/'), /\/memories-endpoint-bge-m3\.db$/, 'counted in the vector file')
+  assert.ok(!JSON.stringify(status).includes('/fake-data'), 'folders stay out of the status')
+
+  // The switch is on but does nothing under keyword.
+  const keyword = setup({ values: { retrieval: { tier: 'keyword', hybrid: true } } })
+  await keyword.plugin.settled()
+  const plain = await keyword.plugin.status()
+  assert.deepEqual(plain.retrieval.hybrid, { setting: true, active: false })
+  assert.equal(plain.store.hybrid, false)
+  assert.equal(plain.store.keywordFile, undefined)
+  assert.equal(plain.store.type, 'sqlite')
+
+  // External mode: the bundled gateway is not in use.
+  const external = setup({ values: { retrieval: { ...ENDPOINT, hybrid: true }, gateway: { mode: 'external' } } })
+  const outside = await external.plugin.status()
+  assert.deepEqual(outside.retrieval.hybrid, { setting: true, active: false })
+  assert.equal(outside.store, null)
+})
+
+test('/memgate set retrieval.hybrid on restarts a vector tier and the status line shows it', async () => {
+  const { host, config, managers, plugin } = setup({ services: ['commands', 'settings'], values: { retrieval: ENDPOINT } })
+  await plugin.settled()
+  const reply = await run(host, 'set retrieval.hybrid on')
+  assert.equal(reply.kind, 'success')
+  assert.equal(config.retrieval.get().hybrid, true)
+  await plugin.settled()
+  assert.equal(managers.created.length, 2)
+  const status = await run(host, 'status')
+  assert.match(status.text, /Retrieval: endpoint → endpoint \+ keyword \(hybrid\)/)
+  assert.match(status.text, /Store: hybrid, memories-endpoint-bge-m3\.db \+ memories-endpoint-bge-m3-keywords\.db, 12 memories/)
+  assert.match((await run(host, 'tiers')).text, /Hybrid .*: on\./)
+})
+
+test('the copy target keeps its store id, so its state file does not change when hybrid is switched on', async () => {
+  const migrations = []
+  const runMigration = (options) => {
+    migrations.push(options)
+    return { done: Promise.resolve({ state: 'done', total: 0, copied: 0, remaining: 0 }), stop: async () => {} }
+  }
+  const { host, config, plugin } = setup({ values: { retrieval: ENDPOINT }, deps: { runMigration } })
+  await plugin.settled()
+  await tick(20)
+  assert.equal(migrations.length, 1)
+  toggle(host, config, true)
+  await plugin.settled()
+  await tick(20)
+  assert.equal(migrations.length, 2)
+  const [plain, hybrid] = migrations.map((m) => m.target)
+  assert.equal(plain.table.type, 'embedding')
+  assert.equal(hybrid.table.type, 'hybrid')
+  assert.equal(hybrid.id, plain.id)
+  assert.equal(migrationStateFile(migrations[1].dataDir, hybrid.id), migrationStateFile(migrations[0].dataDir, plain.id))
+  assert.equal(hybrid.mirror.keyword.path, keywordIndexFile(migrations[1].dataDir, plain.id))
 })

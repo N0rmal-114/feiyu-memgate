@@ -38,6 +38,7 @@ Every setting can be changed in three places: this plugin's settings page on the
 | `modules.promptSection` | The fixed section in the system prompt | on |
 | `modules.autoCapture` | Store your messages after each turn | off |
 | `retrieval.tier` | How memories are found: `auto`, `keyword`, `endpoint`, `local` | `auto` |
+| `retrieval.hybrid` | Also search by keyword in the vector tiers and fuse the results (no effect under `keyword`) | off |
 | `advanced.recallLimit` | Most memories added per turn | 5 |
 | `advanced.profile` | `broad`: more memories per turn, misses less, more noise, faster context growth; `precise`: about one close match per turn | `broad` |
 | `advanced.dailyWrites` | Most memories written per day, 0 for no cap | 50 |
@@ -58,10 +59,16 @@ The section "Local embedding models" on the settings page lists each model's tie
 
 An add-on that is installed but not switched on (for example after a `dsh plugin add` that stopped at the install script) is switched on through the plugin manager by the same button. Every failure is shown with its reason and what to do; when the engine cannot load (the add-on's status shows `runtime-missing`), on Windows install the runtime named above and restart DSH.
 
+## Hybrid search (optional)
+
+With `retrieval.hybrid` on, the vector tiers (`endpoint`, `local`, and `auto` while it resolves to `local`) ask keyword search and vector search for every query and fuse the results. Under `keyword` it does nothing. It uses the same vector store file as the tier without it, plus a keyword index file next to it (`memories-<store id>-keywords.db`), so switching it on or off loses no memory: before the gateway starts, the plugin brings the index in line with the vector file, and the first start after switching it on builds the index from the stored texts (at most 60 seconds per start; the gateway starts either way and the next start continues). The forgetting files and the copy progress file keep their names.
+
+Measured basis, in the gateway's own benchmark with bge-m3 (nothing was measured again for this plugin): Hit@5 on PerLTQA (Chinese, 8,588 questions) is 95.0% for hybrid, 87.3% for keyword and 83.3% for vector; on LoCoMo (English, 1,535 questions) 58.0% for hybrid, 51.6% for vector and 36.4% for keyword; on the project's own set (160 questions) 96.7% for hybrid and 98.3% for vector. The score lines were chosen with bge-m3; with other models the same lines are used and were not measured. Tables: [benchmark on public datasets](https://github.com/N0rmal-114/feiyu-memgate/blob/main/README.en.md#public-datasets-perltqa-and-locomo).
+
 ## Data and privacy
 
 - In the default mode everything stays on your machine. The gateway listens only on a random port of `127.0.0.1`, and its token is made anew at each start and kept in memory only. Something is downloaded only when you install the add-on or a model from the settings page or with `/memgate install`: the host's plugin manager fetches the add-on from npm, and the add-on fetches the model.
-- Memories are plain SQLite files; the plugin does not encrypt them. To delete all data, quit DSH and delete `<DSH home>/data/feiyu-memgate/` (or the folder in `gateway.dataDir`, if you changed it).
+- Memories are plain SQLite files; the plugin does not encrypt them. With `retrieval.hybrid` on there is one more, the keyword index `memories-<store id>-keywords.db`, which holds the same texts. To delete all data, quit DSH and delete `<DSH home>/data/feiyu-memgate/` (or the folder in `gateway.dataDir`, if you changed it).
 - With the `endpoint` tier, the text of every saved memory and every recall query go to the embeddings API you configured.
 - Recalled memories are part of the prompt and go to the model service of the conversation.
 
@@ -72,8 +79,8 @@ An add-on that is installed but not switched on (for example after a `dsh plugin
 - Only memories the model chose to save exist, unless automatic capture is on.
 - The daily write cap is counted in memory, per DSH process, and starts again when the gateway restarts.
 - The settings page depends on host UI interfaces that are still changing; without it, every setting can be changed with `/memgate` or in the profile file.
-- Real-host testing. Tested in the installed DeepSeek Harness 0.2.2-rc.1 on Windows 11 with an isolated profile: the plugin loads, the bundled gateway starts with a Python from PATH, the settings page renders and saves, the status and model routes answer only to the owner session, the chat command works, and with the add-on and bge-small-zh-v1.5 the local tier is used and reworded questions find their memories. Installing the add-on from npm through the settings page was run too, with the dependency's install script refused: the add-on is installed and enabled, the model is downloaded and the local tier takes over (the path that allows the script was not run). Not tested: macOS and Linux desktops, the Desktop application's own window (the web profile of the same host was used), and a conversation with a real model (automatic recall and the two tools were exercised in tests and against the gateway, not in a live chat).
-- This is version 0.2.0. It changes one default: `advanced.profile` is now `broad` (it was `precise`).
+- Real-host testing. Tested in the installed DeepSeek Harness 0.2.2-rc.1 on Windows 11 with an isolated profile: the plugin loads, the bundled gateway starts with a Python from PATH, the settings page renders and saves, the status and model routes answer only to the owner session, the chat command works, and with the add-on and bge-small-zh-v1.5 the local tier is used and reworded questions find their memories. Installing the add-on from npm through the settings page was run too, with the dependency's install script refused: the add-on is installed and enabled, the model is downloaded and the local tier takes over (the path that allows the script was not run). The hybrid switch of 0.3.0 was also run in an isolated profile, with a stand-in embeddings service on the local machine, not a real model: with the `endpoint` tier and `retrieval.hybrid` on, the gateway starts with a hybrid store and the memories of the keyword store are copied into both the vector file and the keyword index; after one memory was removed from the vector file while the host was stopped, the next start removed it from the index too. In that profile, where the plugin is linked from its source folder, the settings form says the settings are not available (0.2.0 behaves the same there), so the new switch was not seen in the form and was set through the profile file. Not tested: macOS and Linux desktops, the Desktop application's own window (the web profile of the same host was used), and a conversation with a real model (automatic recall and the two tools were exercised in tests and against the gateway, not in a live chat).
+- This is version 0.3.0. It adds the optional `retrieval.hybrid` switch (off by default); no default changed.
 
 ## Troubleshooting
 

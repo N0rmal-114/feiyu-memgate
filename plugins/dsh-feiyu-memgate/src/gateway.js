@@ -380,6 +380,113 @@ export const BOOTSTRAP = [
   'sys.exit(main())',
 ].join('\n')
 
+// ------------------------------------------------------------------ keyword index mirror
+
+export const MIRROR_SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'mirror.py')
+
+const MIRROR_COUNTS = ['added', 'removed', 'remaining']
+
+/**
+ * Run src/mirror.py once: it brings the keyword index of a hybrid store in line with the vector file
+ * (why: see that file). Same shape as the copy in src/migrate.js: a bounded helper, job as one JSON
+ * line on stdin, JSON lines on stdout, never kept alive by or outliving the host.
+ *   python   the gateway's interpreter ({ argv })
+ *   mirror   resolveStore().mirror: { keyword, vector }
+ * Resolves with { state: 'done' | 'partial' | 'failed' | 'stopped', added?, removed?, remaining?, kind? }.
+ * Returns { done: Promise, stop(): Promise }.
+ */
+export function runMirror({
+  python, mirror, dataDir, env = process.env, packageDir = PACKAGE_DIR,
+  deadlineSeconds = 60, marginSeconds = 30, stopGraceMs = 3000, spawnImpl = spawn,
+}) {
+  let child = null
+  let stopped = false
+  const done = new Promise((resolve) => {
+    const job = { package_dir: packageDir, vector: mirror.vector, keyword: mirror.keyword, deadline_seconds: deadlineSeconds }
+    try {
+      child = spawnImpl(python.argv[0], [...python.argv.slice(1), '-I', '-B', MIRROR_SCRIPT], {
+        cwd: dataDir,
+        env: { ...scrubbedEnv(env), PYTHONIOENCODING: 'utf-8' },
+        stdio: ['pipe', 'pipe', 'ignore'],
+        windowsHide: true,
+      })
+    } catch (error) {
+      resolve({ state: 'failed', kind: typeof error?.code === 'string' ? error.code : 'spawn' })
+      return
+    }
+    trackChild(child)
+    child.unref?.()
+    for (const stream of [child.stdin, child.stdout]) stream?.unref?.()
+    child.stdin?.on('error', () => {})
+    child.stdin?.write(JSON.stringify(job) + '\n')
+    // A run that hangs ends after its own time limit and a margin.
+    const guard = setTimeout(() => {
+      try {
+        child.kill('SIGKILL')
+      } catch {
+        // already gone
+      }
+    }, (deadlineSeconds + marginSeconds) * 1000)
+    guard.unref?.()
+
+    let buffer = ''
+    let final = null
+    child.stdout?.setEncoding?.('utf8')
+    child.stdout?.on('data', (chunk) => {
+      buffer += chunk
+      let at
+      while ((at = buffer.indexOf('\n')) >= 0) {
+        const line = buffer.slice(0, at)
+        buffer = buffer.slice(at + 1)
+        let event
+        try {
+          event = JSON.parse(line)
+        } catch {
+          continue
+        }
+        const counts = {}
+        for (const key of MIRROR_COUNTS) if (Number.isSafeInteger(event?.[key]) && event[key] >= 0) counts[key] = event[key]
+        if (event?.event === 'done' || event?.event === 'partial') final = { state: event.event, ...counts }
+        else if (event?.event === 'failed') final = { state: 'failed', kind: /^[A-Za-z]{1,40}$/.test(event.kind) ? event.kind : 'error' }
+      }
+    })
+    let ended = false
+    const end = (code) => {
+      if (ended) return
+      ended = true
+      clearTimeout(guard)
+      untrackChild(child)
+      resolve(stopped ? { state: 'stopped' } : final ?? { state: 'failed', kind: code === null ? 'killed' : `exit${code}` })
+    }
+    child.once('exit', (code) => end(code))
+    child.once('error', () => end(null))
+  })
+
+  return {
+    done,
+    /** End the run now; what it wrote so far stays (the next run continues). */
+    async stop() {
+      stopped = true
+      const proc = child
+      if (!proc || proc.exitCode !== null || proc.signalCode !== null) return
+      try {
+        proc.stdin?.end()
+      } catch {
+        // already closed
+      }
+      const finished = await Promise.race([done.then(() => true), new Promise((r) => setTimeout(r, stopGraceMs, false))])
+      if (!finished) {
+        try {
+          proc.kill('SIGKILL')
+        } catch {
+          // already gone
+        }
+        await Promise.race([done, new Promise((r) => setTimeout(r, stopGraceMs))])
+      }
+    },
+  }
+}
+
 let instances = 0
 
 // ------------------------------------------------------------------ manager
@@ -407,6 +514,8 @@ export function createGatewayManager({
   stableMs = 60000,
   stopGraceMs = 3000,
   spawnImpl = spawn,
+  mirrorImpl = runMirror,
+  mirrorOptions = {},
 } = {}) {
   const instance = ++instances
   const configFile = path.join(dataDir, `gateway-${process.pid}-${instance}.toml`)
@@ -421,6 +530,8 @@ export function createGatewayManager({
   let python = null
   let log = () => {}
   let waiters = []
+  let mirroring = null // the running keyword index update, see src/mirror.py
+  let mirrorWarned = false
 
   const warn = (message) => {
     try {
@@ -482,6 +593,25 @@ export function createGatewayManager({
     return false
   }
 
+  // One run of the keyword index update; counts and kinds only go to the log.
+  async function mirror(spec) {
+    let result
+    try {
+      mirroring = mirrorImpl({ python, mirror: spec, dataDir, env, packageDir, ...mirrorOptions })
+      result = await mirroring.done
+    } catch {
+      result = { state: 'failed', kind: 'error' }
+    } finally {
+      mirroring = null
+    }
+    if (result.state === 'done' || result.state === 'partial') {
+      note(`keyword index ${result.state}: ${result.added ?? 0} added, ${result.removed ?? 0} removed, ${result.remaining ?? 0} remaining`)
+    } else if (result.state === 'failed') {
+      note(`keyword index update failed (${result.kind ?? 'error'})`)
+    }
+    return result
+  }
+
   async function launch() {
     timer = null
     if (stopping) return
@@ -497,6 +627,17 @@ export function createGatewayManager({
       return
     }
     if (stopping) return removeConfig()
+    // A hybrid store: bring the keyword index in line with the vector file first. The gateway is not
+    // running now, so nothing else writes to either file. A failed or partial update never keeps the
+    // gateway from starting: the next start continues where this one stopped.
+    if (config.store.mirror) {
+      const result = await mirror(config.store.mirror)
+      if (stopping) return removeConfig()
+      if (result.state === 'failed' && !mirrorWarned) {
+        mirrorWarned = true
+        warn(`feiyu-memgate: the keyword index could not be updated (${result.kind ?? 'error'}); hybrid search starts with what it has`)
+      }
+    }
     const token = randomBytes(32).toString('base64url')
     const proc = spawnImpl(python.argv[0], [
       ...python.argv.slice(1),
@@ -614,6 +755,8 @@ export function createGatewayManager({
       timer = null
       const proc = child
       current = null
+      // A keyword index update still running ends now; launch() then sees `stopping` and spawns nothing.
+      if (mirroring) await mirroring.stop?.()
       if (proc && proc.exitCode === null && proc.signalCode === null) {
         const gone = new Promise((resolve) => {
           proc.once('exit', resolve)

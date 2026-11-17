@@ -9,7 +9,7 @@ import http from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
 import { createClient } from '../src/client.js'
-import { PACKAGE_DIR, findPython, scrubbedEnv } from '../src/gateway.js'
+import { PACKAGE_DIR, findPython, runMirror, scrubbedEnv } from '../src/gateway.js'
 import { migrationStateFile, readMigrationState, runMigration } from '../src/migrate.js'
 import { applyPlugin } from '../src/plugin.js'
 import { EMBED_SERVICE, TIERS, readEmbed, resolveStore } from '../src/tiers.js'
@@ -262,4 +262,22 @@ test('the plugin with a fake add-on and the real gateway: auto runs local, copie
   assert.deepEqual(config, [], 'no configuration file left behind')
   const log = fs.readFileSync(path.join(dataDir, 'gateway.log'), 'utf8')
   assert.ok(!log.includes(ADDON_KEY) && !log.includes('courtyard shed'), 'no key or memory in the log')
+})
+
+test('a hybrid target is filled through both children under one ref, with the same state file as the plain tier', { skip, timeout: 60000 }, async (t) => {
+  const { server, source, target: plain, dataDir } = await fixture(t)
+  const embed = readEmbed(addonService(server.url))
+  const hybrid = resolveStore({ tier: 'local', hybrid: true, url: '', model: '', apiKey: '' }, dataDir, { embed })
+  assert.equal(hybrid.hybrid, true)
+  assert.equal(hybrid.id, plain.id)
+  assert.equal(migrationStateFile(dataDir, hybrid.id), migrationStateFile(dataDir, plain.id), 'switching hybrid on does not start the copy over')
+  const result = await runMigration({ python, source, target: hybrid, dataDir, env: ISOLATED_ENV }).done
+  assert.deepEqual(result, { state: 'done', total: 5, copied: 5, refused: 0, remaining: 0 })
+  assert.deepEqual(storeRows(hybrid.file), [...MEMORIES].sort(), 'the vector file holds every memory')
+  assert.deepEqual(storeRows(hybrid.mirror.keyword.path), [...MEMORIES].sort(), 'and so does the keyword index')
+  assert.deepEqual([...server.calls.auth], [`Bearer ${ADDON_KEY}`], 'the hybrid backend resolves the child key from the environment')
+  assert.deepEqual(readMigrationState(migrationStateFile(dataDir, plain.id)).copied, 5)
+  // The index is already in line with the vector file: the update before the next start has nothing to do.
+  const mirrored = await runMirror({ python, mirror: hybrid.mirror, dataDir, env: ISOLATED_ENV }).done
+  assert.deepEqual(mirrored, { state: 'done', added: 0, removed: 0, remaining: 0 })
 })

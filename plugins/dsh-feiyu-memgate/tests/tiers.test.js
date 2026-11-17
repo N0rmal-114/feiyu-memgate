@@ -9,7 +9,7 @@ import path from 'node:path'
 import { PACKAGE_DIR, findPython, scrubbedEnv } from '../src/gateway.js'
 import {
   DEFAULT_TIER, EMBEDDINGS_KEY_ENV, GATEWAY_PRESETS, TIERS, TIER_CHOICES, TIER_NAMES, effectiveTier, embedKey, embedReady,
-  hasGatewayPreset, readEmbed, resolveStore,
+  hasGatewayPreset, keywordIndexFile, readEmbed, resolveStore,
 } from '../src/tiers.js'
 
 const ISOLATED_ENV = { ...process.env, DSH_HOME: path.join(os.tmpdir(), 'dsh-memgate-no-home'), DSH_PRIMARY_RUNTIME: '' }
@@ -130,4 +130,75 @@ test('the preset list matches the bundled gateway', { skip: python ? false : 'no
   const result = spawnSync(python.executable, ['-I', '-B', '-c', code, PACKAGE_DIR], { env: scrubbedEnv(), encoding: 'utf8', windowsHide: true, timeout: 30000 })
   assert.equal(result.status, 0, result.stderr)
   assert.deepEqual(JSON.parse(result.stdout), [...GATEWAY_PRESETS])
+})
+
+// ------------------------------------------------------------------ hybrid
+
+const HYBRID = { ...RETRIEVAL, hybrid: true, url: 'http://127.0.0.1:9/v1', model: 'Some/Model:Large', apiKey: 'fake-embeddings-key' }
+
+test('a plain store description carries its file and is not hybrid', () => {
+  const store = resolveStore({ ...HYBRID, tier: 'endpoint', hybrid: false }, path.join('/data'), {})
+  assert.equal(store.hybrid, false)
+  assert.equal(store.file, store.table.path)
+  assert.equal(store.mirror, undefined)
+  const keyword = resolveStore({ ...RETRIEVAL, tier: 'keyword' }, '/data', {})
+  assert.equal(keyword.file, path.join('/data', 'memories.db'))
+  assert.equal(keyword.hybrid, false)
+  const missing = resolveStore({ ...RETRIEVAL, tier: 'endpoint', hybrid: true }, '/data', {})
+  assert.deepEqual([missing.hybrid, missing.file, missing.table, missing.id], [false, null, null, null], 'nothing missing is a condition of hybrid')
+})
+
+test('hybrid on the endpoint tier: keyword child first, the vector table unchanged, same id and file', () => {
+  const plain = resolveStore({ ...HYBRID, tier: 'endpoint', hybrid: false }, path.join('/data'), {})
+  const hybrid = resolveStore({ ...HYBRID, tier: 'endpoint' }, path.join('/data'), {})
+  assert.equal(hybrid.tier, 'endpoint')
+  assert.equal(hybrid.hybrid, true)
+  assert.equal(hybrid.id, plain.id, 'the ledger, the archive and the copy state are shared with the plain tier')
+  assert.equal(hybrid.file, plain.file)
+  assert.equal(hybrid.table.type, 'hybrid')
+  assert.equal(hybrid.table.weights, undefined, 'the benchmarked default weights')
+  assert.equal(hybrid.table.children.length, 2)
+  const [keyword, vector] = hybrid.table.children
+  assert.deepEqual(keyword, { type: 'sqlite', path: keywordIndexFile(path.join('/data'), plain.id) })
+  assert.equal(path.basename(keyword.path), `memories-${plain.id}-keywords.db`)
+  assert.deepEqual(vector, plain.table, 'the vector child is the plain table, key_env and all')
+  assert.equal(vector.key_env, EMBEDDINGS_KEY_ENV)
+  assert.deepEqual(hybrid.mirror, { keyword, vector: plain.file })
+  assert.deepEqual(hybrid.env, plain.env)
+  assert.ok(!JSON.stringify(hybrid.table).includes('fake-embeddings-key'))
+})
+
+test('hybrid on the local tier keeps the calibration and prefixes of the vector child', () => {
+  const facts = { embed: readEmbed(service({ model: 'tiny-test-embedder', calibration: { floor: 0.3, ceil: 0.7, query_prefix: 'query: ', document_prefix: 'passage: ', parity: 'approximate' } })) }
+  const plain = resolveStore({ ...RETRIEVAL, tier: 'local' }, '/data', facts)
+  const hybrid = resolveStore({ ...RETRIEVAL, tier: 'local', hybrid: true }, '/data', facts)
+  assert.equal(hybrid.hybrid, true)
+  assert.equal(hybrid.id, plain.id)
+  assert.deepEqual(hybrid.table.children[1], plain.table)
+  assert.deepEqual([plain.table.floor, plain.table.ceil, plain.table.query_prefix, plain.table.document_prefix, plain.table.key_env], [0.3, 0.7, 'query: ', 'passage: ', EMBEDDINGS_KEY_ENV])
+  assert.deepEqual(hybrid.env, { [EMBEDDINGS_KEY_ENV]: 'fake-addon-key' })
+  assert.equal(hybrid.file, plain.table.path)
+})
+
+test('the keyword tier ignores the hybrid switch', () => {
+  const plain = resolveStore({ ...RETRIEVAL, tier: 'keyword' }, '/data', {})
+  const hybrid = resolveStore({ ...RETRIEVAL, tier: 'keyword', hybrid: true }, '/data', {})
+  assert.deepEqual(hybrid, plain)
+  assert.equal(hybrid.hybrid, false)
+  // auto without a ready add-on resolves to keyword: the switch does nothing there either.
+  assert.equal(resolveStore({ ...RETRIEVAL, hybrid: true }, '/data', {}).hybrid, false)
+})
+
+test('auto follows the add-on: hybrid while it resolves to local, plain when it falls back to keyword', () => {
+  const ready = { embed: readEmbed(service()) }
+  const on = resolveStore({ ...RETRIEVAL, hybrid: true }, '/data', ready)
+  assert.equal(on.tier, 'local')
+  assert.equal(on.hybrid, true)
+  assert.equal(on.table.children[1].type, 'embedding')
+  const gone = resolveStore({ ...RETRIEVAL, hybrid: true }, '/data', { embed: readEmbed(service({ state: 'loading' })) })
+  assert.equal(gone.tier, 'keyword')
+  assert.equal(gone.hybrid, false)
+  assert.equal(gone.table.type, 'sqlite')
+  // The add-on's model decides the id, as without hybrid.
+  assert.equal(on.id, resolveStore(RETRIEVAL, '/data', ready).id)
 })

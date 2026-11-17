@@ -59,7 +59,7 @@ Every setting can be changed in three ways. They write the same values.
 - **The `/memgate` chat command.** See [The /memgate command](#the-memgate-command).
 - **The profile's configuration file.** The row `feiyu-memgate` in the profile's `cordis.patch.yml`. The other two ways save their changes there. A home-level patch or a `--patch` overlay that sets the same row takes precedence, and a change they would override is refused.
 
-Most settings take effect at once. A change of `gateway.mode`, `gateway.python`, `gateway.dataDir`, the retrieval tier or the endpoint settings in use, `advanced.profile`, `advanced.dailyWrites`, `advanced.redaction`, `advanced.newerFirst` or `advanced.forgetting` restarts the gateway. The count of the daily cap starts again then. Switching a module off removes what it registered in DSH. The gateway runs only while at least one of `modules.autoRecall`, `modules.rememberTool`, `modules.searchTool` and `modules.autoCapture` is on.
+Most settings take effect at once. A change of `gateway.mode`, `gateway.python`, `gateway.dataDir`, the retrieval tier or the endpoint settings in use, `retrieval.hybrid` (only while it changes what the gateway runs: under `keyword` it does not), `advanced.profile`, `advanced.dailyWrites`, `advanced.redaction`, `advanced.newerFirst` or `advanced.forgetting` restarts the gateway. The count of the daily cap starts again then. Switching a module off removes what it registered in DSH. The gateway runs only while at least one of `modules.autoRecall`, `modules.rememberTool`, `modules.searchTool` and `modules.autoCapture` is on.
 
 | Setting | What it does | Default | Notes |
 |---|---|---|---|
@@ -71,6 +71,7 @@ Most settings take effect at once. A change of `gateway.mode`, `gateway.python`,
 | `modules.commands` | Register the `/memgate` chat command. | on | Needs a host that has chat commands. |
 | `modules.migrateOnTierChange` | When a vector tier becomes active, copy the keyword memories into its store in the background. | on | See [Semantic search](#semantic-search-optional-add-on). |
 | `retrieval.tier` | How the bundled gateway finds memories: `auto`, `keyword`, `endpoint` or `local`. | `auto` | `/memgate use <tier>`. Table below. |
+| `retrieval.hybrid` | Also search by keyword in the vector tiers and fuse the results. | off | `/memgate set retrieval.hybrid on`. Applies to `endpoint`, `local` and `auto` while it resolves to `local`; under `keyword` it does nothing. Same vector store file, plus a keyword index file. See [Hybrid search](#hybrid-search-optional). |
 | `retrieval.url` | `endpoint` tier: base URL of an OpenAI-compatible embeddings API, for example `http://127.0.0.1:11434/v1`. | empty | Must start with `http://` or `https://`. |
 | `retrieval.model` | `endpoint` tier: the embeddings model name. | empty | A different model uses a new, empty store. |
 | `retrieval.apiKey` | `endpoint` tier: the API key, if the endpoint needs one. | empty | Secret. Write-only: the settings page never shows it again. |
@@ -100,6 +101,16 @@ Each tier keeps its own store file in the data folder. `/memgate tiers` lists th
 | `local` | Semantic search with a model the add-on runs on this machine. | The add-on installed, switched on, with a model ready. | `memories-local-<model>-<hash>.db` |
 
 When the add-on goes away or its model changes, an `auto` or `local` gateway restarts with the new state.
+
+### Hybrid search (optional)
+
+With `retrieval.hybrid` on, a vector tier asks two searches for every query and fuses the results: keyword search (which is exact when the question shares words with the memory) and vector search (which finds reworded memories). It is off by default.
+
+- **When it applies.** To `endpoint`, to `local`, and to `auto` while it resolves to `local`. Under `keyword` the switch does nothing, and changing it does not restart the gateway. It applies to the bundled gateway only; a gateway you run yourself follows its own configuration.
+- **Which files it uses.** The same vector store file as the tier without it (`memories-endpoint-<model>.db` or `memories-local-<model>-<hash>.db`, which keeps holding every memory), plus a keyword index file next to it, `memories-<store id>-keywords.db`. The forgetting files and the copy progress file keep the names they have without hybrid, because it is the same set of memories.
+- **Switching it on or off loses no memory.** The vector file is the record; the keyword index is rebuilt from it. Memories saved, forgotten or copied while hybrid was off are picked up or dropped in the index at the next gateway start: before the gateway starts, the plugin brings the index in line with the vector file (it adds what the index lacks and removes what the vector file no longer has). **The first start after switching it on can therefore take a while on a large store** (the keyword index is built from the stored texts, with no embeddings request; on the Windows test machine about 2 seconds for 1,000 memories and 12 seconds for 5,000); the update stops after 60 seconds and continues at the next start, and the gateway starts either way. If the update fails, the gateway still starts with the index as it is, and the log (`gateway.log`) says how many memories were added and removed, never which.
+- **Copying keyword memories into the vector store** works as without hybrid, and a memory copied is written to both.
+- **What was measured, and its limit.** In the gateway's own benchmark with the bge-m3 model, the hybrid configuration reached these Hit@5 values (the share of questions for which a right memory is among the top five found): on PerLTQA (Chinese, 8,588 questions) 95.0% for hybrid, 87.3% for keyword and 83.3% for vector; on LoCoMo (English, 1,535 questions) 58.0% for hybrid, 51.6% for vector and 36.4% for keyword; on the project's own question set (160 questions) 96.7% for hybrid and 98.3% for vector, so there it did not help. The score lines of the hybrid configuration were chosen with bge-m3; with other models the same lines are used and were not measured. Nothing was measured again for this plugin or for the way it combines the two stores. The tables are in the repository's [benchmark on public datasets](https://github.com/N0rmal-114/feiyu-memgate/blob/main/README.en.md#public-datasets-perltqa-and-locomo).
 
 ### External gateway
 
@@ -193,6 +204,7 @@ The setup survives closing or reloading the page. After a DSH restart in the mid
 |---|---|
 | `memories.db` | The keyword store. |
 | `memories-endpoint-<model>.db`, `memories-local-<model>-<hash>.db` | The stores of the vector tiers, one per model. |
+| `memories-<store id>-keywords.db` | Only with `retrieval.hybrid` on: the keyword index next to the vector store of the same id. It holds the same memories and can be rebuilt from the vector store. |
 | `migration-<store id>.json` | Copy progress for a vector store: counts and references, no texts. |
 | `model-setup.json` | Progress of a model setup started from the settings page or `/memgate install`: the model, its step, the install scripts waiting for your decision and the last failure code. |
 | `forgetting-ledger-<store id>.db`, `forgetting-archive-<store id>.db` | Only with forgetting on. The archive holds the full text of removed memories, unencrypted. |
@@ -216,9 +228,9 @@ The setup survives closing or reloading the page. After a DSH restart in the mid
 - **One store per tier.** The plugin uses a single gateway client and a single store per tier. It does not keep separate memories per user or per project.
 - **The settings page depends on host UI interfaces that are still changing.** The plugin works without it: every setting can be changed with `/memgate` or in the profile file.
 - **Forgetting is experimental** and has been tested only in simulations.
-- **Real-host testing.** Tested in the installed DeepSeek Harness 0.2.2-rc.1 on Windows 11 with an isolated profile: the plugin loads, the bundled gateway starts with a Python from PATH, the settings page renders and saves, the status and model routes answer only to the owner session, the chat command works, and with the add-on and bge-small-zh-v1.5 the local tier is used and reworded questions find their memories. Installing the add-on from npm through the settings page was run too, with the dependency's install script refused: the add-on is installed and enabled, the model is downloaded and the local tier takes over (the path that allows the script was not run). Not tested: macOS and Linux desktops, the Desktop application's own window (the web profile of the same host was used), and a conversation with a real model (automatic recall and the two tools were exercised in tests and against the gateway, not in a live chat).
+- **Real-host testing.** Tested in the installed DeepSeek Harness 0.2.2-rc.1 on Windows 11 with an isolated profile: the plugin loads, the bundled gateway starts with a Python from PATH, the settings page renders and saves, the status and model routes answer only to the owner session, the chat command works, and with the add-on and bge-small-zh-v1.5 the local tier is used and reworded questions find their memories. Installing the add-on from npm through the settings page was run too, with the dependency's install script refused: the add-on is installed and enabled, the model is downloaded and the local tier takes over (the path that allows the script was not run). The hybrid switch of 0.3.0 was also run in an isolated profile, with a stand-in embeddings service on the local machine, not a real model: with the `endpoint` tier and `retrieval.hybrid` on, the gateway starts with a hybrid store and the memories of the keyword store are copied into both the vector file and the keyword index; after one memory was removed from the vector file while the host was stopped, the next start removed it from the index too. In that profile, where the plugin is linked from its source folder, the settings form says the settings are not available (0.2.0 behaves the same there), so the new switch was not seen in the form and was set through the profile file. Not tested: macOS and Linux desktops, the Desktop application's own window (the web profile of the same host was used), and a conversation with a real model (automatic recall and the two tools were exercised in tests and against the gateway, not in a live chat).
 - **Other versions and systems.** Other DSH versions in the accepted ranges, other operating systems and other Python builds are not covered by a real-host test.
-- This is version 0.2.0. It changes one default: `advanced.profile` is now `broad` (it was `precise`).
+- This is version 0.3.0. It adds the optional `retrieval.hybrid` switch (off by default); no default changed.
 
 ## Troubleshooting
 

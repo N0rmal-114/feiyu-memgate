@@ -85,6 +85,10 @@ const GROUPS = [
           en: 'auto uses local while the dsh-feiyu-memgate-embed add-on has a model ready, and keyword otherwise.',
           zh: 'auto：dsh-feiyu-memgate-embed 插件的模型就绪时用 local，否则用 keyword。',
         } },
+      bool('hybrid', false, { en: 'Combine with keyword search (hybrid)', zh: '同时用关键词检索（混合）' }, {
+        en: 'Applies to the vector tiers (endpoint, local, and auto while it resolves to local); under keyword it does nothing. Keyword and vector search are both asked and their results fused. It uses the same vector store file as the tier without it, plus a keyword index file next to it, so switching it on or off loses no memory.',
+        zh: '用于向量检索（endpoint、local，以及 auto 选到 local 的时候）；在 keyword 下不起作用。关键词检索和向量检索同时查，结果合并。它用的向量存储文件和不开它时相同，旁边多一个关键词索引文件，所以开或关都不会丢记忆。',
+      }),
       { key: 'url', kind: 'string', default: '', format: 'url',
         label: { en: 'Endpoint URL', zh: '向量接口地址' },
         help: { en: 'endpoint tier: base URL of an OpenAI-compatible embeddings API, for example http://127.0.0.1:11434/v1.', zh: 'endpoint 方式：OpenAI 兼容向量接口的基础地址，例如 http://127.0.0.1:11434/v1。' } },

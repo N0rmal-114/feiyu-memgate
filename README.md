@@ -1030,7 +1030,7 @@ AstrBot 的接入示例在 [integrations/astrbot](integrations/astrbot/)。
 
 | 包 | 作用 |
 |---|---|
-| [dsh-feiyu-memgate](plugins/dsh-feiyu-memgate/README.zh.md) | 给 DSH 对话加上长期记忆：自带并自动启动本网关，每轮自动召回，给模型“记住”和“查找”两个工具，带设置页面。每项功能都能单独关掉。默认用关键词检索，不需要模型，也不下载任何东西。 |
+| [dsh-feiyu-memgate](plugins/dsh-feiyu-memgate/README.zh.md) | 给 DSH 对话加上长期记忆：自带并自动启动本网关，每轮自动召回，给模型“记住”和“查找”两个工具，带设置页面。每项功能都能单独关掉。默认用关键词检索，不需要模型，也不下载任何东西；用向量检索时可以选择同时用关键词检索并合并结果（混合，默认关闭）。 |
 | [dsh-feiyu-memgate-embed](plugins/dsh-feiyu-memgate-embed/README.zh.md) | 可选的附加包：在本机只用 CPU 运行向量模型，让换了说法的问题也能找到记忆。模型在设置页面里点“下载并启用”之后才下载。 |
 
 安装：在 DSH 的插件页面安装 `dsh-feiyu-memgate`，或运行 `dsh plugin --profile <name> add dsh-feiyu-memgate`。要求、设置和测试范围见各自的说明。

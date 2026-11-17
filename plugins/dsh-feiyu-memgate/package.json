@@ -1,6 +1,6 @@
 {
   "name": "dsh-feiyu-memgate",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "DeepSeek Harness (DSH) plugin for the feiyu-memgate memory gateway: automatic recall, remember and search tools, with a bundled gateway.",
   "type": "module",
   "main": "./index.js",

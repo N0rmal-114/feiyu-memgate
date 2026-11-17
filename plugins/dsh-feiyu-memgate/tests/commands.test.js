@@ -19,6 +19,7 @@ function fakeStatus(overrides = {}) {
     retrieval: {
       setting: 'auto',
       active: 'keyword',
+      hybrid: { setting: false, active: false },
       tiers: [
         { name: 'keyword', available: true, missing: [], vector: false, active: true },
         { name: 'endpoint', available: false, missing: ['retrieval.url', 'retrieval.model'], vector: true, active: false },
@@ -198,6 +199,40 @@ test('tiers lists availability, the active tier and what each needs', async () =
   assert.match(reply.text, /- local: not available\. Needs: the dsh-feiyu-memgate-embed add-on/)
   const zh = await harness({ lang: 'zh' }).run('tiers')
   assert.match(zh.text, /- local：不可用。需要：安装并启用 dsh-feiyu-memgate-embed 插件/)
+})
+
+test('the hybrid state shows in status and tiers, in both languages', async () => {
+  const hybridStatus = () => fakeStatus({
+    retrieval: { ...fakeStatus().retrieval, setting: 'endpoint', active: 'endpoint', hybrid: { setting: true, active: true } },
+    store: { tier: 'endpoint', id: 'endpoint-m', type: 'hybrid', file: 'memories-endpoint-m.db', keywordFile: 'memories-endpoint-m-keywords.db', hybrid: true, count: 9 },
+  })
+  const en = await harness({ status: async () => hybridStatus() }).run('status')
+  assert.ok(en.text.includes('Retrieval: endpoint → endpoint + keyword (hybrid)'), en.text)
+  assert.ok(en.text.includes('Store: hybrid, memories-endpoint-m.db + memories-endpoint-m-keywords.db, 9 memories'), en.text)
+  const zh = await harness({ lang: 'zh', status: async () => hybridStatus() }).run('status')
+  assert.ok(zh.text.includes('检索: endpoint → endpoint + 关键词（混合）'), zh.text)
+  // Off, or on but not applying (keyword): the line stays as it was.
+  assert.ok(formatStatus(fakeStatus(), 'en').includes('Retrieval: auto → keyword\n'))
+  const idle = fakeStatus({ retrieval: { ...fakeStatus().retrieval, hybrid: { setting: true, active: false } } })
+  assert.ok(formatStatus(idle, 'en').includes('Retrieval: auto → keyword\n'))
+
+  const tiers = await harness({ status: async () => hybridStatus() }).run('tiers')
+  assert.match(tiers.text, /\nHybrid \(keyword and vector search together, retrieval\.hybrid\): on\.$/)
+  const tiersZh = await harness({ lang: 'zh', status: async () => hybridStatus() }).run('tiers')
+  assert.match(tiersZh.text, /\n混合检索（关键词和向量一起查，retrieval\.hybrid）：开。$/)
+  assert.match((await harness().run('tiers')).text, /: off\.$/)
+  assert.match((await harness({ status: async () => idle }).run('tiers')).text, /: on, but it does nothing under the current tier\.$/)
+  const external = fakeStatus({ gateway: { mode: 'external', state: 'configured', url: '' }, python: null, store: null })
+  assert.ok(!formatStatus(external, 'en').includes('hybrid'))
+  assert.ok(!(await harness({ status: async () => external }).run('tiers')).text.includes('Hybrid'), 'tiers do not apply to an external gateway')
+})
+
+test('retrieval.hybrid is set like any switch, by full or bare name', async () => {
+  const { run, writes } = harness()
+  assert.equal((await run('set retrieval.hybrid on')).text, 'Saved: retrieval.hybrid = on (was off).')
+  assert.equal((await run('set hybrid off')).text, 'Saved: retrieval.hybrid = off (was on).')
+  assert.deepEqual(writes.map((w) => w[0].value), [true, false])
+  assert.match((await run('set retrieval.hybrid maybe')).text, /retrieval\.hybrid takes on or off\./)
 })
 
 test('use chooses a tier and says when it cannot run yet', async () => {

@@ -10,7 +10,7 @@ test('defaults', () => {
   assert.deepEqual(readConfig({}), DEFAULTS)
   assert.deepEqual(DEFAULTS, {
     modules: { autoRecall: true, rememberTool: true, searchTool: true, promptSection: true, autoCapture: false, commands: true, migrateOnTierChange: true },
-    retrieval: { tier: 'auto', url: '', model: '', apiKey: '' },
+    retrieval: { tier: 'auto', hybrid: false, url: '', model: '', apiKey: '' },
     gateway: { mode: 'managed', python: '', dataDir: '' },
     external: { url: '', token: '' },
     advanced: { recallLimit: 5, recallTimeoutMs: 4000, language: 'auto', profile: 'broad', dailyWrites: 50, redaction: true, newerFirst: true, forgetting: false },
@@ -62,6 +62,8 @@ test('typed text becomes a value only when the field accepts it', () => {
   assert.deepEqual(parseSetting(f('advanced.dailyWrites'), '0'), { ok: true, value: 0 })
   assert.deepEqual(parseSetting(f('retrieval.tier'), 'local'), { ok: true, value: 'local' })
   assert.deepEqual(parseSetting(f('retrieval.tier'), 'Local'), { ok: false, reason: 'choice' })
+  assert.deepEqual(parseSetting(f('retrieval.hybrid'), 'on'), { ok: true, value: true })
+  assert.deepEqual(parseSetting(f('retrieval.hybrid'), '关'), { ok: true, value: false })
   assert.deepEqual(parseSetting(f('external.url'), 'http://127.0.0.1:8080'), { ok: true, value: 'http://127.0.0.1:8080' })
   assert.deepEqual(parseSetting(f('external.url'), 'ftp://x'), { ok: false, reason: 'url' })
   assert.deepEqual(parseSetting(f('gateway.dataDir'), '  D:/memory store  '), { ok: true, value: 'D:/memory store' })
@@ -145,4 +147,20 @@ test('the field table lists every setting once, labelled and explained in both l
       for (const option of field.options ?? []) assert.ok(option.label.en && option.label.zh, `${field.key}=${option.value}`)
     }
   }
+})
+
+test('retrieval.hybrid: a boolean, off by default, right after the tier, with help in both languages', () => {
+  const group = FIELDS.find((g) => g.group === 'retrieval')
+  assert.deepEqual(group.fields.map((f) => f.key), ['tier', 'hybrid', 'url', 'model', 'apiKey'])
+  const field = SETTING_KEYS['retrieval.hybrid']
+  assert.equal(field.kind, 'boolean')
+  assert.equal(field.default, false)
+  assert.equal(field.label.en, 'Combine with keyword search (hybrid)')
+  assert.equal(field.label.zh, '同时用关键词检索（混合）')
+  assert.match(field.help.en, /vector tiers/)
+  assert.match(field.help.en, /under keyword it does nothing/)
+  assert.match(field.help.en, /loses no memory/)
+  assert.match(field.help.zh, /不会丢记忆/)
+  assert.equal(readConfig({ retrieval: { hybrid: true } }).retrieval.hybrid, true)
+  assert.equal(readConfig({ retrieval: { hybrid: 'on' } }).retrieval.hybrid, false, 'only a real boolean counts')
 })

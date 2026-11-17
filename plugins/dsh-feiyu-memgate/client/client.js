@@ -203,6 +203,19 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
           }
         },
         {
+          "key": "hybrid",
+          "kind": "boolean",
+          "default": false,
+          "label": {
+            "en": "Combine with keyword search (hybrid)",
+            "zh": "同时用关键词检索（混合）"
+          },
+          "help": {
+            "en": "Applies to the vector tiers (endpoint, local, and auto while it resolves to local); under keyword it does nothing. Keyword and vector search are both asked and their results fused. It uses the same vector store file as the tier without it, plus a keyword index file next to it, so switching it on or off loses no memory.",
+            "zh": "用于向量检索（endpoint、local，以及 auto 选到 local 的时候）；在 keyword 下不起作用。关键词检索和向量检索同时查，结果合并。它用的向量存储文件和不开它时相同，旁边多一个关键词索引文件，所以开或关都不会丢记忆。"
+          }
+        },
+        {
           "key": "url",
           "kind": "string",
           "default": "",
@@ -549,6 +562,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
       pythonNone: 'not found (3.11 or newer needed)',
       pythonUnknown: 'not checked',
       retrievalExternal: 'decided by the external gateway',
+      hybridWord: 'keyword (hybrid)',
       notInstalled: 'not installed',
       memories: '{count} memories',
       countUnknown: 'count unavailable',
@@ -615,6 +629,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
       pythonNone: '没有找到（需要 3.11 或更新）',
       pythonUnknown: '未检查',
       retrievalExternal: '由外部网关决定',
+      hybridWord: '关键词（混合）',
       notInstalled: '未安装',
       memories: '{count} 条记忆',
       countUnknown: '条数未知',
@@ -777,10 +792,10 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
       const p = data.python
       rows.push([t('python'), !p ? t('pythonUnknown') : p.found ? p.version + ' (' + p.source + ') · ' + p.executable : t('pythonNone')])
       const r = data.retrieval || {}
-      rows.push([t('retrieval'), r.setting + (r.active ? ' → ' + r.active : '')])
+      rows.push([t('retrieval'), r.setting + (r.active ? ' → ' + r.active + (r.hybrid && r.hybrid.active ? ' + ' + t('hybridWord') : '') : '')])
       if (data.store) {
         const count = data.store.count === null || data.store.count === undefined ? t('countUnknown') : t('memories', { count: data.store.count })
-        rows.push([t('store'), data.store.type + ' · ' + data.store.file + ' · ' + count])
+        rows.push([t('store'), data.store.type + ' · ' + data.store.file + (data.store.keywordFile ? ' + ' + data.store.keywordFile : '') + ' · ' + count])
       }
     } else {
       rows.push([t('retrieval'), t('retrievalExternal')])

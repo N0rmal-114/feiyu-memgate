@@ -368,10 +368,23 @@ export function createPlugin(ctx, config, deps = {}) {
     return null
   }
 
+  // Whether the resolved store is hybrid: the switch alone is not enough (under keyword it does nothing,
+  // and a tier that lacks something has no store), so a change of the switch restarts the gateway only
+  // when it changes what the gateway runs.
+  function effectiveHybrid(s, f) {
+    try {
+      return resolveStore(s.retrieval, resolveDataDir(s.gateway.dataDir, env), f).hybrid === true
+    } catch {
+      return false
+    }
+  }
+
   function reconcileGateway(s, f) {
     const managed = needsMemory(s) && s.gateway.mode === 'managed'
     const tier = effectiveTier(s.retrieval.tier, f)
-    const wanted = managed ? JSON.stringify([s.gateway.python, s.gateway.dataDir, tier, tierKey(s, tier, f), policyOf(s)]) : null
+    const wanted = managed
+      ? JSON.stringify([s.gateway.python, s.gateway.dataDir, tier, tierKey(s, tier, f), effectiveHybrid(s, f), policyOf(s)])
+      : null
     if (needsMemory(s) && s.gateway.mode === 'external' && !(s.external.url && s.external.token)) {
       if (!externalWarned) log.warn('feiyu-memgate: external mode needs external.url and external.token; memory is off')
       externalWarned = true
@@ -754,6 +767,7 @@ export function createPlugin(ctx, config, deps = {}) {
       retrieval: {
         setting: s.retrieval.tier,
         active: activeTier,
+        hybrid: { setting: s.retrieval.hybrid, active: managed && effectiveHybrid(s, f) },
         tiers: TIER_NAMES.map((name) => {
           const missing = TIERS[name].missing(s.retrieval, f)
           return { name, available: missing.length === 0, missing, vector: TIERS[name].vector, active: name === activeTier }
@@ -796,9 +810,11 @@ export function createPlugin(ctx, config, deps = {}) {
         tier: store.tier,
         id: store.id,
         type: store.table.type,
-        file: path.basename(store.table.path),
-        count: python ? await cachedCount(python, store.table.path) : null,
+        file: path.basename(store.file),
+        count: python ? await cachedCount(python, store.file) : null,
+        hybrid: store.hybrid === true,
       }
+      if (store.hybrid) out.store.keywordFile = path.basename(store.mirror.keyword.path)
     }
     return out
   }

@@ -59,7 +59,7 @@ dsh plugin --profile desktop add dsh-feiyu-memgate
 - **`/memgate` 聊天命令。** 见[/memgate 命令](#memgate-命令)。
 - **profile 的配置文件。** profile 的 `cordis.patch.yml` 里的 `feiyu-memgate` 这一行。另外两种方式也把改动存在这里。家目录级的补丁或 `--patch` 覆盖层如果设置了同一行，它们优先；会被它们盖掉的改动会被拒绝。
 
-多数设置立即生效。改动 `gateway.mode`、`gateway.python`、`gateway.dataDir`、检索方式或正在使用的向量接口设置、`advanced.profile`、`advanced.dailyWrites`、`advanced.redaction`、`advanced.newerFirst`、`advanced.forgetting` 会重启网关，每日写入上限的计数随之重新开始。关掉一项功能，它在 DSH 里注册的东西就被移除。只有 `modules.autoRecall`、`modules.rememberTool`、`modules.searchTool`、`modules.autoCapture` 中至少有一个开着时，网关才会运行。
+多数设置立即生效。改动 `gateway.mode`、`gateway.python`、`gateway.dataDir`、检索方式或正在使用的向量接口设置、`retrieval.hybrid`（只在它改变网关实际运行的内容时；在 `keyword` 下不会）、`advanced.profile`、`advanced.dailyWrites`、`advanced.redaction`、`advanced.newerFirst`、`advanced.forgetting` 会重启网关，每日写入上限的计数随之重新开始。关掉一项功能，它在 DSH 里注册的东西就被移除。只有 `modules.autoRecall`、`modules.rememberTool`、`modules.searchTool`、`modules.autoCapture` 中至少有一个开着时，网关才会运行。
 
 | 设置 | 作用 | 默认值 | 备注 |
 |---|---|---|---|
@@ -71,6 +71,7 @@ dsh plugin --profile desktop add dsh-feiyu-memgate
 | `modules.commands` | 注册 `/memgate` 聊天命令。 | 开 | 需要支持聊天命令的宿主。 |
 | `modules.migrateOnTierChange` | 向量检索启用时，在后台把关键词记忆复制到它的存储里。 | 开 | 见[语义检索](#语义检索可选插件)。 |
 | `retrieval.tier` | 自带网关怎么查找记忆：`auto`、`keyword`、`endpoint` 或 `local`。 | `auto` | `/memgate use <方式>`。见下表。 |
+| `retrieval.hybrid` | 向量检索下同时用关键词检索，结果合并。 | 关 | `/memgate set retrieval.hybrid on`。用于 `endpoint`、`local`，以及 `auto` 选到 `local` 的时候；在 `keyword` 下不起作用。向量存储文件不变，旁边多一个关键词索引文件。见[混合检索](#混合检索可选)。 |
 | `retrieval.url` | `endpoint` 方式：OpenAI 兼容向量接口的基础地址，例如 `http://127.0.0.1:11434/v1`。 | 空 | 必须以 `http://` 或 `https://` 开头。 |
 | `retrieval.model` | `endpoint` 方式：向量模型的名字。 | 空 | 换模型会用一个新的空存储。 |
 | `retrieval.apiKey` | `endpoint` 方式：接口需要密钥时填写。 | 空 | 秘密。只写不读：设置页面保存后不再显示。 |
@@ -100,6 +101,16 @@ dsh plugin --profile desktop add dsh-feiyu-memgate
 | `local` | 用向量插件在本机运行的模型做语义检索。 | 安装并启用向量插件，并且有模型就绪。 | `memories-local-<model>-<hash>.db` |
 
 向量插件消失或它的模型变了，`auto` 或 `local` 下的网关会按新状态重启。
+
+### 混合检索（可选）
+
+`retrieval.hybrid` 打开后，向量检索方式对每个查询同时做两种检索并合并结果：关键词检索（问题和记忆用词相同时最准）和向量检索（能找到换了说法的记忆）。默认关闭。
+
+- **什么时候起作用。** 用于 `endpoint`、`local`，以及 `auto` 选到 `local` 的时候。在 `keyword` 下这个开关不起作用，改它也不会重启网关。它只用于自带网关；自己运行的网关按它自己的配置。
+- **用哪些文件。** 向量存储文件和不开它时相同（`memories-endpoint-<model>.db` 或 `memories-local-<model>-<hash>.db`，仍然保存全部记忆），旁边多一个关键词索引文件 `memories-<store id>-keywords.db`。遗忘相关文件和复制进度文件的名字和不开混合时一样，因为这是同一批记忆。
+- **开或关都不会丢记忆。** 向量文件是记录，关键词索引从它重建。混合关闭期间保存、遗忘或复制的记忆，在下一次网关启动时补进索引或从索引里去掉：网关启动之前，插件先让索引和向量文件一致（补上索引缺的，去掉向量文件里已经没有的）。**所以开启后的第一次启动，记忆很多时可能要等一会儿**（索引由已存的文本建立，不需要向量接口；在测试用的 Windows 机器上，1,000 条约 2 秒，5,000 条约 12 秒）；这一步最多 60 秒，没做完下次启动接着做，网关照常启动。更新失败时，网关仍用现有的索引启动；日志（`gateway.log`）只写补了几条、去掉了几条，不写是哪几条。
+- **把关键词记忆复制到向量存储**和不开混合时一样，复制的记忆会同时写入两边。
+- **测量依据和限度。** 在网关自己的基准里，用 bge-m3 模型时，混合配置的 Hit@5（前五条里有一条正确记忆的问题所占比例）如下：PerLTQA（中文，8,588 道题）混合 95.0%、关键词 87.3%、向量 83.3%；LoCoMo（英文，1,535 道题）混合 58.0%、向量 51.6%、关键词 36.4%；项目自己的题库（160 道题）混合 96.7%、向量 98.3%，这里混合没有带来提升。混合配置的分数线是用 bge-m3 选的；换别的模型用同一组分数线，没有测量过。这次没有为本插件或它组合两个存储的方式重新测量。表格见仓库 README 的[公开数据集](https://github.com/N0rmal-114/feiyu-memgate/blob/main/README.md#公开数据集perltqa-与-locomo)一节。
 
 ### 外部网关
 
@@ -193,6 +204,7 @@ profile 的 `cordis.patch.yml` 里，一行会整个替换同一个 `id` 那一�
 |---|---|
 | `memories.db` | 关键词存储。 |
 | `memories-endpoint-<model>.db`、`memories-local-<model>-<hash>.db` | 向量检索的存储，每个模型一个。 |
+| `memories-<store id>-keywords.db` | 只在 `retrieval.hybrid` 打开时有：同一个存储 id 的向量存储旁边的关键词索引。它保存同样的记忆，可以从向量存储重建。 |
 | `migration-<store id>.json` | 向量存储的复制进度：只有数量和引用，没有文本。 |
 | `model-setup.json` | 从设置页面或 `/memgate install` 开始的模型设置进度：模型、进行到哪一步、等你决定的安装脚本、上次失败的代码。 |
 | `forgetting-ledger-<store id>.db`、`forgetting-archive-<store id>.db` | 只在打开遗忘时出现。存档里是被删记忆的全文，没有加密。 |
@@ -216,9 +228,9 @@ profile 的 `cordis.patch.yml` 里，一行会整个替换同一个 `id` 那一�
 - **每种检索方式只有一个存储。** 插件只用一个网关客户端和每种方式一个存储，不按用户或项目分开保存记忆。
 - **设置页面依赖宿主里仍在变化的界面接口。** 没有它插件照样能用：每项设置都能用 `/memgate` 或在 profile 文件里修改。
 - **遗忘是实验性的**，只在模拟里测过。
-- **真实环境测试。** 在 Windows 11 上已安装的 DeepSeek Harness 0.2.2-rc.1 里，用一个隔离的配置测过：插件能加载，自带网关用 PATH 上的 Python 启动，设置页面能显示和保存，状态接口和模型接口只回应所有者的会话，聊天命令可用；装上向量插件和 bge-small-zh-v1.5 后用的是 local 检索方式，换了说法的问题能找到对应的记忆。通过设置页面从 npm 安装向量插件也测过，测的是拒绝依赖的安装脚本这条路：向量插件装好并启用，模型下载完成，检索方式换成 local（允许脚本的那条路没有跑过）。没有测过：macOS 和 Linux 桌面、桌面应用自己的窗口（用的是同一宿主的 web 配置）、和真实模型的对话（自动召回和两个工具只在测试里和对着网关测过，没有在实际聊天里用过）。
+- **真实环境测试。** 在 Windows 11 上已安装的 DeepSeek Harness 0.2.2-rc.1 里，用一个隔离的配置测过：插件能加载，自带网关用 PATH 上的 Python 启动，设置页面能显示和保存，状态接口和模型接口只回应所有者的会话，聊天命令可用；装上向量插件和 bge-small-zh-v1.5 后用的是 local 检索方式，换了说法的问题能找到对应的记忆。通过设置页面从 npm 安装向量插件也测过，测的是拒绝依赖的安装脚本这条路：向量插件装好并启用，模型下载完成，检索方式换成 local（允许脚本的那条路没有跑过）。0.3.0 的混合检索也在一个隔离的配置里跑过，向量接口用的是本机的一个替身服务，不是真实模型：`endpoint` 方式打开 `retrieval.hybrid` 后，网关以混合存储启动，关键词存储里的记忆被复制到向量文件和关键词索引两边；宿主停止时从向量文件里删掉一条，下次启动索引同步去掉了这一条。在这个从源码目录链接插件的配置里，设置页面的表单显示“设置现在不可用”（0.2.0 在这里也是这样），所以新开关在表单里的显示没有实际看到，开关是通过 profile 文件设置的。没有测过：macOS 和 Linux 桌面、桌面应用自己的窗口（用的是同一宿主的 web 配置）、和真实模型的对话（自动召回和两个工具只在测试里和对着网关测过，没有在实际聊天里用过）。
 - **其他版本和系统。** 可接受范围内的其他 DSH 版本、其他操作系统和其他 Python 构建，都没有在真实宿主里测过。
-- 当前版本是 0.2.0。它改了一个默认值：`advanced.profile` 现在是 `broad`（原来是 `precise`）。
+- 当前版本是 0.3.0。它新增了可选的 `retrieval.hybrid` 开关（默认关闭），没有改任何默认值。
 
 ## 故障排查
 
