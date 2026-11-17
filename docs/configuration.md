@@ -310,7 +310,8 @@ Authorization: Bearer <令牌>
  "tenant_id": "10001", "context": {"channel": "voice"}}
 ```
 
-- `time`、`speaker` 可以不写，写 `null` 等于没写。`time` 是这句话什么时候说的（任意格式的字符串），`speaker` 是谁说的。它们交给写入守卫和存储；公开客户端的这两项也会被脱敏。消息里的其他键丢掉。
+- `time`、`speaker` 可以不写，写 `null` 等于没写。`time` 是这句话什么时候说的，`speaker` 是谁说的。它们交给写入守卫和存储；公开客户端的这两项也会被脱敏。消息里的其他键丢掉。
+- `time` 的开头是一个真实存在的 `YYYY-MM-DD` 日期（后面可以接 `T` 或空格再接时间，如 `2026-11-14T20:15:00+08:00`）时，`sqlite`、`embedding`、`hybrid`、`inmemory` 后端用这个日期作为这条记忆的日期，召回结果的 `date` 就是它；没有 `time` 或开头不是合格的日期时，仍用写入当天的 UTC 日期（`inmemory` 不记日期）。取的是 `time` 里写着的日期，不换算时区，所以客户端带上本地时间，记忆的日期就是用户所在地的日期。`openviking` 后端不涉及（日期由 OpenViking 决定）。已经发送 `time` 的客户端，升级后会在记忆上看到这个日期，而不再是 UTC 的当天。
 - `tenant_id`、`context` 同上。
 
 ```json

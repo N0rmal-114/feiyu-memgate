@@ -52,7 +52,7 @@ from ..core.tidy import PreparedQuery, gram_weights, index_grams, normalize
 from ..errors import BackendError
 from ..model import Hit
 from ..registry import register
-from .base import MemoryBackend
+from .base import MemoryBackend, message_date
 
 DEFAULT_BUDGET = 10.0  # seconds for one find() when the caller gives none
 MAX_QUERY_GRAMS = 600  # distinct query grams looked at (their document frequency is probed)
@@ -313,7 +313,7 @@ class SQLiteBackend(MemoryBackend):
         kept = 0
         for index, message in enumerate(messages):
             if message["role"] in self.roles:
-                self.put(message["content"], ref="%s-%d" % (receipt, index), date=today)
+                self.put(message["content"], ref="%s-%d" % (receipt, index), date=message_date(message, today))
                 kept += 1
         return receipt if kept else None
 

@@ -6,6 +6,7 @@ extra_user_content_parts, TextPart.mark_as_temp). This checks the plugin's own l
 where the memory block is put; it does not prove anything about a real AstrBot.
 """
 import asyncio
+import datetime
 import importlib.util
 import pathlib
 import sys
@@ -136,7 +137,8 @@ class PluginCase(unittest.TestCase):
         spec = importlib.util.spec_from_file_location("feiyu_memgate_recall_under_test", PLUGIN)
         self.plugin = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(self.plugin)
-        self.block = self.plugin.FORMATTER.format(RESULTS)
+        # the plugin passes the local date, so the block it builds says today's date and the age
+        self.block = self.plugin.FORMATTER.format(RESULTS, today=datetime.date.today().isoformat())
 
     def star(self, fallback="message", client=None):
         with mock.patch.dict("os.environ", {"FEIYU_MEMGATE_OWNER_IDS": "10001", "FEIYU_MEMGATE_FALLBACK": fallback}):
@@ -269,6 +271,31 @@ class FallbackTests(PluginCase):
     def test_off_through_the_plugin(self):
         req = self.ask(self.star(fallback="off"), Event(), Request())
         self.assertEqual((req.prompt, req.system_prompt), ("what tea do I like", "You are a helpful bot."))
+
+
+class RememberToolTests(PluginCase):
+    def test_the_memory_is_sent_with_the_local_date_and_time(self):
+        class Recorder(FakeClient):
+            def __init__(self):
+                super().__init__()
+                self.sent = []
+
+            def remember_messages(self, messages, deadline=None, tenant_id=None):
+                self.sent.append((messages, tenant_id))
+                return "saved"
+
+        client = Recorder()
+        star = self.star(client=client)
+        reply = asyncio.run(star.remember_tool(Event(), "喜欢乌龙茶"))
+        self.assertIn("已经交给记忆服务", reply)
+        (messages, tenant_id), = client.sent
+        self.assertIsNone(tenant_id)
+        self.assertEqual([m["role"] for m in messages], ["user"])
+        self.assertEqual(messages[0]["content"], "喜欢乌龙茶")
+        stamp = messages[0]["time"]
+        self.assertLessEqual(len(stamp), 40)
+        self.assertEqual(datetime.datetime.fromisoformat(stamp).date(), datetime.date.today())
+        self.assertIsNotNone(datetime.datetime.fromisoformat(stamp).utcoffset())
 
 
 if __name__ == "__main__":

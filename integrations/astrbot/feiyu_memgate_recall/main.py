@@ -17,6 +17,7 @@ Who gets memory:
   - anyone else: no recall and no remember.
 """
 import asyncio
+import datetime
 import os
 import time
 
@@ -126,7 +127,7 @@ class FeiyuMemgateRecall(Star):
             if detail is None:
                 logger.warning("memory recall skipped: failed")  # never the query
                 return
-            block = FORMATTER.format(detail["results"], detail["more"])
+            block = FORMATTER.format(detail["results"], detail["more"], today=datetime.date.today().isoformat())
             if not block:
                 return
             if isinstance(previous_raw, str) and block in previous_raw:
@@ -151,10 +152,13 @@ class FeiyuMemgateRecall(Star):
             if event.get_extra(REMEMBERED_KEY):
                 return "这次回复里已经记过一条了，这条没有记。"
             event.set_extra(REMEMBERED_KEY, True)
+        # The local date and time with offset: the memory is dated by where the user is, not by UTC.
+        message = {"role": "user", "content": text,
+                   "time": datetime.datetime.now().astimezone().isoformat(timespec="seconds")}
         deadline = time.monotonic() + REMEMBER_BUDGET
         try:
             outcome = await asyncio.wait_for(
-                asyncio.to_thread(self.client.remember_status, text, deadline, tenant_id), REMEMBER_BUDGET + 0.5)
+                asyncio.to_thread(self.client.remember_messages, [message], deadline, tenant_id), REMEMBER_BUDGET + 0.5)
         except asyncio.TimeoutError:
             outcome = "unsure"  # the worker may still finish: the write may happen
         except Exception as e:

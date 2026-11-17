@@ -68,7 +68,7 @@ from ..core.pool import _NoCtl
 from ..errors import BackendError
 from ..model import Hit
 from ..registry import register
-from .base import MemoryBackend
+from .base import MemoryBackend, message_date
 
 PRESETS = (
     # (pattern, values): the first pattern contained in the lower-cased model name wins. "min_score" and
@@ -480,12 +480,12 @@ class EmbeddingBackend(MemoryBackend):
         """Keep the messages whose role is in `roles`. Returns a receipt id, or None when
         nothing matched (nothing was embedded or stored)."""
         self._require_writable()
-        kept = [(i, m["content"]) for i, m in enumerate(messages) if m["role"] in self.roles]
+        today = _today()
+        kept = [(i, m["content"], message_date(m, today)) for i, m in enumerate(messages) if m["role"] in self.roles]
         if not kept:
             return None
         receipt = "w-" + uuid.uuid4().hex
-        today = _today()
-        texts = [content for _, content in kept]
+        texts = [content for _, content, _ in kept]
         if any(not isinstance(t, str) or not t.strip() for t in texts):
             raise ValueError("a memory text must be a non-empty string")
         vectors = self._embed(texts, timeout, ctl, self._doc_prefix)
@@ -493,13 +493,13 @@ class EmbeddingBackend(MemoryBackend):
         with self._lock:
             self._bind_dim(len(vectors[0]))
             with self._db:
-                for (index, content), vec in zip(kept, vectors):
+                for (index, content, date), vec in zip(kept, vectors):
                     self._db.execute(
                         "INSERT OR REPLACE INTO memories (ref, text, created_at, date, vector) VALUES (?, ?, ?, ?, ?)",
-                        ("%s-%d" % (receipt, index), content, now, today, vec.tobytes()),
+                        ("%s-%d" % (receipt, index), content, now, date, vec.tobytes()),
                     )
             if self._vectors is not None:
-                for (index, _), vec in zip(kept, vectors):
+                for (index, _, _), vec in zip(kept, vectors):
                     self._vectors["%s-%d" % (receipt, index)] = vec
         return receipt
 

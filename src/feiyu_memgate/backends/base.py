@@ -7,6 +7,29 @@ plain list are all fine, as long as find() returns scores in 0..1.
 Standard library only.
 """
 import abc
+import datetime
+
+
+def message_date(message, default=None):
+    """The date ("YYYY-MM-DD") a message says it was written, else `default`.
+
+    Taken from the optional `time` field when it is a string that starts with a real calendar date
+    in YYYY-MM-DD form, followed by nothing, "T" or a space ("2026-11-17", "2026-11-17T08:30:00+08:00",
+    "2026-11-17 08:30"). Anything else gives `default`. Never raises.
+    """
+    if not isinstance(message, dict):
+        return default
+    value = message.get("time")
+    if not isinstance(value, str) or len(value) < 10 or (len(value) > 10 and value[10] not in "T "):
+        return default
+    head = value[:10]
+    if not (head[:4].isdigit() and head[4] == "-" and head[5:7].isdigit() and head[7] == "-" and head[8:].isdigit()):
+        return default
+    try:
+        datetime.date.fromisoformat(head)
+    except ValueError:
+        return default
+    return head
 
 
 class MemoryBackend(abc.ABC):

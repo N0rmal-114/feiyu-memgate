@@ -40,7 +40,7 @@ from .. import registry
 from ..errors import BackendError, ConfigError
 from ..model import Hit
 from ..registry import register
-from .base import MemoryBackend
+from .base import MemoryBackend, message_date
 
 DEFAULT_BUDGET = 10.0
 OVERFETCH = 3  # each child is asked for limit * 3 hits so that fusion has material to rank
@@ -201,12 +201,12 @@ class HybridBackend(MemoryBackend):
         """Put every message whose role is in `roles` into every child. Returns a receipt id,
         or None when nothing was kept."""
         self._require_writable()
-        kept = [(i, m["content"]) for i, m in enumerate(messages) if m["role"] in self.roles]
+        today = _today()
+        kept = [(i, m["content"], message_date(m, today)) for i, m in enumerate(messages) if m["role"] in self.roles]
         if not kept:
             return None
         receipt = "w-" + uuid.uuid4().hex
-        today = _today()
-        self.put_many([(content, "%s-%d" % (receipt, i), today) for i, content in kept], timeout=timeout, ctl=ctl)
+        self.put_many([(content, "%s-%d" % (receipt, i), date) for i, content, date in kept], timeout=timeout, ctl=ctl)
         return receipt
 
     def receipt_refs(self, receipt):

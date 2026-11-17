@@ -14,7 +14,7 @@ import uuid
 from ..core.tidy import PreparedQuery, gram_weights, index_grams, normalize
 from ..registry import register
 from ..model import Hit
-from .base import MemoryBackend
+from .base import MemoryBackend, message_date
 
 
 @register("backend", "inmemory")
@@ -109,6 +109,7 @@ class InMemoryBackend(MemoryBackend):
         kept = 0
         for index, message in enumerate(messages):
             if message["role"] == "user":
-                self._store(message["content"], ref="%s-%d" % (receipt, index))
+                self._store(message["content"], ref="%s-%d" % (receipt, index),
+                            date=message_date(message))
                 kept += 1
         return receipt if kept else None  # nothing kept: no receipt for nothing

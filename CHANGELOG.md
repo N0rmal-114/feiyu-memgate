@@ -42,6 +42,8 @@
 
 ### 新增
 
+- 记忆的日期取自消息自己的 `time`：`sqlite`、`embedding`、`hybrid`、`inmemory` 后端写入时，消息的 `time` 开头是真实存在的 `YYYY-MM-DD` 日期（后面可以接 `T` 或空格再接时间）就用这个日期，不换算时区；没有或不合格时和以前一样（当天的 UTC 日期，`inmemory` 不记日期）。**已经发送 `time` 的客户端，升级后会在记忆上看到这个日期，而不再是 UTC 的当天。** `openviking` 后端不涉及。新增 `feiyu_memgate.backends.base.message_date(message, default)`。
+- `BlockFormatter.format` 多一个可选的 `today`（`YYYY-MM-DD`，`format_block` 同）：传了之后资料块写明今天的日期，每条有日期的记忆带上多久以前（今天、昨天、前天、N 天前、N 周前、N 个月前、N 年前），规则公开为 `feiyu_memgate.client.block.age_text`。不传或传的日期不合格时，输出和以前逐字相同。AstrBot 示例插件传入本机日期，`remember` 工具保存时带上本机的当前日期时间。
 - DeepSeek Harness（DSH）插件，在 `plugins/` 下，发布到 npm：`dsh-feiyu-memgate`（自带网关、自动召回、记住和查找两个工具、设置页面，默认关键词检索）和可选的 `dsh-feiyu-memgate-embed`（本机 CPU 运行向量模型，模型点击后才下载）。两个包的版本号各自独立。
 - AstrBot 示例插件：宿主不支持临时消息片段时，记忆块不再接到系统提示词末尾（那样每轮都会让提示词缓存失效），改为接在当前消息的文字末尾；`FEIYU_MEMGATE_FALLBACK` 可选 `message`（默认）、`system`、`off`。历史里留下的旧记忆块不会进入下一次的查询词，同一段记忆不会连续接两次。新增 `BlockFormatter.strip()`。插件的逻辑现在有测试（用模拟的 AstrBot 接口）。
 - 召回步骤 `newer_first`（见上）。在开发集和测试集上，新旧两条记忆都被交付时新的排在前面的比例，默认的向量配置从约六成到全部；两份数据里这类问题分别只有 12 和 20 道。
