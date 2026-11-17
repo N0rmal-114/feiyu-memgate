@@ -265,4 +265,4 @@ profile 的 `cordis.patch.yml` 里，一行会整个替换同一个 `id` 那一�
 
 ## 许可
 
-MIT，见 [LICENSE](LICENSE)。`python/` 里自带的网关是同一作者的项目 [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate)，许可相同（[python/LICENSE](python/LICENSE)）。版本是 0.1.0，提交是 `9b006191b065af6b489f1df1bbc52138896215ce`，记录在 [python/GATEWAY_VERSION.json](python/GATEWAY_VERSION.json) 里。
+MIT，见 [LICENSE](LICENSE)。`python/` 里自带的网关是同一作者的项目 [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate)，许可相同（[python/LICENSE](python/LICENSE)）。版本是 0.1.0，提交是 `1a4384cfe026bc6a318537bda09cc4eab9495877`，记录在 [python/GATEWAY_VERSION.json](python/GATEWAY_VERSION.json) 里。

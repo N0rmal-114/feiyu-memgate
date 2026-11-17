@@ -16,6 +16,12 @@ const FAKE = fileURLToPath(new URL('./fixtures/fake-worker.mjs', import.meta.url
 const PARENT = fileURLToPath(new URL('./fixtures/parent-host.mjs', import.meta.url))
 const delay = (ms) => new Promise((r) => setTimeout(r, ms))
 
+// The worker process and its pipes are unref'd on purpose: they must never keep a host alive. In a test
+// file nothing else holds the event loop open while the engine is awaited, and Node 22 then ends the
+// file with "Promise resolution is still pending" (Node 24 waits). This timer stands in for the host.
+const keepAlive = setInterval(() => {}, 60000)
+after(() => clearInterval(keepAlive))
+
 let root
 before(() => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'fmg-embed-engine-'))

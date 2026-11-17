@@ -6,7 +6,7 @@
 
 ## 0.3.1
 
-日期：2026-11-17。自带网关为提交 `9b00619`。
+日期：2026-11-17。自带网关为提交 `1a4384c`。
 
 聊天体验的第一轮改进，设计说明见 [docs/design/2026-11-17-chat-experience.md](https://github.com/N0rmal-114/feiyu-memgate/blob/main/docs/design/2026-11-17-chat-experience.md)。
 

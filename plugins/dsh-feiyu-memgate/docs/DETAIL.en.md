@@ -94,4 +94,4 @@ Start with `/memgate status`. If no Python is found, install Python 3.11 or late
 
 ## Licence
 
-MIT. The bundled gateway is the same author's project [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate), under the same licence, version 0.1.0 at commit `9b006191b065af6b489f1df1bbc52138896215ce`.
+MIT. The bundled gateway is the same author's project [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate), under the same licence, version 0.1.0 at commit `1a4384cfe026bc6a318537bda09cc4eab9495877`.

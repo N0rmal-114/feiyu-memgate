@@ -94,4 +94,4 @@ dsh plugin --profile <name> add dsh-feiyu-memgate
 
 ## 许可
 
-MIT。自带的网关是同一作者的项目 [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate)，许可相同，版本 0.1.0，提交 `9b006191b065af6b489f1df1bbc52138896215ce`。
+MIT。自带的网关是同一作者的项目 [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate)，许可相同，版本 0.1.0，提交 `1a4384cfe026bc6a318537bda09cc4eab9495877`。

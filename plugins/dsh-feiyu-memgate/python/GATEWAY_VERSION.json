@@ -2,7 +2,7 @@
   "package": "feiyu-memgate",
   "repository": "https://github.com/N0rmal-114/feiyu-memgate",
   "version": "0.1.0",
-  "commit": "9b006191b065af6b489f1df1bbc52138896215ce",
+  "commit": "1a4384cfe026bc6a318537bda09cc4eab9495877",
   "dirty": false,
   "files": {
     "LICENSE": "5ced0abe92eb65e7bdceda54797958785c6523fb7e927bb5fb4851d4e9c9865a",
@@ -16,7 +16,7 @@
     "feiyu_memgate/backends/openviking.py": "53f05faf86242ca1d01d9c2c4135e872ad005724dfb230f176bddc2fb4d26592",
     "feiyu_memgate/backends/sqlite.py": "6a56e0b5968bf2b898106e551db484125db1ec84ff94da77534fb87c4de8fe97",
     "feiyu_memgate/builtins.py": "dbc33174ab45e6e46ccd7ecaf81ec1909503d602d386671d93d9f887ce2f20c3",
-    "feiyu_memgate/cli.py": "5e26cde82100269dbe8f9c7180c80fabea0b27b78755823a341a3d5dab82b25e",
+    "feiyu_memgate/cli.py": "4448f03c88352109080fa66b054965e6fb352a7794288ddc4c36f6fb923f7e70",
     "feiyu_memgate/client/__init__.py": "910350a7c0f44f078aa1eedb9b3e7c79da3ab198ef4db8073921900af9d2e84f",
     "feiyu_memgate/client/block.py": "f0846004cfd7b060dae85a3e95470c7de9c79f37450a80d5321c0f70fcf105bd",
     "feiyu_memgate/client/http.py": "57e6f68ea4b12bd0c7c22092f279777d374344323827723d69e0c26bbede6ef8",

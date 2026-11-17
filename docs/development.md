@@ -183,6 +183,8 @@ cd plugins/dsh-feiyu-memgate-embed && node --test
 
 不设环境变量时，有些测试会跳过；设了，就多跑下面这些。CI 里都设了（见 [CI](#ci)）。
 
+CI 用的是 Node 22，也就是插件支持的最低版本。推送之前最好也用 Node 22 跑一遍：等待辅助进程的测试文件（`tests/mirror.test.js`、附加包的 `tests/engine.test.js`）开头各有一个定时器，因为辅助进程和它的管道都是 unref 的，Node 22 不会替测试保持事件循环，更新的版本会，所以只在 Node 24 上跑发现不了这类问题。
+
 | 变量 | 在哪个包 | 值 | 打开什么 |
 |---|---|---|---|
 | `FEIYU_MEMGATE_SRC` | `dsh-feiyu-memgate` | 网关源码的 `src` 文件夹（里面有 `feiyu_memgate` 包），从插件文件夹出发是 `../../src` | `tests/gateway-e2e.test.js` 的两个用例：用这份源码起一个真正的网关（`python -I -c ...` 调 `feiyu_memgate.cli`），经插件的 JavaScript 客户端做 remember、recall、used 和健康检查；再起一个混合检索的网关（假的 embeddings 接口），查两个文件里的 ref 一致、按字面和按改写都能召回、更新索引时去掉被忘掉的记忆。不设就跳过这两个 |

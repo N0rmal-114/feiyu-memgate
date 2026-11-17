@@ -265,4 +265,4 @@ Start with `/memgate status`. It shows the state of the gateway, the Python that
 
 ## Licence
 
-MIT, see [LICENSE](LICENSE). The bundled gateway in `python/` is the same author's project, [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate), under the same licence ([python/LICENSE](python/LICENSE)). It is version 0.1.0 at commit `9b006191b065af6b489f1df1bbc52138896215ce` as recorded in [python/GATEWAY_VERSION.json](python/GATEWAY_VERSION.json).
+MIT, see [LICENSE](LICENSE). The bundled gateway in `python/` is the same author's project, [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate), under the same licence ([python/LICENSE](python/LICENSE)). It is version 0.1.0 at commit `1a4384cfe026bc6a318537bda09cc4eab9495877` as recorded in [python/GATEWAY_VERSION.json](python/GATEWAY_VERSION.json).

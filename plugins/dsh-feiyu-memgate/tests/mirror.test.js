@@ -1,13 +1,19 @@
 // The keyword index update (src/mirror.py and its runner in src/gateway.js), with the Python found on
 // this machine and the bundled gateway's real `sqlite` backend. The vector store file is built with plain
 // sqlite3 rows: the update reads only refs, texts, dates and creation times, never the vectors.
-import test from 'node:test'
+import test, { after } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { MIRROR_SCRIPT, PACKAGE_DIR, findPython, runMirror, scrubbedEnv } from '../src/gateway.js'
+
+// The helper process and its pipes are unref'd on purpose: they must never keep a host alive. In a test
+// file nothing else holds the event loop open while a run is awaited, and Node 22 then ends the file with
+// "Promise resolution is still pending" (Node 24 waits). This timer stands in for the host.
+const keepAlive = setInterval(() => {}, 60000)
+after(() => clearInterval(keepAlive))
 
 const ISOLATED_ENV = { ...process.env, DSH_HOME: path.join(os.tmpdir(), 'dsh-memgate-no-home'), DSH_PRIMARY_RUNTIME: '' }
 const python = await findPython({ cache: null, env: ISOLATED_ENV })
