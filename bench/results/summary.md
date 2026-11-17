@@ -27,24 +27,33 @@
 | feiyu-memgate-full | 83.3% | 95.0% | 0.896 | 95.0% | 93.3% | 39.9% | 2.08 | 35.0% | 50.0% | 33.45 | 54.47 | 6.4 | 0 | 0.00 | 60.1% | 73.1% | 50 | feiyu-memgate | hybrid |
 | feiyu-memgate-full-precise | 84.2% | 95.0% | 0.899 | 95.0% | 65.0% | 9.8% | 0.67 | 75.0% | 50.0% | 33.08 | 55.03 | 6.4 | 0 | 0.00 | 90.2% | 75.6% | 16 | feiyu-memgate | hybrid |
 | mem0 | 77.5% | 95.0% | 0.851 | 95.0% | 99.2% | 95.0% | 19.76 | 0.0% | 60.0% | 69.33 | 609.84 | 471.2 | 2059186 | 0.53 | 5.0% | 9.6% | 478 | other | extraction |
+| hindsight-llm-deepseek-flash | 70.0% | 94.2% | 0.808 | 94.2% | 98.3% | 98.9% | 91.97 | 0.0% | 10.0% | 1549.99 | 1753.34 | 327.3 | 2466883 | 0.00 | 1.1% | 2.1% | 2258† | other | extraction |
 | feiyu-memgate-embedding-bge-base-zh | 82.5% | 93.3% | 0.872 | 93.3% | 88.3% | 29.8% | 1.51 | 37.5% | 45.0% | 19.11 | 46.73 | 3.5 | 0 | 0.00 | 70.2% | 78.2% | 37 | feiyu-memgate | vector |
 | feiyu-memgate-embedding-bge-base-zh-precise | 82.5% | 93.3% | 0.872 | 93.3% | 72.5% | 13.8% | 0.77 | 65.0% | 45.0% | 18.17 | 45.36 | 3.4 | 0 | 0.00 | 86.2% | 78.7% | 19 | feiyu-memgate | vector |
 | feiyu-memgate-embedding-bge-small-zh | 75.8% | 92.5% | 0.833 | 92.5% | 86.7% | 31.0% | 1.79 | 20.0% | 35.0% | 6.43 | 32.87 | 1.0 | 0 | 0.00 | 69.0% | 76.8% | 43 | feiyu-memgate | vector |
 | feiyu-memgate-embedding-bge-small-zh-precise | 75.8% | 92.5% | 0.833 | 92.5% | 76.7% | 20.6% | 0.94 | 47.5% | 35.0% | 6.33 | 30.68 | 1.0 | 0 | 0.00 | 79.4% | 78.0% | 23 | feiyu-memgate | vector |
+| hindsight-llm-claude-haiku-5-5 | 72.5% | 91.7% | 0.820 | 91.7% | 97.5% | 98.8% | 84.01 | 0.0% | 25.0% | 1556.48 | 2135.91 | 368.2 | 3279611 | 0.00 | 1.2% | 2.3% | 2062 | other | extraction |
 | dsh-mnemon-embedding | 80.0% | 90.8% | 0.845 | 90.8% | 87.5% | 61.4% | 2.24 | 0.0% | 55.0% | 78.08 | 105.26 | 12.2 | 0 | 0.00 | 38.6% | 53.6% | 54 | other | hybrid |
+| hindsight-chunks | 78.3% | 90.0% | 0.840 | 90.0% | 99.2% | 98.9% | 93.54 | 0.0% | 65.0% | 455.42 | 541.77 | 10.6 | 0 | 0.00 | 1.1% | 2.1% | 2267 | other | hybrid |
+| dsh-prime-memory-embedding | 45.0% | 84.2% | 0.617 | 84.2% | 85.0% | 83.0% | 5.00 | 0.0% | 45.0% | 21.43 | 22.78 | 4.3 | 0 | 0.00 | 17.0% | 28.3% | 121 | other | hybrid |
 | feiyu-memgate-sqlite | 61.7% | 81.7% | 0.708 | 81.7% | 46.7% | 10.7% | 0.55 | 70.0% | 55.0% | 2.17 | 3.10 | 0.0 | 0 | 0.00 | 89.3% | 61.3% | 14 | feiyu-memgate | keyword |
 | feiyu-memgate-sqlite-precise | 61.7% | 81.7% | 0.708 | 81.7% | 39.2% | 7.0% | 0.41 | 75.0% | 55.0% | 2.15 | 3.04 | 0.0 | 0 | 0.00 | 93.0% | 55.1% | 10 | feiyu-memgate | keyword |
 | lingshu-dsh-memory | 65.0% | 81.7% | 0.726 | 81.7% | 0.0% | 100.0% | 4.00 | 0.0% | 55.0% | 2.18 | 2.63 | 4.1 | 0 | 0.00 | 0.0% | 0.0% | 90 | other | keyword |
+| dsh-prime-memory | 35.8% | 74.2% | 0.519 | 74.2% | 74.2% | 84.5% | 4.66 | 2.5% | 45.0% | 0.58 | 0.92 | 0.2 | 0 | 0.00 | 15.5% | 25.6% | 113 | other | keyword |
+| dsh-soul-md | 51.7% | 65.0% | 0.572 | 65.0% | 65.0% | 82.5% | 3.94 | 10.0% | 40.0% | 3.35 | 4.25 | 0.1 | 0 | 0.00 | 17.5% | 27.6% | 100 | other | keyword |
 | seekmemory | 50.8% | 64.2% | 0.571 | 64.2% | 65.0% | 82.8% | 4.09 | 22.5% | 45.0% | 1.97 | 2.92 | 0.2 | 0 | 0.00 | 17.2% | 27.3% | 98 | other | keyword |
 | seekmemory-aged | 52.5% | 64.2% | 0.582 | 64.2% | 65.0% | 82.8% | 4.09 | 22.5% | 45.0% | 1.82 | 2.74 | 0.2 | 0 | 0.00 | 17.2% | 27.3% | 98 | other | keyword |
 | meow-memory | 51.7% | 63.3% | 0.566 | 63.3% | 56.7% | 69.1% | 1.80 | 10.0% | 45.0% | 1.99 | 3.00 | 0.2 | 0 | 0.00 | 30.9% | 40.0% | 44 | other | keyword |
+| dsh-fish-memory-expand-claude-haiku-5-5 | 40.0% | 50.8% | 0.446 | 50.8% | 47.5% | 68.8% | 1.97 | 32.5% | 50.0% | 2.06 | 20.81 | 123.1 | 103730 | 0.00 | 31.2% | 37.7% | 49 | other | keyword |
+| dsh-fish-memory-expand-deepseek-flash | 40.8% | 50.8% | 0.449 | 50.8% | 48.3% | 68.2% | 1.95 | 32.5% | 55.0% | 1.94 | 3.40 | 108.6 | 65339 | 0.00 | 31.8% | 38.3% | 49 | other | keyword |
+| dsh-fish-memory | 40.0% | 49.2% | 0.439 | 49.2% | 48.3% | 68.5% | 2.07 | 32.5% | 55.0% | 1.34 | 2.29 | 0.3 | 0 | 0.00 | 31.5% | 38.1% | 52 | other | keyword |
 | dsh-mnemon | 38.3% | 42.5% | 0.401 | 42.5% | 38.3% | 62.9% | 1.02 | 0.0% | 5.0% | 33.09 | 39.36 | 3.0 | 0 | 0.00 | 37.1% | 37.7% | 25 | other | keyword |
 | graphiti | 12.5% | 13.3% | 0.129 | 13.3% | 13.3% | 53.5% | 0.31 | 82.5% | 5.0% | 390.93 | 848.18 | 1346.7 | 1176519 | 2.00 | 46.5% | 20.7% | 8 | other | graph |
 | seekmemory-aged-detail | 0.0% | 0.0% | 0.000 | 0.0% | 0.0% | - | 0.00 | 100.0% | 0.0% | 0.09 | 0.13 | 0.2 | 0 | 0.00 | - | - | 0 | other | keyword |
 
-精确率和交付 F1 只统计交付了东西的可答问题（共 120 个可答问题；各系统的分母：feiyu-memgate-embedding-embeddinggemma 119，feiyu-memgate-embedding-embeddinggemma-precise 103，feiyu-memgate-embedding 118，feiyu-memgate-embedding-precise 106，feiyu-memgate-openviking 117，feiyu-memgate-openviking-precise 117，mem0-verbatim 120，memsearch 120，openviking 120，openviking-unfiltered 120，feiyu-memgate-hybrid 117，feiyu-memgate-hybrid-precise 80，feiyu-memgate-embedding-qwen3-embedding 120，feiyu-memgate-embedding-qwen3-embedding-precise 120，feiyu-memgate-full 117，feiyu-memgate-full-precise 80，mem0 120，feiyu-memgate-embedding-bge-base-zh 117，feiyu-memgate-embedding-bge-base-zh-precise 94，feiyu-memgate-embedding-bge-small-zh 119，feiyu-memgate-embedding-bge-small-zh-precise 110，dsh-mnemon-embedding 120，feiyu-memgate-sqlite 59，feiyu-memgate-sqlite-precise 50，lingshu-dsh-memory 120，seekmemory 116，seekmemory-aged 116，meow-memory 115，dsh-mnemon 120，graphiti 24，seekmemory-aged-detail 0）；什么都没交的可答问题不进分母，所以交得很少的系统精确率可以很高。
+精确率和交付 F1 只统计交付了东西的可答问题（共 120 个可答问题；各系统的分母：feiyu-memgate-embedding-embeddinggemma 119，feiyu-memgate-embedding-embeddinggemma-precise 103，feiyu-memgate-embedding 118，feiyu-memgate-embedding-precise 106，feiyu-memgate-openviking 117，feiyu-memgate-openviking-precise 117，mem0-verbatim 120，memsearch 120，openviking 120，openviking-unfiltered 120，feiyu-memgate-hybrid 117，feiyu-memgate-hybrid-precise 80，feiyu-memgate-embedding-qwen3-embedding 120，feiyu-memgate-embedding-qwen3-embedding-precise 120，feiyu-memgate-full 117，feiyu-memgate-full-precise 80，mem0 120，hindsight-llm-deepseek-flash 120，feiyu-memgate-embedding-bge-base-zh 117，feiyu-memgate-embedding-bge-base-zh-precise 94，feiyu-memgate-embedding-bge-small-zh 119，feiyu-memgate-embedding-bge-small-zh-precise 110，hindsight-llm-claude-haiku-5-5 120，dsh-mnemon-embedding 120，hindsight-chunks 120，dsh-prime-memory-embedding 120，feiyu-memgate-sqlite 59，feiyu-memgate-sqlite-precise 50，lingshu-dsh-memory 120，dsh-prime-memory 119，dsh-soul-md 115，seekmemory 116，seekmemory-aged 116，meow-memory 115，dsh-fish-memory-expand-claude-haiku-5-5 88，dsh-fish-memory-expand-deepseek-flash 88，dsh-fish-memory 88，dsh-mnemon 120，graphiti 24，seekmemory-aged-detail 0）；什么都没交的可答问题不进分母，所以交得很少的系统精确率可以很高。
 
-† 平均字数：这些系统交付的条目里有没有记忆编号的（openviking-unfiltered 8 条），按全部记忆的平均长度计入。
+† 平均字数：这些系统交付的条目里有没有记忆编号的（openviking-unfiltered 8 条、hindsight-llm-deepseek-flash 14 条），按全部记忆的平均长度计入。
 
 ‡ 延迟和入库时间：mem0、graphiti 的结果文件是付费模式的结果，没有在最后这次逐个顺序运行里重跑（重跑要再花钱），它们的 p50/p95 和入库时间来自一台同时有别的任务在跑的机器，不能和其他行的时间直接比。
 
@@ -69,17 +78,26 @@
 | feiyu-memgate-full | 83.3% | 94.2% | 94.2% | 94.2% | 95.0% | 97.5% | 98.3% | 98.3% | 99.2% | 100.0% |
 | feiyu-memgate-full-precise | 84.2% | 93.3% | 94.2% | 94.2% | 95.0% | 97.5% | 98.3% | 98.3% | 99.2% | 100.0% |
 | mem0 | 77.5% | 88.3% | 90.0% | 92.5% | 95.0% | 97.5% | 97.5% | 97.5% | 98.3% | 98.3% |
+| hindsight-llm-deepseek-flash | 70.0% | 87.5% | 89.2% | 92.5% | 94.2% | 94.2% | 95.0% | 95.0% | 96.7% | 96.7% |
 | feiyu-memgate-embedding-bge-base-zh | 82.5% | 90.0% | 90.8% | 91.7% | 93.3% | 94.2% | 94.2% | 94.2% | 94.2% | 94.2% |
 | feiyu-memgate-embedding-bge-base-zh-precise | 82.5% | 90.0% | 90.8% | 91.7% | 93.3% | 94.2% | 94.2% | 94.2% | 94.2% | 94.2% |
 | feiyu-memgate-embedding-bge-small-zh | 75.8% | 85.8% | 89.2% | 91.7% | 92.5% | 93.3% | 94.2% | 94.2% | 95.0% | 96.7% |
 | feiyu-memgate-embedding-bge-small-zh-precise | 75.8% | 85.8% | 89.2% | 91.7% | 92.5% | 93.3% | 94.2% | 94.2% | 95.0% | 96.7% |
+| hindsight-llm-claude-haiku-5-5 | 72.5% | 87.5% | 90.8% | 90.8% | 91.7% | 93.3% | 93.3% | 95.8% | 95.8% | 96.7% |
 | dsh-mnemon-embedding | 80.0% | 86.7% | 87.5% | 90.0% | 90.8% | 90.8% | 91.7% | 91.7% | 91.7% | 91.7% |
+| hindsight-chunks | 78.3% | 88.3% | 88.3% | 90.0% | 90.0% | 91.7% | 91.7% | 91.7% | 91.7% | 91.7% |
+| dsh-prime-memory-embedding | 45.0% | 65.0% | 78.3% | 82.5% | 84.2% | 85.0% | 85.8% | 86.7% | 88.3% | 91.7% |
 | feiyu-memgate-sqlite | 61.7% | 74.2% | 77.5% | 80.0% | 81.7% | 81.7% | 84.2% | 85.8% | 87.5% | 88.3% |
 | feiyu-memgate-sqlite-precise | 61.7% | 74.2% | 77.5% | 80.0% | 81.7% | 81.7% | 84.2% | 85.8% | 87.5% | 88.3% |
 | lingshu-dsh-memory | 65.0% | 75.0% | 76.7% | 80.8% | 81.7% | 82.5% | 85.0% | 85.8% | 86.7% | 88.3% |
+| dsh-prime-memory | 35.8% | 56.7% | 66.7% | 70.8% | 74.2% | 75.0% | 76.7% | 77.5% | 77.5% | 79.2% |
+| dsh-soul-md | 51.7% | 57.5% | 60.0% | 62.5% | 65.0% | 65.8% | 66.7% | 68.3% | 69.2% | 70.0% |
 | seekmemory | 50.8% | 58.3% | 60.8% | 63.3% | 64.2% | 65.8% | 69.2% | 69.2% | 70.0% | 70.8% |
 | seekmemory-aged | 52.5% | 59.2% | 61.7% | 63.3% | 64.2% | 65.8% | 69.2% | 69.2% | 70.0% | 70.8% |
 | meow-memory | 51.7% | 54.2% | 60.0% | 62.5% | 63.3% | 64.2% | 68.3% | 69.2% | 70.0% | 70.0% |
+| dsh-fish-memory-expand-claude-haiku-5-5 | 40.0% | 45.8% | 48.3% | 49.2% | 50.8% | 52.5% | 52.5% | 52.5% | 52.5% | 52.5% |
+| dsh-fish-memory-expand-deepseek-flash | 40.8% | 45.8% | 48.3% | 50.0% | 50.8% | 51.7% | 51.7% | 51.7% | 51.7% | 51.7% |
+| dsh-fish-memory | 40.0% | 45.0% | 45.0% | 47.5% | 49.2% | 50.8% | 51.7% | 51.7% | 51.7% | 51.7% |
 | dsh-mnemon | 38.3% | 40.8% | 41.7% | 42.5% | 42.5% | 42.5% | 42.5% | 42.5% | 42.5% | 42.5% |
 | graphiti | 12.5% | 13.3% | 13.3% | 13.3% | 13.3% | 13.3% | 13.3% | 13.3% | 13.3% | 13.3% |
 | seekmemory-aged-detail | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% |
@@ -105,17 +123,26 @@
 | feiyu-memgate-full | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 27.2% | 1.78 |
 | feiyu-memgate-full-precise | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 2.2% | 1.04 |
 | mem0 | 97.8% | 100.0% | 0.989 | 100.0% | 100.0% | 94.9% | 19.73 |
+| hindsight-llm-deepseek-flash | 97.8% | 100.0% | 0.989 | 100.0% | 100.0% | 98.9% | 91.58 |
 | feiyu-memgate-embedding-bge-base-zh | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 9.3% | 1.20 |
 | feiyu-memgate-embedding-bge-base-zh-precise | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
 | feiyu-memgate-embedding-bge-small-zh | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 5.9% | 1.13 |
 | feiyu-memgate-embedding-bge-small-zh-precise | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 0.0% | 1.00 |
+| hindsight-llm-claude-haiku-5-5 | 95.6% | 100.0% | 0.978 | 100.0% | 100.0% | 98.8% | 84.27 |
 | dsh-mnemon-embedding | 100.0% | 100.0% | 1.000 | 100.0% | 100.0% | 59.4% | 2.64 |
+| hindsight-chunks | 97.8% | 100.0% | 0.989 | 100.0% | 100.0% | 98.9% | 93.53 |
+| dsh-prime-memory-embedding | 66.7% | 100.0% | 0.808 | 100.0% | 100.0% | 80.0% | 5.00 |
 | feiyu-memgate-sqlite | 97.8% | 100.0% | 0.989 | 100.0% | 97.8% | 0.0% | 0.98 |
 | feiyu-memgate-sqlite-precise | 97.8% | 100.0% | 0.989 | 100.0% | 95.6% | 0.0% | 0.96 |
 | lingshu-dsh-memory | 97.8% | 100.0% | 0.989 | 100.0% | 0.0% | 100.0% | 4.00 |
+| dsh-prime-memory | 68.9% | 97.8% | 0.821 | 97.8% | 97.8% | 79.2% | 4.84 |
+| dsh-soul-md | 97.8% | 100.0% | 0.989 | 100.0% | 100.0% | 72.1% | 4.29 |
 | seekmemory | 97.8% | 97.8% | 0.980 | 97.8% | 97.8% | 72.9% | 4.42 |
 | seekmemory-aged | 97.8% | 97.8% | 0.980 | 97.8% | 97.8% | 72.9% | 4.42 |
 | meow-memory | 97.8% | 97.8% | 0.980 | 97.8% | 97.8% | 48.9% | 1.96 |
+| dsh-fish-memory-expand-claude-haiku-5-5 | 77.8% | 88.9% | 0.837 | 88.9% | 88.9% | 49.8% | 2.76 |
+| dsh-fish-memory-expand-deepseek-flash | 80.0% | 91.1% | 0.844 | 91.1% | 88.9% | 49.7% | 2.73 |
+| dsh-fish-memory | 77.8% | 88.9% | 0.831 | 88.9% | 88.9% | 49.7% | 2.76 |
 | dsh-mnemon | 95.6% | 95.6% | 0.956 | 95.6% | 93.3% | 10.0% | 1.07 |
 | graphiti | 24.4% | 24.4% | 0.244 | 24.4% | 24.4% | 50.0% | 0.53 |
 | seekmemory-aged-detail | 0.0% | 0.0% | 0.000 | 0.0% | 0.0% | - | 0.00 |
@@ -141,17 +168,26 @@
 | feiyu-memgate-full | 81.8% | 89.1% | 0.870 | 89.1% | 85.5% | 42.9% | 2.24 |
 | feiyu-memgate-full-precise | 83.6% | 89.1% | 0.876 | 89.1% | 34.5% | 2.6% | 0.36 |
 | mem0 | 67.3% | 92.7% | 0.769 | 92.7% | 98.2% | 95.0% | 19.76 |
+| hindsight-llm-deepseek-flash | 69.1% | 89.1% | 0.768 | 89.1% | 96.4% | 99.0% | 92.75 |
 | feiyu-memgate-embedding-bge-base-zh | 81.8% | 87.3% | 0.833 | 87.3% | 83.6% | 33.9% | 1.78 |
 | feiyu-memgate-embedding-bge-base-zh-precise | 81.8% | 87.3% | 0.833 | 87.3% | 58.2% | 14.3% | 0.73 |
 | feiyu-memgate-embedding-bge-small-zh | 70.9% | 83.6% | 0.763 | 83.6% | 80.0% | 40.6% | 2.27 |
 | feiyu-memgate-embedding-bge-small-zh-precise | 70.9% | 83.6% | 0.763 | 83.6% | 65.5% | 21.1% | 0.91 |
+| hindsight-llm-claude-haiku-5-5 | 74.5% | 83.6% | 0.794 | 83.6% | 94.5% | 98.9% | 85.71 |
 | dsh-mnemon-embedding | 72.7% | 85.5% | 0.774 | 85.5% | 78.2% | 58.8% | 2.02 |
+| hindsight-chunks | 69.1% | 80.0% | 0.747 | 80.0% | 98.2% | 99.0% | 93.58 |
+| dsh-prime-memory-embedding | 32.7% | 67.3% | 0.477 | 67.3% | 69.1% | 86.2% | 5.00 |
 | feiyu-memgate-sqlite | 38.2% | 63.6% | 0.501 | 63.6% | 3.6% | 0.0% | 0.04 |
 | feiyu-memgate-sqlite-precise | 38.2% | 63.6% | 0.501 | 63.6% | 0.0% | - | 0.00 |
 | lingshu-dsh-memory | 43.6% | 63.6% | 0.533 | 63.6% | 0.0% | 100.0% | 4.00 |
+| dsh-prime-memory | 14.5% | 47.3% | 0.286 | 47.3% | 47.3% | 90.3% | 4.78 |
+| dsh-soul-md | 23.6% | 38.2% | 0.287 | 38.2% | 38.2% | 89.6% | 3.78 |
 | seekmemory | 18.2% | 32.7% | 0.251 | 32.7% | 32.7% | 90.8% | 4.00 |
 | seekmemory-aged | 21.8% | 32.7% | 0.273 | 32.7% | 32.7% | 90.8% | 4.00 |
 | meow-memory | 21.8% | 30.9% | 0.255 | 30.9% | 25.5% | 85.0% | 1.75 |
+| dsh-fish-memory-expand-claude-haiku-5-5 | 9.1% | 16.4% | 0.123 | 16.4% | 14.5% | 87.6% | 1.16 |
+| dsh-fish-memory-expand-deepseek-flash | 9.1% | 14.5% | 0.115 | 14.5% | 12.7% | 88.5% | 1.07 |
+| dsh-fish-memory | 7.3% | 12.7% | 0.097 | 12.7% | 12.7% | 88.8% | 1.27 |
 | dsh-mnemon | 3.6% | 10.9% | 0.070 | 10.9% | 5.5% | 94.5% | 1.00 |
 | graphiti | 5.5% | 5.5% | 0.055 | 5.5% | 5.5% | 25.0% | 0.07 |
 | seekmemory-aged-detail | 0.0% | 0.0% | 0.000 | 0.0% | 0.0% | - | 0.00 |
@@ -177,17 +213,26 @@
 | feiyu-memgate-full | 50.0% | 100.0% | 0.735 | 100.0% | 100.0% | 61.0% | 3.05 | 50.0% | 95.0% | 19/20 |
 | feiyu-memgate-full-precise | 50.0% | 100.0% | 0.735 | 100.0% | 70.0% | 39.6% | 1.30 | 50.0% | 100.0% | 14/14 |
 | mem0 | 60.0% | 90.0% | 0.767 | 90.0% | 100.0% | 94.9% | 19.70 | 60.0% | 60.0% | 12/20 |
+| hindsight-llm-deepseek-flash | 10.0% | 95.0% | 0.510 | 95.0% | 100.0% | 98.9% | 90.20 | 10.0% | 10.0% | 2/20 |
 | feiyu-memgate-embedding-bge-base-zh | 45.0% | 95.0% | 0.692 | 95.0% | 75.0% | 65.7% | 2.00 | 45.0% | 80.0% | 12/15 |
 | feiyu-memgate-embedding-bge-base-zh-precise | 45.0% | 95.0% | 0.692 | 95.0% | 50.0% | 57.1% | 1.10 | 45.0% | 80.0% | 8/10 |
 | feiyu-memgate-embedding-bge-small-zh | 35.0% | 100.0% | 0.646 | 100.0% | 75.0% | 61.7% | 2.05 | 35.0% | 73.3% | 11/15 |
 | feiyu-memgate-embedding-bge-small-zh-precise | 35.0% | 100.0% | 0.646 | 100.0% | 55.0% | 65.8% | 1.50 | 35.0% | 100.0% | 11/11 |
+| hindsight-llm-claude-haiku-5-5 | 15.0% | 95.0% | 0.533 | 95.0% | 100.0% | 98.8% | 81.40 | 25.0% | 25.0% | 5/20 |
 | dsh-mnemon-embedding | 55.0% | 85.0% | 0.692 | 85.0% | 85.0% | 72.9% | 3.05 | 55.0% | 64.7% | 11/17 |
+| hindsight-chunks | 60.0% | 95.0% | 0.762 | 95.0% | 100.0% | 98.9% | 94.85 | 65.0% | 65.0% | 13/20 |
+| dsh-prime-memory-embedding | 30.0% | 95.0% | 0.571 | 95.0% | 95.0% | 81.0% | 5.00 | 45.0% | 47.4% | 9/19 |
 | feiyu-memgate-sqlite | 45.0% | 90.0% | 0.646 | 90.0% | 50.0% | 48.7% | 1.05 | 55.0% | 80.0% | 8/10 |
 | feiyu-memgate-sqlite-precise | 45.0% | 90.0% | 0.646 | 90.0% | 20.0% | 50.0% | 0.40 | 55.0% | 75.0% | 3/4 |
 | lingshu-dsh-memory | 50.0% | 90.0% | 0.667 | 90.0% | 0.0% | 100.0% | 4.00 | 55.0% | - | 0/0 |
+| dsh-prime-memory | 20.0% | 95.0% | 0.483 | 95.0% | 95.0% | 81.0% | 5.00 | 45.0% | 47.4% | 9/19 |
+| dsh-soul-md | 25.0% | 60.0% | 0.416 | 60.0% | 60.0% | 88.0% | 5.00 | 40.0% | 58.3% | 7/12 |
 | seekmemory | 35.0% | 75.0% | 0.532 | 75.0% | 80.0% | 84.5% | 5.15 | 45.0% | 56.2% | 9/16 |
 | seekmemory-aged | 35.0% | 75.0% | 0.536 | 75.0% | 80.0% | 84.5% | 5.15 | 45.0% | 56.2% | 9/16 |
 | meow-memory | 30.0% | 75.0% | 0.489 | 75.0% | 50.0% | 75.0% | 2.00 | 45.0% | 80.0% | 8/10 |
+| dsh-fish-memory-expand-claude-haiku-5-5 | 40.0% | 60.0% | 0.453 | 60.0% | 45.0% | 83.3% | 2.70 | 50.0% | 100.0% | 9/9 |
+| dsh-fish-memory-expand-deepseek-flash | 40.0% | 60.0% | 0.477 | 60.0% | 55.0% | 79.4% | 2.75 | 55.0% | 90.9% | 10/11 |
+| dsh-fish-memory | 45.0% | 60.0% | 0.495 | 60.0% | 55.0% | 80.4% | 3.10 | 55.0% | 90.9% | 10/11 |
 | dsh-mnemon | 5.0% | 10.0% | 0.062 | 10.0% | 5.0% | 95.0% | 1.00 | 5.0% | 100.0% | 1/1 |
 | graphiti | 5.0% | 10.0% | 0.075 | 10.0% | 10.0% | 86.7% | 0.45 | 5.0% | 50.0% | 1/2 |
 | seekmemory-aged-detail | 0.0% | 0.0% | 0.000 | 0.0% | 0.0% | - | 0.00 | 0.0% | - | 0/0 |
@@ -215,17 +260,26 @@
 | feiyu-memgate-full | 35.0% | 1.70 |
 | feiyu-memgate-full-precise | 75.0% | 0.35 |
 | mem0 | 0.0% | 19.82 |
+| hindsight-llm-deepseek-flash | 0.0% | 92.25 |
 | feiyu-memgate-embedding-bge-base-zh | 37.5% | 1.23 |
 | feiyu-memgate-embedding-bge-base-zh-precise | 65.0% | 0.40 |
 | feiyu-memgate-embedding-bge-small-zh | 20.0% | 1.75 |
 | feiyu-memgate-embedding-bge-small-zh-precise | 47.5% | 0.62 |
+| hindsight-llm-claude-haiku-5-5 | 0.0% | 82.67 |
 | dsh-mnemon-embedding | 0.0% | 1.68 |
+| hindsight-chunks | 0.0% | 92.83 |
+| dsh-prime-memory-embedding | 0.0% | 5.00 |
 | feiyu-memgate-sqlite | 70.0% | 0.53 |
 | feiyu-memgate-sqlite-precise | 75.0% | 0.38 |
 | lingshu-dsh-memory | 0.0% | 4.00 |
+| dsh-prime-memory | 2.5% | 4.10 |
+| dsh-soul-md | 10.0% | 3.23 |
 | seekmemory | 22.5% | 3.33 |
 | seekmemory-aged | 22.5% | 3.33 |
 | meow-memory | 10.0% | 1.60 |
+| dsh-fish-memory-expand-claude-haiku-5-5 | 32.5% | 1.82 |
+| dsh-fish-memory-expand-deepseek-flash | 32.5% | 1.88 |
+| dsh-fish-memory | 32.5% | 1.88 |
 | dsh-mnemon | 0.0% | 1.00 |
 | graphiti | 82.5% | 0.30 |
 | seekmemory-aged-detail | 100.0% | 0.00 |
@@ -492,6 +546,21 @@
 - 备注：Stored facts: 248 from 240 source memories; events {"ADD": 248}. Source memories with no surviving fact: 0. Facts without source_id: 0.
 - 备注：mem0ai 2.x extraction is additive (ADD only, hash dedup); its add path has no update/delete step. LLM tokens counted from the API usage fields: prompt 2012313 (cached 1873792), completion 46873 over 240 call(s); llm_cost_cny is the DeepSeek balance difference (other workers may have spent in the same window).
 
+### hindsight-llm-deepseek-flash（hindsight-api 1.2.1 (git 5318be8); DSH plugin @vectorize-io/hindsight-coding-agents 0.8.7）
+
+- 模式：concise fact extraction + consolidation by deepseek-flash (thinking disabled), embeddings bge-m3 from the shared endpoint, the server's default local reranker, observation recall as the plugin's default
+- 调用：retain: POST /memories {content, timestamp, document_id} per memory; ranked: POST /memories/recall (budget mid, max_tokens 4096), first 10; deployed: POST /memories/recall with the plugin's body (budget low, max_tokens 2000, include.entities null, types ["observation"])
+- 注意：Hindsight 服务端的默认工作方式：模型逐条提取事实并 consolidation 成 observation（模型 deepseek-flash，关闭思考），召回为 observation 类型，其余同 hindsight-chunks。插件默认的 reflect 注入是模型写的文字，不是记忆列表，没有测。
+- 备注：System under test: the Hindsight server (hindsight-api-slim 1.2.1, source at git 5318be8) with its default retrieval: four arms (semantic, keyword, graph, temporal) fused, then the server's local cross-encoder reranker. The DSH plugin is a client of this server; its per-session default injects a model-written reflect answer at the first prompt, which is not a list of memories and is not measured. Its retrieval-only option (autoInject recall) is what deployed follows.
+- 备注：Write path: the product extracts facts with a model (concise mode) and consolidates them into observations. hindsight-chunks bypasses that: each memory is stored as one verbatim chunk (document_id = the memory id, timestamp = its date at 12:00 UTC) and consolidation is off, which the server needs when no model is configured. Facts, entities and observations are therefore not measured in that configuration.
+- 备注：Embeddings: the server's default is a local English model (BAAI/bge-small-en-v1.5); the shared bge-m3 endpoint is used instead (the benchmark's Chinese data); the reranker stays the server's default.
+- 备注：ids come from the document_id of each result (each memory is its own document). In the LLM configurations an observation has no document_id: it is given the id of the earliest memory (by date) among the documents of its source facts, which the recall returns when asked (include.source_facts); the deployed list is read from that call, an untimed repeat of the plugin-body call (ms times the plugin body without source facts), and llm_usage.observation_id_mapping counts the mapped observations and the repeats whose list differed. The API returns results in rank order without scores: scores are rank-derived. A memory appears once per list.
+- 备注：deployed budget: the plugin's recall body (budget low, max_tokens 2000). The recall clock is the real clock (the plugin passes no query timestamp), about a month after the last memory.
+- 备注：ms is the wall-clock time of one deployed recall call over HTTP on localhost, including the server's reranker.
+- 备注：Which configuration stands for what: hindsight-llm-<model> is the system as its server works by default (a model extracts facts from each memory and consolidates them into observations; the model is the only setting changed, with thinking disabled); hindsight-chunks is its mode without a model (each memory stored verbatim as one chunk, no extraction, no consolidation). The plugin's own default injection (a model-written reflect answer at the first prompt) is not a list of memories and is not measured in any configuration.
+- 备注：Paid configurations: the server's model calls pass through llm_proxy.py (127.0.0.1 inside the container), which forwards each request and its answer unchanged except for the thinking switch ({"thinking": {"type": "disabled"}}, also set through HINDSIGHT_API_LLM_EXTRA_BODY) and the removal of temperature/top_p/top_k for claude-haiku-5-5 (the server sends none); tokens, cached tokens, reasoning tokens, status codes, rate-limit responses and retries are counted from the provider's own answers (see llm_usage). The server's startup connection check is one counted call.
+- 备注：Write failures: 0. Question failures: 0. Items without a memory id: 14.
+
 ### feiyu-memgate-embedding-bge-base-zh（0.1.0）
 
 - 模式：verbatim ingest, embedding backend (hf.co/CompendiumLabs/bge-base-zh-v1.5-gguf:Q8_0 via an OpenAI-compatible endpoint, brute-force cosine), default recall stages (broad profile), no LLM
@@ -554,6 +623,21 @@
 - 备注：Gateway.recall was called directly, so the per-client rate limiter (applied only in admit) was not involved.
 - 备注：Memories were ingested with one put_many call (embedding requests of 32 texts); ingest_seconds covers it.
 
+### hindsight-llm-claude-haiku-5-5（hindsight-api 1.2.1 (git 5318be8); DSH plugin @vectorize-io/hindsight-coding-agents 0.8.7）
+
+- 模式：concise fact extraction + consolidation by claude-haiku-5-5 (thinking disabled), embeddings bge-m3 from the shared endpoint, the server's default local reranker, observation recall as the plugin's default
+- 调用：retain: POST /memories {content, timestamp, document_id} per memory; ranked: POST /memories/recall (budget mid, max_tokens 4096), first 10; deployed: POST /memories/recall with the plugin's body (budget low, max_tokens 2000, include.entities null, types ["observation"])
+- 注意：Hindsight 服务端的默认工作方式：模型逐条提取事实并 consolidation 成 observation（模型 claude-haiku-5-5，关闭思考），召回为 observation 类型，其余同 hindsight-chunks。插件默认的 reflect 注入是模型写的文字，不是记忆列表，没有测。
+- 备注：System under test: the Hindsight server (hindsight-api-slim 1.2.1, source at git 5318be8) with its default retrieval: four arms (semantic, keyword, graph, temporal) fused, then the server's local cross-encoder reranker. The DSH plugin is a client of this server; its per-session default injects a model-written reflect answer at the first prompt, which is not a list of memories and is not measured. Its retrieval-only option (autoInject recall) is what deployed follows.
+- 备注：Write path: the product extracts facts with a model (concise mode) and consolidates them into observations. hindsight-chunks bypasses that: each memory is stored as one verbatim chunk (document_id = the memory id, timestamp = its date at 12:00 UTC) and consolidation is off, which the server needs when no model is configured. Facts, entities and observations are therefore not measured in that configuration.
+- 备注：Embeddings: the server's default is a local English model (BAAI/bge-small-en-v1.5); the shared bge-m3 endpoint is used instead (the benchmark's Chinese data); the reranker stays the server's default.
+- 备注：ids come from the document_id of each result (each memory is its own document). In the LLM configurations an observation has no document_id: it is given the id of the earliest memory (by date) among the documents of its source facts, which the recall returns when asked (include.source_facts); the deployed list is read from that call, an untimed repeat of the plugin-body call (ms times the plugin body without source facts), and llm_usage.observation_id_mapping counts the mapped observations and the repeats whose list differed. The API returns results in rank order without scores: scores are rank-derived. A memory appears once per list.
+- 备注：deployed budget: the plugin's recall body (budget low, max_tokens 2000). The recall clock is the real clock (the plugin passes no query timestamp), about a month after the last memory.
+- 备注：ms is the wall-clock time of one deployed recall call over HTTP on localhost, including the server's reranker.
+- 备注：Which configuration stands for what: hindsight-llm-<model> is the system as its server works by default (a model extracts facts from each memory and consolidates them into observations; the model is the only setting changed, with thinking disabled); hindsight-chunks is its mode without a model (each memory stored verbatim as one chunk, no extraction, no consolidation). The plugin's own default injection (a model-written reflect answer at the first prompt) is not a list of memories and is not measured in any configuration.
+- 备注：Paid configurations: the server's model calls pass through llm_proxy.py (127.0.0.1 inside the container), which forwards each request and its answer unchanged except for the thinking switch ({"thinking": {"type": "disabled"}}, also set through HINDSIGHT_API_LLM_EXTRA_BODY) and the removal of temperature/top_p/top_k for claude-haiku-5-5 (the server sends none); tokens, cached tokens, reasoning tokens, status codes, rate-limit responses and retries are counted from the provider's own answers (see llm_usage). The server's startup connection check is one counted call.
+- 备注：Write failures: 0. Question failures: 0. Items without a memory id: 0.
+
 ### dsh-mnemon-embedding（dsh-mnemon 0.5.45 (commit 1dec529); Memory Spaces 0.5.27, Mnemon Native provider 0.5.11, Layered strategy 0.5.13; mnemon CLI 0.2.13）
 
 - 模式：default backend Mnemon Native (mnemon CLI, SQLite graph) with its optional embedding mode switched on (config embedding.enabled, shared bge-m3 endpoint); verbatim exact writes through service.remember (no LLM review step); default quality policy strict-v1
@@ -570,6 +654,35 @@
 - 备注：Ordering side effect: deployed runs a live (non-readonly) recall, which records access counts for returned candidates and may influence later questions, as in real use; ranked runs first, readonly, on the same state. Questions were run in id order.
 - 备注：Host glue stubbed: View/ReadGrant objects, the Source recall-route evidence() wrapper (copied logic: limit, 16000-char budget, provenance incl. relevanceTier), `dsh-mnemon` core helper barrel (real input.ts / storage-lock.ts), cordis/Loader (not needed). Nothing of the CLI, the driver, the quality policy or the strategy admission is reimplemented.
 - 备注：Write failures: 0. Question failures: 0. Returned items that could not be mapped to a memory id: 0. embed-missing fill result: {"memoryBodyId":"default","filled":0,"remaining":0,"model":"bge-m3"}.
+
+### hindsight-chunks（hindsight-api 1.2.1 (git 5318be8); DSH plugin @vectorize-io/hindsight-coding-agents 0.8.7）
+
+- 模式：verbatim chunks (retain_extraction_mode=chunks, no model), consolidation off, embeddings bge-m3 from the shared endpoint, the server's default local reranker
+- 调用：retain: POST /memories {content, timestamp, document_id} per memory; ranked: POST /memories/recall (budget mid, max_tokens 4096), first 10; deployed: POST /memories/recall with the plugin's body (budget low, max_tokens 2000, include.entities null, types ["world", "experience"])
+- 注意：Hindsight 服务端的无模型模式：每条记忆逐字存为一个 chunk，不做事实提取，不做 consolidation；召回用服务端默认的四路（语义、关键词、图、时间）融合 + 本地重排序，嵌入换成 bge-m3；只受 2000 token 预算限制，平均交付约 94 条。插件默认的 reflect 注入是模型写的文字，不是记忆列表，没有测。
+- 备注：System under test: the Hindsight server (hindsight-api-slim 1.2.1, source at git 5318be8) with its default retrieval: four arms (semantic, keyword, graph, temporal) fused, then the server's local cross-encoder reranker. The DSH plugin is a client of this server; its per-session default injects a model-written reflect answer at the first prompt, which is not a list of memories and is not measured. Its retrieval-only option (autoInject recall) is what deployed follows.
+- 备注：Write path: the product extracts facts with a model (concise mode) and consolidates them into observations. hindsight-chunks bypasses that: each memory is stored as one verbatim chunk (document_id = the memory id, timestamp = its date at 12:00 UTC) and consolidation is off, which the server needs when no model is configured. Facts, entities and observations are therefore not measured in that configuration.
+- 备注：Embeddings: the server's default is a local English model (BAAI/bge-small-en-v1.5); the shared bge-m3 endpoint is used instead (the benchmark's Chinese data); the reranker stays the server's default.
+- 备注：ids come from the document_id of each result (each memory is its own document). In the LLM configurations an observation has no document_id: it is given the id of the earliest memory (by date) among the documents of its source facts, which the recall returns when asked (include.source_facts); the deployed list is read from that call, an untimed repeat of the plugin-body call (ms times the plugin body without source facts), and llm_usage.observation_id_mapping counts the mapped observations and the repeats whose list differed. The API returns results in rank order without scores: scores are rank-derived. A memory appears once per list.
+- 备注：deployed budget: the plugin's recall body (budget low, max_tokens 2000). The recall clock is the real clock (the plugin passes no query timestamp), about a month after the last memory.
+- 备注：ms is the wall-clock time of one deployed recall call over HTTP on localhost, including the server's reranker.
+- 备注：Which configuration stands for what: hindsight-llm-<model> is the system as its server works by default (a model extracts facts from each memory and consolidates them into observations; the model is the only setting changed, with thinking disabled); hindsight-chunks is its mode without a model (each memory stored verbatim as one chunk, no extraction, no consolidation). The plugin's own default injection (a model-written reflect answer at the first prompt) is not a list of memories and is not measured in any configuration.
+- 备注：Paid configurations: the server's model calls pass through llm_proxy.py (127.0.0.1 inside the container), which forwards each request and its answer unchanged except for the thinking switch ({"thinking": {"type": "disabled"}}, also set through HINDSIGHT_API_LLM_EXTRA_BODY) and the removal of temperature/top_p/top_k for claude-haiku-5-5 (the server sends none); tokens, cached tokens, reasoning tokens, status codes, rate-limit responses and retries are counted from the provider's own answers (see llm_usage). The server's startup connection check is one counted call.
+- 备注：Write failures: 0. Question failures: 0. Items without a memory id: 0.
+
+### dsh-prime-memory-embedding（0.26.55 (npm package; git a909278)）
+
+- 模式：direct L1 writes through memory_add (high-privilege mode on, no model-driven extraction), plugin's remote-embedding option on (shared bge-m3 endpoint), default recall strategy hybrid
+- 调用：memory_add.execute({content, created_at, updated_at}) per memory (registered by apply(ctx, config)); ranked = memory_search.execute({query, limit:10}) (L1Store.search, keyword/BM25 over a jieba + CJK bigram tokenised FTS index fused with vector similarity); deployed = the agent/pre-step hook chain: L1Store.search(query, 5, scoreThreshold 0.3) -> domain soft gate -> freshness weighting -> per-session de-duplication -> character budget (500 per memory, 2000 total) -> '<relevant-memories>' injection message
+- 注意：同 dsh-prime-memory，打开了插件可选的远程向量模式（bge-m3），关键词和向量结果融合；仍是直接写入。
+- 备注：Package: dsh-prime-memory 0.26.55 (npm tarball), dist/index.js imported unmodified. Dependencies as declared by the package (jieba, sqlite-vec, undici, schemastery) installed from npm during the image build; host packages @deepseek-ai/dsh-llm, dsh-tools, dsh-home-paths are stubbed (a message constructor, an identity defineTool, a path helper).
+- 备注：Write path: the product writes memories through a model-driven pipeline (raw turns, then L1 extraction and de-duplication by a model, then scene and persona distillation). None of that is measured. Every memory is written verbatim with memory_add, which the plugin offers for 'remember this' requests and gates behind a high-privilege setting (switched on here). type = the tool default (episodic), priority = default 80, created_at/updated_at = the memory's date at 12:00 UTC. L2/L3 distillation, the persona and scene navigation blocks (system-prompt side) are not part of the measured lists.
+- 备注：deployed = the memory injection message the pre-step hook adds before the user message; the adapter runs the plugin's registered pre-step handlers as a chain with a stand-in agent whose message has source kind user. Each question uses a fresh agent id (the plugin does not re-inject records already injected into the same session). The injected items carry no ids: an item is matched to a memory by its full text, and an item the plugin shortened (over 500 characters, or over the rest of the 2000-character budget; it ends with the plugin's fixed suffix) by its unique prefix. A shortened memory counts as delivered and is marked `shortened`; `chars` is the length of the item as injected. Items that match no memory count as noise.
+- 备注：ms times the whole pre-step chain for one question (all registered handlers, one of which is the memory injection).
+- 备注：Date.now() is set to the day after the last memory while questions run, so the plugin's 30-day freshness weighting sees real ages; during ingest the real clock runs and dates are passed explicitly.
+- 备注：ranked = memory_search tool, which applies no score threshold; it is the same search as the hook's, with the hook's threshold, domain gate, per-session suppression and budget applied afterwards.
+- 备注：Write failures: 0. Question failures: 0. Returned items that could not be mapped to a memory id: 0. Delivered items shortened by the plugin: 0. Attempts to call a model: 0. In embedding mode the plugin embeds each record inside memory_add (L1Store.appendNew awaits the embedding batch).
+- 备注：Log lines at warning/error level from the plugin during the run: W [memory] 蒸馏模型路由解析失败: 无法解析蒸馏模型路由:请在插件 config 中配置 llm.provider / llm.model,或确保存在默认模型选择 @ at resolveModelRoute (file:///app/node_modules/dsh-prime-memory/dist/ll.
 
 ### feiyu-memgate-sqlite（0.1.0）
 
@@ -613,6 +726,33 @@
 - 备注：Both injected blocks are wrapped in the plugin's own header and footer lines; those wrapper lines are skipped when mapping.
 - 备注：Unmapped items (id null): ranked 0, deployed 0. Failed calls: 0.
 - 备注：Timings are for the assemble handler call only (it includes two round trips to the Python brain: timeline and session recall).
+
+### dsh-prime-memory（0.26.55 (npm package; git a909278)）
+
+- 模式：direct L1 writes through memory_add (high-privilege mode on, no model-driven extraction), embeddings off (plugin default), default recall strategy hybrid = keyword retrieval only
+- 调用：memory_add.execute({content, created_at, updated_at}) per memory (registered by apply(ctx, config)); ranked = memory_search.execute({query, limit:10}) (L1Store.search, keyword/BM25 over a jieba + CJK bigram tokenised FTS index); deployed = the agent/pre-step hook chain: L1Store.search(query, 5, scoreThreshold 0.3) -> domain soft gate -> freshness weighting -> per-session de-duplication -> character budget (500 per memory, 2000 total) -> '<relevant-memories>' injection message
+- 注意：memory_add 直接写入 L1（产品里由模型从对话蒸馏，这里没测）；默认召回：FTS5 BM25 + jieba/二元分词，阈值 0.3，最多 5 条，新鲜度加权，字数预算 2000；向量关闭。
+- 备注：Package: dsh-prime-memory 0.26.55 (npm tarball), dist/index.js imported unmodified. Dependencies as declared by the package (jieba, sqlite-vec, undici, schemastery) installed from npm during the image build; host packages @deepseek-ai/dsh-llm, dsh-tools, dsh-home-paths are stubbed (a message constructor, an identity defineTool, a path helper).
+- 备注：Write path: the product writes memories through a model-driven pipeline (raw turns, then L1 extraction and de-duplication by a model, then scene and persona distillation). None of that is measured. Every memory is written verbatim with memory_add, which the plugin offers for 'remember this' requests and gates behind a high-privilege setting (switched on here). type = the tool default (episodic), priority = default 80, created_at/updated_at = the memory's date at 12:00 UTC. L2/L3 distillation, the persona and scene navigation blocks (system-prompt side) are not part of the measured lists.
+- 备注：deployed = the memory injection message the pre-step hook adds before the user message; the adapter runs the plugin's registered pre-step handlers as a chain with a stand-in agent whose message has source kind user. Each question uses a fresh agent id (the plugin does not re-inject records already injected into the same session). The injected items carry no ids: an item is matched to a memory by its full text, and an item the plugin shortened (over 500 characters, or over the rest of the 2000-character budget; it ends with the plugin's fixed suffix) by its unique prefix. A shortened memory counts as delivered and is marked `shortened`; `chars` is the length of the item as injected. Items that match no memory count as noise.
+- 备注：ms times the whole pre-step chain for one question (all registered handlers, one of which is the memory injection).
+- 备注：Date.now() is set to the day after the last memory while questions run, so the plugin's 30-day freshness weighting sees real ages; during ingest the real clock runs and dates are passed explicitly.
+- 备注：ranked = memory_search tool, which applies no score threshold; it is the same search as the hook's, with the hook's threshold, domain gate, per-session suppression and budget applied afterwards.
+- 备注：Write failures: 0. Question failures: 0. Returned items that could not be mapped to a memory id: 0. Delivered items shortened by the plugin: 0. Attempts to call a model: 0.
+- 备注：Log lines at warning/error level from the plugin during the run: W [memory] 检索策略 hybrid 需要向量能力(embedding 未启用/不可用),本次运行按 keyword(FTS5 BM25)检索 | W [memory] 蒸馏模型路由解析失败: 无法解析蒸馏模型路由:请在插件 config 中配置 llm.provider / llm.model,或确保存在默认模型选择 @ at resolveModelRoute (file:///app/node_modules/dsh-prime-memory/dist/ll.
+
+### dsh-soul-md（0.12.5 (npm package, git 83ea19d)）
+
+- 模式：verbatim ingest through memory_append (one topic file per memory, global scope, fixed entry heading), no model, no embeddings; layered memory, keyword recall and the topic index at their defaults
+- 调用：memory_append.execute({section, content, topic}) per memory; ranked = memory_search.execute({query, limit:10}) (searchTopics: query terms = word runs and Han character bigrams, score = 4 per term in key+title, 2 per term in summary, 1 per term in body; ties by key); deployed = the soul:recall block: searchTopics(topics, userMessage, limit 5) rendered as key/title/summary rows within 1600 characters, active from the second user message of a session
+- 注意：只测记忆部分（人设卡不是记忆）；每条记忆写成一个 topic 文件；检索按词和汉字二元组命中 key / 标题 / 摘要 / 正文打分，没有分数阈值，只要共享一个词就是候选；默认 5 个 topic、1600 字。
+- 备注：Package: dsh-soul-md 0.12.5 (npm tarball), index.js imported unmodified; the plugin's one dependency (schemastery) installed from npm during the image build; host packages @deepseek-ai/dsh-tools and dsh-home-paths are stubbed (identity defineTool, a home path).
+- 备注：Write path: the model decides what to write and under which topic key, with a section heading. The adapter writes every memory verbatim into its own topic (key = the memory id, heading label 'note', global scope, no persona card). A product topic normally groups several entries; one memory per topic is the adapter's layout choice and makes each topic descriptor equal to one memory. Dates: memory_append stamps the heading with the current time; the clock (Date) is set to each memory's date (12:00 UTC + index seconds) while writing, and to the day after the last memory for all questions.
+- 备注：deployed = the keyword-recall block only (up to 5 topic descriptor rows, 1600 characters, no score threshold: any topic sharing one query term is listed). The plugin also keeps a standing topic index in the system prompt (query-independent, default indexMode all; here 105 of 240 topics fit its character share). That standing index is resident memory and is not part of deployed or ranked.
+- 备注：The plugin recalls from the second user message of a session; every question session first receives one fixed unrelated message. Each question uses a fresh session object (recall state is per session).
+- 备注：Recall rows carry the topic key (the memory id) and the descriptor; ids are read from the key. memory_search results are read the same way. The recall block returns rows without scores: deployed scores are rank-derived.
+- 备注：ms times the soul:recall provider only (it lists and reads every topic file through the plugin's mtime cache and scores them).
+- 备注：Write failures: 0. Question failures: 0. Returned items that could not be mapped to a memory id: 0.
 
 ### seekmemory（NeverENG/SeekMemory commit 794ec5d）
 
@@ -659,6 +799,58 @@
 - 备注：ranked = memory_search tool with k=10 and a fresh session per question (blind top-5 plus 5 unseen). The tool returns hits re-sorted by updated_at; the adapter restores retrieval order from explain.bm25 * explain.recencyWeight.
 - 备注：Usage stats (hit_count, last_accessed_at) are reset by direct SQL after each call so all questions see the same state; this only undoes the side effect of the lookup and does not influence ranking logic.
 - 备注：Dedup: memory_remember merges a new memory into an existing fact row when token Jaccard >= 0.8; merges: 0. A merged row maps to the newest memory id. Rows stored: 240 of 240 memories.
+- 备注：Write failures: 0. Question failures: 0. Returned items that could not be mapped to a memory id: 0.
+
+### dsh-fish-memory-expand-claude-haiku-5-5（1.6.1 (npm package, git 55f4aad)）
+
+- 模式：verbatim ingest through the remember tool (importance 0.5, no tags), the plugin's own background keyword expansion with claude-haiku-5-5 (thinking disabled), no embeddings; per-turn injection with default policy
+- 调用：remember.execute({text}) per memory (registered by the plugin's apply(ctx)); deployed = the injection block text() of systemPrompt.context('memory'): recall(data, query, now, sid) over loadStore(sid) with default policy (evidence threshold 0.30, queryGate 0.8, maxItems 6, maxChars 800, count cap by top evidence score) then render(); ranked = the candidates of that same recall() call with evidence C > 0, ordered by P, first 10, read from the plugin's own turn trace
+- 注意：同 dsh-fish-memory，后台关键词扩展用 claude-haiku-5-5 运行（显式关闭思考，不发送 temperature）；写入仍是逐字。
+- 备注：Package: dsh-fish-memory 1.6.1, lib/index.js imported unmodified; host peers (@deepseek-ai/dsh-tools, dsh-llm, schemastery) are not installed: the plugin's own fallbacks are used.
+- 备注：Host glue stubbed: ctx/agent/session objects (tool registry, event listener table, systemPrompt.context collector, llm.stream), the clock. The plugin's apply(ctx) runs for real and registers its tool and injection block on them.
+- 备注：remember has two optional arguments the model normally fills in (tags, a fact key, a 'supersedes' text). They are left empty. importance is the tool's schema default 0.5. Memories are written in date order with Date.now() set to each memory's date (12:00 UTC + index seconds); questions run at the day after the last memory.
+- 备注：The plugin keeps one store per session. Every question runs as a fresh branch session of the ingest session, which the plugin mounts by copying the parent's memories (its own branch-inheritance path); this keeps questions independent of each other and leaves the 'own speaking style' ruler (needs 20 earlier messages) empty, as in a first turn.
+- 备注：The plugin's local de-duplication: 0 memories were recognised as repeats and reinforced instead of stored; 0 stored rows were marked superseded by the plugin's near-duplicate rule and are never recalled. Rows stored: 240 of 240.
+- 备注：Background keyword expansion: ran with the configured model; rows with expansion words: 240.
+- 备注：ranked = the plugin's evidence-scored candidates (C > 0) ordered by P = C x (base + freshness + importance + emotion weights); a question the query gate rejects as too contentless (or with no matching word) yields an empty list. The plugin has no top-k search call of its own; its trace keeps the top 24 candidates.
+- 备注：deployed = what the injection block returns for one turn. Questions rejected by the query gate: 0. deployed ms times text() only (it includes the plugin's own trace write to disk).
+- 备注：ranked/deployed scores are P (rounded to 3 decimals in the plugin's trace). The injected text carries no ids: deployed ids come from the same turn's trace 'picked' list, and the adapter checks that the number of bullet lines in the injected text equals it.
+- 备注：Write failures: 0. Question failures: 0. Returned items that could not be mapped to a memory id: 0.
+- 备注：LLM usage (provider anthropic, model claude-haiku-5-5, thinking disabled): see llm_usage; llm_cost_cny is left 0 here and the USD cost is computed by the caller from the token counts (bench/external/prices.json). The plugin asks for temperature 0.1 on every call: DeepSeek gets it, claude-haiku-5-5 rejects temperature/top_p/top_k so it is not sent (counted in dropped_params).
+- 备注：Expansion batches: 121 calls covering 240 memory slots; rows without expansion words after the queue drained: 0 (failed API calls: 0; the rest are outputs the plugin could not use or answered with no words). A failed expansion leaves the row as stored, un-expanded; the plugin ignores the error (its own behaviour, not changed).
+
+### dsh-fish-memory-expand-deepseek-flash（1.6.1 (npm package, git 55f4aad)）
+
+- 模式：verbatim ingest through the remember tool (importance 0.5, no tags), the plugin's own background keyword expansion with deepseek-flash (thinking disabled), no embeddings; per-turn injection with default policy
+- 调用：remember.execute({text}) per memory (registered by the plugin's apply(ctx)); deployed = the injection block text() of systemPrompt.context('memory'): recall(data, query, now, sid) over loadStore(sid) with default policy (evidence threshold 0.30, queryGate 0.8, maxItems 6, maxChars 800, count cap by top evidence score) then render(); ranked = the candidates of that same recall() call with evidence C > 0, ordered by P, first 10, read from the plugin's own turn trace
+- 注意：同 dsh-fish-memory，插件自己的后台关键词扩展用 deepseek-flash 运行（关闭思考；121 次调用，约 6.2 万输入 / 0.3 万输出 tokens，来自 API 用量）；写入仍是逐字，模型只补检索词，不改写记忆。
+- 备注：Package: dsh-fish-memory 1.6.1, lib/index.js imported unmodified; host peers (@deepseek-ai/dsh-tools, dsh-llm, schemastery) are not installed: the plugin's own fallbacks are used.
+- 备注：Host glue stubbed: ctx/agent/session objects (tool registry, event listener table, systemPrompt.context collector, llm.stream), the clock. The plugin's apply(ctx) runs for real and registers its tool and injection block on them.
+- 备注：remember has two optional arguments the model normally fills in (tags, a fact key, a 'supersedes' text). They are left empty. importance is the tool's schema default 0.5. Memories are written in date order with Date.now() set to each memory's date (12:00 UTC + index seconds); questions run at the day after the last memory.
+- 备注：The plugin keeps one store per session. Every question runs as a fresh branch session of the ingest session, which the plugin mounts by copying the parent's memories (its own branch-inheritance path); this keeps questions independent of each other and leaves the 'own speaking style' ruler (needs 20 earlier messages) empty, as in a first turn.
+- 备注：The plugin's local de-duplication: 0 memories were recognised as repeats and reinforced instead of stored; 0 stored rows were marked superseded by the plugin's near-duplicate rule and are never recalled. Rows stored: 240 of 240.
+- 备注：Background keyword expansion: ran with the configured model; rows with expansion words: 240.
+- 备注：ranked = the plugin's evidence-scored candidates (C > 0) ordered by P = C x (base + freshness + importance + emotion weights); a question the query gate rejects as too contentless (or with no matching word) yields an empty list. The plugin has no top-k search call of its own; its trace keeps the top 24 candidates.
+- 备注：deployed = what the injection block returns for one turn. Questions rejected by the query gate: 0. deployed ms times text() only (it includes the plugin's own trace write to disk).
+- 备注：ranked/deployed scores are P (rounded to 3 decimals in the plugin's trace). The injected text carries no ids: deployed ids come from the same turn's trace 'picked' list, and the adapter checks that the number of bullet lines in the injected text equals it.
+- 备注：Write failures: 0. Question failures: 0. Returned items that could not be mapped to a memory id: 0.
+- 备注：LLM usage (provider deepseek, model deepseek-flash, thinking disabled): see llm_usage; llm_cost_cny is left 0 here and the USD cost is computed by the caller from the token counts (bench/external/prices.json). The plugin asks for temperature 0.1 on every call: DeepSeek gets it, claude-haiku-5-5 rejects temperature/top_p/top_k so it is not sent (counted in dropped_params).
+- 备注：Expansion batches: 121 calls covering 240 memory slots; rows without expansion words after the queue drained: 0 (failed API calls: 0; the rest are outputs the plugin could not use or answered with no words). A failed expansion leaves the row as stored, un-expanded; the plugin ignores the error (its own behaviour, not changed).
+
+### dsh-fish-memory（1.6.1 (npm package, git 55f4aad)）
+
+- 模式：verbatim ingest through the remember tool (importance 0.5, no tags), no model (background keyword expansion skipped), no embeddings; per-turn injection with default policy
+- 调用：remember.execute({text}) per memory (registered by the plugin's apply(ctx)); deployed = the injection block text() of systemPrompt.context('memory'): recall(data, query, now, sid) over loadStore(sid) with default policy (evidence threshold 0.30, queryGate 0.8, maxItems 6, maxChars 800, count cap by top evidence score) then render(); ranked = the candidates of that same recall() call with evidence C > 0, ordered by P, first 10, read from the plugin's own turn trace
+- 注意：插件自己的 remember 工具逐字写入；每轮自动注入走它的 recall()：查询门、词稀有度证据分、阈值 0.30、最多 6 条、800 字预算。后台关键词扩展需要模型，这里没有模型，被跳过；平均只交付约 2 条，约三分之一的问题因查询门或没有命中词而安静。
+- 备注：Package: dsh-fish-memory 1.6.1, lib/index.js imported unmodified; host peers (@deepseek-ai/dsh-tools, dsh-llm, schemastery) are not installed: the plugin's own fallbacks are used.
+- 备注：Host glue stubbed: ctx/agent/session objects (tool registry, event listener table, systemPrompt.context collector, llm.stream), the clock. The plugin's apply(ctx) runs for real and registers its tool and injection block on them.
+- 备注：remember has two optional arguments the model normally fills in (tags, a fact key, a 'supersedes' text). They are left empty. importance is the tool's schema default 0.5. Memories are written in date order with Date.now() set to each memory's date (12:00 UTC + index seconds); questions run at the day after the last memory.
+- 备注：The plugin keeps one store per session. Every question runs as a fresh branch session of the ingest session, which the plugin mounts by copying the parent's memories (its own branch-inheritance path); this keeps questions independent of each other and leaves the 'own speaking style' ruler (needs 20 earlier messages) empty, as in a first turn.
+- 备注：The plugin's local de-duplication: 0 memories were recognised as repeats and reinforced instead of stored; 0 stored rows were marked superseded by the plugin's near-duplicate rule and are never recalled. Rows stored: 240 of 240.
+- 备注：Background keyword expansion: skipped (no model available to the plugin); attempts to call a model: 0; rows with expansion words: 0.
+- 备注：ranked = the plugin's evidence-scored candidates (C > 0) ordered by P = C x (base + freshness + importance + emotion weights); a question the query gate rejects as too contentless (or with no matching word) yields an empty list. The plugin has no top-k search call of its own; its trace keeps the top 24 candidates.
+- 备注：deployed = what the injection block returns for one turn. Questions rejected by the query gate: 0. deployed ms times text() only (it includes the plugin's own trace write to disk).
+- 备注：ranked/deployed scores are P (rounded to 3 decimals in the plugin's trace). The injected text carries no ids: deployed ids come from the same turn's trace 'picked' list, and the adapter checks that the number of bullet lines in the injected text equals it.
 - 备注：Write failures: 0. Question failures: 0. Returned items that could not be mapped to a memory id: 0.
 
 ### dsh-mnemon（dsh-mnemon 0.5.45 (commit 1dec529); Memory Spaces 0.5.27, Mnemon Native provider 0.5.11, Layered strategy 0.5.13; mnemon CLI 0.2.13）

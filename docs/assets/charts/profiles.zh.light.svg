@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="598" viewBox="0 0 1000 598" role="img" lang="zh">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="652" viewBox="0 0 1000 652" role="img" lang="zh">
 <style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#52514e;font-size:13px}.t{font-size:17px;font-weight:600;fill:#0b0b0b}.l{font-size:13px;fill:#0b0b0b}.lb{font-size:13px;font-weight:600;fill:#0b0b0b}.s{font-size:11px;fill:#52514e}.grid{stroke:#e1e0d9;stroke-width:1;fill:none}.axis{stroke:#c3c2b7;stroke-width:1;fill:none}.tick{stroke:#0b0b0b;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#2a78d6}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
-<rect width="1000" height="598" fill="#fcfcfb"/>
+<rect width="1000" height="652" fill="#fcfcfb"/>
 <text x="24.0" y="32.0" class="t">宽松档（默认）与精确档：同一配置换到精确档，命中降多少、精确率升多少（横轴每题平均交付条数，对数轴）</text>
 <rect x="24.0" y="47.0" width="14" height="8" rx="2" class="fa"/>
 <text x="46.0" y="56.0" class="s">feiyu-memgate 的配置</text>
@@ -38,10 +38,19 @@
 <circle cx="879.2" cy="465.0" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="750.2" cy="446.3" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="877.0" cy="464.9" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="966.0" cy="479.9" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="966.0" cy="479.6" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="474.7" cy="337.3" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="966.0" cy="480.0" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="623.2" cy="419.4" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="582.0" cy="484.0" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="610.1" cy="425.2" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="579.1" cy="417.5" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="586.3" cy="418.5" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="434.5" cy="366.7" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="449.3" cy="363.3" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="451.1" cy="365.3" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="460.2" cy="364.4" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="329.4" cy="343.1" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="107.5" cy="307.2" r="4" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <line x1="327.7" y1="173.3" x2="483.7" y2="262.8" class="lead" stroke-width="2" stroke="#2a78d6"/>
@@ -76,6 +85,9 @@
 <text x="153.5" y="133.6" class="l" text-anchor="end">sqlite 39%</text>
 <text x="215.6" y="162.3" class="l" text-anchor="middle">sqlite 47%</text>
 <text x="24.0" y="546.0" class="s">标签后的数字：交付命中率；实心是宽松档（默认），空心是精确档，箭头从精确档指向宽松档，也就是多交付的方向。 full 的两个点和 hybrid 的几乎重合（只多了新鲜度），没有单独画。</text>
-<text x="24.0" y="564.0" class="s">灰点是其他项目；未标注的：mem0（LLM 提取）, dsh-mnemon + 向量, lingshu, SeekMemory, meow-memory, dsh-mnemon, Graphiti。</text>
-<text x="24.0" y="582.0" class="s">bench/results/summary.md · 240 条记忆，160 个问题 · 2026-11-16</text>
+<text x="24.0" y="564.0" class="s">灰点是其他项目；未标注的：mem0（LLM 提取）, Hindsight（deepseek-flash）, Hindsight（claude-haiku-5-5）, dsh-mnemon + 向量, Hindsight（无模型）, dsh-prime-memory + 向量,</text>
+<text x="24.0" y="582.0" class="s">lingshu, dsh-prime-memory, dsh-soul-md, SeekMemory, meow-memory, dsh-fish-memory + deepseek-flash 扩词, dsh-fish-memory + claude-haiku-5-5 扩词, dsh-fish-memory,</text>
+<text x="24.0" y="600.0" class="s">dsh-mnemon, Graphiti。 横轴只到 32 条；每题交得更多的点画在右边缘（实际条数：Hindsight（deepseek-flash） 92.0, Hindsight（claude-haiku-5-5） 84.0, Hindsight（无模型）</text>
+<text x="24.0" y="618.0" class="s">93.5）。</text>
+<text x="24.0" y="636.0" class="s">bench/results/summary.md · 240 条记忆，160 个问题 · 2026-11-17</text>
 </svg>

@@ -1,32 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="634" viewBox="0 0 1000 634" role="img" lang="en">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="886" viewBox="0 0 1000 886" role="img" lang="en">
 <style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#c3c2b7;font-size:13px}.t{font-size:17px;font-weight:600;fill:#f0efec}.l{font-size:13px;fill:#f0efec}.lb{font-size:13px;font-weight:600;fill:#f0efec}.s{font-size:11px;fill:#c3c2b7}.grid{stroke:#2c2c2a;stroke-width:1;fill:none}.axis{stroke:#383835;stroke-width:1;fill:none}.tick{stroke:#f0efec;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#3987e5}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
-<rect width="1000" height="634" fill="#1a1a19"/>
+<rect width="1000" height="886" fill="#1a1a19"/>
 <text x="24.0" y="32.0" class="t">Delivered hit by question type, systems in the order of the ranking chart</text>
 <rect x="24.0" y="47.0" width="14" height="8" rx="2" class="fa"/>
 <text x="46.0" y="56.0" class="s">feiyu-memgate configurations</text>
 <rect x="231.5" y="47.0" width="14" height="8" rx="2" class="fo"/>
 <text x="253.5" y="56.0" class="s">other projects</text>
 <text x="224.0" y="90.0" class="lb">lexical · 45 q</text>
-<line x1="224.0" y1="106.0" x2="224.0" y2="532.0" class="axis"/>
-<text x="224.0" y="550.0" class="s" text-anchor="middle">0%</text>
-<line x1="299.0" y1="106.0" x2="299.0" y2="532.0" class="grid"/>
-<text x="299.0" y="550.0" class="s" text-anchor="middle">50%</text>
-<line x1="374.0" y1="106.0" x2="374.0" y2="532.0" class="grid"/>
-<text x="374.0" y="550.0" class="s" text-anchor="middle">100%</text>
+<line x1="224.0" y1="106.0" x2="224.0" y2="784.0" class="axis"/>
+<text x="224.0" y="802.0" class="s" text-anchor="middle">0%</text>
+<line x1="299.0" y1="106.0" x2="299.0" y2="784.0" class="grid"/>
+<text x="299.0" y="802.0" class="s" text-anchor="middle">50%</text>
+<line x1="374.0" y1="106.0" x2="374.0" y2="784.0" class="grid"/>
+<text x="374.0" y="802.0" class="s" text-anchor="middle">100%</text>
 <text x="478.0" y="90.0" class="lb">paraphrase · 55 q</text>
-<line x1="478.0" y1="106.0" x2="478.0" y2="532.0" class="axis"/>
-<text x="478.0" y="550.0" class="s" text-anchor="middle">0%</text>
-<line x1="553.0" y1="106.0" x2="553.0" y2="532.0" class="grid"/>
-<text x="553.0" y="550.0" class="s" text-anchor="middle">50%</text>
-<line x1="628.0" y1="106.0" x2="628.0" y2="532.0" class="grid"/>
-<text x="628.0" y="550.0" class="s" text-anchor="middle">100%</text>
+<line x1="478.0" y1="106.0" x2="478.0" y2="784.0" class="axis"/>
+<text x="478.0" y="802.0" class="s" text-anchor="middle">0%</text>
+<line x1="553.0" y1="106.0" x2="553.0" y2="784.0" class="grid"/>
+<text x="553.0" y="802.0" class="s" text-anchor="middle">50%</text>
+<line x1="628.0" y1="106.0" x2="628.0" y2="784.0" class="grid"/>
+<text x="628.0" y="802.0" class="s" text-anchor="middle">100%</text>
 <text x="732.0" y="90.0" class="lb">updated · 20 q</text>
-<line x1="732.0" y1="106.0" x2="732.0" y2="532.0" class="axis"/>
-<text x="732.0" y="550.0" class="s" text-anchor="middle">0%</text>
-<line x1="807.0" y1="106.0" x2="807.0" y2="532.0" class="grid"/>
-<text x="807.0" y="550.0" class="s" text-anchor="middle">50%</text>
-<line x1="882.0" y1="106.0" x2="882.0" y2="532.0" class="grid"/>
-<text x="882.0" y="550.0" class="s" text-anchor="middle">100%</text>
+<line x1="732.0" y1="106.0" x2="732.0" y2="784.0" class="axis"/>
+<text x="732.0" y="802.0" class="s" text-anchor="middle">0%</text>
+<line x1="807.0" y1="106.0" x2="807.0" y2="784.0" class="grid"/>
+<text x="807.0" y="802.0" class="s" text-anchor="middle">50%</text>
+<line x1="882.0" y1="106.0" x2="882.0" y2="784.0" class="grid"/>
+<text x="882.0" y="802.0" class="s" text-anchor="middle">100%</text>
 <text x="24.0" y="130.5" class="l">memsearch</text>
 <path d="M224.0,119.0 H370.0 A4.0,4.0 0 0 1 374.0,123.0 V129.0 A4.0,4.0 0 0 1 370.0,133.0 H224.0 Z" fill="#898781"/>
 <text x="380.0" y="130.0" class="s">100.0%</text>
@@ -83,53 +83,120 @@
 <text x="631.3" y="326.0" class="s">98.2%</text>
 <path d="M732.0,315.0 H878.0 A4.0,4.0 0 0 1 882.0,319.0 V325.0 A4.0,4.0 0 0 1 878.0,329.0 H732.0 Z" fill="#898781"/>
 <text x="888.0" y="326.0" class="s">100.0%</text>
-<text x="24.0" y="354.5" class="l">dsh-mnemon + embeddings</text>
+<text x="24.0" y="354.5" class="l">Hindsight (deepseek-flash)</text>
 <path d="M224.0,343.0 H370.0 A4.0,4.0 0 0 1 374.0,347.0 V353.0 A4.0,4.0 0 0 1 370.0,357.0 H224.0 Z" fill="#898781"/>
 <text x="380.0" y="354.0" class="s">100.0%</text>
-<path d="M478.0,343.0 H591.3 A4.0,4.0 0 0 1 595.3,347.0 V353.0 A4.0,4.0 0 0 1 591.3,357.0 H478.0 Z" fill="#898781"/>
-<text x="601.3" y="354.0" class="s">78.2%</text>
-<path d="M732.0,343.0 H855.5 A4.0,4.0 0 0 1 859.5,347.0 V353.0 A4.0,4.0 0 0 1 855.5,357.0 H732.0 Z" fill="#898781"/>
-<text x="865.5" y="354.0" class="s">85.0%</text>
-<text x="24.0" y="382.5" class="l">lingshu</text>
-<text x="230.0" y="382.0" class="s">0.0%</text>
-<text x="484.0" y="382.0" class="s">0.0%</text>
-<text x="738.0" y="382.0" class="s">0.0%</text>
-<text x="24.0" y="410.5" class="l">feiyu-memgate sqlite</text>
-<path d="M224.0,399.0 H366.7 A4.0,4.0 0 0 1 370.7,403.0 V409.0 A4.0,4.0 0 0 1 366.7,413.0 H224.0 Z" fill="#3987e5"/>
-<text x="376.7" y="410.0" class="s">97.8%</text>
-<path d="M478.0,399.0 H480.7 A2.7,2.7 0 0 1 483.5,401.7 V410.3 A2.7,2.7 0 0 1 480.7,413.0 H478.0 Z" fill="#3987e5"/>
-<text x="489.5" y="410.0" class="s">3.6%</text>
-<path d="M732.0,399.0 H803.0 A4.0,4.0 0 0 1 807.0,403.0 V409.0 A4.0,4.0 0 0 1 803.0,413.0 H732.0 Z" fill="#3987e5"/>
-<text x="813.0" y="410.0" class="s">50.0%</text>
-<text x="24.0" y="438.5" class="l">SeekMemory</text>
-<path d="M224.0,427.0 H366.7 A4.0,4.0 0 0 1 370.7,431.0 V437.0 A4.0,4.0 0 0 1 366.7,441.0 H224.0 Z" fill="#898781"/>
-<text x="376.7" y="438.0" class="s">97.8%</text>
-<path d="M478.0,427.0 H523.1 A4.0,4.0 0 0 1 527.1,431.0 V437.0 A4.0,4.0 0 0 1 523.1,441.0 H478.0 Z" fill="#898781"/>
-<text x="533.1" y="438.0" class="s">32.7%</text>
-<path d="M732.0,427.0 H848.0 A4.0,4.0 0 0 1 852.0,431.0 V437.0 A4.0,4.0 0 0 1 848.0,441.0 H732.0 Z" fill="#898781"/>
-<text x="858.0" y="438.0" class="s">80.0%</text>
-<text x="24.0" y="466.5" class="l">meow-memory</text>
-<path d="M224.0,455.0 H366.7 A4.0,4.0 0 0 1 370.7,459.0 V465.0 A4.0,4.0 0 0 1 366.7,469.0 H224.0 Z" fill="#898781"/>
-<text x="376.7" y="466.0" class="s">97.8%</text>
-<path d="M478.0,455.0 H512.2 A4.0,4.0 0 0 1 516.2,459.0 V465.0 A4.0,4.0 0 0 1 512.2,469.0 H478.0 Z" fill="#898781"/>
-<text x="522.2" y="466.0" class="s">25.5%</text>
-<path d="M732.0,455.0 H803.0 A4.0,4.0 0 0 1 807.0,459.0 V465.0 A4.0,4.0 0 0 1 803.0,469.0 H732.0 Z" fill="#898781"/>
-<text x="813.0" y="466.0" class="s">50.0%</text>
-<text x="24.0" y="494.5" class="l">dsh-mnemon</text>
-<path d="M224.0,483.0 H360.0 A4.0,4.0 0 0 1 364.0,487.0 V493.0 A4.0,4.0 0 0 1 360.0,497.0 H224.0 Z" fill="#898781"/>
-<text x="370.0" y="494.0" class="s">93.3%</text>
-<path d="M478.0,483.0 H482.2 A4.0,4.0 0 0 1 486.2,487.0 V493.0 A4.0,4.0 0 0 1 482.2,497.0 H478.0 Z" fill="#898781"/>
-<text x="492.2" y="494.0" class="s">5.5%</text>
-<path d="M732.0,483.0 H735.8 A3.8,3.8 0 0 1 739.5,486.8 V493.2 A3.8,3.8 0 0 1 735.8,497.0 H732.0 Z" fill="#898781"/>
-<text x="745.5" y="494.0" class="s">5.0%</text>
-<text x="24.0" y="522.5" class="l">Graphiti</text>
-<path d="M224.0,511.0 H256.7 A4.0,4.0 0 0 1 260.7,515.0 V521.0 A4.0,4.0 0 0 1 256.7,525.0 H224.0 Z" fill="#898781"/>
-<text x="266.7" y="522.0" class="s">24.4%</text>
-<path d="M478.0,511.0 H482.2 A4.0,4.0 0 0 1 486.2,515.0 V521.0 A4.0,4.0 0 0 1 482.2,525.0 H478.0 Z" fill="#898781"/>
-<text x="492.2" y="522.0" class="s">5.5%</text>
-<path d="M732.0,511.0 H743.0 A4.0,4.0 0 0 1 747.0,515.0 V521.0 A4.0,4.0 0 0 1 743.0,525.0 H732.0 Z" fill="#898781"/>
-<text x="753.0" y="522.0" class="s">10.0%</text>
-<text x="24.0" y="582.0" class="s">Delivered hit is the share of questions where what the system hands the model by default holds a right memory. It differs from ranked Hit@5: a system that hands over a pile</text>
-<text x="24.0" y="600.0" class="s">scores high here, and staying quiet when it should is not counted.</text>
-<text x="24.0" y="618.0" class="s">bench/results/summary.md · 240 memories, 160 questions · 2026-11-16</text>
+<path d="M478.0,343.0 H618.5 A4.0,4.0 0 0 1 622.5,347.0 V353.0 A4.0,4.0 0 0 1 618.5,357.0 H478.0 Z" fill="#898781"/>
+<text x="628.5" y="354.0" class="s">96.4%</text>
+<path d="M732.0,343.0 H878.0 A4.0,4.0 0 0 1 882.0,347.0 V353.0 A4.0,4.0 0 0 1 878.0,357.0 H732.0 Z" fill="#898781"/>
+<text x="888.0" y="354.0" class="s">100.0%</text>
+<text x="24.0" y="376.5" class="l">Hindsight</text>
+<text x="24.0" y="388.5" class="s">(claude-haiku-5-5)</text>
+<path d="M224.0,371.0 H370.0 A4.0,4.0 0 0 1 374.0,375.0 V381.0 A4.0,4.0 0 0 1 370.0,385.0 H224.0 Z" fill="#898781"/>
+<text x="380.0" y="382.0" class="s">100.0%</text>
+<path d="M478.0,371.0 H615.8 A4.0,4.0 0 0 1 619.8,375.0 V381.0 A4.0,4.0 0 0 1 615.8,385.0 H478.0 Z" fill="#898781"/>
+<text x="625.8" y="382.0" class="s">94.5%</text>
+<path d="M732.0,371.0 H878.0 A4.0,4.0 0 0 1 882.0,375.0 V381.0 A4.0,4.0 0 0 1 878.0,385.0 H732.0 Z" fill="#898781"/>
+<text x="888.0" y="382.0" class="s">100.0%</text>
+<text x="24.0" y="410.5" class="l">dsh-mnemon + embeddings</text>
+<path d="M224.0,399.0 H370.0 A4.0,4.0 0 0 1 374.0,403.0 V409.0 A4.0,4.0 0 0 1 370.0,413.0 H224.0 Z" fill="#898781"/>
+<text x="380.0" y="410.0" class="s">100.0%</text>
+<path d="M478.0,399.0 H591.3 A4.0,4.0 0 0 1 595.3,403.0 V409.0 A4.0,4.0 0 0 1 591.3,413.0 H478.0 Z" fill="#898781"/>
+<text x="601.3" y="410.0" class="s">78.2%</text>
+<path d="M732.0,399.0 H855.5 A4.0,4.0 0 0 1 859.5,403.0 V409.0 A4.0,4.0 0 0 1 855.5,413.0 H732.0 Z" fill="#898781"/>
+<text x="865.5" y="410.0" class="s">85.0%</text>
+<text x="24.0" y="438.5" class="l">Hindsight (no model)</text>
+<path d="M224.0,427.0 H370.0 A4.0,4.0 0 0 1 374.0,431.0 V437.0 A4.0,4.0 0 0 1 370.0,441.0 H224.0 Z" fill="#898781"/>
+<text x="380.0" y="438.0" class="s">100.0%</text>
+<path d="M478.0,427.0 H621.3 A4.0,4.0 0 0 1 625.3,431.0 V437.0 A4.0,4.0 0 0 1 621.3,441.0 H478.0 Z" fill="#898781"/>
+<text x="631.3" y="438.0" class="s">98.2%</text>
+<path d="M732.0,427.0 H878.0 A4.0,4.0 0 0 1 882.0,431.0 V437.0 A4.0,4.0 0 0 1 878.0,441.0 H732.0 Z" fill="#898781"/>
+<text x="888.0" y="438.0" class="s">100.0%</text>
+<text x="24.0" y="460.5" class="l">dsh-prime-memory</text>
+<text x="24.0" y="472.5" class="s">+ embeddings</text>
+<path d="M224.0,455.0 H370.0 A4.0,4.0 0 0 1 374.0,459.0 V465.0 A4.0,4.0 0 0 1 370.0,469.0 H224.0 Z" fill="#898781"/>
+<text x="380.0" y="466.0" class="s">100.0%</text>
+<path d="M478.0,455.0 H577.6 A4.0,4.0 0 0 1 581.6,459.0 V465.0 A4.0,4.0 0 0 1 577.6,469.0 H478.0 Z" fill="#898781"/>
+<text x="587.6" y="466.0" class="s">69.1%</text>
+<path d="M732.0,455.0 H870.5 A4.0,4.0 0 0 1 874.5,459.0 V465.0 A4.0,4.0 0 0 1 870.5,469.0 H732.0 Z" fill="#898781"/>
+<text x="880.5" y="466.0" class="s">95.0%</text>
+<text x="24.0" y="494.5" class="l">lingshu</text>
+<text x="230.0" y="494.0" class="s">0.0%</text>
+<text x="484.0" y="494.0" class="s">0.0%</text>
+<text x="738.0" y="494.0" class="s">0.0%</text>
+<text x="24.0" y="522.5" class="l">feiyu-memgate sqlite</text>
+<path d="M224.0,511.0 H366.7 A4.0,4.0 0 0 1 370.7,515.0 V521.0 A4.0,4.0 0 0 1 366.7,525.0 H224.0 Z" fill="#3987e5"/>
+<text x="376.7" y="522.0" class="s">97.8%</text>
+<path d="M478.0,511.0 H480.7 A2.7,2.7 0 0 1 483.5,513.7 V522.3 A2.7,2.7 0 0 1 480.7,525.0 H478.0 Z" fill="#3987e5"/>
+<text x="489.5" y="522.0" class="s">3.6%</text>
+<path d="M732.0,511.0 H803.0 A4.0,4.0 0 0 1 807.0,515.0 V521.0 A4.0,4.0 0 0 1 803.0,525.0 H732.0 Z" fill="#3987e5"/>
+<text x="813.0" y="522.0" class="s">50.0%</text>
+<text x="24.0" y="550.5" class="l">dsh-prime-memory</text>
+<path d="M224.0,539.0 H366.7 A4.0,4.0 0 0 1 370.7,543.0 V549.0 A4.0,4.0 0 0 1 366.7,553.0 H224.0 Z" fill="#898781"/>
+<text x="376.7" y="550.0" class="s">97.8%</text>
+<path d="M478.0,539.0 H544.9 A4.0,4.0 0 0 1 548.9,543.0 V549.0 A4.0,4.0 0 0 1 544.9,553.0 H478.0 Z" fill="#898781"/>
+<text x="554.9" y="550.0" class="s">47.3%</text>
+<path d="M732.0,539.0 H870.5 A4.0,4.0 0 0 1 874.5,543.0 V549.0 A4.0,4.0 0 0 1 870.5,553.0 H732.0 Z" fill="#898781"/>
+<text x="880.5" y="550.0" class="s">95.0%</text>
+<text x="24.0" y="578.5" class="l">dsh-soul-md</text>
+<path d="M224.0,567.0 H370.0 A4.0,4.0 0 0 1 374.0,571.0 V577.0 A4.0,4.0 0 0 1 370.0,581.0 H224.0 Z" fill="#898781"/>
+<text x="380.0" y="578.0" class="s">100.0%</text>
+<path d="M478.0,567.0 H531.3 A4.0,4.0 0 0 1 535.3,571.0 V577.0 A4.0,4.0 0 0 1 531.3,581.0 H478.0 Z" fill="#898781"/>
+<text x="541.3" y="578.0" class="s">38.2%</text>
+<path d="M732.0,567.0 H818.0 A4.0,4.0 0 0 1 822.0,571.0 V577.0 A4.0,4.0 0 0 1 818.0,581.0 H732.0 Z" fill="#898781"/>
+<text x="828.0" y="578.0" class="s">60.0%</text>
+<text x="24.0" y="606.5" class="l">SeekMemory</text>
+<path d="M224.0,595.0 H366.7 A4.0,4.0 0 0 1 370.7,599.0 V605.0 A4.0,4.0 0 0 1 366.7,609.0 H224.0 Z" fill="#898781"/>
+<text x="376.7" y="606.0" class="s">97.8%</text>
+<path d="M478.0,595.0 H523.1 A4.0,4.0 0 0 1 527.1,599.0 V605.0 A4.0,4.0 0 0 1 523.1,609.0 H478.0 Z" fill="#898781"/>
+<text x="533.1" y="606.0" class="s">32.7%</text>
+<path d="M732.0,595.0 H848.0 A4.0,4.0 0 0 1 852.0,599.0 V605.0 A4.0,4.0 0 0 1 848.0,609.0 H732.0 Z" fill="#898781"/>
+<text x="858.0" y="606.0" class="s">80.0%</text>
+<text x="24.0" y="634.5" class="l">meow-memory</text>
+<path d="M224.0,623.0 H366.7 A4.0,4.0 0 0 1 370.7,627.0 V633.0 A4.0,4.0 0 0 1 366.7,637.0 H224.0 Z" fill="#898781"/>
+<text x="376.7" y="634.0" class="s">97.8%</text>
+<path d="M478.0,623.0 H512.2 A4.0,4.0 0 0 1 516.2,627.0 V633.0 A4.0,4.0 0 0 1 512.2,637.0 H478.0 Z" fill="#898781"/>
+<text x="522.2" y="634.0" class="s">25.5%</text>
+<path d="M732.0,623.0 H803.0 A4.0,4.0 0 0 1 807.0,627.0 V633.0 A4.0,4.0 0 0 1 803.0,637.0 H732.0 Z" fill="#898781"/>
+<text x="813.0" y="634.0" class="s">50.0%</text>
+<text x="24.0" y="656.5" class="l">dsh-fish-memory</text>
+<text x="24.0" y="668.5" class="s">+ deepseek-flash expansion</text>
+<path d="M224.0,651.0 H353.3 A4.0,4.0 0 0 1 357.3,655.0 V661.0 A4.0,4.0 0 0 1 353.3,665.0 H224.0 Z" fill="#898781"/>
+<text x="363.3" y="662.0" class="s">88.9%</text>
+<path d="M478.0,651.0 H493.1 A4.0,4.0 0 0 1 497.1,655.0 V661.0 A4.0,4.0 0 0 1 493.1,665.0 H478.0 Z" fill="#898781"/>
+<text x="503.1" y="662.0" class="s">12.7%</text>
+<path d="M732.0,651.0 H810.5 A4.0,4.0 0 0 1 814.5,655.0 V661.0 A4.0,4.0 0 0 1 810.5,665.0 H732.0 Z" fill="#898781"/>
+<text x="820.5" y="662.0" class="s">55.0%</text>
+<text x="24.0" y="684.5" class="l">dsh-fish-memory</text>
+<text x="24.0" y="696.5" class="s">+ claude-haiku-5-5 expansion</text>
+<path d="M224.0,679.0 H353.3 A4.0,4.0 0 0 1 357.3,683.0 V689.0 A4.0,4.0 0 0 1 353.3,693.0 H224.0 Z" fill="#898781"/>
+<text x="363.3" y="690.0" class="s">88.9%</text>
+<path d="M478.0,679.0 H495.8 A4.0,4.0 0 0 1 499.8,683.0 V689.0 A4.0,4.0 0 0 1 495.8,693.0 H478.0 Z" fill="#898781"/>
+<text x="505.8" y="690.0" class="s">14.5%</text>
+<path d="M732.0,679.0 H795.5 A4.0,4.0 0 0 1 799.5,683.0 V689.0 A4.0,4.0 0 0 1 795.5,693.0 H732.0 Z" fill="#898781"/>
+<text x="805.5" y="690.0" class="s">45.0%</text>
+<text x="24.0" y="718.5" class="l">dsh-fish-memory</text>
+<path d="M224.0,707.0 H353.3 A4.0,4.0 0 0 1 357.3,711.0 V717.0 A4.0,4.0 0 0 1 353.3,721.0 H224.0 Z" fill="#898781"/>
+<text x="363.3" y="718.0" class="s">88.9%</text>
+<path d="M478.0,707.0 H493.1 A4.0,4.0 0 0 1 497.1,711.0 V717.0 A4.0,4.0 0 0 1 493.1,721.0 H478.0 Z" fill="#898781"/>
+<text x="503.1" y="718.0" class="s">12.7%</text>
+<path d="M732.0,707.0 H810.5 A4.0,4.0 0 0 1 814.5,711.0 V717.0 A4.0,4.0 0 0 1 810.5,721.0 H732.0 Z" fill="#898781"/>
+<text x="820.5" y="718.0" class="s">55.0%</text>
+<text x="24.0" y="746.5" class="l">dsh-mnemon</text>
+<path d="M224.0,735.0 H360.0 A4.0,4.0 0 0 1 364.0,739.0 V745.0 A4.0,4.0 0 0 1 360.0,749.0 H224.0 Z" fill="#898781"/>
+<text x="370.0" y="746.0" class="s">93.3%</text>
+<path d="M478.0,735.0 H482.2 A4.0,4.0 0 0 1 486.2,739.0 V745.0 A4.0,4.0 0 0 1 482.2,749.0 H478.0 Z" fill="#898781"/>
+<text x="492.2" y="746.0" class="s">5.5%</text>
+<path d="M732.0,735.0 H735.8 A3.8,3.8 0 0 1 739.5,738.8 V745.2 A3.8,3.8 0 0 1 735.8,749.0 H732.0 Z" fill="#898781"/>
+<text x="745.5" y="746.0" class="s">5.0%</text>
+<text x="24.0" y="774.5" class="l">Graphiti</text>
+<path d="M224.0,763.0 H256.7 A4.0,4.0 0 0 1 260.7,767.0 V773.0 A4.0,4.0 0 0 1 256.7,777.0 H224.0 Z" fill="#898781"/>
+<text x="266.7" y="774.0" class="s">24.4%</text>
+<path d="M478.0,763.0 H482.2 A4.0,4.0 0 0 1 486.2,767.0 V773.0 A4.0,4.0 0 0 1 482.2,777.0 H478.0 Z" fill="#898781"/>
+<text x="492.2" y="774.0" class="s">5.5%</text>
+<path d="M732.0,763.0 H743.0 A4.0,4.0 0 0 1 747.0,767.0 V773.0 A4.0,4.0 0 0 1 743.0,777.0 H732.0 Z" fill="#898781"/>
+<text x="753.0" y="774.0" class="s">10.0%</text>
+<text x="24.0" y="834.0" class="s">Delivered hit is the share of questions where what the system hands the model by default holds a right memory. It differs from ranked Hit@5: a system that hands over a pile</text>
+<text x="24.0" y="852.0" class="s">scores high here, and staying quiet when it should is not counted.</text>
+<text x="24.0" y="870.0" class="s">bench/results/summary.md · 240 memories, 160 questions · 2026-11-17</text>
 </svg>

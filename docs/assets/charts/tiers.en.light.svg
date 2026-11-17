@@ -142,5 +142,5 @@
 <text x="24.0" y="374.0" class="s">the last three columns is the same tier with the precise profile pinned. Memory and model file size were measured on the development run (bench/tiers.json,</text>
 <text x="24.0" y="392.0" class="s">bench/experiments/light_models/): resident memory of the embedder container with the model loaded; other containers were running, so read them as orders of magnitude.</text>
 <text x="24.0" y="410.0" class="s">Ordered by memory use; sqlite needs no model and no service.</text>
-<text x="24.0" y="428.0" class="s">bench/results/summary.md · 240 memories, 160 questions · 2026-11-16</text>
+<text x="24.0" y="428.0" class="s">bench/results/summary.md · 240 memories, 160 questions · 2026-11-17</text>
 </svg>

@@ -1,21 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="674" viewBox="0 0 1000 674" role="img" lang="en">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="926" viewBox="0 0 1000 926" role="img" lang="en">
 <style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#52514e;font-size:13px}.t{font-size:17px;font-weight:600;fill:#0b0b0b}.l{font-size:13px;fill:#0b0b0b}.lb{font-size:13px;font-weight:600;fill:#0b0b0b}.s{font-size:11px;fill:#52514e}.grid{stroke:#e1e0d9;stroke-width:1;fill:none}.axis{stroke:#c3c2b7;stroke-width:1;fill:none}.tick{stroke:#0b0b0b;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#2a78d6}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
-<rect width="1000" height="674" fill="#fcfcfb"/>
+<rect width="1000" height="926" fill="#fcfcfb"/>
 <text x="24.0" y="32.0" class="t">Fresh-first among delivered answers to updated questions: new memory before the old one</text>
 <rect x="24.0" y="47.0" width="14" height="8" rx="2" class="fa"/>
 <text x="46.0" y="56.0" class="s">feiyu-memgate configurations</text>
 <rect x="231.5" y="47.0" width="14" height="8" rx="2" class="fo"/>
 <text x="253.5" y="56.0" class="s">other projects</text>
-<line x1="330.0" y1="80.0" x2="330.0" y2="534.0" class="axis"/>
-<text x="330.0" y="552.0" class="s" text-anchor="middle">0%</text>
-<line x1="440.0" y1="80.0" x2="440.0" y2="534.0" class="grid"/>
-<text x="440.0" y="552.0" class="s" text-anchor="middle">25%</text>
-<line x1="550.0" y1="80.0" x2="550.0" y2="534.0" class="grid"/>
-<text x="550.0" y="552.0" class="s" text-anchor="middle">50%</text>
-<line x1="660.0" y1="80.0" x2="660.0" y2="534.0" class="grid"/>
-<text x="660.0" y="552.0" class="s" text-anchor="middle">75%</text>
-<line x1="770.0" y1="80.0" x2="770.0" y2="534.0" class="grid"/>
-<text x="770.0" y="552.0" class="s" text-anchor="middle">100%</text>
+<line x1="330.0" y1="80.0" x2="330.0" y2="786.0" class="axis"/>
+<text x="330.0" y="804.0" class="s" text-anchor="middle">0%</text>
+<line x1="440.0" y1="80.0" x2="440.0" y2="786.0" class="grid"/>
+<text x="440.0" y="804.0" class="s" text-anchor="middle">25%</text>
+<line x1="550.0" y1="80.0" x2="550.0" y2="786.0" class="grid"/>
+<text x="550.0" y="804.0" class="s" text-anchor="middle">50%</text>
+<line x1="660.0" y1="80.0" x2="660.0" y2="786.0" class="grid"/>
+<text x="660.0" y="804.0" class="s" text-anchor="middle">75%</text>
+<line x1="770.0" y1="80.0" x2="770.0" y2="786.0" class="grid"/>
+<text x="770.0" y="804.0" class="s" text-anchor="middle">100%</text>
 <text x="24.0" y="104.5" class="l">memsearch</text>
 <path d="M330.0,93.0 H590.0 A4.0,4.0 0 0 1 594.0,97.0 V103.0 A4.0,4.0 0 0 1 590.0,107.0 H330.0 Z" fill="#898781"/>
 <text x="602.0" y="104.5" class="lb">12/20</text>
@@ -24,7 +24,8 @@
 <path d="M330.0,121.0 H678.0 A4.0,4.0 0 0 1 682.0,125.0 V131.0 A4.0,4.0 0 0 1 678.0,135.0 H330.0 Z" fill="#2a78d6"/>
 <text x="690.0" y="132.5" class="lb">16/20</text>
 <text x="733.4" y="132.0" class="s">80%</text>
-<text x="24.0" y="160.5" class="l">feiyu-memgate embedding (bge-m3, precise profile)</text>
+<text x="24.0" y="154.5" class="l">feiyu-memgate embedding</text>
+<text x="24.0" y="166.5" class="s">(bge-m3, precise profile)</text>
 <path d="M330.0,149.0 H766.0 A4.0,4.0 0 0 1 770.0,153.0 V159.0 A4.0,4.0 0 0 1 766.0,163.0 H330.0 Z" fill="#2a78d6"/>
 <text x="778.0" y="160.5" class="lb">15/15</text>
 <text x="817.5" y="160.0" class="s">100%</text>
@@ -32,7 +33,8 @@
 <path d="M330.0,177.0 H766.0 A4.0,4.0 0 0 1 770.0,181.0 V187.0 A4.0,4.0 0 0 1 766.0,191.0 H330.0 Z" fill="#2a78d6"/>
 <text x="778.0" y="188.5" class="lb">19/19</text>
 <text x="817.5" y="188.0" class="s">100%</text>
-<text x="24.0" y="216.5" class="l">feiyu-memgate openviking (precise profile)</text>
+<text x="24.0" y="210.5" class="l">feiyu-memgate openviking</text>
+<text x="24.0" y="222.5" class="s">(precise profile)</text>
 <path d="M330.0,205.0 H766.0 A4.0,4.0 0 0 1 770.0,209.0 V215.0 A4.0,4.0 0 0 1 766.0,219.0 H330.0 Z" fill="#2a78d6"/>
 <text x="778.0" y="216.5" class="lb">15/15</text>
 <text x="817.5" y="216.0" class="s">100%</text>
@@ -48,11 +50,13 @@
 <path d="M330.0,289.0 H696.5 A4.0,4.0 0 0 1 700.5,293.0 V299.0 A4.0,4.0 0 0 1 696.5,303.0 H330.0 Z" fill="#2a78d6"/>
 <text x="708.5" y="300.5" class="lb">16/19</text>
 <text x="748.0" y="300.0" class="s">84%</text>
-<text x="24.0" y="328.5" class="l">feiyu-memgate hybrid (precise profile)</text>
+<text x="24.0" y="322.5" class="l">feiyu-memgate hybrid</text>
+<text x="24.0" y="334.5" class="s">(precise profile)</text>
 <path d="M330.0,317.0 H766.0 A4.0,4.0 0 0 1 770.0,321.0 V327.0 A4.0,4.0 0 0 1 766.0,331.0 H330.0 Z" fill="#2a78d6"/>
 <text x="778.0" y="328.5" class="lb">14/14</text>
 <text x="817.5" y="328.0" class="s">100%</text>
-<text x="24.0" y="356.5" class="l">feiyu-memgate full (precise profile)</text>
+<text x="24.0" y="350.5" class="l">feiyu-memgate full</text>
+<text x="24.0" y="362.5" class="s">(precise profile)</text>
 <path d="M330.0,345.0 H766.0 A4.0,4.0 0 0 1 770.0,349.0 V355.0 A4.0,4.0 0 0 1 766.0,359.0 H330.0 Z" fill="#2a78d6"/>
 <text x="778.0" y="356.5" class="lb">14/14</text>
 <text x="817.5" y="356.0" class="s">100%</text>
@@ -64,25 +68,65 @@
 <path d="M330.0,401.0 H590.0 A4.0,4.0 0 0 1 594.0,405.0 V411.0 A4.0,4.0 0 0 1 590.0,415.0 H330.0 Z" fill="#898781"/>
 <text x="602.0" y="412.5" class="lb">12/20</text>
 <text x="645.4" y="412.0" class="s">60%</text>
-<text x="24.0" y="440.5" class="l">dsh-mnemon + embeddings</text>
-<path d="M330.0,429.0 H610.7 A4.0,4.0 0 0 1 614.7,433.0 V439.0 A4.0,4.0 0 0 1 610.7,443.0 H330.0 Z" fill="#898781"/>
-<text x="622.7" y="440.5" class="lb">11/17</text>
-<text x="658.3" y="440.0" class="s">65%</text>
-<text x="24.0" y="468.5" class="l">feiyu-memgate sqlite</text>
-<path d="M330.0,457.0 H678.0 A4.0,4.0 0 0 1 682.0,461.0 V467.0 A4.0,4.0 0 0 1 678.0,471.0 H330.0 Z" fill="#2a78d6"/>
-<text x="690.0" y="468.5" class="lb">8/10</text>
-<text x="725.3" y="468.0" class="s">80%</text>
-<text x="24.0" y="496.5" class="l">SeekMemory</text>
-<path d="M330.0,485.0 H573.5 A4.0,4.0 0 0 1 577.5,489.0 V495.0 A4.0,4.0 0 0 1 573.5,499.0 H330.0 Z" fill="#898781"/>
-<text x="585.5" y="496.5" class="lb">9/16</text>
-<text x="620.8" y="496.0" class="s">56%</text>
-<text x="24.0" y="524.5" class="l">meow-memory</text>
-<path d="M330.0,513.0 H678.0 A4.0,4.0 0 0 1 682.0,517.0 V523.0 A4.0,4.0 0 0 1 678.0,527.0 H330.0 Z" fill="#898781"/>
-<text x="690.0" y="524.5" class="lb">8/10</text>
-<text x="725.3" y="524.0" class="s">80%</text>
-<text x="24.0" y="586.0" class="s">Label = wins/questions; a win is a question where the old memory was not delivered with the new one or came after it. The denominator counts only updated questions where</text>
-<text x="24.0" y="604.0" class="s">the new memory was delivered, so it differs per system; systems with fewer than 5 such questions are not drawn: lingshu 0/0, feiyu-memgate sqlite (precise profile) 3/4,</text>
-<text x="24.0" y="622.0" class="s">dsh-mnemon 1/1, Graphiti 1/2. The precise-profile variants of the five configurations are drawn too. Other variants: embedding (bge-base-zh) 12/15, embedding (bge-small-zh)</text>
-<text x="24.0" y="640.0" class="s">11/15, embedding (embeddinggemma) 12/19, embedding (qwen3-embedding) 14/19.</text>
-<text x="24.0" y="658.0" class="s">bench/results/summary.md · 240 memories, 160 questions · 2026-11-16</text>
+<text x="24.0" y="440.5" class="l">Hindsight (deepseek-flash)</text>
+<path d="M330.0,429.0 H370.0 A4.0,4.0 0 0 1 374.0,433.0 V439.0 A4.0,4.0 0 0 1 370.0,443.0 H330.0 Z" fill="#898781"/>
+<text x="382.0" y="440.5" class="lb">2/20</text>
+<text x="421.2" y="440.0" class="s">10%</text>
+<text x="24.0" y="462.5" class="l">Hindsight</text>
+<text x="24.0" y="474.5" class="s">(claude-haiku-5-5)</text>
+<path d="M330.0,457.0 H436.0 A4.0,4.0 0 0 1 440.0,461.0 V467.0 A4.0,4.0 0 0 1 436.0,471.0 H330.0 Z" fill="#898781"/>
+<text x="448.0" y="468.5" class="lb">5/20</text>
+<text x="487.2" y="468.0" class="s">25%</text>
+<text x="24.0" y="496.5" class="l">dsh-mnemon + embeddings</text>
+<path d="M330.0,485.0 H610.7 A4.0,4.0 0 0 1 614.7,489.0 V495.0 A4.0,4.0 0 0 1 610.7,499.0 H330.0 Z" fill="#898781"/>
+<text x="622.7" y="496.5" class="lb">11/17</text>
+<text x="658.3" y="496.0" class="s">65%</text>
+<text x="24.0" y="524.5" class="l">Hindsight (no model)</text>
+<path d="M330.0,513.0 H612.0 A4.0,4.0 0 0 1 616.0,517.0 V523.0 A4.0,4.0 0 0 1 612.0,527.0 H330.0 Z" fill="#898781"/>
+<text x="624.0" y="524.5" class="lb">13/20</text>
+<text x="667.4" y="524.0" class="s">65%</text>
+<text x="24.0" y="546.5" class="l">dsh-prime-memory</text>
+<text x="24.0" y="558.5" class="s">+ embeddings</text>
+<path d="M330.0,541.0 H534.4 A4.0,4.0 0 0 1 538.4,545.0 V551.0 A4.0,4.0 0 0 1 534.4,555.0 H330.0 Z" fill="#898781"/>
+<text x="546.4" y="552.5" class="lb">9/19</text>
+<text x="581.7" y="552.0" class="s">47%</text>
+<text x="24.0" y="580.5" class="l">feiyu-memgate sqlite</text>
+<path d="M330.0,569.0 H678.0 A4.0,4.0 0 0 1 682.0,573.0 V579.0 A4.0,4.0 0 0 1 678.0,583.0 H330.0 Z" fill="#2a78d6"/>
+<text x="690.0" y="580.5" class="lb">8/10</text>
+<text x="725.3" y="580.0" class="s">80%</text>
+<text x="24.0" y="608.5" class="l">dsh-prime-memory</text>
+<path d="M330.0,597.0 H534.4 A4.0,4.0 0 0 1 538.4,601.0 V607.0 A4.0,4.0 0 0 1 534.4,611.0 H330.0 Z" fill="#898781"/>
+<text x="546.4" y="608.5" class="lb">9/19</text>
+<text x="581.7" y="608.0" class="s">47%</text>
+<text x="24.0" y="636.5" class="l">dsh-soul-md</text>
+<path d="M330.0,625.0 H582.7 A4.0,4.0 0 0 1 586.7,629.0 V635.0 A4.0,4.0 0 0 1 582.7,639.0 H330.0 Z" fill="#898781"/>
+<text x="594.7" y="636.5" class="lb">7/12</text>
+<text x="630.0" y="636.0" class="s">58%</text>
+<text x="24.0" y="664.5" class="l">SeekMemory</text>
+<path d="M330.0,653.0 H573.5 A4.0,4.0 0 0 1 577.5,657.0 V663.0 A4.0,4.0 0 0 1 573.5,667.0 H330.0 Z" fill="#898781"/>
+<text x="585.5" y="664.5" class="lb">9/16</text>
+<text x="620.8" y="664.0" class="s">56%</text>
+<text x="24.0" y="692.5" class="l">meow-memory</text>
+<path d="M330.0,681.0 H678.0 A4.0,4.0 0 0 1 682.0,685.0 V691.0 A4.0,4.0 0 0 1 678.0,695.0 H330.0 Z" fill="#898781"/>
+<text x="690.0" y="692.5" class="lb">8/10</text>
+<text x="725.3" y="692.0" class="s">80%</text>
+<text x="24.0" y="714.5" class="l">dsh-fish-memory</text>
+<text x="24.0" y="726.5" class="s">+ deepseek-flash expansion</text>
+<path d="M330.0,709.0 H726.0 A4.0,4.0 0 0 1 730.0,713.0 V719.0 A4.0,4.0 0 0 1 726.0,723.0 H330.0 Z" fill="#898781"/>
+<text x="738.0" y="720.5" class="lb">10/11</text>
+<text x="773.6" y="720.0" class="s">91%</text>
+<text x="24.0" y="742.5" class="l">dsh-fish-memory</text>
+<text x="24.0" y="754.5" class="s">+ claude-haiku-5-5 expansion</text>
+<path d="M330.0,737.0 H766.0 A4.0,4.0 0 0 1 770.0,741.0 V747.0 A4.0,4.0 0 0 1 766.0,751.0 H330.0 Z" fill="#898781"/>
+<text x="778.0" y="748.5" class="lb">9/9</text>
+<text x="809.1" y="748.0" class="s">100%</text>
+<text x="24.0" y="776.5" class="l">dsh-fish-memory</text>
+<path d="M330.0,765.0 H726.0 A4.0,4.0 0 0 1 730.0,769.0 V775.0 A4.0,4.0 0 0 1 726.0,779.0 H330.0 Z" fill="#898781"/>
+<text x="738.0" y="776.5" class="lb">10/11</text>
+<text x="773.6" y="776.0" class="s">91%</text>
+<text x="24.0" y="838.0" class="s">Label = wins/questions; a win is a question where the old memory was not delivered with the new one or came after it. The denominator counts only updated questions where</text>
+<text x="24.0" y="856.0" class="s">the new memory was delivered, so it differs per system; systems with fewer than 5 such questions are not drawn: lingshu 0/0, feiyu-memgate sqlite (precise profile) 3/4,</text>
+<text x="24.0" y="874.0" class="s">dsh-mnemon 1/1, Graphiti 1/2. The precise-profile variants of the five configurations are drawn too. Other variants: embedding (bge-base-zh) 12/15, embedding (bge-small-zh)</text>
+<text x="24.0" y="892.0" class="s">11/15, embedding (embeddinggemma) 12/19, embedding (qwen3-embedding) 14/19.</text>
+<text x="24.0" y="910.0" class="s">bench/results/summary.md · 240 memories, 160 questions · 2026-11-17</text>
 </svg>

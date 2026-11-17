@@ -8,7 +8,7 @@
 | `data/` | 测试集：240 条记忆、160 个问题（字面、改写、更新、没有答案四类），版本 v1，已冻结，说明见 `data/README.md` |
 | `CONTRACT.md` | 适配器要写的结果文件的格式和规则（不许按问题调参、用默认设置、每条记忆只入库一次等） |
 | `score.py` | 打分脚本：读 `data/` 和 `results/raw/*.json`，写 `results/summary.json` 和 `results/summary.md` |
-| `adapters/` | 各系统的适配器；`feiyu_memgate_*.py` 是本项目的四个 |
+| `adapters/` | 各系统的适配器；`feiyu_memgate_*.py` 是本项目的四个。后加的四个项目（dsh-fish-memory、dsh-prime-memory、dsh-soul-md、Hindsight）的适配器没有放进仓库，它们的结果在 `results/raw` |
 | `results/` | `raw/` 是各系统的原始答案，`summary.md` 是打分后的总表；`design/features.md` 是各被测项目的功能事实对照（形态、检索方式、写入是否调模型、默认交付、遗忘、许可证），`design/self-check.md` 是本项目自己的设计自查 |
 | `design_probe.py` | 设计自查的探针：在进程内实际运行本项目，测十项设计性质，写 `results/design/feiyu-memgate.json`；只测 feiyu-memgate |
 | `dev/` | 开发集：160 条记忆、110 个问题，选默认阈值用，说明见 `dev/README.md`，**不用来报告结果** |
@@ -17,6 +17,7 @@
 | `forgetting_sim.py` | 遗忘曲线的模拟，和这里的检索基准无关 |
 | `tiers.json` | 部署档位图 `tiers` 用的资源数据（模型文件大小、常驻内存、维度、查询延迟、在哪测的），来自开发集运行时的测量，见 `experiments/light_models/` |
 | `experiments/` | 不属于产品的实验（每个有自己的 README）：`newer_first`、`fusion`、`light_models`（更轻的向量模型，`setup.sh` 起第二个 embedder 容器） |
+| `external/` | 同一套检索与交付测量在两个公开数据集（PerLTQA、LoCoMo）上的结果，以及计分定义、汇总和出图脚本，说明见 [external/README.md](external/README.md)；数据集文件、加载和运行它们的代码不入库 |
 
 ## 测试集不许看：开发集和测试集分开
 
@@ -113,8 +114,9 @@ python bench/score.py          # 校验每个结果文件，写 results/summary.
 `bash bench/run_all.sh` 按固定顺序逐个跑所有适配器（一次一个，时间才干净），然后打分、跑遗忘模拟（两个后端）、生成图表；
 `RENDER=1` 再把图表渲染成 PNG（约 20 分钟），`SKIP="lingshu openviking"` 跳过某些步骤。它什么都不构建，假定镜像已经在本机
 （每个适配器的 `build.sh` 或 `README.md` 写了构建命令）；`meow-memory`、`seekmemory`、`lingshu` 的 `run.sh` 会用解压好的第三方源码
-拼构建上下文再 `docker build`（镜像是最新的就是缓存命中），所以它们的源码变量要设。用 LLM 的两个付费模式
+拼构建上下文再 `docker build`（镜像是最新的就是缓存命中），所以它们的源码变量要设。用 LLM 的付费模式
 （`mem0` 的 LLM 提取、`graphiti`）**不在** `run_all.sh` 里（重跑要花钱）；`mem0` 只跑 `MODE=verbatim`。
+后加的四个项目（dsh-fish-memory、dsh-prime-memory、dsh-soul-md、Hindsight）的适配器不在仓库里，`run_all.sh` 不包含它们。
 `lingshu-dsh-memory` 为了遵守插件自己的写入速率限制，约要 30 分钟，放在最后。
 `run_all.sh` 里 feiyu-memgate 有 18 个配置行：五个默认配置（sqlite、embedding、hybrid、full、openviking）、四个更轻的向量模型，各自再加一个 `-precise`；四个轻模型（和它们的 `-precise`）需要第二个 embedder 容器
 `fmg-bench-embedder-light`，用 `bash bench/experiments/light_models/setup.sh` 准备（下载四个模型、起容器、验证维度，约 1.3 GB；
@@ -186,6 +188,7 @@ python bench/score.py          # 校验每个结果文件，写 results/summary.
   没有用宽松档重做这个模拟。`design_probe.py` 也重跑了，结果和之前相同。开发集上的记录用 `dev_eval.py` 重新生成（`results/dev/<名字>.md` 是宽松档，`<名字>-precise.md` 是精确档），
   选出的点和以前相同，没有选新的数值；`openviking-precise.md` 的对照栏有一行不同（对照点的交付命中 97.5% 变成 90.0%），原因同上：候选列表来自一台临时服务器，每次入库后分数有一点点不同，选定的格子没变。
   **没有任何数值是看了这次的结果再改的。**
+- **后加的四个项目：9 个配置行。** `dsh-fish-memory`（默认、`expand-deepseek-flash`、`expand-claude-haiku-5-5`）、`dsh-prime-memory`（默认、`-embedding`）、`dsh-soul-md`、`hindsight`（`chunks`、`llm-deepseek-flash`、`llm-claude-haiku-5-5`），在 `results/raw` 里各一个文件。这四个项目的适配器没有放进仓库；每个结果文件的 `how` 和 `notes` 写明了调用方式、桩住的宿主部分、编号的对应规则和失败计数。不带模型的配置在无网络的容器里运行（`dsh-prime-memory-embedding` 和 `hindsight-chunks` 接 `fmg-bench` 上共用的 bge-m3 embedder，这时它已经在显卡上运行）；带模型的四个配置只为调用模型服务商的接口而联网，模型是 deepseek-flash 和 claude-haiku-5-5，**全部关闭了思考**，模型调用的次数和 token 数来自服务商返回的 usage 字段，写在结果文件的 `llm_usage` 里；出现推理 token、思考块或失败调用的运行不作为结果。`mem0` 和 `graphiti` 的两次付费运行用的是 API 默认的思考设置，所以这四个配置和它们的 token 数、费用不能直接比。运行时间：`dsh-fish-memory`、`dsh-prime-memory` 的两个配置和 `dsh-soul-md` 的文件是 2026-11-17 在空闲机器上的运行（和 2026-11-16 的第一次运行逐题结果一致，延迟取这一次）；`hindsight` 的三个和 `dsh-fish-memory` 的两个扩词配置是 2026-11-16 的运行，当时机器上还有其他测试在跑，延迟偏高（`hindsight-chunks` 在空闲机器上重测的中位数是 428 ms，文件里是 455 ms）。结果文件加入 `results/raw` 之后重新打分：已有的 31 个系统的数字逐项没有变化。这四个项目的行都只有一次留出集运行。
 - **没有重跑的行。** `mem0`（LLM 提取，`results/raw/mem0.json`）和 `graphiti`（`graphiti.json`）是付费模式，重新入库要花钱，
   保留之前的结果文件；它们的延迟和入库时间来自一台同时有别的任务在跑的机器，总表里有脚注。第三次运行里其余的行都逐个重跑了；第四次只重跑上一条列出的 feiyu-memgate 行，第三方行（meow-memory、seekmemory 三个文件、dsh-mnemon 两个、memsearch、mem0-verbatim、lingshu、以及上面两个付费行）没有重跑：它们的代码、适配器和数据都没有变，沿用第三次的结果文件。
 - **机器不是完全空闲的。** 这台机器上同时有别的容器在跑（不属于这个基准，不能动），所以时间只能在这一次运行的行之间比较，

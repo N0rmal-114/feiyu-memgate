@@ -1,8 +1,8 @@
 # 被测项目的功能事实
 
-> 日期：2026-11-15。每一格只对“基准所用版本”一列写的版本负责，这些项目之后可能已经改变。
+> 日期：2026-11-17。每一格只对“基准所用版本”一列写的版本负责，这些项目之后可能已经改变。
 
-这张表把基准里的九个项目（本项目在第一行）放在一起，只写功能事实：是什么形态、怎么检索、默认写入要不要调用大模型、默认交付什么、有没有遗忘或衰减、许可证。它不是评分，也不比较好坏。检索质量的数字见 [基准总表](../summary.md)，每个系统是怎么接入和调用的见各适配器目录里的 README（`bench/adapters/<系统>/README.md`）。本项目自己的设计自查见 [self-check.md](self-check.md)。
+这张表把基准里的十三个项目（本项目在第一行）放在一起，只写功能事实：是什么形态、怎么检索、默认写入要不要调用大模型、默认交付什么、有没有遗忘或衰减、许可证。它不是评分，也不比较好坏。检索质量的数字见 [基准总表](../summary.md)，每个系统是怎么接入和调用的见各适配器目录里的 README（`bench/adapters/<系统>/README.md`）。本项目自己的设计自查见 [self-check.md](self-check.md)。
 
 依据：[bench/systems.json](../../systems.json)、各适配器的 README、[基准总表](../summary.md) 里每个系统的说明、[research/reports/](../../../research/reports/) 下的调研报告，以及项目自己的公开仓库页面。查不到的写“未确认”，不做推测。机器可读的版本在 [features.json](features.json)。
 
@@ -20,9 +20,16 @@
 | [dsh-mnemon](https://github.com/omdsh-dev/dsh-mnemon) | 0.5.45（提交 1dec529）；默认后端 mnemon CLI 0.2.13 | DSH 插件 | 关键词加实体加图信号（SQLite）；向量是可选项，默认关闭 | 是：默认写入路径是大模型驱动的空闲复盘 | 运行时记忆（USER.md、MEMORY.md）的快照在记忆变化时自动追加进对话；记忆空间由模型调用召回工具，每次最多 4 条、3600 字，有分数线（默认策略丢掉 0.25 以下） | 按 id 软删除；容量满时自动裁掉最弱的记忆；时间衰减：未确认 | 未确认 |
 | [lingshu (dsh-memory)](https://github.com/FuRongJun-1999/dsh-memory) | npm @furongjun1999/dsh-memory 0.10.1 | DSH 插件（Node，带一个 Python 子进程） | 关键词：BM25，无向量；记忆是普通文件 | 否：写入闸门、去重和索引都是规则代码 | 每轮自动注入会话里最新的 4 条（共 1400 字）和最近 10 条消息（900 字），不看问题、无分数线；按问题检索要模型调用 cg 工具 | 只降权和折叠，不自动删除；可以手动软删到回收区 | 未确认 |
 | [meow-memory](https://github.com/Phant0Meow/dsh-meow-memory) | npm meow-memory 0.32.6 | DSH 插件 | 关键词：BM25（中文按字二元组），按重要度和时间加权 | 宿主代理的模型通过工具写入并填关键词，不另起模型调用；后台反思和梦境整合另用宿主模型 | 每条用户消息前自动注入关键词命中的前 2 条；无分数线；字数预算：未确认 | 排序时按时间降权，不删除；删除是把状态改成归档（行保留） | MIT |
+| [dsh-fish-memory](https://github.com/Yuuyuko-uu/dsh-fish-memory) | 1.6.1（提交 55f4aad） | DSH 插件 | 关键词：按词稀有度算证据分（查询里的稀有词在记忆里出现；模型写的扩展词全额计分，只出现在正文里的词打折），再按新鲜度、重要度、情绪加权排序 | 是：由模型通过 remember 工具决定存什么（每日限额 8 条，近似重复的合并强化）；写入后的后台关键词扩展另调用模型 | 每轮自动注入（recall()）：有查询门（信息太少的消息不召回）；证据分阈值 0.30；条数随最高证据分取 1 – 6 条；字数预算 800；没有检索工具 | 排序里有新鲜度项；近似重复的记忆合并强化，与更新的记忆几乎相同的旧行标为被取代，不再召回；是否删除：未确认 | 插件自己的许可：允许使用、修改和商用，再分发代码须署名作者 |
+| [dsh-prime-memory](https://github.com/drscrewdriver/dsh-prime-memory) | 0.26.55（提交 a909278） | DSH 插件 | 关键词：SQLite FTS5 的 BM25，中文用 jieba 分词加汉字二元组；默认向量关闭，可选远程向量模式，开启后关键词和向量结果融合 | 是：默认由模型把采集到的对话蒸馏成记忆（L1 抽取与去重，再到场景块和人设）；也可以用 memory_add / memory_import 工具直接写入（本基准的做法） | 每条新用户消息前自动搜索并注入 <relevant-memories>：分数线 0.3，最多 5 条，新鲜度（30 天）加权排序，同一会话里已注入的不再注入，字数预算每条 500、共 2000；另有 memory_search 工具 | 新鲜度（30 天）加权只作用于排序；记录有有效期字段，怎么过期或删除：未确认 | MIT |
+| [dsh-soul-md](https://github.com/Scorp1o117/dsh-soul-md) | 0.12.5（提交 83ea19d） | DSH 插件：人设卡加文件形式的长期记忆（基准只测记忆部分） | 关键词：把查询切成词和汉字二元组，在 topic 的 key、标题、摘要、正文里按命中打分（key 加标题每词 4 分，摘要 2 分，正文 1 分），同分按 key 排序 | 宿主模型通过 memory_append / memory_rewrite 工具写 Markdown 文件，插件不另起模型调用；memory_digest 请模型提出修改建议，由用户手动确认，不属于自动写入 | 常驻系统提示词段：core 文本加所有 topic 的索引（key、标题、摘要，有字数上限）；从会话的第二条用户消息起每轮注入“可能相关的记忆”块，默认 5 个 topic、1600 字，没有分数线（共享一个词就是候选）；另有 memory_search 工具 | 未确认 | 未确认 |
+| [Hindsight](https://github.com/vectorize-io/hindsight) | 服务端 hindsight-api-slim 1.2.1（提交 5318be8）；DSH 插件 @vectorize-io/hindsight-coding-agents 0.8.7 | 服务（HTTP，PostgreSQL 加 pgvector），DSH 插件是它的客户端 | 四路检索：语义、关键词、图、时间，融合后用交叉编码器重排序，按 token 预算截断；记忆是模型从内容里抽取的事实，再由模型归并成 observation，并链接到实体 | 是：默认由模型逐条提取事实并归并成 observation；也有无模型模式（每条记忆存成一个原文块，不归并） | 插件在会话的第一条提示时注入模型写的“reflect”综合文字，不是记忆列表；只召回的选项 autoInject: "recall" 调服务端召回，请求体为类型 observation、预算 low、max_tokens 2000，没有条数上限和分数线 | 未确认 | 未确认 |
 
 ## 说明
 
 - meow-memory 在 npm 上的包名是 `meow-memory`，GitHub 上的仓库叫 dsh-meow-memory。
 - 基准对多数项目绕过了默认的大模型写入路径（逐字入库），只测检索和交付；“默认写入是否调用大模型”一列说的是项目本身的默认行为，不是基准里的做法。每个系统在基准里实际怎么写入，见它的适配器 README。
 - OpenViking 的遗忘或衰减：来源项目的设计文档（[docs/design/2026-11-12-origin-audit.md](../../../docs/design/2026-11-12-origin-audit.md)）记有事件时间衰减和按需整理，本基准没有用到，也没有核实，所以写“未确认”。
+- dsh-fish-memory、dsh-prime-memory 的产品写入路径由模型决定存什么（前者经 remember 工具，后者从对话蒸馏），基准把每条记忆逐字写入，没有测模型的取舍。dsh-soul-md 基准里每条记忆写成一个 topic 文件，产品里一个 topic 通常合并几条。
+- Hindsight 的 `hindsight-llm-*` 两个配置按它服务端的默认路径运行（模型提取事实并归并成 observation）；`hindsight-chunks` 不用模型，每条记忆存成一个原文块。插件默认注入的 reflect 文字是模型写的，不是记忆列表，没有测；测的是服务端召回。
+- dsh-fish-memory 的 `expand-*` 两个配置让插件自己的后台关键词扩展用模型运行（写入仍是逐字，模型只补检索词）。

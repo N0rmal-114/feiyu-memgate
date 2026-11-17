@@ -1,21 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="590" viewBox="0 0 1000 590" role="img" lang="en">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="842" viewBox="0 0 1000 842" role="img" lang="en">
 <style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#52514e;font-size:13px}.t{font-size:17px;font-weight:600;fill:#0b0b0b}.l{font-size:13px;fill:#0b0b0b}.lb{font-size:13px;font-weight:600;fill:#0b0b0b}.s{font-size:11px;fill:#52514e}.grid{stroke:#e1e0d9;stroke-width:1;fill:none}.axis{stroke:#c3c2b7;stroke-width:1;fill:none}.tick{stroke:#0b0b0b;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#2a78d6}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
-<rect width="1000" height="590" fill="#fcfcfb"/>
+<rect width="1000" height="842" fill="#fcfcfb"/>
 <text x="24.0" y="32.0" class="t">Quiet rate: share of questions with no answer in memory that get nothing back</text>
 <rect x="24.0" y="47.0" width="14" height="8" rx="2" class="fa"/>
 <text x="46.0" y="56.0" class="s">feiyu-memgate configurations</text>
 <rect x="231.5" y="47.0" width="14" height="8" rx="2" class="fo"/>
 <text x="253.5" y="56.0" class="s">other projects</text>
-<line x1="330.0" y1="80.0" x2="330.0" y2="506.0" class="axis"/>
-<text x="330.0" y="524.0" class="s" text-anchor="middle">0%</text>
-<line x1="440.0" y1="80.0" x2="440.0" y2="506.0" class="grid"/>
-<text x="440.0" y="524.0" class="s" text-anchor="middle">25%</text>
-<line x1="550.0" y1="80.0" x2="550.0" y2="506.0" class="grid"/>
-<text x="550.0" y="524.0" class="s" text-anchor="middle">50%</text>
-<line x1="660.0" y1="80.0" x2="660.0" y2="506.0" class="grid"/>
-<text x="660.0" y="524.0" class="s" text-anchor="middle">75%</text>
-<line x1="770.0" y1="80.0" x2="770.0" y2="506.0" class="grid"/>
-<text x="770.0" y="524.0" class="s" text-anchor="middle">100%</text>
+<line x1="330.0" y1="80.0" x2="330.0" y2="758.0" class="axis"/>
+<text x="330.0" y="776.0" class="s" text-anchor="middle">0%</text>
+<line x1="440.0" y1="80.0" x2="440.0" y2="758.0" class="grid"/>
+<text x="440.0" y="776.0" class="s" text-anchor="middle">25%</text>
+<line x1="550.0" y1="80.0" x2="550.0" y2="758.0" class="grid"/>
+<text x="550.0" y="776.0" class="s" text-anchor="middle">50%</text>
+<line x1="660.0" y1="80.0" x2="660.0" y2="758.0" class="grid"/>
+<text x="660.0" y="776.0" class="s" text-anchor="middle">75%</text>
+<line x1="770.0" y1="80.0" x2="770.0" y2="758.0" class="grid"/>
+<text x="770.0" y="776.0" class="s" text-anchor="middle">100%</text>
 <text x="24.0" y="104.5" class="l">Graphiti</text>
 <text x="212.0" y="104.0" class="s">graph · LLM</text>
 <path d="M330.0,93.0 H689.0 A4.0,4.0 0 0 1 693.0,97.0 V103.0 A4.0,4.0 0 0 1 689.0,107.0 H330.0 Z" fill="#898781"/>
@@ -36,39 +36,75 @@
 <text x="212.0" y="216.0" class="s">hybrid</text>
 <path d="M330.0,205.0 H480.0 A4.0,4.0 0 0 1 484.0,209.0 V215.0 A4.0,4.0 0 0 1 480.0,219.0 H330.0 Z" fill="#2a78d6"/>
 <text x="492.0" y="216.5" class="lb">35.0%</text>
-<text x="24.0" y="244.5" class="l">feiyu-memgate embedding</text>
-<text x="212.0" y="244.0" class="s">vector</text>
-<path d="M330.0,233.0 H469.0 A4.0,4.0 0 0 1 473.0,237.0 V243.0 A4.0,4.0 0 0 1 469.0,247.0 H330.0 Z" fill="#2a78d6"/>
+<text x="24.0" y="244.5" class="l">dsh-fish-memory</text>
+<text x="212.0" y="244.0" class="s">keyword</text>
+<path d="M330.0,233.0 H469.0 A4.0,4.0 0 0 1 473.0,237.0 V243.0 A4.0,4.0 0 0 1 469.0,247.0 H330.0 Z" fill="#898781"/>
 <text x="481.0" y="244.5" class="lb">32.5%</text>
-<text x="24.0" y="272.5" class="l">SeekMemory</text>
-<text x="212.0" y="272.0" class="s">keyword</text>
-<path d="M330.0,261.0 H425.0 A4.0,4.0 0 0 1 429.0,265.0 V271.0 A4.0,4.0 0 0 1 425.0,275.0 H330.0 Z" fill="#898781"/>
-<text x="437.0" y="272.5" class="lb">22.5%</text>
-<text x="24.0" y="300.5" class="l">meow-memory</text>
-<text x="212.0" y="300.0" class="s">keyword</text>
-<path d="M330.0,289.0 H370.0 A4.0,4.0 0 0 1 374.0,293.0 V299.0 A4.0,4.0 0 0 1 370.0,303.0 H330.0 Z" fill="#898781"/>
-<text x="382.0" y="300.5" class="lb">10.0%</text>
-<text x="24.0" y="328.5" class="l">dsh-mnemon</text>
-<text x="212.0" y="328.0" class="s">keyword</text>
-<text x="338.0" y="328.5" class="lb">0.0%</text>
-<text x="24.0" y="356.5" class="l">dsh-mnemon + embeddings</text>
-<text x="212.0" y="356.0" class="s">hybrid</text>
-<text x="338.0" y="356.5" class="lb">0.0%</text>
-<text x="24.0" y="384.5" class="l">lingshu</text>
+<text x="24.0" y="266.5" class="l">dsh-fish-memory</text>
+<text x="24.0" y="278.5" class="s">+ claude-haiku-5-5 expansion</text>
+<text x="212.0" y="272.0" class="s">keyword · LLM</text>
+<path d="M330.0,261.0 H469.0 A4.0,4.0 0 0 1 473.0,265.0 V271.0 A4.0,4.0 0 0 1 469.0,275.0 H330.0 Z" fill="#898781"/>
+<text x="481.0" y="272.5" class="lb">32.5%</text>
+<text x="24.0" y="294.5" class="l">dsh-fish-memory</text>
+<text x="24.0" y="306.5" class="s">+ deepseek-flash expansion</text>
+<text x="212.0" y="300.0" class="s">keyword · LLM</text>
+<path d="M330.0,289.0 H469.0 A4.0,4.0 0 0 1 473.0,293.0 V299.0 A4.0,4.0 0 0 1 469.0,303.0 H330.0 Z" fill="#898781"/>
+<text x="481.0" y="300.5" class="lb">32.5%</text>
+<text x="24.0" y="328.5" class="l">feiyu-memgate embedding</text>
+<text x="212.0" y="328.0" class="s">vector</text>
+<path d="M330.0,317.0 H469.0 A4.0,4.0 0 0 1 473.0,321.0 V327.0 A4.0,4.0 0 0 1 469.0,331.0 H330.0 Z" fill="#2a78d6"/>
+<text x="481.0" y="328.5" class="lb">32.5%</text>
+<text x="24.0" y="356.5" class="l">SeekMemory</text>
+<text x="212.0" y="356.0" class="s">keyword</text>
+<path d="M330.0,345.0 H425.0 A4.0,4.0 0 0 1 429.0,349.0 V355.0 A4.0,4.0 0 0 1 425.0,359.0 H330.0 Z" fill="#898781"/>
+<text x="437.0" y="356.5" class="lb">22.5%</text>
+<text x="24.0" y="384.5" class="l">dsh-soul-md</text>
 <text x="212.0" y="384.0" class="s">keyword</text>
-<text x="338.0" y="384.5" class="lb">0.0%</text>
-<text x="24.0" y="412.5" class="l">mem0 (LLM extraction)</text>
-<text x="212.0" y="412.0" class="s">extraction · LLM</text>
-<text x="338.0" y="412.5" class="lb">0.0%</text>
-<text x="24.0" y="440.5" class="l">mem0 (verbatim)</text>
-<text x="212.0" y="440.0" class="s">vector</text>
-<text x="338.0" y="440.5" class="lb">0.0%</text>
-<text x="24.0" y="468.5" class="l">memsearch</text>
-<text x="212.0" y="468.0" class="s">hybrid</text>
+<path d="M330.0,373.0 H370.0 A4.0,4.0 0 0 1 374.0,377.0 V383.0 A4.0,4.0 0 0 1 370.0,387.0 H330.0 Z" fill="#898781"/>
+<text x="382.0" y="384.5" class="lb">10.0%</text>
+<text x="24.0" y="412.5" class="l">meow-memory</text>
+<text x="212.0" y="412.0" class="s">keyword</text>
+<path d="M330.0,401.0 H370.0 A4.0,4.0 0 0 1 374.0,405.0 V411.0 A4.0,4.0 0 0 1 370.0,415.0 H330.0 Z" fill="#898781"/>
+<text x="382.0" y="412.5" class="lb">10.0%</text>
+<text x="24.0" y="440.5" class="l">dsh-prime-memory</text>
+<text x="212.0" y="440.0" class="s">keyword</text>
+<path d="M330.0,429.0 H337.0 A4.0,4.0 0 0 1 341.0,433.0 V439.0 A4.0,4.0 0 0 1 337.0,443.0 H330.0 Z" fill="#898781"/>
+<text x="349.0" y="440.5" class="lb">2.5%</text>
+<text x="24.0" y="468.5" class="l">dsh-mnemon</text>
+<text x="212.0" y="468.0" class="s">keyword</text>
 <text x="338.0" y="468.5" class="lb">0.0%</text>
-<text x="24.0" y="496.5" class="l">OpenViking</text>
-<text x="212.0" y="496.0" class="s">vector</text>
+<text x="24.0" y="496.5" class="l">dsh-mnemon + embeddings</text>
+<text x="212.0" y="496.0" class="s">hybrid</text>
 <text x="338.0" y="496.5" class="lb">0.0%</text>
-<text x="24.0" y="556.0" class="s">A system that always returns its top-k scores 0 by construction. A high rate is not simply good: it trades off against hit rate. 40 no-answer questions.</text>
-<text x="24.0" y="574.0" class="s">bench/results/summary.md · 240 memories, 160 questions · 2026-11-16</text>
+<text x="24.0" y="518.5" class="l">dsh-prime-memory</text>
+<text x="24.0" y="530.5" class="s">+ embeddings</text>
+<text x="212.0" y="524.0" class="s">hybrid</text>
+<text x="338.0" y="524.5" class="lb">0.0%</text>
+<text x="24.0" y="552.5" class="l">Hindsight (no model)</text>
+<text x="212.0" y="552.0" class="s">hybrid</text>
+<text x="338.0" y="552.5" class="lb">0.0%</text>
+<text x="24.0" y="574.5" class="l">Hindsight</text>
+<text x="24.0" y="586.5" class="s">(claude-haiku-5-5)</text>
+<text x="212.0" y="580.0" class="s">extraction · LLM</text>
+<text x="338.0" y="580.5" class="lb">0.0%</text>
+<text x="24.0" y="608.5" class="l">Hindsight (deepseek-flash)</text>
+<text x="212.0" y="608.0" class="s">extraction · LLM</text>
+<text x="338.0" y="608.5" class="lb">0.0%</text>
+<text x="24.0" y="636.5" class="l">lingshu</text>
+<text x="212.0" y="636.0" class="s">keyword</text>
+<text x="338.0" y="636.5" class="lb">0.0%</text>
+<text x="24.0" y="664.5" class="l">mem0 (LLM extraction)</text>
+<text x="212.0" y="664.0" class="s">extraction · LLM</text>
+<text x="338.0" y="664.5" class="lb">0.0%</text>
+<text x="24.0" y="692.5" class="l">mem0 (verbatim)</text>
+<text x="212.0" y="692.0" class="s">vector</text>
+<text x="338.0" y="692.5" class="lb">0.0%</text>
+<text x="24.0" y="720.5" class="l">memsearch</text>
+<text x="212.0" y="720.0" class="s">hybrid</text>
+<text x="338.0" y="720.5" class="lb">0.0%</text>
+<text x="24.0" y="748.5" class="l">OpenViking</text>
+<text x="212.0" y="748.0" class="s">vector</text>
+<text x="338.0" y="748.5" class="lb">0.0%</text>
+<text x="24.0" y="808.0" class="s">A system that always returns its top-k scores 0 by construction. A high rate is not simply good: it trades off against hit rate. 40 no-answer questions.</text>
+<text x="24.0" y="826.0" class="s">bench/results/summary.md · 240 memories, 160 questions · 2026-11-17</text>
 </svg>

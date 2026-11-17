@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="616" viewBox="0 0 1000 616" role="img" lang="en">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="670" viewBox="0 0 1000 670" role="img" lang="en">
 <style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#c3c2b7;font-size:13px}.t{font-size:17px;font-weight:600;fill:#f0efec}.l{font-size:13px;fill:#f0efec}.lb{font-size:13px;font-weight:600;fill:#f0efec}.s{font-size:11px;fill:#c3c2b7}.grid{stroke:#2c2c2a;stroke-width:1;fill:none}.axis{stroke:#383835;stroke-width:1;fill:none}.tick{stroke:#f0efec;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#3987e5}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
-<rect width="1000" height="616" fill="#1a1a19"/>
+<rect width="1000" height="670" fill="#1a1a19"/>
 <text x="24.0" y="32.0" class="t">Broad (default) versus precise profile: switching to precise lowers the hit, raises precision (log x)</text>
 <rect x="24.0" y="47.0" width="14" height="8" rx="2" class="fa"/>
 <text x="46.0" y="56.0" class="s">feiyu-memgate configurations</text>
@@ -38,10 +38,19 @@
 <circle cx="879.2" cy="465.0" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
 <circle cx="750.2" cy="446.3" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
 <circle cx="877.0" cy="464.9" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="966.0" cy="479.9" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="966.0" cy="479.6" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
 <circle cx="474.7" cy="337.3" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="966.0" cy="480.0" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="623.2" cy="419.4" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
 <circle cx="582.0" cy="484.0" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="610.1" cy="425.2" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="579.1" cy="417.5" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
 <circle cx="586.3" cy="418.5" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
 <circle cx="434.5" cy="366.7" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="449.3" cy="363.3" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="451.1" cy="365.3" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="460.2" cy="364.4" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
 <circle cx="329.4" cy="343.1" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
 <circle cx="107.5" cy="307.2" r="4" fill="#898781" stroke="#1a1a19" stroke-width="2"/>
 <line x1="327.7" y1="173.3" x2="483.7" y2="262.8" class="lead" stroke-width="2" stroke="#3987e5"/>
@@ -76,7 +85,10 @@
 <text x="153.5" y="133.6" class="l" text-anchor="end">sqlite 39%</text>
 <text x="215.6" y="162.3" class="l" text-anchor="middle">sqlite 47%</text>
 <text x="24.0" y="546.0" class="s">number after a label: deployed hit; filled = broad profile (the default), hollow = precise profile, the arrow points from precise to broad, the direction of delivering more. full</text>
-<text x="24.0" y="564.0" class="s">sits almost on top of hybrid at both profiles (it only adds freshness) and is not drawn separately. Grey dots are other projects; unlabelled: mem0 (LLM extraction),</text>
-<text x="24.0" y="582.0" class="s">dsh-mnemon + embeddings, lingshu, SeekMemory, meow-memory, dsh-mnemon, Graphiti.</text>
-<text x="24.0" y="600.0" class="s">bench/results/summary.md · 240 memories, 160 questions · 2026-11-16</text>
+<text x="24.0" y="564.0" class="s">sits almost on top of hybrid at both profiles (it only adds freshness) and is not drawn separately. Grey dots are other projects; unlabelled: mem0 (LLM extraction), Hindsight</text>
+<text x="24.0" y="582.0" class="s">(deepseek-flash), Hindsight (claude-haiku-5-5), dsh-mnemon + embeddings, Hindsight (no model), dsh-prime-memory + embeddings, lingshu, dsh-prime-memory, dsh-soul-md,</text>
+<text x="24.0" y="600.0" class="s">SeekMemory, meow-memory, dsh-fish-memory + deepseek-flash expansion, dsh-fish-memory + claude-haiku-5-5 expansion, dsh-fish-memory, dsh-mnemon, Graphiti. The axis</text>
+<text x="24.0" y="618.0" class="s">ends at 32 items; points that deliver more are drawn at the right edge (actual items: Hindsight (deepseek-flash) 92.0, Hindsight (claude-haiku-5-5) 84.0, Hindsight (no model)</text>
+<text x="24.0" y="636.0" class="s">93.5).</text>
+<text x="24.0" y="654.0" class="s">bench/results/summary.md · 240 memories, 160 questions · 2026-11-17</text>
 </svg>

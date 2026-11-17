@@ -121,6 +121,7 @@ TXT = {
         "t_profiles": "宽松档（默认）与精确档：同一配置换到精确档，命中降多少、精确率升多少（横轴每题平均交付条数，对数轴）",
         "profiles_hint": "标签后的数字：交付命中率；实心是宽松档（默认），空心是精确档，箭头从精确档指向宽松档，也就是多交付的方向。",
         "profiles_others": "灰点是其他项目；未标注的：%s。",
+        "profiles_off": "横轴只到 32 条；每题交得更多的点画在右边缘（实际条数：%s）。",
         "profiles_full": "full 的两个点和 hybrid 的几乎重合（只多了新鲜度），没有单独画。",
     },
     "en": {
@@ -184,6 +185,7 @@ TXT = {
         "t_profiles": "Broad (default) versus precise profile: switching to precise lowers the hit, raises precision (log x)",
         "profiles_hint": "number after a label: deployed hit; filled = broad profile (the default), hollow = precise profile, the arrow points from precise to broad, the direction of delivering more.",
         "profiles_others": "Grey dots are other projects; unlabelled: %s.",
+        "profiles_off": "The axis ends at 32 items; points that deliver more are drawn at the right edge (actual items: %s).",
         "profiles_full": "full sits almost on top of hybrid at both profiles (it only adds freshness) and is not drawn separately.",
     },
 }
@@ -369,9 +371,27 @@ def family_legend(t):
     return [("fa", t["family_fmg"]), ("fo", t["family_other"])]
 
 
+def label_lines(label, max_width, size=SIZE_LABEL):
+    """One line when the label fits; otherwise two: the name, and a smaller second line that starts at the first
+    ' + ', full-width bracket or ' (' (a long configuration name must not run into the next column)."""
+    if text_width(label, size) <= max_width:
+        return [label]
+    for sep, skip in ((" + ", 1), ("（", 0), (" (", 1)):
+        i = label.find(sep)
+        if i > 0:
+            return [label[:i], label[i + skip:]]
+    return [label]
+
+
 def row_label(doc, rec, systems, y_center, with_tag=True):
     t = doc.t
-    doc.text(LABEL_X, y_center + 4.5, label_of(rec["system"], systems, doc.lang), "l")
+    label = label_of(rec["system"], systems, doc.lang)
+    lines = label_lines(label, (TAG_X if with_tag else 214) - LABEL_X - 8)
+    if len(lines) == 1:
+        doc.text(LABEL_X, y_center + 4.5, label, "l")
+    else:
+        doc.text(LABEL_X, y_center - 1.5, lines[0], "l")
+        doc.text(LABEL_X, y_center + 10.5, lines[1], "s")
     if with_tag:
         tag = t["kinds"].get(rec.get("kind"), rec.get("kind") or "")
         if rec.get("llm"):
@@ -553,11 +573,11 @@ def _segment_in_box(seg, box, pad=2.0, steps=16):
                and box[1] - pad <= y1 + (y2 - y1) * k / steps <= box[3] + pad)
 
 
-def items_precision_frame(doc, left, right, top, plot_h):
+def items_precision_frame(doc, left, right, top, plot_h, hi=32.0):
     """Grid and axis titles of the `delivered` scatter (x: items per question, log; y: precision), shared with
     `profiles`; returns the functions mapping a value to x and to y."""
     t = doc.t
-    lo, hi = 0.25, 32.0
+    lo = 0.25
 
     def px(v):
         return left + (math.log2(v) - math.log2(lo)) / (math.log2(hi) - math.log2(lo)) * (right - left)
@@ -568,7 +588,7 @@ def items_precision_frame(doc, left, right, top, plot_h):
     for tick in (0, 0.25, 0.5, 0.75, 1.0):
         doc.line(left, py(tick), right, py(tick), "axis" if tick == 0 else "grid")
         doc.text(left - 8, py(tick) + 4, "%d%%" % round(tick * 100), "s", "end")
-    for v in (0.25, 0.5, 1, 2, 4, 8, 16, 32):
+    for v in [x for x in (0.25, 0.5, 1, 2, 4, 8, 16, 32, 64, 128, 256) if x <= hi]:
         doc.line(px(v), top, px(v), top + plot_h, "grid")
         doc.text(px(v), top + plot_h + 18, ("%g" % v), "s", "middle")
     doc.text((left + right) / 2, top + plot_h + 38, t["delivered_x"], "s", "middle")
@@ -590,7 +610,9 @@ def chart_delivered(summary, systems, theme, lang):
     height = top + plot_h + 78 + 40
     doc = new_doc(summary, theme, lang, height)
     header(doc, t["t_delivered"], family_legend(t))
-    px, py = items_precision_frame(doc, left, right, top, plot_h)
+    # the axis ends at 32 items; a system that delivers more (Hindsight: 84 to 94) widens it to the next power of two
+    most = max([r["overall"]["avg_items"] for r in pts] or [1])
+    px, py = items_precision_frame(doc, left, right, top, plot_h, hi=32.0 if most <= 32 else 2.0 ** math.ceil(math.log2(most)))
     corner = t["delivered_corner"]
     corner_box = (left + 6, top + 4, left + 6 + text_width(corner, SIZE_SMALL), top + 20)
     doc.text(left + 6, top + 16, corner, "s")
@@ -653,7 +675,7 @@ def chart_cost(summary, systems, theme, lang):
     doc = new_doc(summary, theme, lang, height)
     header(doc, t["t_cost"], family_legend(t))
     panels = (
-        {"x0": 214, "w": 230, "lo": 1.0, "hi": 1000.0, "ticks": (1, 10, 100, 1000), "title": t["cost_lat"],
+        {"x0": 214, "w": 230, "lo": 1.0, "hi": 2000.0, "ticks": (1, 10, 100, 1000), "title": t["cost_lat"],
          "get": lambda r: r["overall"].get("latency_p50_ms")},
         {"x0": 530, "w": 230, "lo": 0.01, "hi": 2000.0, "ticks": (0.01, 0.1, 1, 10, 100, 1000),
          "title": t["cost_ing"], "get": lambda r: r.get("ingest_seconds")},
@@ -1202,8 +1224,9 @@ def chart_profiles(summary, systems, theme, lang):
 
     def xy(rec):
         o = rec["overall"]
-        return px(o["avg_items"]), py(o["precision"])
+        return min(px(o["avg_items"]), right), py(o["precision"])   # beyond 32 items: pinned to the right edge, said in the note
 
+    off_axis = [r for r in greys if r["overall"]["avg_items"] > 32.0]
     for rec in greys:
         x, y = xy(rec)
         doc.circle(x, y, 4, neutral)
@@ -1239,6 +1262,9 @@ def chart_profiles(summary, systems, theme, lang):
         note += " " + t["profiles_full"]
     if unnamed:
         note += " " + t["profiles_others"] % ", ".join(unnamed)
+    if off_axis:
+        note += " " + t["profiles_off"] % ", ".join("%s %.1f" % (label_of(r["system"], systems, lang), r["overall"]["avg_items"])
+                                                    for r in off_axis)
     if skipped:
         note += " " + t["delivered_skip"] % ", ".join(label_of(r["system"], systems, lang) for r in skipped)
     footer(doc, summary, top + plot_h + 62, note)

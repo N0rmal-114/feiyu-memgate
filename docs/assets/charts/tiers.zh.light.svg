@@ -141,5 +141,5 @@
 <text x="24.0" y="356.0" class="s">四栏柱子来自留出集的运行（各档用各自模型的预设分数线、默认召回步骤，默认是宽松档）；后三栏里的黑色短竖线是同一档固定为精确档（profile =</text>
 <text x="24.0" y="374.0" class="s">precise）的值。内存和模型文件大小是在开发集运行时测的（见 bench/tiers.json 和 bench/experiments/light_models/）：模型加载后 embedder</text>
 <text x="24.0" y="392.0" class="s">容器的常驻内存，测量时机器上还有别的容器，只当量级看。按内存从小到大排列；sqlite 不需要模型和服务。</text>
-<text x="24.0" y="410.0" class="s">bench/results/summary.md · 240 条记忆，160 个问题 · 2026-11-16</text>
+<text x="24.0" y="410.0" class="s">bench/results/summary.md · 240 条记忆，160 个问题 · 2026-11-17</text>
 </svg>

@@ -1,0 +1,10314 @@
+{
+ "system": "dsh-prime-memory",
+ "version": "0.26.55 (npm package; git a909278)",
+ "mode": "direct L1 writes through memory_add (high-privilege mode on, no model-driven extraction), embeddings off (plugin default), default recall strategy hybrid = keyword retrieval only",
+ "how": "memory_add.execute({content, created_at, updated_at}) per memory (registered by apply(ctx, config)); ranked = memory_search.execute({query, limit:10}) (L1Store.search, keyword/BM25 over a jieba + CJK bigram tokenised FTS index); deployed = the agent/pre-step hook chain: L1Store.search(query, 5, scoreThreshold 0.3) -> domain soft gate -> freshness weighting -> per-session de-duplication -> character budget (500 per memory, 2000 total) -> '<relevant-memories>' injection message",
+ "ingest_seconds": 0.1939,
+ "llm_tokens": 0,
+ "llm_cost_cny": 0,
+ "answers": {
+  "q001": {
+   "ranked": [
+    {
+     "id": "m002",
+     "score": 0.97
+    },
+    {
+     "id": "m228",
+     "score": 0.92
+    },
+    {
+     "id": "m116",
+     "score": 0.9
+    },
+    {
+     "id": "m123",
+     "score": 0.9
+    },
+    {
+     "id": "m026",
+     "score": 0.9
+    },
+    {
+     "id": "m038",
+     "score": 0.9
+    },
+    {
+     "id": "m232",
+     "score": 0.9
+    },
+    {
+     "id": "m149",
+     "score": 0.89
+    },
+    {
+     "id": "m051",
+     "score": 0.88
+    },
+    {
+     "id": "m154",
+     "score": 0.87
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m002",
+     "score": 5,
+     "chars": 30
+    },
+    {
+     "id": "m228",
+     "score": 4,
+     "chars": 26
+    },
+    {
+     "id": "m116",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m123",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m026",
+     "score": 1,
+     "chars": 24
+    }
+   ],
+   "ms": 0.9452
+  },
+  "q002": {
+   "ranked": [
+    {
+     "id": "m009",
+     "score": 0.97
+    },
+    {
+     "id": "m207",
+     "score": 0.81
+    },
+    {
+     "id": "m123",
+     "score": 0.8
+    },
+    {
+     "id": "m217",
+     "score": 0.79
+    },
+    {
+     "id": "m033",
+     "score": 0.78
+    },
+    {
+     "id": "m174",
+     "score": 0.78
+    },
+    {
+     "id": "m002",
+     "score": 0.77
+    },
+    {
+     "id": "m010",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m009",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m207",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m123",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m217",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m033",
+     "score": 1,
+     "chars": 28
+    }
+   ],
+   "ms": 0.6325
+  },
+  "q003": {
+   "ranked": [
+    {
+     "id": "m239",
+     "score": 0.77
+    },
+    {
+     "id": "m011",
+     "score": 0.95
+    },
+    {
+     "id": "m095",
+     "score": 0.81
+    },
+    {
+     "id": "m153",
+     "score": 0.81
+    },
+    {
+     "id": "m089",
+     "score": 0.8
+    },
+    {
+     "id": "m071",
+     "score": 0.8
+    },
+    {
+     "id": "m053",
+     "score": 0.79
+    },
+    {
+     "id": "m164",
+     "score": 0.79
+    },
+    {
+     "id": "m080",
+     "score": 0.78
+    },
+    {
+     "id": "m116",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m011",
+     "score": 5,
+     "chars": 22
+    },
+    {
+     "id": "m095",
+     "score": 4,
+     "chars": 26
+    },
+    {
+     "id": "m153",
+     "score": 3,
+     "chars": 22
+    },
+    {
+     "id": "m089",
+     "score": 2,
+     "chars": 25
+    },
+    {
+     "id": "m239",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.8136
+  },
+  "q004": {
+   "ranked": [
+    {
+     "id": "m026",
+     "score": 0.97
+    },
+    {
+     "id": "m159",
+     "score": 0.84
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m026",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m159",
+     "score": 1,
+     "chars": 18
+    }
+   ],
+   "ms": 0.4182
+  },
+  "q005": {
+   "ranked": [
+    {
+     "id": "m003",
+     "score": 0.96
+    },
+    {
+     "id": "m087",
+     "score": 0.94
+    },
+    {
+     "id": "m160",
+     "score": 0.87
+    },
+    {
+     "id": "m099",
+     "score": 0.81
+    },
+    {
+     "id": "m188",
+     "score": 0.79
+    },
+    {
+     "id": "m208",
+     "score": 0.78
+    },
+    {
+     "id": "m206",
+     "score": 0.78
+    },
+    {
+     "id": "m223",
+     "score": 0.78
+    },
+    {
+     "id": "m201",
+     "score": 0.78
+    },
+    {
+     "id": "m034",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m003",
+     "score": 5,
+     "chars": 28
+    },
+    {
+     "id": "m087",
+     "score": 4,
+     "chars": 28
+    },
+    {
+     "id": "m160",
+     "score": 3,
+     "chars": 22
+    },
+    {
+     "id": "m099",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m188",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.6211
+  },
+  "q006": {
+   "ranked": [
+    {
+     "id": "m238",
+     "score": 0.88
+    },
+    {
+     "id": "m237",
+     "score": 0.76
+    },
+    {
+     "id": "m004",
+     "score": 0.95
+    },
+    {
+     "id": "m111",
+     "score": 0.88
+    },
+    {
+     "id": "m076",
+     "score": 0.82
+    },
+    {
+     "id": "m088",
+     "score": 0.81
+    },
+    {
+     "id": "m068",
+     "score": 0.81
+    },
+    {
+     "id": "m042",
+     "score": 0.76
+    },
+    {
+     "id": "m086",
+     "score": 0.76
+    },
+    {
+     "id": "m096",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m238",
+     "score": 5,
+     "chars": 22
+    },
+    {
+     "id": "m237",
+     "score": 4,
+     "chars": 19
+    },
+    {
+     "id": "m004",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m111",
+     "score": 2,
+     "chars": 25
+    },
+    {
+     "id": "m076",
+     "score": 1,
+     "chars": 26
+    }
+   ],
+   "ms": 0.6278
+  },
+  "q007": {
+   "ranked": [
+    {
+     "id": "m013",
+     "score": 0.96
+    },
+    {
+     "id": "m197",
+     "score": 0.88
+    },
+    {
+     "id": "m018",
+     "score": 0.79
+    },
+    {
+     "id": "m214",
+     "score": 0.79
+    },
+    {
+     "id": "m178",
+     "score": 0.78
+    },
+    {
+     "id": "m165",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m013",
+     "score": 5,
+     "chars": 24
+    },
+    {
+     "id": "m197",
+     "score": 4,
+     "chars": 30
+    },
+    {
+     "id": "m018",
+     "score": 3,
+     "chars": 21
+    },
+    {
+     "id": "m214",
+     "score": 2,
+     "chars": 25
+    },
+    {
+     "id": "m178",
+     "score": 1,
+     "chars": 22
+    }
+   ],
+   "ms": 0.4297
+  },
+  "q008": {
+   "ranked": [
+    {
+     "id": "m236",
+     "score": 0.78
+    },
+    {
+     "id": "m035",
+     "score": 0.95
+    },
+    {
+     "id": "m221",
+     "score": 0.92
+    },
+    {
+     "id": "m079",
+     "score": 0.79
+    },
+    {
+     "id": "m122",
+     "score": 0.79
+    },
+    {
+     "id": "m163",
+     "score": 0.79
+    },
+    {
+     "id": "m192",
+     "score": 0.78
+    },
+    {
+     "id": "m223",
+     "score": 0.78
+    },
+    {
+     "id": "m142",
+     "score": 0.77
+    },
+    {
+     "id": "m230",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m236",
+     "score": 5,
+     "chars": 25
+    },
+    {
+     "id": "m035",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m221",
+     "score": 3,
+     "chars": 28
+    },
+    {
+     "id": "m079",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m122",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.821
+  },
+  "q009": {
+   "ranked": [
+    {
+     "id": "m007",
+     "score": 0.94
+    },
+    {
+     "id": "m112",
+     "score": 0.9
+    },
+    {
+     "id": "m061",
+     "score": 0.81
+    },
+    {
+     "id": "m152",
+     "score": 0.81
+    },
+    {
+     "id": "m010",
+     "score": 0.79
+    },
+    {
+     "id": "m098",
+     "score": 0.76
+    },
+    {
+     "id": "m105",
+     "score": 0.76
+    },
+    {
+     "id": "m215",
+     "score": 0.76
+    },
+    {
+     "id": "m142",
+     "score": 0.75
+    },
+    {
+     "id": "m230",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m007",
+     "score": 5,
+     "chars": 29
+    },
+    {
+     "id": "m112",
+     "score": 4,
+     "chars": 22
+    },
+    {
+     "id": "m061",
+     "score": 3,
+     "chars": 32
+    },
+    {
+     "id": "m152",
+     "score": 2,
+     "chars": 28
+    },
+    {
+     "id": "m010",
+     "score": 1,
+     "chars": 30
+    }
+   ],
+   "ms": 0.5476
+  },
+  "q010": {
+   "ranked": [
+    {
+     "id": "m127",
+     "score": 0.91
+    },
+    {
+     "id": "m121",
+     "score": 0.89
+    },
+    {
+     "id": "m059",
+     "score": 0.81
+    },
+    {
+     "id": "m147",
+     "score": 0.8
+    },
+    {
+     "id": "m038",
+     "score": 0.79
+    },
+    {
+     "id": "m015",
+     "score": 0.75
+    },
+    {
+     "id": "m028",
+     "score": 0.75
+    },
+    {
+     "id": "m194",
+     "score": 0.75
+    },
+    {
+     "id": "m096",
+     "score": 0.75
+    },
+    {
+     "id": "m008",
+     "score": 0.74
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m127",
+     "score": 5,
+     "chars": 26
+    },
+    {
+     "id": "m121",
+     "score": 4,
+     "chars": 20
+    },
+    {
+     "id": "m059",
+     "score": 3,
+     "chars": 19
+    },
+    {
+     "id": "m147",
+     "score": 2,
+     "chars": 29
+    },
+    {
+     "id": "m038",
+     "score": 1,
+     "chars": 27
+    }
+   ],
+   "ms": 0.805
+  },
+  "q011": {
+   "ranked": [
+    {
+     "id": "m072",
+     "score": 0.94
+    },
+    {
+     "id": "m148",
+     "score": 0.87
+    },
+    {
+     "id": "m138",
+     "score": 0.82
+    },
+    {
+     "id": "m130",
+     "score": 0.76
+    },
+    {
+     "id": "m062",
+     "score": 0.75
+    },
+    {
+     "id": "m143",
+     "score": 0.75
+    },
+    {
+     "id": "m015",
+     "score": 0.75
+    },
+    {
+     "id": "m028",
+     "score": 0.75
+    },
+    {
+     "id": "m194",
+     "score": 0.75
+    },
+    {
+     "id": "m096",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m072",
+     "score": 5,
+     "chars": 25
+    },
+    {
+     "id": "m148",
+     "score": 4,
+     "chars": 31
+    },
+    {
+     "id": "m138",
+     "score": 3,
+     "chars": 27
+    },
+    {
+     "id": "m130",
+     "score": 2,
+     "chars": 18
+    },
+    {
+     "id": "m062",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.6723
+  },
+  "q012": {
+   "ranked": [
+    {
+     "id": "m076",
+     "score": 0.95
+    },
+    {
+     "id": "m235",
+     "score": 0.75
+    },
+    {
+     "id": "m017",
+     "score": 0.83
+    },
+    {
+     "id": "m158",
+     "score": 0.81
+    },
+    {
+     "id": "m189",
+     "score": 0.8
+    },
+    {
+     "id": "m013",
+     "score": 0.75
+    },
+    {
+     "id": "m119",
+     "score": 0.75
+    },
+    {
+     "id": "m001",
+     "score": 0.75
+    },
+    {
+     "id": "m007",
+     "score": 0.74
+    },
+    {
+     "id": "m019",
+     "score": 0.74
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m076",
+     "score": 5,
+     "chars": 26
+    },
+    {
+     "id": "m235",
+     "score": 4,
+     "chars": 23
+    },
+    {
+     "id": "m017",
+     "score": 3,
+     "chars": 28
+    },
+    {
+     "id": "m158",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m189",
+     "score": 1,
+     "chars": 24
+    }
+   ],
+   "ms": 0.74
+  },
+  "q013": {
+   "ranked": [
+    {
+     "id": "m105",
+     "score": 0.97
+    },
+    {
+     "id": "m235",
+     "score": 0.75
+    },
+    {
+     "id": "m007",
+     "score": 0.86
+    },
+    {
+     "id": "m157",
+     "score": 0.81
+    },
+    {
+     "id": "m141",
+     "score": 0.81
+    },
+    {
+     "id": "m112",
+     "score": 0.78
+    },
+    {
+     "id": "m098",
+     "score": 0.76
+    },
+    {
+     "id": "m076",
+     "score": 0.76
+    },
+    {
+     "id": "m215",
+     "score": 0.76
+    },
+    {
+     "id": "m142",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m105",
+     "score": 5,
+     "chars": 24
+    },
+    {
+     "id": "m235",
+     "score": 4,
+     "chars": 23
+    },
+    {
+     "id": "m007",
+     "score": 3,
+     "chars": 29
+    },
+    {
+     "id": "m157",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m141",
+     "score": 1,
+     "chars": 26
+    }
+   ],
+   "ms": 0.5221
+  },
+  "q014": {
+   "ranked": [
+    {
+     "id": "m114",
+     "score": 0.98
+    },
+    {
+     "id": "m135",
+     "score": 0.83
+    },
+    {
+     "id": "m231",
+     "score": 0.83
+    },
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m167",
+     "score": 0.81
+    },
+    {
+     "id": "m042",
+     "score": 0.81
+    },
+    {
+     "id": "m225",
+     "score": 0.8
+    },
+    {
+     "id": "m104",
+     "score": 0.8
+    },
+    {
+     "id": "m161",
+     "score": 0.79
+    },
+    {
+     "id": "m097",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m114",
+     "score": 5,
+     "chars": 24
+    },
+    {
+     "id": "m135",
+     "score": 4,
+     "chars": 19
+    },
+    {
+     "id": "m231",
+     "score": 3,
+     "chars": 27
+    },
+    {
+     "id": "m050",
+     "score": 2,
+     "chars": 29
+    },
+    {
+     "id": "m167",
+     "score": 1,
+     "chars": 27
+    }
+   ],
+   "ms": 0.6147
+  },
+  "q015": {
+   "ranked": [
+    {
+     "id": "m061",
+     "score": 0.97
+    },
+    {
+     "id": "m056",
+     "score": 0.96
+    },
+    {
+     "id": "m069",
+     "score": 0.83
+    },
+    {
+     "id": "m058",
+     "score": 0.76
+    },
+    {
+     "id": "m015",
+     "score": 0.76
+    },
+    {
+     "id": "m001",
+     "score": 0.75
+    },
+    {
+     "id": "m201",
+     "score": 0.75
+    },
+    {
+     "id": "m029",
+     "score": 0.74
+    },
+    {
+     "id": "m169",
+     "score": 0.74
+    },
+    {
+     "id": "m198",
+     "score": 0.74
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m061",
+     "score": 5,
+     "chars": 32
+    },
+    {
+     "id": "m056",
+     "score": 4,
+     "chars": 22
+    },
+    {
+     "id": "m069",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m058",
+     "score": 2,
+     "chars": 20
+    },
+    {
+     "id": "m015",
+     "score": 1,
+     "chars": 22
+    }
+   ],
+   "ms": 0.6983
+  },
+  "q016": {
+   "ranked": [
+    {
+     "id": "m082",
+     "score": 0.97
+    },
+    {
+     "id": "m085",
+     "score": 0.92
+    },
+    {
+     "id": "m087",
+     "score": 0.92
+    },
+    {
+     "id": "m230",
+     "score": 0.89
+    },
+    {
+     "id": "m168",
+     "score": 0.8
+    },
+    {
+     "id": "m218",
+     "score": 0.79
+    },
+    {
+     "id": "m093",
+     "score": 0.78
+    },
+    {
+     "id": "m017",
+     "score": 0.77
+    },
+    {
+     "id": "m032",
+     "score": 0.77
+    },
+    {
+     "id": "m048",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m082",
+     "score": 5,
+     "chars": 27
+    },
+    {
+     "id": "m085",
+     "score": 4,
+     "chars": 25
+    },
+    {
+     "id": "m087",
+     "score": 3,
+     "chars": 28
+    },
+    {
+     "id": "m230",
+     "score": 2,
+     "chars": 31
+    },
+    {
+     "id": "m168",
+     "score": 1,
+     "chars": 25
+    }
+   ],
+   "ms": 0.6472
+  },
+  "q017": {
+   "ranked": [
+    {
+     "id": "m109",
+     "score": 0.96
+    },
+    {
+     "id": "m182",
+     "score": 0.91
+    },
+    {
+     "id": "m056",
+     "score": 0.84
+    },
+    {
+     "id": "m062",
+     "score": 0.83
+    },
+    {
+     "id": "m124",
+     "score": 0.81
+    },
+    {
+     "id": "m130",
+     "score": 0.79
+    },
+    {
+     "id": "m163",
+     "score": 0.77
+    },
+    {
+     "id": "m199",
+     "score": 0.77
+    },
+    {
+     "id": "m151",
+     "score": 0.77
+    },
+    {
+     "id": "m083",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m109",
+     "score": 5,
+     "chars": 26
+    },
+    {
+     "id": "m182",
+     "score": 4,
+     "chars": 19
+    },
+    {
+     "id": "m056",
+     "score": 3,
+     "chars": 22
+    },
+    {
+     "id": "m062",
+     "score": 2,
+     "chars": 20
+    },
+    {
+     "id": "m124",
+     "score": 1,
+     "chars": 27
+    }
+   ],
+   "ms": 0.7244
+  },
+  "q018": {
+   "ranked": [
+    {
+     "id": "m014",
+     "score": 0.96
+    },
+    {
+     "id": "m037",
+     "score": 0.84
+    },
+    {
+     "id": "m031",
+     "score": 0.79
+    },
+    {
+     "id": "m231",
+     "score": 0.78
+    },
+    {
+     "id": "m032",
+     "score": 0.78
+    },
+    {
+     "id": "m124",
+     "score": 0.78
+    },
+    {
+     "id": "m044",
+     "score": 0.75
+    },
+    {
+     "id": "m175",
+     "score": 0.74
+    },
+    {
+     "id": "m177",
+     "score": 0.74
+    },
+    {
+     "id": "m078",
+     "score": 0.73
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m014",
+     "score": 5,
+     "chars": 18
+    },
+    {
+     "id": "m037",
+     "score": 4,
+     "chars": 17
+    },
+    {
+     "id": "m031",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m231",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m032",
+     "score": 1,
+     "chars": 29
+    }
+   ],
+   "ms": 0.4386
+  },
+  "q019": {
+   "ranked": [
+    {
+     "id": "m027",
+     "score": 0.96
+    },
+    {
+     "id": "m139",
+     "score": 0.89
+    },
+    {
+     "id": "m013",
+     "score": 0.81
+    },
+    {
+     "id": "m204",
+     "score": 0.81
+    },
+    {
+     "id": "m096",
+     "score": 0.81
+    },
+    {
+     "id": "m078",
+     "score": 0.79
+    },
+    {
+     "id": "m086",
+     "score": 0.79
+    },
+    {
+     "id": "m150",
+     "score": 0.79
+    },
+    {
+     "id": "m130",
+     "score": 0.79
+    },
+    {
+     "id": "m046",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m027",
+     "score": 5,
+     "chars": 19
+    },
+    {
+     "id": "m139",
+     "score": 4,
+     "chars": 25
+    },
+    {
+     "id": "m013",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m204",
+     "score": 2,
+     "chars": 28
+    },
+    {
+     "id": "m096",
+     "score": 1,
+     "chars": 24
+    }
+   ],
+   "ms": 0.6027
+  },
+  "q020": {
+   "ranked": [
+    {
+     "id": "m047",
+     "score": 0.97
+    },
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m084",
+     "score": 0.82
+    },
+    {
+     "id": "m071",
+     "score": 0.8
+    },
+    {
+     "id": "m027",
+     "score": 0.79
+    },
+    {
+     "id": "m063",
+     "score": 0.77
+    },
+    {
+     "id": "m089",
+     "score": 0.77
+    },
+    {
+     "id": "m083",
+     "score": 0.77
+    },
+    {
+     "id": "m103",
+     "score": 0.77
+    },
+    {
+     "id": "m193",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m047",
+     "score": 5,
+     "chars": 28
+    },
+    {
+     "id": "m050",
+     "score": 4,
+     "chars": 29
+    },
+    {
+     "id": "m084",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m071",
+     "score": 2,
+     "chars": 29
+    },
+    {
+     "id": "m027",
+     "score": 1,
+     "chars": 19
+    }
+   ],
+   "ms": 0.6799
+  },
+  "q021": {
+   "ranked": [
+    {
+     "id": "m068",
+     "score": 0.96
+    },
+    {
+     "id": "m128",
+     "score": 0.88
+    },
+    {
+     "id": "m064",
+     "score": 0.87
+    },
+    {
+     "id": "m079",
+     "score": 0.81
+    },
+    {
+     "id": "m134",
+     "score": 0.81
+    },
+    {
+     "id": "m044",
+     "score": 0.75
+    },
+    {
+     "id": "m175",
+     "score": 0.74
+    },
+    {
+     "id": "m177",
+     "score": 0.74
+    },
+    {
+     "id": "m078",
+     "score": 0.73
+    },
+    {
+     "id": "m015",
+     "score": 0.73
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m068",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m128",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m064",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m079",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m134",
+     "score": 1,
+     "chars": 21
+    }
+   ],
+   "ms": 0.6069
+  },
+  "q022": {
+   "ranked": [
+    {
+     "id": "m240",
+     "score": 0.79
+    },
+    {
+     "id": "m094",
+     "score": 0.95
+    },
+    {
+     "id": "m044",
+     "score": 0.94
+    },
+    {
+     "id": "m107",
+     "score": 0.84
+    },
+    {
+     "id": "m129",
+     "score": 0.8
+    },
+    {
+     "id": "m097",
+     "score": 0.78
+    },
+    {
+     "id": "m121",
+     "score": 0.78
+    },
+    {
+     "id": "m114",
+     "score": 0.78
+    },
+    {
+     "id": "m147",
+     "score": 0.77
+    },
+    {
+     "id": "m150",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m240",
+     "score": 5,
+     "chars": 26
+    },
+    {
+     "id": "m094",
+     "score": 4,
+     "chars": 23
+    },
+    {
+     "id": "m044",
+     "score": 3,
+     "chars": 17
+    },
+    {
+     "id": "m107",
+     "score": 2,
+     "chars": 21
+    },
+    {
+     "id": "m129",
+     "score": 1,
+     "chars": 31
+    }
+   ],
+   "ms": 0.4846
+  },
+  "q023": {
+   "ranked": [
+    {
+     "id": "m078",
+     "score": 0.95
+    },
+    {
+     "id": "m106",
+     "score": 0.91
+    },
+    {
+     "id": "m134",
+     "score": 0.83
+    },
+    {
+     "id": "m146",
+     "score": 0.82
+    },
+    {
+     "id": "m148",
+     "score": 0.8
+    },
+    {
+     "id": "m086",
+     "score": 0.79
+    },
+    {
+     "id": "m046",
+     "score": 0.79
+    },
+    {
+     "id": "m073",
+     "score": 0.78
+    },
+    {
+     "id": "m169",
+     "score": 0.78
+    },
+    {
+     "id": "m044",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m078",
+     "score": 5,
+     "chars": 20
+    },
+    {
+     "id": "m106",
+     "score": 4,
+     "chars": 21
+    },
+    {
+     "id": "m134",
+     "score": 3,
+     "chars": 21
+    },
+    {
+     "id": "m146",
+     "score": 2,
+     "chars": 19
+    },
+    {
+     "id": "m148",
+     "score": 1,
+     "chars": 31
+    }
+   ],
+   "ms": 0.4717
+  },
+  "q024": {
+   "ranked": [
+    {
+     "id": "m159",
+     "score": 0.97
+    },
+    {
+     "id": "m084",
+     "score": 0.89
+    },
+    {
+     "id": "m065",
+     "score": 0.82
+    },
+    {
+     "id": "m144",
+     "score": 0.8
+    },
+    {
+     "id": "m107",
+     "score": 0.79
+    },
+    {
+     "id": "m117",
+     "score": 0.78
+    },
+    {
+     "id": "m023",
+     "score": 0.78
+    },
+    {
+     "id": "m172",
+     "score": 0.76
+    },
+    {
+     "id": "m170",
+     "score": 0.75
+    },
+    {
+     "id": "m071",
+     "score": 0.74
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m159",
+     "score": 5,
+     "chars": 18
+    },
+    {
+     "id": "m084",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m065",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m144",
+     "score": 2,
+     "chars": 18
+    },
+    {
+     "id": "m107",
+     "score": 1,
+     "chars": 21
+    }
+   ],
+   "ms": 0.5507
+  },
+  "q025": {
+   "ranked": [
+    {
+     "id": "m064",
+     "score": 0.98
+    },
+    {
+     "id": "m079",
+     "score": 0.93
+    },
+    {
+     "id": "m134",
+     "score": 0.93
+    },
+    {
+     "id": "m068",
+     "score": 0.91
+    },
+    {
+     "id": "m028",
+     "score": 0.87
+    },
+    {
+     "id": "m182",
+     "score": 0.87
+    },
+    {
+     "id": "m083",
+     "score": 0.86
+    },
+    {
+     "id": "m072",
+     "score": 0.8
+    },
+    {
+     "id": "m044",
+     "score": 0.75
+    },
+    {
+     "id": "m175",
+     "score": 0.74
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m064",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m079",
+     "score": 4,
+     "chars": 23
+    },
+    {
+     "id": "m134",
+     "score": 3,
+     "chars": 21
+    },
+    {
+     "id": "m068",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m028",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.5984
+  },
+  "q026": {
+   "ranked": [
+    {
+     "id": "m091",
+     "score": 0.94
+    },
+    {
+     "id": "m085",
+     "score": 0.89
+    },
+    {
+     "id": "m198",
+     "score": 0.81
+    },
+    {
+     "id": "m194",
+     "score": 0.8
+    },
+    {
+     "id": "m082",
+     "score": 0.8
+    },
+    {
+     "id": "m104",
+     "score": 0.8
+    },
+    {
+     "id": "m106",
+     "score": 0.79
+    },
+    {
+     "id": "m100",
+     "score": 0.79
+    },
+    {
+     "id": "m205",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m091",
+     "score": 5,
+     "chars": 22
+    },
+    {
+     "id": "m085",
+     "score": 4,
+     "chars": 25
+    },
+    {
+     "id": "m198",
+     "score": 3,
+     "chars": 29
+    },
+    {
+     "id": "m194",
+     "score": 2,
+     "chars": 20
+    },
+    {
+     "id": "m082",
+     "score": 1,
+     "chars": 27
+    }
+   ],
+   "ms": 0.7126
+  },
+  "q027": {
+   "ranked": [
+    {
+     "id": "m238",
+     "score": 0.78
+    },
+    {
+     "id": "m135",
+     "score": 0.97
+    },
+    {
+     "id": "m236",
+     "score": 0.74
+    },
+    {
+     "id": "m119",
+     "score": 0.87
+    },
+    {
+     "id": "m234",
+     "score": 0.73
+    },
+    {
+     "id": "m098",
+     "score": 0.82
+    },
+    {
+     "id": "m176",
+     "score": 0.81
+    },
+    {
+     "id": "m160",
+     "score": 0.8
+    },
+    {
+     "id": "m150",
+     "score": 0.79
+    },
+    {
+     "id": "m096",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m238",
+     "score": 5,
+     "chars": 22
+    },
+    {
+     "id": "m135",
+     "score": 4,
+     "chars": 19
+    },
+    {
+     "id": "m119",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m098",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m176",
+     "score": 1,
+     "chars": 26
+    }
+   ],
+   "ms": 0.6609
+  },
+  "q028": {
+   "ranked": [
+    {
+     "id": "m096",
+     "score": 0.96
+    },
+    {
+     "id": "m194",
+     "score": 0.88
+    },
+    {
+     "id": "m012",
+     "score": 0.87
+    },
+    {
+     "id": "m015",
+     "score": 0.75
+    },
+    {
+     "id": "m028",
+     "score": 0.75
+    },
+    {
+     "id": "m008",
+     "score": 0.74
+    },
+    {
+     "id": "m099",
+     "score": 0.74
+    },
+    {
+     "id": "m186",
+     "score": 0.74
+    },
+    {
+     "id": "m169",
+     "score": 0.73
+    },
+    {
+     "id": "m072",
+     "score": 0.73
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m096",
+     "score": 5,
+     "chars": 24
+    },
+    {
+     "id": "m194",
+     "score": 4,
+     "chars": 20
+    },
+    {
+     "id": "m012",
+     "score": 3,
+     "chars": 26
+    },
+    {
+     "id": "m015",
+     "score": 2,
+     "chars": 22
+    },
+    {
+     "id": "m028",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.4503
+  },
+  "q029": {
+   "ranked": [
+    {
+     "id": "m097",
+     "score": 0.98
+    },
+    {
+     "id": "m144",
+     "score": 0.81
+    },
+    {
+     "id": "m107",
+     "score": 0.8
+    },
+    {
+     "id": "m048",
+     "score": 0.79
+    },
+    {
+     "id": "m145",
+     "score": 0.79
+    },
+    {
+     "id": "m190",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m097",
+     "score": 5,
+     "chars": 21
+    },
+    {
+     "id": "m144",
+     "score": 4,
+     "chars": 18
+    },
+    {
+     "id": "m107",
+     "score": 3,
+     "chars": 21
+    },
+    {
+     "id": "m048",
+     "score": 2,
+     "chars": 22
+    },
+    {
+     "id": "m145",
+     "score": 1,
+     "chars": 24
+    }
+   ],
+   "ms": 0.6058
+  },
+  "q030": {
+   "ranked": [
+    {
+     "id": "m081",
+     "score": 0.98
+    },
+    {
+     "id": "m191",
+     "score": 0.92
+    },
+    {
+     "id": "m111",
+     "score": 0.81
+    },
+    {
+     "id": "m157",
+     "score": 0.8
+    },
+    {
+     "id": "m093",
+     "score": 0.78
+    },
+    {
+     "id": "m061",
+     "score": 0.78
+    },
+    {
+     "id": "m190",
+     "score": 0.77
+    },
+    {
+     "id": "m055",
+     "score": 0.76
+    },
+    {
+     "id": "m100",
+     "score": 0.75
+    },
+    {
+     "id": "m110",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m081",
+     "score": 5,
+     "chars": 22
+    },
+    {
+     "id": "m191",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m111",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m157",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m093",
+     "score": 1,
+     "chars": 18
+    }
+   ],
+   "ms": 0.546
+  },
+  "q031": {
+   "ranked": [
+    {
+     "id": "m236",
+     "score": 0.78
+    },
+    {
+     "id": "m136",
+     "score": 0.98
+    },
+    {
+     "id": "m098",
+     "score": 0.92
+    },
+    {
+     "id": "m006",
+     "score": 0.89
+    },
+    {
+     "id": "m021",
+     "score": 0.88
+    },
+    {
+     "id": "m215",
+     "score": 0.88
+    },
+    {
+     "id": "m069",
+     "score": 0.81
+    },
+    {
+     "id": "m020",
+     "score": 0.8
+    },
+    {
+     "id": "m052",
+     "score": 0.8
+    },
+    {
+     "id": "m157",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m236",
+     "score": 5,
+     "chars": 25
+    },
+    {
+     "id": "m136",
+     "score": 4,
+     "chars": 29
+    },
+    {
+     "id": "m098",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m006",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m021",
+     "score": 1,
+     "chars": 28
+    }
+   ],
+   "ms": 0.6285
+  },
+  "q032": {
+   "ranked": [
+    {
+     "id": "m153",
+     "score": 0.97
+    },
+    {
+     "id": "m143",
+     "score": 0.92
+    },
+    {
+     "id": "m196",
+     "score": 0.81
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m153",
+     "score": 3,
+     "chars": 22
+    },
+    {
+     "id": "m143",
+     "score": 2,
+     "chars": 22
+    },
+    {
+     "id": "m196",
+     "score": 1,
+     "chars": 30
+    }
+   ],
+   "ms": 0.4793
+  },
+  "q033": {
+   "ranked": [
+    {
+     "id": "m021",
+     "score": 0.98
+    },
+    {
+     "id": "m006",
+     "score": 0.89
+    },
+    {
+     "id": "m136",
+     "score": 0.88
+    },
+    {
+     "id": "m197",
+     "score": 0.81
+    },
+    {
+     "id": "m171",
+     "score": 0.8
+    },
+    {
+     "id": "m186",
+     "score": 0.8
+    },
+    {
+     "id": "m157",
+     "score": 0.79
+    },
+    {
+     "id": "m204",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m021",
+     "score": 5,
+     "chars": 28
+    },
+    {
+     "id": "m006",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m136",
+     "score": 3,
+     "chars": 29
+    },
+    {
+     "id": "m197",
+     "score": 2,
+     "chars": 30
+    },
+    {
+     "id": "m171",
+     "score": 1,
+     "chars": 24
+    }
+   ],
+   "ms": 0.4965
+  },
+  "q034": {
+   "ranked": [
+    {
+     "id": "m067",
+     "score": 0.98
+    },
+    {
+     "id": "m171",
+     "score": 0.93
+    },
+    {
+     "id": "m100",
+     "score": 0.9
+    },
+    {
+     "id": "m152",
+     "score": 0.88
+    },
+    {
+     "id": "m038",
+     "score": 0.8
+    },
+    {
+     "id": "m188",
+     "score": 0.77
+    },
+    {
+     "id": "m223",
+     "score": 0.76
+    },
+    {
+     "id": "m193",
+     "score": 0.76
+    },
+    {
+     "id": "m201",
+     "score": 0.76
+    },
+    {
+     "id": "m166",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m067",
+     "score": 5,
+     "chars": 24
+    },
+    {
+     "id": "m171",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m100",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m152",
+     "score": 2,
+     "chars": 28
+    },
+    {
+     "id": "m038",
+     "score": 1,
+     "chars": 27
+    }
+   ],
+   "ms": 0.6562
+  },
+  "q035": {
+   "ranked": [
+    {
+     "id": "m118",
+     "score": 0.97
+    },
+    {
+     "id": "m088",
+     "score": 0.93
+    },
+    {
+     "id": "m200",
+     "score": 0.82
+    },
+    {
+     "id": "m072",
+     "score": 0.81
+    },
+    {
+     "id": "m214",
+     "score": 0.79
+    },
+    {
+     "id": "m226",
+     "score": 0.79
+    },
+    {
+     "id": "m181",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m118",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m088",
+     "score": 4,
+     "chars": 28
+    },
+    {
+     "id": "m200",
+     "score": 3,
+     "chars": 27
+    },
+    {
+     "id": "m072",
+     "score": 2,
+     "chars": 25
+    },
+    {
+     "id": "m214",
+     "score": 1,
+     "chars": 25
+    }
+   ],
+   "ms": 0.5375
+  },
+  "q036": {
+   "ranked": [
+    {
+     "id": "m200",
+     "score": 0.95
+    },
+    {
+     "id": "m120",
+     "score": 0.83
+    },
+    {
+     "id": "m203",
+     "score": 0.82
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m200",
+     "score": 3,
+     "chars": 27
+    },
+    {
+     "id": "m120",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m203",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.3562
+  },
+  "q037": {
+   "ranked": [
+    {
+     "id": "m123",
+     "score": 0.98
+    },
+    {
+     "id": "m116",
+     "score": 0.9
+    },
+    {
+     "id": "m026",
+     "score": 0.9
+    },
+    {
+     "id": "m038",
+     "score": 0.9
+    },
+    {
+     "id": "m228",
+     "score": 0.9
+    },
+    {
+     "id": "m232",
+     "score": 0.9
+    },
+    {
+     "id": "m002",
+     "score": 0.89
+    },
+    {
+     "id": "m149",
+     "score": 0.89
+    },
+    {
+     "id": "m219",
+     "score": 0.81
+    },
+    {
+     "id": "m189",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m123",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m116",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m026",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m038",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m228",
+     "score": 1,
+     "chars": 26
+    }
+   ],
+   "ms": 0.7023
+  },
+  "q038": {
+   "ranked": [
+    {
+     "id": "m234",
+     "score": 0.91
+    },
+    {
+     "id": "m209",
+     "score": 0.97
+    },
+    {
+     "id": "m236",
+     "score": 0.74
+    },
+    {
+     "id": "m198",
+     "score": 0.93
+    },
+    {
+     "id": "m217",
+     "score": 0.9
+    },
+    {
+     "id": "m032",
+     "score": 0.9
+    },
+    {
+     "id": "m200",
+     "score": 0.89
+    },
+    {
+     "id": "m054",
+     "score": 0.83
+    },
+    {
+     "id": "m077",
+     "score": 0.82
+    },
+    {
+     "id": "m091",
+     "score": 0.81
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m234",
+     "score": 5,
+     "chars": 25
+    },
+    {
+     "id": "m209",
+     "score": 4,
+     "chars": 30
+    },
+    {
+     "id": "m198",
+     "score": 3,
+     "chars": 29
+    },
+    {
+     "id": "m217",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m032",
+     "score": 1,
+     "chars": 29
+    }
+   ],
+   "ms": 0.76
+  },
+  "q039": {
+   "ranked": [
+    {
+     "id": "m062",
+     "score": 0.95
+    },
+    {
+     "id": "m014",
+     "score": 0.84
+    },
+    {
+     "id": "m084",
+     "score": 0.82
+    },
+    {
+     "id": "m130",
+     "score": 0.76
+    },
+    {
+     "id": "m143",
+     "score": 0.75
+    },
+    {
+     "id": "m122",
+     "score": 0.74
+    },
+    {
+     "id": "m137",
+     "score": 0.74
+    },
+    {
+     "id": "m004",
+     "score": 0.74
+    },
+    {
+     "id": "m046",
+     "score": 0.74
+    },
+    {
+     "id": "m163",
+     "score": 0.74
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m062",
+     "score": 5,
+     "chars": 20
+    },
+    {
+     "id": "m014",
+     "score": 4,
+     "chars": 18
+    },
+    {
+     "id": "m084",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m130",
+     "score": 2,
+     "chars": 18
+    },
+    {
+     "id": "m143",
+     "score": 1,
+     "chars": 22
+    }
+   ],
+   "ms": 0.7785
+  },
+  "q040": {
+   "ranked": [
+    {
+     "id": "m239",
+     "score": 0.68
+    },
+    {
+     "id": "m071",
+     "score": 0.96
+    },
+    {
+     "id": "m216",
+     "score": 0.88
+    },
+    {
+     "id": "m055",
+     "score": 0.85
+    },
+    {
+     "id": "m019",
+     "score": 0.84
+    },
+    {
+     "id": "m025",
+     "score": 0.84
+    },
+    {
+     "id": "m129",
+     "score": 0.84
+    },
+    {
+     "id": "m031",
+     "score": 0.83
+    },
+    {
+     "id": "m168",
+     "score": 0.78
+    },
+    {
+     "id": "m143",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m071",
+     "score": 5,
+     "chars": 29
+    },
+    {
+     "id": "m216",
+     "score": 4,
+     "chars": 29
+    },
+    {
+     "id": "m055",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m019",
+     "score": 2,
+     "chars": 25
+    },
+    {
+     "id": "m025",
+     "score": 1,
+     "chars": 26
+    }
+   ],
+   "ms": 0.6414
+  },
+  "q041": {
+   "ranked": [
+    {
+     "id": "m240",
+     "score": 0.73
+    },
+    {
+     "id": "m235",
+     "score": 0.94
+    },
+    {
+     "id": "m066",
+     "score": 0.98
+    },
+    {
+     "id": "m090",
+     "score": 0.94
+    },
+    {
+     "id": "m041",
+     "score": 0.94
+    },
+    {
+     "id": "m050",
+     "score": 0.93
+    },
+    {
+     "id": "m162",
+     "score": 0.92
+    },
+    {
+     "id": "m101",
+     "score": 0.91
+    },
+    {
+     "id": "m037",
+     "score": 0.91
+    },
+    {
+     "id": "m222",
+     "score": 0.89
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m235",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m066",
+     "score": 4,
+     "chars": 22
+    },
+    {
+     "id": "m090",
+     "score": 3,
+     "chars": 18
+    },
+    {
+     "id": "m041",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m050",
+     "score": 1,
+     "chars": 29
+    }
+   ],
+   "ms": 0.7707
+  },
+  "q042": {
+   "ranked": [
+    {
+     "id": "m240",
+     "score": 0.73
+    },
+    {
+     "id": "m117",
+     "score": 0.96
+    },
+    {
+     "id": "m190",
+     "score": 0.89
+    },
+    {
+     "id": "m182",
+     "score": 0.88
+    },
+    {
+     "id": "m071",
+     "score": 0.86
+    },
+    {
+     "id": "m016",
+     "score": 0.85
+    },
+    {
+     "id": "m129",
+     "score": 0.85
+    },
+    {
+     "id": "m159",
+     "score": 0.8
+    },
+    {
+     "id": "m202",
+     "score": 0.8
+    },
+    {
+     "id": "m144",
+     "score": 0.8
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m117",
+     "score": 5,
+     "chars": 18
+    },
+    {
+     "id": "m190",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m182",
+     "score": 3,
+     "chars": 19
+    },
+    {
+     "id": "m071",
+     "score": 2,
+     "chars": 29
+    },
+    {
+     "id": "m016",
+     "score": 1,
+     "chars": 35
+    }
+   ],
+   "ms": 0.5118
+  },
+  "q043": {
+   "ranked": [
+    {
+     "id": "m239",
+     "score": 0.68
+    },
+    {
+     "id": "m235",
+     "score": 0.81
+    },
+    {
+     "id": "m233",
+     "score": 0.97
+    },
+    {
+     "id": "m234",
+     "score": 0.8
+    },
+    {
+     "id": "m149",
+     "score": 0.88
+    },
+    {
+     "id": "m095",
+     "score": 0.86
+    },
+    {
+     "id": "m071",
+     "score": 0.85
+    },
+    {
+     "id": "m148",
+     "score": 0.84
+    },
+    {
+     "id": "m162",
+     "score": 0.79
+    },
+    {
+     "id": "m001",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m235",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m233",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m234",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m149",
+     "score": 2,
+     "chars": 31
+    },
+    {
+     "id": "m095",
+     "score": 1,
+     "chars": 26
+    }
+   ],
+   "ms": 0.6889
+  },
+  "q044": {
+   "ranked": [
+    {
+     "id": "m239",
+     "score": 0.68
+    },
+    {
+     "id": "m234",
+     "score": 0.92
+    },
+    {
+     "id": "m060",
+     "score": 0.96
+    },
+    {
+     "id": "m071",
+     "score": 0.9
+    },
+    {
+     "id": "m095",
+     "score": 0.86
+    },
+    {
+     "id": "m055",
+     "score": 0.85
+    },
+    {
+     "id": "m019",
+     "score": 0.84
+    },
+    {
+     "id": "m025",
+     "score": 0.84
+    },
+    {
+     "id": "m129",
+     "score": 0.84
+    },
+    {
+     "id": "m041",
+     "score": 0.82
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m234",
+     "score": 5,
+     "chars": 25
+    },
+    {
+     "id": "m060",
+     "score": 4,
+     "chars": 32
+    },
+    {
+     "id": "m071",
+     "score": 3,
+     "chars": 29
+    },
+    {
+     "id": "m095",
+     "score": 2,
+     "chars": 26
+    },
+    {
+     "id": "m055",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.7882
+  },
+  "q045": {
+   "ranked": [
+    {
+     "id": "m239",
+     "score": 0.9
+    },
+    {
+     "id": "m113",
+     "score": 0.96
+    },
+    {
+     "id": "m025",
+     "score": 0.93
+    },
+    {
+     "id": "m199",
+     "score": 0.9
+    },
+    {
+     "id": "m211",
+     "score": 0.9
+    },
+    {
+     "id": "m226",
+     "score": 0.9
+    },
+    {
+     "id": "m084",
+     "score": 0.9
+    },
+    {
+     "id": "m150",
+     "score": 0.9
+    },
+    {
+     "id": "m050",
+     "score": 0.89
+    },
+    {
+     "id": "m092",
+     "score": 0.89
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m239",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m113",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m025",
+     "score": 3,
+     "chars": 26
+    },
+    {
+     "id": "m199",
+     "score": 2,
+     "chars": 19
+    },
+    {
+     "id": "m211",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.5782
+  },
+  "q046": {
+   "ranked": [
+    {
+     "id": "m235",
+     "score": 0.85
+    },
+    {
+     "id": "m076",
+     "score": 0.92
+    },
+    {
+     "id": "m001",
+     "score": 0.85
+    },
+    {
+     "id": "m156",
+     "score": 0.84
+    },
+    {
+     "id": "m149",
+     "score": 0.83
+    },
+    {
+     "id": "m017",
+     "score": 0.83
+    },
+    {
+     "id": "m122",
+     "score": 0.83
+    },
+    {
+     "id": "m148",
+     "score": 0.8
+    },
+    {
+     "id": "m175",
+     "score": 0.79
+    },
+    {
+     "id": "m164",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m235",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m076",
+     "score": 4,
+     "chars": 26
+    },
+    {
+     "id": "m001",
+     "score": 3,
+     "chars": 26
+    },
+    {
+     "id": "m156",
+     "score": 2,
+     "chars": 22
+    },
+    {
+     "id": "m149",
+     "score": 1,
+     "chars": 31
+    }
+   ],
+   "ms": 0.7624
+  },
+  "q047": {
+   "ranked": [
+    {
+     "id": "m185",
+     "score": 0.9
+    },
+    {
+     "id": "m002",
+     "score": 0.87
+    },
+    {
+     "id": "m036",
+     "score": 0.84
+    },
+    {
+     "id": "m212",
+     "score": 0.84
+    },
+    {
+     "id": "m137",
+     "score": 0.82
+    },
+    {
+     "id": "m213",
+     "score": 0.81
+    },
+    {
+     "id": "m063",
+     "score": 0.81
+    },
+    {
+     "id": "m172",
+     "score": 0.8
+    },
+    {
+     "id": "m154",
+     "score": 0.78
+    },
+    {
+     "id": "m161",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m185",
+     "score": 5,
+     "chars": 24
+    },
+    {
+     "id": "m002",
+     "score": 4,
+     "chars": 30
+    },
+    {
+     "id": "m036",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m212",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m137",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.9234
+  },
+  "q048": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.2651
+  },
+  "q049": {
+   "ranked": [
+    {
+     "id": "m090",
+     "score": 0.82
+    },
+    {
+     "id": "m041",
+     "score": 0.81
+    },
+    {
+     "id": "m050",
+     "score": 0.79
+    },
+    {
+     "id": "m034",
+     "score": 0.79
+    },
+    {
+     "id": "m109",
+     "score": 0.79
+    },
+    {
+     "id": "m187",
+     "score": 0.79
+    },
+    {
+     "id": "m010",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m090",
+     "score": 5,
+     "chars": 18
+    },
+    {
+     "id": "m041",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m050",
+     "score": 3,
+     "chars": 29
+    },
+    {
+     "id": "m034",
+     "score": 2,
+     "chars": 25
+    },
+    {
+     "id": "m109",
+     "score": 1,
+     "chars": 26
+    }
+   ],
+   "ms": 0.4382
+  },
+  "q050": {
+   "ranked": [
+    {
+     "id": "m161",
+     "score": 0.84
+    },
+    {
+     "id": "m130",
+     "score": 0.76
+    },
+    {
+     "id": "m062",
+     "score": 0.75
+    },
+    {
+     "id": "m143",
+     "score": 0.75
+    },
+    {
+     "id": "m122",
+     "score": 0.74
+    },
+    {
+     "id": "m137",
+     "score": 0.74
+    },
+    {
+     "id": "m004",
+     "score": 0.74
+    },
+    {
+     "id": "m046",
+     "score": 0.74
+    },
+    {
+     "id": "m163",
+     "score": 0.74
+    },
+    {
+     "id": "m052",
+     "score": 0.73
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m161",
+     "score": 5,
+     "chars": 24
+    },
+    {
+     "id": "m130",
+     "score": 4,
+     "chars": 18
+    },
+    {
+     "id": "m062",
+     "score": 3,
+     "chars": 20
+    },
+    {
+     "id": "m143",
+     "score": 2,
+     "chars": 22
+    },
+    {
+     "id": "m122",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.7311
+  },
+  "q051": {
+   "ranked": [
+    {
+     "id": "m235",
+     "score": 0.75
+    },
+    {
+     "id": "m076",
+     "score": 0.76
+    },
+    {
+     "id": "m013",
+     "score": 0.75
+    },
+    {
+     "id": "m119",
+     "score": 0.75
+    },
+    {
+     "id": "m001",
+     "score": 0.75
+    },
+    {
+     "id": "m007",
+     "score": 0.74
+    },
+    {
+     "id": "m019",
+     "score": 0.74
+    },
+    {
+     "id": "m105",
+     "score": 0.74
+    },
+    {
+     "id": "m233",
+     "score": 0.74
+    },
+    {
+     "id": "m060",
+     "score": 0.73
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m235",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m076",
+     "score": 4,
+     "chars": 26
+    },
+    {
+     "id": "m013",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m119",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m001",
+     "score": 1,
+     "chars": 26
+    }
+   ],
+   "ms": 0.485
+  },
+  "q052": {
+   "ranked": [
+    {
+     "id": "m083",
+     "score": 0.83
+    },
+    {
+     "id": "m128",
+     "score": 0.82
+    },
+    {
+     "id": "m131",
+     "score": 0.81
+    },
+    {
+     "id": "m213",
+     "score": 0.81
+    },
+    {
+     "id": "m063",
+     "score": 0.81
+    },
+    {
+     "id": "m051",
+     "score": 0.81
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m083",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m128",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m131",
+     "score": 3,
+     "chars": 29
+    },
+    {
+     "id": "m213",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m063",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.6341
+  },
+  "q053": {
+   "ranked": [
+    {
+     "id": "m221",
+     "score": 0.82
+    },
+    {
+     "id": "m126",
+     "score": 0.82
+    },
+    {
+     "id": "m152",
+     "score": 0.82
+    },
+    {
+     "id": "m034",
+     "score": 0.79
+    },
+    {
+     "id": "m109",
+     "score": 0.79
+    },
+    {
+     "id": "m187",
+     "score": 0.79
+    },
+    {
+     "id": "m010",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m221",
+     "score": 5,
+     "chars": 28
+    },
+    {
+     "id": "m126",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m152",
+     "score": 3,
+     "chars": 28
+    },
+    {
+     "id": "m034",
+     "score": 2,
+     "chars": 25
+    },
+    {
+     "id": "m109",
+     "score": 1,
+     "chars": 26
+    }
+   ],
+   "ms": 0.4688
+  },
+  "q054": {
+   "ranked": [
+    {
+     "id": "m235",
+     "score": 0.75
+    },
+    {
+     "id": "m021",
+     "score": 0.89
+    },
+    {
+     "id": "m039",
+     "score": 0.85
+    },
+    {
+     "id": "m178",
+     "score": 0.84
+    },
+    {
+     "id": "m153",
+     "score": 0.83
+    },
+    {
+     "id": "m200",
+     "score": 0.82
+    },
+    {
+     "id": "m088",
+     "score": 0.81
+    },
+    {
+     "id": "m006",
+     "score": 0.81
+    },
+    {
+     "id": "m136",
+     "score": 0.79
+    },
+    {
+     "id": "m076",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m235",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m021",
+     "score": 4,
+     "chars": 28
+    },
+    {
+     "id": "m039",
+     "score": 3,
+     "chars": 22
+    },
+    {
+     "id": "m178",
+     "score": 2,
+     "chars": 22
+    },
+    {
+     "id": "m153",
+     "score": 1,
+     "chars": 22
+    }
+   ],
+   "ms": 0.6611
+  },
+  "q055": {
+   "ranked": [
+    {
+     "id": "m059",
+     "score": 0.91
+    },
+    {
+     "id": "m099",
+     "score": 0.84
+    },
+    {
+     "id": "m086",
+     "score": 0.83
+    },
+    {
+     "id": "m157",
+     "score": 0.81
+    },
+    {
+     "id": "m121",
+     "score": 0.8
+    },
+    {
+     "id": "m038",
+     "score": 0.79
+    },
+    {
+     "id": "m127",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m059",
+     "score": 5,
+     "chars": 19
+    },
+    {
+     "id": "m099",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m086",
+     "score": 3,
+     "chars": 22
+    },
+    {
+     "id": "m157",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m121",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.6055
+  },
+  "q056": {
+   "ranked": [
+    {
+     "id": "m143",
+     "score": 0.75
+    },
+    {
+     "id": "m024",
+     "score": 0.75
+    },
+    {
+     "id": "m222",
+     "score": 0.75
+    },
+    {
+     "id": "m018",
+     "score": 0.74
+    },
+    {
+     "id": "m031",
+     "score": 0.74
+    },
+    {
+     "id": "m160",
+     "score": 0.74
+    },
+    {
+     "id": "m167",
+     "score": 0.73
+    },
+    {
+     "id": "m195",
+     "score": 0.73
+    },
+    {
+     "id": "m183",
+     "score": 0.73
+    },
+    {
+     "id": "m216",
+     "score": 0.72
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m143",
+     "score": 5,
+     "chars": 22
+    },
+    {
+     "id": "m024",
+     "score": 4,
+     "chars": 19
+    },
+    {
+     "id": "m222",
+     "score": 3,
+     "chars": 20
+    },
+    {
+     "id": "m018",
+     "score": 2,
+     "chars": 21
+    },
+    {
+     "id": "m031",
+     "score": 1,
+     "chars": 25
+    }
+   ],
+   "ms": 0.6131
+  },
+  "q057": {
+   "ranked": [
+    {
+     "id": "m059",
+     "score": 0.91
+    },
+    {
+     "id": "m208",
+     "score": 0.9
+    },
+    {
+     "id": "m095",
+     "score": 0.81
+    },
+    {
+     "id": "m071",
+     "score": 0.8
+    },
+    {
+     "id": "m154",
+     "score": 0.78
+    },
+    {
+     "id": "m161",
+     "score": 0.77
+    },
+    {
+     "id": "m070",
+     "score": 0.77
+    },
+    {
+     "id": "m176",
+     "score": 0.76
+    },
+    {
+     "id": "m233",
+     "score": 0.76
+    },
+    {
+     "id": "m229",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m059",
+     "score": 5,
+     "chars": 19
+    },
+    {
+     "id": "m208",
+     "score": 4,
+     "chars": 25
+    },
+    {
+     "id": "m095",
+     "score": 3,
+     "chars": 26
+    },
+    {
+     "id": "m071",
+     "score": 2,
+     "chars": 29
+    },
+    {
+     "id": "m154",
+     "score": 1,
+     "chars": 21
+    }
+   ],
+   "ms": 0.9463
+  },
+  "q058": {
+   "ranked": [
+    {
+     "id": "m203",
+     "score": 0.91
+    },
+    {
+     "id": "m037",
+     "score": 0.84
+    },
+    {
+     "id": "m134",
+     "score": 0.84
+    },
+    {
+     "id": "m036",
+     "score": 0.83
+    },
+    {
+     "id": "m194",
+     "score": 0.82
+    },
+    {
+     "id": "m096",
+     "score": 0.82
+    },
+    {
+     "id": "m101",
+     "score": 0.81
+    },
+    {
+     "id": "m012",
+     "score": 0.8
+    },
+    {
+     "id": "m143",
+     "score": 0.75
+    },
+    {
+     "id": "m024",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m203",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m037",
+     "score": 4,
+     "chars": 17
+    },
+    {
+     "id": "m134",
+     "score": 3,
+     "chars": 21
+    },
+    {
+     "id": "m036",
+     "score": 2,
+     "chars": 25
+    },
+    {
+     "id": "m194",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.8043
+  },
+  "q059": {
+   "ranked": [
+    {
+     "id": "m236",
+     "score": 0.78
+    },
+    {
+     "id": "m192",
+     "score": 0.92
+    },
+    {
+     "id": "m169",
+     "score": 0.92
+    },
+    {
+     "id": "m234",
+     "score": 0.76
+    },
+    {
+     "id": "m039",
+     "score": 0.82
+    },
+    {
+     "id": "m045",
+     "score": 0.82
+    },
+    {
+     "id": "m102",
+     "score": 0.82
+    },
+    {
+     "id": "m147",
+     "score": 0.82
+    },
+    {
+     "id": "m177",
+     "score": 0.81
+    },
+    {
+     "id": "m005",
+     "score": 0.8
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m192",
+     "score": 5,
+     "chars": 26
+    },
+    {
+     "id": "m169",
+     "score": 4,
+     "chars": 29
+    },
+    {
+     "id": "m039",
+     "score": 3,
+     "chars": 22
+    },
+    {
+     "id": "m045",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m236",
+     "score": 1,
+     "chars": 25
+    }
+   ],
+   "ms": 0.6867
+  },
+  "q060": {
+   "ranked": [
+    {
+     "id": "m076",
+     "score": 0.97
+    },
+    {
+     "id": "m189",
+     "score": 0.94
+    },
+    {
+     "id": "m235",
+     "score": 0.74
+    },
+    {
+     "id": "m174",
+     "score": 0.89
+    },
+    {
+     "id": "m178",
+     "score": 0.84
+    },
+    {
+     "id": "m100",
+     "score": 0.83
+    },
+    {
+     "id": "m147",
+     "score": 0.83
+    },
+    {
+     "id": "m158",
+     "score": 0.81
+    },
+    {
+     "id": "m068",
+     "score": 0.8
+    },
+    {
+     "id": "m098",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m076",
+     "score": 5,
+     "chars": 26
+    },
+    {
+     "id": "m189",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m174",
+     "score": 3,
+     "chars": 28
+    },
+    {
+     "id": "m178",
+     "score": 2,
+     "chars": 22
+    },
+    {
+     "id": "m235",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 1.3776
+  },
+  "q061": {
+   "ranked": [
+    {
+     "id": "m187",
+     "score": 0.89
+    },
+    {
+     "id": "m228",
+     "score": 0.8
+    },
+    {
+     "id": "m042",
+     "score": 0.8
+    },
+    {
+     "id": "m202",
+     "score": 0.8
+    },
+    {
+     "id": "m219",
+     "score": 0.79
+    },
+    {
+     "id": "m034",
+     "score": 0.79
+    },
+    {
+     "id": "m109",
+     "score": 0.79
+    },
+    {
+     "id": "m132",
+     "score": 0.79
+    },
+    {
+     "id": "m073",
+     "score": 0.78
+    },
+    {
+     "id": "m208",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m187",
+     "score": 5,
+     "chars": 27
+    },
+    {
+     "id": "m228",
+     "score": 4,
+     "chars": 26
+    },
+    {
+     "id": "m042",
+     "score": 3,
+     "chars": 20
+    },
+    {
+     "id": "m202",
+     "score": 2,
+     "chars": 18
+    },
+    {
+     "id": "m219",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.838
+  },
+  "q062": {
+   "ranked": [
+    {
+     "id": "m235",
+     "score": 0.74
+    },
+    {
+     "id": "m056",
+     "score": 0.91
+    },
+    {
+     "id": "m006",
+     "score": 0.87
+    },
+    {
+     "id": "m001",
+     "score": 0.87
+    },
+    {
+     "id": "m189",
+     "score": 0.86
+    },
+    {
+     "id": "m178",
+     "score": 0.84
+    },
+    {
+     "id": "m166",
+     "score": 0.83
+    },
+    {
+     "id": "m099",
+     "score": 0.79
+    },
+    {
+     "id": "m231",
+     "score": 0.78
+    },
+    {
+     "id": "m005",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m235",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m056",
+     "score": 4,
+     "chars": 22
+    },
+    {
+     "id": "m006",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m001",
+     "score": 2,
+     "chars": 26
+    },
+    {
+     "id": "m189",
+     "score": 1,
+     "chars": 24
+    }
+   ],
+   "ms": 1.2772
+  },
+  "q063": {
+   "ranked": [
+    {
+     "id": "m236",
+     "score": 0.78
+    },
+    {
+     "id": "m082",
+     "score": 0.89
+    },
+    {
+     "id": "m230",
+     "score": 0.89
+    },
+    {
+     "id": "m153",
+     "score": 0.83
+    },
+    {
+     "id": "m061",
+     "score": 0.81
+    },
+    {
+     "id": "m021",
+     "score": 0.81
+    },
+    {
+     "id": "m168",
+     "score": 0.8
+    },
+    {
+     "id": "m079",
+     "score": 0.79
+    },
+    {
+     "id": "m122",
+     "score": 0.79
+    },
+    {
+     "id": "m163",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m236",
+     "score": 5,
+     "chars": 25
+    },
+    {
+     "id": "m082",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m230",
+     "score": 3,
+     "chars": 31
+    },
+    {
+     "id": "m153",
+     "score": 2,
+     "chars": 22
+    },
+    {
+     "id": "m061",
+     "score": 1,
+     "chars": 32
+    }
+   ],
+   "ms": 0.9442
+  },
+  "q064": {
+   "ranked": [
+    {
+     "id": "m240",
+     "score": 0.79
+    },
+    {
+     "id": "m239",
+     "score": 0.79
+    },
+    {
+     "id": "m235",
+     "score": 0.82
+    },
+    {
+     "id": "m234",
+     "score": 0.87
+    },
+    {
+     "id": "m046",
+     "score": 0.92
+    },
+    {
+     "id": "m138",
+     "score": 0.9
+    },
+    {
+     "id": "m222",
+     "score": 0.85
+    },
+    {
+     "id": "m092",
+     "score": 0.85
+    },
+    {
+     "id": "m035",
+     "score": 0.83
+    },
+    {
+     "id": "m151",
+     "score": 0.82
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m046",
+     "score": 5,
+     "chars": 27
+    },
+    {
+     "id": "m234",
+     "score": 4,
+     "chars": 25
+    },
+    {
+     "id": "m235",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m240",
+     "score": 2,
+     "chars": 26
+    },
+    {
+     "id": "m239",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 1.9602
+  },
+  "q065": {
+   "ranked": [
+    {
+     "id": "m143",
+     "score": 0.92
+    },
+    {
+     "id": "m161",
+     "score": 0.84
+    },
+    {
+     "id": "m077",
+     "score": 0.82
+    },
+    {
+     "id": "m069",
+     "score": 0.81
+    },
+    {
+     "id": "m020",
+     "score": 0.8
+    },
+    {
+     "id": "m052",
+     "score": 0.8
+    },
+    {
+     "id": "m136",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m143",
+     "score": 5,
+     "chars": 22
+    },
+    {
+     "id": "m161",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m077",
+     "score": 3,
+     "chars": 30
+    },
+    {
+     "id": "m069",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m020",
+     "score": 1,
+     "chars": 24
+    }
+   ],
+   "ms": 0.4709
+  },
+  "q066": {
+   "ranked": [
+    {
+     "id": "m062",
+     "score": 0.94
+    },
+    {
+     "id": "m188",
+     "score": 0.83
+    },
+    {
+     "id": "m025",
+     "score": 0.81
+    },
+    {
+     "id": "m014",
+     "score": 0.81
+    },
+    {
+     "id": "m048",
+     "score": 0.81
+    },
+    {
+     "id": "m108",
+     "score": 0.81
+    },
+    {
+     "id": "m031",
+     "score": 0.79
+    },
+    {
+     "id": "m189",
+     "score": 0.79
+    },
+    {
+     "id": "m148",
+     "score": 0.78
+    },
+    {
+     "id": "m231",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m062",
+     "score": 5,
+     "chars": 20
+    },
+    {
+     "id": "m188",
+     "score": 4,
+     "chars": 20
+    },
+    {
+     "id": "m025",
+     "score": 3,
+     "chars": 26
+    },
+    {
+     "id": "m014",
+     "score": 2,
+     "chars": 18
+    },
+    {
+     "id": "m048",
+     "score": 1,
+     "chars": 22
+    }
+   ],
+   "ms": 0.5892
+  },
+  "q067": {
+   "ranked": [
+    {
+     "id": "m235",
+     "score": 0.76
+    },
+    {
+     "id": "m047",
+     "score": 0.9
+    },
+    {
+     "id": "m107",
+     "score": 0.85
+    },
+    {
+     "id": "m102",
+     "score": 0.81
+    },
+    {
+     "id": "m169",
+     "score": 0.79
+    },
+    {
+     "id": "m095",
+     "score": 0.79
+    },
+    {
+     "id": "m156",
+     "score": 0.77
+    },
+    {
+     "id": "m056",
+     "score": 0.77
+    },
+    {
+     "id": "m162",
+     "score": 0.76
+    },
+    {
+     "id": "m068",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m235",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m047",
+     "score": 4,
+     "chars": 28
+    },
+    {
+     "id": "m107",
+     "score": 3,
+     "chars": 21
+    },
+    {
+     "id": "m102",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m169",
+     "score": 1,
+     "chars": 29
+    }
+   ],
+   "ms": 0.5915
+  },
+  "q068": {
+   "ranked": [
+    {
+     "id": "m180",
+     "score": 0.87
+    },
+    {
+     "id": "m151",
+     "score": 0.81
+    },
+    {
+     "id": "m181",
+     "score": 0.8
+    },
+    {
+     "id": "m027",
+     "score": 0.79
+    },
+    {
+     "id": "m063",
+     "score": 0.77
+    },
+    {
+     "id": "m089",
+     "score": 0.77
+    },
+    {
+     "id": "m083",
+     "score": 0.77
+    },
+    {
+     "id": "m103",
+     "score": 0.77
+    },
+    {
+     "id": "m193",
+     "score": 0.77
+    },
+    {
+     "id": "m058",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m180",
+     "score": 5,
+     "chars": 29
+    },
+    {
+     "id": "m151",
+     "score": 4,
+     "chars": 25
+    },
+    {
+     "id": "m181",
+     "score": 3,
+     "chars": 27
+    },
+    {
+     "id": "m027",
+     "score": 2,
+     "chars": 19
+    },
+    {
+     "id": "m063",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.5769
+  },
+  "q069": {
+   "ranked": [
+    {
+     "id": "m170",
+     "score": 0.94
+    },
+    {
+     "id": "m217",
+     "score": 0.88
+    },
+    {
+     "id": "m203",
+     "score": 0.88
+    },
+    {
+     "id": "m226",
+     "score": 0.88
+    },
+    {
+     "id": "m234",
+     "score": 0.76
+    },
+    {
+     "id": "m089",
+     "score": 0.84
+    },
+    {
+     "id": "m059",
+     "score": 0.83
+    },
+    {
+     "id": "m208",
+     "score": 0.82
+    },
+    {
+     "id": "m212",
+     "score": 0.81
+    },
+    {
+     "id": "m224",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m170",
+     "score": 5,
+     "chars": 28
+    },
+    {
+     "id": "m217",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m203",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m226",
+     "score": 2,
+     "chars": 21
+    },
+    {
+     "id": "m234",
+     "score": 1,
+     "chars": 25
+    }
+   ],
+   "ms": 0.6141
+  },
+  "q070": {
+   "ranked": [
+    {
+     "id": "m001",
+     "score": 0.89
+    },
+    {
+     "id": "m027",
+     "score": 0.84
+    },
+    {
+     "id": "m210",
+     "score": 0.84
+    },
+    {
+     "id": "m139",
+     "score": 0.82
+    },
+    {
+     "id": "m034",
+     "score": 0.79
+    },
+    {
+     "id": "m109",
+     "score": 0.79
+    },
+    {
+     "id": "m187",
+     "score": 0.79
+    },
+    {
+     "id": "m010",
+     "score": 0.78
+    },
+    {
+     "id": "m058",
+     "score": 0.76
+    },
+    {
+     "id": "m015",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m001",
+     "score": 5,
+     "chars": 26
+    },
+    {
+     "id": "m027",
+     "score": 4,
+     "chars": 19
+    },
+    {
+     "id": "m210",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m139",
+     "score": 2,
+     "chars": 25
+    },
+    {
+     "id": "m034",
+     "score": 1,
+     "chars": 25
+    }
+   ],
+   "ms": 0.5614
+  },
+  "q071": {
+   "ranked": [
+    {
+     "id": "m155",
+     "score": 0.85
+    },
+    {
+     "id": "m178",
+     "score": 0.84
+    },
+    {
+     "id": "m167",
+     "score": 0.84
+    },
+    {
+     "id": "m037",
+     "score": 0.8
+    },
+    {
+     "id": "m194",
+     "score": 0.79
+    },
+    {
+     "id": "m052",
+     "score": 0.77
+    },
+    {
+     "id": "m105",
+     "score": 0.77
+    },
+    {
+     "id": "m189",
+     "score": 0.77
+    },
+    {
+     "id": "m058",
+     "score": 0.76
+    },
+    {
+     "id": "m015",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m155",
+     "score": 5,
+     "chars": 18
+    },
+    {
+     "id": "m178",
+     "score": 4,
+     "chars": 22
+    },
+    {
+     "id": "m167",
+     "score": 3,
+     "chars": 27
+    },
+    {
+     "id": "m037",
+     "score": 2,
+     "chars": 17
+    },
+    {
+     "id": "m194",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.7134
+  },
+  "q072": {
+   "ranked": [
+    {
+     "id": "m182",
+     "score": 0.92
+    },
+    {
+     "id": "m083",
+     "score": 0.91
+    },
+    {
+     "id": "m028",
+     "score": 0.87
+    },
+    {
+     "id": "m064",
+     "score": 0.87
+    },
+    {
+     "id": "m062",
+     "score": 0.85
+    },
+    {
+     "id": "m157",
+     "score": 0.83
+    },
+    {
+     "id": "m027",
+     "score": 0.79
+    },
+    {
+     "id": "m063",
+     "score": 0.77
+    },
+    {
+     "id": "m089",
+     "score": 0.77
+    },
+    {
+     "id": "m043",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m182",
+     "score": 5,
+     "chars": 19
+    },
+    {
+     "id": "m083",
+     "score": 4,
+     "chars": 23
+    },
+    {
+     "id": "m028",
+     "score": 3,
+     "chars": 20
+    },
+    {
+     "id": "m064",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m062",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.6249
+  },
+  "q073": {
+   "ranked": [
+    {
+     "id": "m031",
+     "score": 0.9
+    },
+    {
+     "id": "m084",
+     "score": 0.83
+    },
+    {
+     "id": "m133",
+     "score": 0.83
+    },
+    {
+     "id": "m109",
+     "score": 0.83
+    },
+    {
+     "id": "m014",
+     "score": 0.81
+    },
+    {
+     "id": "m080",
+     "score": 0.8
+    },
+    {
+     "id": "m012",
+     "score": 0.78
+    },
+    {
+     "id": "m231",
+     "score": 0.78
+    },
+    {
+     "id": "m032",
+     "score": 0.78
+    },
+    {
+     "id": "m124",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m031",
+     "score": 5,
+     "chars": 25
+    },
+    {
+     "id": "m084",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m133",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m109",
+     "score": 2,
+     "chars": 26
+    },
+    {
+     "id": "m014",
+     "score": 1,
+     "chars": 18
+    }
+   ],
+   "ms": 0.6611
+  },
+  "q074": {
+   "ranked": [
+    {
+     "id": "m044",
+     "score": 0.89
+    },
+    {
+     "id": "m103",
+     "score": 0.83
+    },
+    {
+     "id": "m036",
+     "score": 0.83
+    },
+    {
+     "id": "m175",
+     "score": 0.74
+    },
+    {
+     "id": "m177",
+     "score": 0.74
+    },
+    {
+     "id": "m078",
+     "score": 0.73
+    },
+    {
+     "id": "m015",
+     "score": 0.73
+    },
+    {
+     "id": "m028",
+     "score": 0.73
+    },
+    {
+     "id": "m190",
+     "score": 0.73
+    },
+    {
+     "id": "m220",
+     "score": 0.72
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m044",
+     "score": 5,
+     "chars": 17
+    },
+    {
+     "id": "m103",
+     "score": 4,
+     "chars": 28
+    },
+    {
+     "id": "m036",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m175",
+     "score": 2,
+     "chars": 17
+    },
+    {
+     "id": "m177",
+     "score": 1,
+     "chars": 18
+    }
+   ],
+   "ms": 0.5841
+  },
+  "q075": {
+   "ranked": [
+    {
+     "id": "m062",
+     "score": 0.91
+    },
+    {
+     "id": "m185",
+     "score": 0.9
+    },
+    {
+     "id": "m035",
+     "score": 0.83
+    },
+    {
+     "id": "m182",
+     "score": 0.82
+    },
+    {
+     "id": "m134",
+     "score": 0.82
+    },
+    {
+     "id": "m137",
+     "score": 0.82
+    },
+    {
+     "id": "m064",
+     "score": 0.81
+    },
+    {
+     "id": "m172",
+     "score": 0.8
+    },
+    {
+     "id": "m072",
+     "score": 0.8
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m062",
+     "score": 5,
+     "chars": 20
+    },
+    {
+     "id": "m185",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m035",
+     "score": 3,
+     "chars": 27
+    },
+    {
+     "id": "m182",
+     "score": 2,
+     "chars": 19
+    },
+    {
+     "id": "m134",
+     "score": 1,
+     "chars": 21
+    }
+   ],
+   "ms": 0.505
+  },
+  "q076": {
+   "ranked": [
+    {
+     "id": "m102",
+     "score": 0.84
+    },
+    {
+     "id": "m179",
+     "score": 0.83
+    },
+    {
+     "id": "m158",
+     "score": 0.82
+    },
+    {
+     "id": "m186",
+     "score": 0.82
+    },
+    {
+     "id": "m137",
+     "score": 0.82
+    },
+    {
+     "id": "m185",
+     "score": 0.81
+    },
+    {
+     "id": "m172",
+     "score": 0.8
+    },
+    {
+     "id": "m058",
+     "score": 0.76
+    },
+    {
+     "id": "m015",
+     "score": 0.76
+    },
+    {
+     "id": "m056",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m102",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m179",
+     "score": 4,
+     "chars": 31
+    },
+    {
+     "id": "m158",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m186",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m137",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.6009
+  },
+  "q077": {
+   "ranked": [
+    {
+     "id": "m115",
+     "score": 0.85
+    },
+    {
+     "id": "m190",
+     "score": 0.83
+    },
+    {
+     "id": "m110",
+     "score": 0.82
+    },
+    {
+     "id": "m171",
+     "score": 0.81
+    },
+    {
+     "id": "m040",
+     "score": 0.79
+    },
+    {
+     "id": "m148",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m115",
+     "score": 5,
+     "chars": 22
+    },
+    {
+     "id": "m190",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m110",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m171",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m040",
+     "score": 1,
+     "chars": 28
+    }
+   ],
+   "ms": 0.58
+  },
+  "q078": {
+   "ranked": [
+    {
+     "id": "m234",
+     "score": 0.76
+    },
+    {
+     "id": "m078",
+     "score": 0.83
+    },
+    {
+     "id": "m148",
+     "score": 0.8
+    },
+    {
+     "id": "m041",
+     "score": 0.77
+    },
+    {
+     "id": "m073",
+     "score": 0.77
+    },
+    {
+     "id": "m168",
+     "score": 0.77
+    },
+    {
+     "id": "m191",
+     "score": 0.77
+    },
+    {
+     "id": "m212",
+     "score": 0.77
+    },
+    {
+     "id": "m216",
+     "score": 0.76
+    },
+    {
+     "id": "m060",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m234",
+     "score": 5,
+     "chars": 25
+    },
+    {
+     "id": "m078",
+     "score": 4,
+     "chars": 20
+    },
+    {
+     "id": "m148",
+     "score": 3,
+     "chars": 31
+    },
+    {
+     "id": "m041",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m073",
+     "score": 1,
+     "chars": 24
+    }
+   ],
+   "ms": 0.4883
+  },
+  "q079": {
+   "ranked": [
+    {
+     "id": "m209",
+     "score": 0.82
+    },
+    {
+     "id": "m158",
+     "score": 0.82
+    },
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m186",
+     "score": 0.82
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m209",
+     "score": 4,
+     "chars": 30
+    },
+    {
+     "id": "m158",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m050",
+     "score": 2,
+     "chars": 29
+    },
+    {
+     "id": "m186",
+     "score": 1,
+     "chars": 24
+    }
+   ],
+   "ms": 0.5269
+  },
+  "q080": {
+   "ranked": [
+    {
+     "id": "m026",
+     "score": 0.82
+    },
+    {
+     "id": "m053",
+     "score": 0.82
+    },
+    {
+     "id": "m064",
+     "score": 0.81
+    },
+    {
+     "id": "m106",
+     "score": 0.81
+    },
+    {
+     "id": "m083",
+     "score": 0.81
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m026",
+     "score": 5,
+     "chars": 24
+    },
+    {
+     "id": "m053",
+     "score": 4,
+     "chars": 26
+    },
+    {
+     "id": "m064",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m106",
+     "score": 2,
+     "chars": 21
+    },
+    {
+     "id": "m083",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.4687
+  },
+  "q081": {
+   "ranked": [
+    {
+     "id": "m239",
+     "score": 0.82
+    },
+    {
+     "id": "m119",
+     "score": 0.89
+    },
+    {
+     "id": "m137",
+     "score": 0.84
+    },
+    {
+     "id": "m004",
+     "score": 0.84
+    },
+    {
+     "id": "m135",
+     "score": 0.81
+    },
+    {
+     "id": "m160",
+     "score": 0.8
+    },
+    {
+     "id": "m150",
+     "score": 0.79
+    },
+    {
+     "id": "m188",
+     "score": 0.79
+    },
+    {
+     "id": "m208",
+     "score": 0.78
+    },
+    {
+     "id": "m206",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m239",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m119",
+     "score": 4,
+     "chars": 23
+    },
+    {
+     "id": "m137",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m004",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m135",
+     "score": 1,
+     "chars": 19
+    }
+   ],
+   "ms": 1.1313
+  },
+  "q082": {
+   "ranked": [
+    {
+     "id": "m236",
+     "score": 0.78
+    },
+    {
+     "id": "m232",
+     "score": 0.95
+    },
+    {
+     "id": "m128",
+     "score": 0.9
+    },
+    {
+     "id": "m018",
+     "score": 0.83
+    },
+    {
+     "id": "m021",
+     "score": 0.82
+    },
+    {
+     "id": "m063",
+     "score": 0.82
+    },
+    {
+     "id": "m089",
+     "score": 0.82
+    },
+    {
+     "id": "m115",
+     "score": 0.82
+    },
+    {
+     "id": "m061",
+     "score": 0.79
+    },
+    {
+     "id": "m079",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m236",
+     "score": 5,
+     "chars": 25
+    },
+    {
+     "id": "m232",
+     "score": 4,
+     "chars": 26
+    },
+    {
+     "id": "m128",
+     "score": 3,
+     "chars": 27
+    },
+    {
+     "id": "m018",
+     "score": 2,
+     "chars": 21
+    },
+    {
+     "id": "m021",
+     "score": 1,
+     "chars": 28
+    }
+   ],
+   "ms": 1.0013
+  },
+  "q083": {
+   "ranked": [
+    {
+     "id": "m165",
+     "score": 0.94
+    },
+    {
+     "id": "m235",
+     "score": 0.75
+    },
+    {
+     "id": "m041",
+     "score": 0.89
+    },
+    {
+     "id": "m234",
+     "score": 0.76
+    },
+    {
+     "id": "m060",
+     "score": 0.85
+    },
+    {
+     "id": "m200",
+     "score": 0.83
+    },
+    {
+     "id": "m043",
+     "score": 0.83
+    },
+    {
+     "id": "m153",
+     "score": 0.83
+    },
+    {
+     "id": "m199",
+     "score": 0.81
+    },
+    {
+     "id": "m021",
+     "score": 0.81
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m165",
+     "score": 5,
+     "chars": 28
+    },
+    {
+     "id": "m041",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m060",
+     "score": 3,
+     "chars": 32
+    },
+    {
+     "id": "m200",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m043",
+     "score": 1,
+     "chars": 16
+    }
+   ],
+   "ms": 0.7694
+  },
+  "q084": {
+   "ranked": [
+    {
+     "id": "m174",
+     "score": 0.93
+    },
+    {
+     "id": "m053",
+     "score": 0.89
+    },
+    {
+     "id": "m229",
+     "score": 0.89
+    },
+    {
+     "id": "m152",
+     "score": 0.83
+    },
+    {
+     "id": "m043",
+     "score": 0.83
+    },
+    {
+     "id": "m018",
+     "score": 0.82
+    },
+    {
+     "id": "m098",
+     "score": 0.8
+    },
+    {
+     "id": "m080",
+     "score": 0.8
+    },
+    {
+     "id": "m118",
+     "score": 0.79
+    },
+    {
+     "id": "m185",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m174",
+     "score": 5,
+     "chars": 28
+    },
+    {
+     "id": "m053",
+     "score": 4,
+     "chars": 26
+    },
+    {
+     "id": "m229",
+     "score": 3,
+     "chars": 27
+    },
+    {
+     "id": "m152",
+     "score": 2,
+     "chars": 28
+    },
+    {
+     "id": "m043",
+     "score": 1,
+     "chars": 16
+    }
+   ],
+   "ms": 0.7614
+  },
+  "q085": {
+   "ranked": [
+    {
+     "id": "m065",
+     "score": 0.82
+    },
+    {
+     "id": "m075",
+     "score": 0.81
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m065",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m075",
+     "score": 1,
+     "chars": 27
+    }
+   ],
+   "ms": 0.4972
+  },
+  "q086": {
+   "ranked": [
+    {
+     "id": "m035",
+     "score": 0.92
+    },
+    {
+     "id": "m131",
+     "score": 0.88
+    },
+    {
+     "id": "m128",
+     "score": 0.87
+    },
+    {
+     "id": "m203",
+     "score": 0.87
+    },
+    {
+     "id": "m226",
+     "score": 0.87
+    },
+    {
+     "id": "m116",
+     "score": 0.87
+    },
+    {
+     "id": "m068",
+     "score": 0.86
+    },
+    {
+     "id": "m083",
+     "score": 0.85
+    },
+    {
+     "id": "m223",
+     "score": 0.81
+    },
+    {
+     "id": "m100",
+     "score": 0.81
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m035",
+     "score": 5,
+     "chars": 27
+    },
+    {
+     "id": "m131",
+     "score": 4,
+     "chars": 29
+    },
+    {
+     "id": "m128",
+     "score": 3,
+     "chars": 27
+    },
+    {
+     "id": "m203",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m226",
+     "score": 1,
+     "chars": 21
+    }
+   ],
+   "ms": 0.5696
+  },
+  "q087": {
+   "ranked": [
+    {
+     "id": "m135",
+     "score": 0.94
+    },
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m114",
+     "score": 0.82
+    },
+    {
+     "id": "m200",
+     "score": 0.82
+    },
+    {
+     "id": "m088",
+     "score": 0.81
+    },
+    {
+     "id": "m158",
+     "score": 0.79
+    },
+    {
+     "id": "m126",
+     "score": 0.79
+    },
+    {
+     "id": "m001",
+     "score": 0.79
+    },
+    {
+     "id": "m100",
+     "score": 0.79
+    },
+    {
+     "id": "m142",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m135",
+     "score": 5,
+     "chars": 19
+    },
+    {
+     "id": "m050",
+     "score": 4,
+     "chars": 29
+    },
+    {
+     "id": "m114",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m200",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m088",
+     "score": 1,
+     "chars": 28
+    }
+   ],
+   "ms": 0.4638
+  },
+  "q088": {
+   "ranked": [
+    {
+     "id": "m234",
+     "score": 0.92
+    },
+    {
+     "id": "m236",
+     "score": 0.74
+    },
+    {
+     "id": "m217",
+     "score": 0.9
+    },
+    {
+     "id": "m032",
+     "score": 0.9
+    },
+    {
+     "id": "m209",
+     "score": 0.9
+    },
+    {
+     "id": "m143",
+     "score": 0.85
+    },
+    {
+     "id": "m194",
+     "score": 0.84
+    },
+    {
+     "id": "m013",
+     "score": 0.82
+    },
+    {
+     "id": "m053",
+     "score": 0.82
+    },
+    {
+     "id": "m093",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m234",
+     "score": 5,
+     "chars": 25
+    },
+    {
+     "id": "m217",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m032",
+     "score": 3,
+     "chars": 29
+    },
+    {
+     "id": "m209",
+     "score": 2,
+     "chars": 30
+    },
+    {
+     "id": "m143",
+     "score": 1,
+     "chars": 22
+    }
+   ],
+   "ms": 0.631
+  },
+  "q089": {
+   "ranked": [
+    {
+     "id": "m239",
+     "score": 0.77
+    },
+    {
+     "id": "m228",
+     "score": 0.94
+    },
+    {
+     "id": "m116",
+     "score": 0.89
+    },
+    {
+     "id": "m033",
+     "score": 0.88
+    },
+    {
+     "id": "m208",
+     "score": 0.87
+    },
+    {
+     "id": "m002",
+     "score": 0.87
+    },
+    {
+     "id": "m147",
+     "score": 0.86
+    },
+    {
+     "id": "m085",
+     "score": 0.82
+    },
+    {
+     "id": "m007",
+     "score": 0.81
+    },
+    {
+     "id": "m042",
+     "score": 0.8
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m228",
+     "score": 5,
+     "chars": 26
+    },
+    {
+     "id": "m116",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m033",
+     "score": 3,
+     "chars": 28
+    },
+    {
+     "id": "m208",
+     "score": 2,
+     "chars": 25
+    },
+    {
+     "id": "m002",
+     "score": 1,
+     "chars": 30
+    }
+   ],
+   "ms": 0.843
+  },
+  "q090": {
+   "ranked": [
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m043",
+     "score": 0.77
+    },
+    {
+     "id": "m070",
+     "score": 0.76
+    },
+    {
+     "id": "m033",
+     "score": 0.76
+    },
+    {
+     "id": "m113",
+     "score": 0.76
+    },
+    {
+     "id": "m024",
+     "score": 0.75
+    },
+    {
+     "id": "m019",
+     "score": 0.75
+    },
+    {
+     "id": "m198",
+     "score": 0.75
+    },
+    {
+     "id": "m095",
+     "score": 0.75
+    },
+    {
+     "id": "m216",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m050",
+     "score": 5,
+     "chars": 29
+    },
+    {
+     "id": "m043",
+     "score": 4,
+     "chars": 16
+    },
+    {
+     "id": "m070",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m033",
+     "score": 2,
+     "chars": 28
+    },
+    {
+     "id": "m113",
+     "score": 1,
+     "chars": 27
+    }
+   ],
+   "ms": 0.6292
+  },
+  "q091": {
+   "ranked": [
+    {
+     "id": "m185",
+     "score": 0.9
+    },
+    {
+     "id": "m014",
+     "score": 0.84
+    },
+    {
+     "id": "m159",
+     "score": 0.84
+    },
+    {
+     "id": "m178",
+     "score": 0.84
+    },
+    {
+     "id": "m045",
+     "score": 0.83
+    },
+    {
+     "id": "m137",
+     "score": 0.82
+    },
+    {
+     "id": "m172",
+     "score": 0.8
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m185",
+     "score": 5,
+     "chars": 24
+    },
+    {
+     "id": "m014",
+     "score": 4,
+     "chars": 18
+    },
+    {
+     "id": "m159",
+     "score": 3,
+     "chars": 18
+    },
+    {
+     "id": "m178",
+     "score": 2,
+     "chars": 22
+    },
+    {
+     "id": "m045",
+     "score": 1,
+     "chars": 24
+    }
+   ],
+   "ms": 0.5034
+  },
+  "q092": {
+   "ranked": [
+    {
+     "id": "m120",
+     "score": 0.84
+    },
+    {
+     "id": "m233",
+     "score": 0.83
+    },
+    {
+     "id": "m095",
+     "score": 0.81
+    },
+    {
+     "id": "m071",
+     "score": 0.8
+    },
+    {
+     "id": "m188",
+     "score": 0.77
+    },
+    {
+     "id": "m067",
+     "score": 0.76
+    },
+    {
+     "id": "m223",
+     "score": 0.76
+    },
+    {
+     "id": "m152",
+     "score": 0.76
+    },
+    {
+     "id": "m193",
+     "score": 0.76
+    },
+    {
+     "id": "m201",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m120",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m233",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m095",
+     "score": 3,
+     "chars": 26
+    },
+    {
+     "id": "m071",
+     "score": 2,
+     "chars": 29
+    },
+    {
+     "id": "m188",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.6363
+  },
+  "q093": {
+   "ranked": [
+    {
+     "id": "m158",
+     "score": 0.84
+    },
+    {
+     "id": "m042",
+     "score": 0.84
+    },
+    {
+     "id": "m121",
+     "score": 0.82
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m158",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m042",
+     "score": 2,
+     "chars": 20
+    },
+    {
+     "id": "m121",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.4154
+  },
+  "q094": {
+   "ranked": [
+    {
+     "id": "m168",
+     "score": 0.84
+    },
+    {
+     "id": "m107",
+     "score": 0.83
+    },
+    {
+     "id": "m164",
+     "score": 0.83
+    },
+    {
+     "id": "m046",
+     "score": 0.81
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m168",
+     "score": 4,
+     "chars": 25
+    },
+    {
+     "id": "m107",
+     "score": 3,
+     "chars": 21
+    },
+    {
+     "id": "m164",
+     "score": 2,
+     "chars": 19
+    },
+    {
+     "id": "m046",
+     "score": 1,
+     "chars": 27
+    }
+   ],
+   "ms": 0.5508
+  },
+  "q095": {
+   "ranked": [
+    {
+     "id": "m239",
+     "score": 0.68
+    },
+    {
+     "id": "m086",
+     "score": 0.84
+    },
+    {
+     "id": "m014",
+     "score": 0.84
+    },
+    {
+     "id": "m159",
+     "score": 0.84
+    },
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m140",
+     "score": 0.82
+    },
+    {
+     "id": "m016",
+     "score": 0.81
+    },
+    {
+     "id": "m224",
+     "score": 0.81
+    },
+    {
+     "id": "m180",
+     "score": 0.81
+    },
+    {
+     "id": "m071",
+     "score": 0.8
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m086",
+     "score": 5,
+     "chars": 22
+    },
+    {
+     "id": "m014",
+     "score": 4,
+     "chars": 18
+    },
+    {
+     "id": "m159",
+     "score": 3,
+     "chars": 18
+    },
+    {
+     "id": "m050",
+     "score": 2,
+     "chars": 29
+    },
+    {
+     "id": "m140",
+     "score": 1,
+     "chars": 29
+    }
+   ],
+   "ms": 0.5693
+  },
+  "q096": {
+   "ranked": [
+    {
+     "id": "m239",
+     "score": 0.68
+    },
+    {
+     "id": "m056",
+     "score": 0.84
+    },
+    {
+     "id": "m178",
+     "score": 0.84
+    },
+    {
+     "id": "m217",
+     "score": 0.83
+    },
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m103",
+     "score": 0.82
+    },
+    {
+     "id": "m026",
+     "score": 0.82
+    },
+    {
+     "id": "m030",
+     "score": 0.69
+    },
+    {
+     "id": "m080",
+     "score": 0.69
+    },
+    {
+     "id": "m120",
+     "score": 0.69
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m239",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m056",
+     "score": 4,
+     "chars": 22
+    },
+    {
+     "id": "m178",
+     "score": 3,
+     "chars": 22
+    },
+    {
+     "id": "m217",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m050",
+     "score": 1,
+     "chars": 29
+    }
+   ],
+   "ms": 0.5919
+  },
+  "q097": {
+   "ranked": [
+    {
+     "id": "m238",
+     "score": 0.8
+    },
+    {
+     "id": "m095",
+     "score": 0.91
+    },
+    {
+     "id": "m234",
+     "score": 0.76
+    },
+    {
+     "id": "m071",
+     "score": 0.82
+    },
+    {
+     "id": "m231",
+     "score": 0.79
+    },
+    {
+     "id": "m218",
+     "score": 0.79
+    },
+    {
+     "id": "m092",
+     "score": 0.78
+    },
+    {
+     "id": "m041",
+     "score": 0.77
+    },
+    {
+     "id": "m073",
+     "score": 0.77
+    },
+    {
+     "id": "m168",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m238",
+     "score": 5,
+     "chars": 22
+    },
+    {
+     "id": "m095",
+     "score": 4,
+     "chars": 26
+    },
+    {
+     "id": "m234",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m071",
+     "score": 2,
+     "chars": 29
+    },
+    {
+     "id": "m231",
+     "score": 1,
+     "chars": 27
+    }
+   ],
+   "ms": 0.4948
+  },
+  "q098": {
+   "ranked": [
+    {
+     "id": "m239",
+     "score": 0.68
+    },
+    {
+     "id": "m095",
+     "score": 0.86
+    },
+    {
+     "id": "m071",
+     "score": 0.85
+    },
+    {
+     "id": "m030",
+     "score": 0.69
+    },
+    {
+     "id": "m080",
+     "score": 0.69
+    },
+    {
+     "id": "m120",
+     "score": 0.69
+    },
+    {
+     "id": "m031",
+     "score": 0.68
+    },
+    {
+     "id": "m055",
+     "score": 0.68
+    },
+    {
+     "id": "m211",
+     "score": 0.68
+    },
+    {
+     "id": "m185",
+     "score": 0.68
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m239",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m095",
+     "score": 4,
+     "chars": 26
+    },
+    {
+     "id": "m071",
+     "score": 3,
+     "chars": 29
+    },
+    {
+     "id": "m030",
+     "score": 2,
+     "chars": 21
+    },
+    {
+     "id": "m080",
+     "score": 1,
+     "chars": 21
+    }
+   ],
+   "ms": 0.5054
+  },
+  "q099": {
+   "ranked": [
+    {
+     "id": "m236",
+     "score": 0.82
+    },
+    {
+     "id": "m101",
+     "score": 0.94
+    },
+    {
+     "id": "m026",
+     "score": 0.83
+    },
+    {
+     "id": "m200",
+     "score": 0.82
+    },
+    {
+     "id": "m088",
+     "score": 0.81
+    },
+    {
+     "id": "m095",
+     "score": 0.81
+    },
+    {
+     "id": "m173",
+     "score": 0.81
+    },
+    {
+     "id": "m071",
+     "score": 0.8
+    },
+    {
+     "id": "m154",
+     "score": 0.78
+    },
+    {
+     "id": "m161",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m101",
+     "score": 5,
+     "chars": 27
+    },
+    {
+     "id": "m026",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m236",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m200",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m088",
+     "score": 1,
+     "chars": 28
+    }
+   ],
+   "ms": 0.776
+  },
+  "q100": {
+   "ranked": [
+    {
+     "id": "m127",
+     "score": 0.92
+    },
+    {
+     "id": "m147",
+     "score": 0.88
+    },
+    {
+     "id": "m178",
+     "score": 0.84
+    },
+    {
+     "id": "m016",
+     "score": 0.81
+    },
+    {
+     "id": "m017",
+     "score": 0.81
+    },
+    {
+     "id": "m095",
+     "score": 0.81
+    },
+    {
+     "id": "m071",
+     "score": 0.8
+    },
+    {
+     "id": "m122",
+     "score": 0.76
+    },
+    {
+     "id": "m208",
+     "score": 0.76
+    },
+    {
+     "id": "m051",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m127",
+     "score": 5,
+     "chars": 26
+    },
+    {
+     "id": "m147",
+     "score": 4,
+     "chars": 29
+    },
+    {
+     "id": "m178",
+     "score": 3,
+     "chars": 22
+    },
+    {
+     "id": "m016",
+     "score": 2,
+     "chars": 35
+    },
+    {
+     "id": "m017",
+     "score": 1,
+     "chars": 28
+    }
+   ],
+   "ms": 0.5917
+  },
+  "q101": {
+   "ranked": [
+    {
+     "id": "m239",
+     "score": 0.78
+    },
+    {
+     "id": "m057",
+     "score": 0.9
+    },
+    {
+     "id": "m154",
+     "score": 0.85
+    },
+    {
+     "id": "m030",
+     "score": 0.79
+    },
+    {
+     "id": "m161",
+     "score": 0.79
+    },
+    {
+     "id": "m069",
+     "score": 0.78
+    },
+    {
+     "id": "m070",
+     "score": 0.78
+    },
+    {
+     "id": "m185",
+     "score": 0.78
+    },
+    {
+     "id": "m219",
+     "score": 0.78
+    },
+    {
+     "id": "m222",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m057",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m154",
+     "score": 4,
+     "chars": 21
+    },
+    {
+     "id": "m030",
+     "score": 3,
+     "chars": 21
+    },
+    {
+     "id": "m161",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m239",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.5454
+  },
+  "q102": {
+   "ranked": [
+    {
+     "id": "m091",
+     "score": 0.84
+    },
+    {
+     "id": "m188",
+     "score": 0.82
+    },
+    {
+     "id": "m198",
+     "score": 0.8
+    },
+    {
+     "id": "m104",
+     "score": 0.8
+    },
+    {
+     "id": "m219",
+     "score": 0.78
+    },
+    {
+     "id": "m222",
+     "score": 0.78
+    },
+    {
+     "id": "m220",
+     "score": 0.77
+    },
+    {
+     "id": "m152",
+     "score": 0.76
+    },
+    {
+     "id": "m205",
+     "score": 0.76
+    },
+    {
+     "id": "m007",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m091",
+     "score": 5,
+     "chars": 22
+    },
+    {
+     "id": "m188",
+     "score": 4,
+     "chars": 20
+    },
+    {
+     "id": "m198",
+     "score": 3,
+     "chars": 29
+    },
+    {
+     "id": "m104",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m219",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.5776
+  },
+  "q103": {
+   "ranked": [
+    {
+     "id": "m220",
+     "score": 0.92
+    },
+    {
+     "id": "m166",
+     "score": 0.86
+    },
+    {
+     "id": "m052",
+     "score": 0.83
+    },
+    {
+     "id": "m055",
+     "score": 0.82
+    },
+    {
+     "id": "m015",
+     "score": 0.79
+    },
+    {
+     "id": "m023",
+     "score": 0.79
+    },
+    {
+     "id": "m028",
+     "score": 0.79
+    },
+    {
+     "id": "m097",
+     "score": 0.78
+    },
+    {
+     "id": "m219",
+     "score": 0.78
+    },
+    {
+     "id": "m222",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m220",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m166",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m052",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m055",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m015",
+     "score": 1,
+     "chars": 22
+    }
+   ],
+   "ms": 0.67
+  },
+  "q104": {
+   "ranked": [
+    {
+     "id": "m190",
+     "score": 0.94
+    },
+    {
+     "id": "m083",
+     "score": 0.87
+    },
+    {
+     "id": "m220",
+     "score": 0.86
+    },
+    {
+     "id": "m030",
+     "score": 0.79
+    },
+    {
+     "id": "m161",
+     "score": 0.79
+    },
+    {
+     "id": "m093",
+     "score": 0.78
+    },
+    {
+     "id": "m219",
+     "score": 0.78
+    },
+    {
+     "id": "m222",
+     "score": 0.78
+    },
+    {
+     "id": "m095",
+     "score": 0.77
+    },
+    {
+     "id": "m142",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m190",
+     "score": 5,
+     "chars": 24
+    },
+    {
+     "id": "m083",
+     "score": 4,
+     "chars": 23
+    },
+    {
+     "id": "m220",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m030",
+     "score": 2,
+     "chars": 21
+    },
+    {
+     "id": "m161",
+     "score": 1,
+     "chars": 24
+    }
+   ],
+   "ms": 0.6219
+  },
+  "q105": {
+   "ranked": [
+    {
+     "id": "m143",
+     "score": 0.92
+    },
+    {
+     "id": "m222",
+     "score": 0.91
+    },
+    {
+     "id": "m095",
+     "score": 0.89
+    },
+    {
+     "id": "m229",
+     "score": 0.88
+    },
+    {
+     "id": "m036",
+     "score": 0.83
+    },
+    {
+     "id": "m185",
+     "score": 0.82
+    },
+    {
+     "id": "m030",
+     "score": 0.79
+    },
+    {
+     "id": "m161",
+     "score": 0.79
+    },
+    {
+     "id": "m080",
+     "score": 0.79
+    },
+    {
+     "id": "m006",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m143",
+     "score": 5,
+     "chars": 22
+    },
+    {
+     "id": "m222",
+     "score": 4,
+     "chars": 20
+    },
+    {
+     "id": "m095",
+     "score": 3,
+     "chars": 26
+    },
+    {
+     "id": "m229",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m036",
+     "score": 1,
+     "chars": 25
+    }
+   ],
+   "ms": 0.7669
+  },
+  "q106": {
+   "ranked": [
+    {
+     "id": "m237",
+     "score": 0.81
+    },
+    {
+     "id": "m039",
+     "score": 0.9
+    },
+    {
+     "id": "m214",
+     "score": 0.89
+    },
+    {
+     "id": "m205",
+     "score": 0.87
+    },
+    {
+     "id": "m043",
+     "score": 0.84
+    },
+    {
+     "id": "m027",
+     "score": 0.84
+    },
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m106",
+     "score": 0.82
+    },
+    {
+     "id": "m018",
+     "score": 0.81
+    },
+    {
+     "id": "m191",
+     "score": 0.8
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m237",
+     "score": 5,
+     "chars": 19
+    },
+    {
+     "id": "m039",
+     "score": 4,
+     "chars": 22
+    },
+    {
+     "id": "m214",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m205",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m043",
+     "score": 1,
+     "chars": 16
+    }
+   ],
+   "ms": 0.5758
+  },
+  "q107": {
+   "ranked": [
+    {
+     "id": "m059",
+     "score": 0.94
+    },
+    {
+     "id": "m208",
+     "score": 0.93
+    },
+    {
+     "id": "m220",
+     "score": 0.92
+    },
+    {
+     "id": "m166",
+     "score": 0.86
+    },
+    {
+     "id": "m055",
+     "score": 0.82
+    },
+    {
+     "id": "m015",
+     "score": 0.79
+    },
+    {
+     "id": "m023",
+     "score": 0.79
+    },
+    {
+     "id": "m028",
+     "score": 0.79
+    },
+    {
+     "id": "m097",
+     "score": 0.78
+    },
+    {
+     "id": "m219",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m059",
+     "score": 5,
+     "chars": 19
+    },
+    {
+     "id": "m208",
+     "score": 4,
+     "chars": 25
+    },
+    {
+     "id": "m220",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m166",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m055",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.496
+  },
+  "q108": {
+   "ranked": [
+    {
+     "id": "m093",
+     "score": 0.95
+    },
+    {
+     "id": "m220",
+     "score": 0.89
+    },
+    {
+     "id": "m055",
+     "score": 0.89
+    },
+    {
+     "id": "m216",
+     "score": 0.87
+    },
+    {
+     "id": "m007",
+     "score": 0.86
+    },
+    {
+     "id": "m100",
+     "score": 0.81
+    },
+    {
+     "id": "m219",
+     "score": 0.78
+    },
+    {
+     "id": "m222",
+     "score": 0.78
+    },
+    {
+     "id": "m048",
+     "score": 0.77
+    },
+    {
+     "id": "m152",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m093",
+     "score": 5,
+     "chars": 18
+    },
+    {
+     "id": "m220",
+     "score": 4,
+     "chars": 23
+    },
+    {
+     "id": "m055",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m216",
+     "score": 2,
+     "chars": 29
+    },
+    {
+     "id": "m007",
+     "score": 1,
+     "chars": 29
+    }
+   ],
+   "ms": 0.5704
+  },
+  "q109": {
+   "ranked": [
+    {
+     "id": "m145",
+     "score": 0.9
+    },
+    {
+     "id": "m179",
+     "score": 0.89
+    },
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m184",
+     "score": 0.81
+    },
+    {
+     "id": "m081",
+     "score": 0.8
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m145",
+     "score": 5,
+     "chars": 24
+    },
+    {
+     "id": "m179",
+     "score": 4,
+     "chars": 31
+    },
+    {
+     "id": "m050",
+     "score": 3,
+     "chars": 29
+    },
+    {
+     "id": "m184",
+     "score": 2,
+     "chars": 21
+    },
+    {
+     "id": "m081",
+     "score": 1,
+     "chars": 22
+    }
+   ],
+   "ms": 0.4007
+  },
+  "q110": {
+   "ranked": [
+    {
+     "id": "m056",
+     "score": 0.91
+    },
+    {
+     "id": "m003",
+     "score": 0.88
+    },
+    {
+     "id": "m069",
+     "score": 0.83
+    },
+    {
+     "id": "m225",
+     "score": 0.81
+    },
+    {
+     "id": "m219",
+     "score": 0.78
+    },
+    {
+     "id": "m222",
+     "score": 0.78
+    },
+    {
+     "id": "m220",
+     "score": 0.77
+    },
+    {
+     "id": "m152",
+     "score": 0.76
+    },
+    {
+     "id": "m205",
+     "score": 0.76
+    },
+    {
+     "id": "m007",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m056",
+     "score": 5,
+     "chars": 22
+    },
+    {
+     "id": "m003",
+     "score": 4,
+     "chars": 28
+    },
+    {
+     "id": "m069",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m225",
+     "score": 2,
+     "chars": 28
+    },
+    {
+     "id": "m219",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.5433
+  },
+  "q111": {
+   "ranked": [
+    {
+     "id": "m178",
+     "score": 0.95
+    },
+    {
+     "id": "m187",
+     "score": 0.93
+    },
+    {
+     "id": "m077",
+     "score": 0.92
+    },
+    {
+     "id": "m121",
+     "score": 0.84
+    },
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m088",
+     "score": 0.81
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m178",
+     "score": 5,
+     "chars": 22
+    },
+    {
+     "id": "m187",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m077",
+     "score": 3,
+     "chars": 30
+    },
+    {
+     "id": "m121",
+     "score": 2,
+     "chars": 20
+    },
+    {
+     "id": "m050",
+     "score": 1,
+     "chars": 29
+    }
+   ],
+   "ms": 0.6001
+  },
+  "q112": {
+   "ranked": [
+    {
+     "id": "m044",
+     "score": 0.93
+    },
+    {
+     "id": "m106",
+     "score": 0.92
+    },
+    {
+     "id": "m220",
+     "score": 0.86
+    },
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m219",
+     "score": 0.78
+    },
+    {
+     "id": "m222",
+     "score": 0.78
+    },
+    {
+     "id": "m152",
+     "score": 0.76
+    },
+    {
+     "id": "m205",
+     "score": 0.76
+    },
+    {
+     "id": "m007",
+     "score": 0.75
+    },
+    {
+     "id": "m166",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m044",
+     "score": 5,
+     "chars": 17
+    },
+    {
+     "id": "m106",
+     "score": 4,
+     "chars": 21
+    },
+    {
+     "id": "m220",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m050",
+     "score": 2,
+     "chars": 29
+    },
+    {
+     "id": "m219",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.7174
+  },
+  "q113": {
+   "ranked": [
+    {
+     "id": "m063",
+     "score": 0.9
+    },
+    {
+     "id": "m213",
+     "score": 0.81
+    },
+    {
+     "id": "m002",
+     "score": 0.79
+    },
+    {
+     "id": "m093",
+     "score": 0.78
+    },
+    {
+     "id": "m219",
+     "score": 0.78
+    },
+    {
+     "id": "m222",
+     "score": 0.78
+    },
+    {
+     "id": "m220",
+     "score": 0.77
+    },
+    {
+     "id": "m190",
+     "score": 0.77
+    },
+    {
+     "id": "m055",
+     "score": 0.76
+    },
+    {
+     "id": "m081",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m063",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m213",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m002",
+     "score": 3,
+     "chars": 30
+    },
+    {
+     "id": "m093",
+     "score": 2,
+     "chars": 18
+    },
+    {
+     "id": "m219",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.5859
+  },
+  "q114": {
+   "ranked": [
+    {
+     "id": "m089",
+     "score": 0.82
+    },
+    {
+     "id": "m128",
+     "score": 0.82
+    },
+    {
+     "id": "m219",
+     "score": 0.78
+    },
+    {
+     "id": "m222",
+     "score": 0.78
+    },
+    {
+     "id": "m220",
+     "score": 0.77
+    },
+    {
+     "id": "m152",
+     "score": 0.76
+    },
+    {
+     "id": "m205",
+     "score": 0.76
+    },
+    {
+     "id": "m007",
+     "score": 0.75
+    },
+    {
+     "id": "m166",
+     "score": 0.75
+    },
+    {
+     "id": "m003",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m089",
+     "score": 5,
+     "chars": 25
+    },
+    {
+     "id": "m128",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m219",
+     "score": 3,
+     "chars": 20
+    },
+    {
+     "id": "m222",
+     "score": 2,
+     "chars": 20
+    },
+    {
+     "id": "m220",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.4659
+  },
+  "q115": {
+   "ranked": [
+    {
+     "id": "m166",
+     "score": 0.85
+    },
+    {
+     "id": "m143",
+     "score": 0.85
+    },
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m219",
+     "score": 0.78
+    },
+    {
+     "id": "m222",
+     "score": 0.78
+    },
+    {
+     "id": "m220",
+     "score": 0.77
+    },
+    {
+     "id": "m152",
+     "score": 0.76
+    },
+    {
+     "id": "m205",
+     "score": 0.76
+    },
+    {
+     "id": "m007",
+     "score": 0.75
+    },
+    {
+     "id": "m015",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m166",
+     "score": 5,
+     "chars": 27
+    },
+    {
+     "id": "m143",
+     "score": 4,
+     "chars": 22
+    },
+    {
+     "id": "m050",
+     "score": 3,
+     "chars": 29
+    },
+    {
+     "id": "m219",
+     "score": 2,
+     "chars": 20
+    },
+    {
+     "id": "m222",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.5064
+  },
+  "q116": {
+   "ranked": [
+    {
+     "id": "m196",
+     "score": 0.95
+    },
+    {
+     "id": "m048",
+     "score": 0.93
+    },
+    {
+     "id": "m227",
+     "score": 0.91
+    },
+    {
+     "id": "m076",
+     "score": 0.83
+    },
+    {
+     "id": "m038",
+     "score": 0.82
+    },
+    {
+     "id": "m228",
+     "score": 0.8
+    },
+    {
+     "id": "m187",
+     "score": 0.8
+    },
+    {
+     "id": "m065",
+     "score": 0.8
+    },
+    {
+     "id": "m132",
+     "score": 0.79
+    },
+    {
+     "id": "m219",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m196",
+     "score": 5,
+     "chars": 30
+    },
+    {
+     "id": "m048",
+     "score": 4,
+     "chars": 22
+    },
+    {
+     "id": "m227",
+     "score": 3,
+     "chars": 33
+    },
+    {
+     "id": "m076",
+     "score": 2,
+     "chars": 26
+    },
+    {
+     "id": "m038",
+     "score": 1,
+     "chars": 27
+    }
+   ],
+   "ms": 0.471
+  },
+  "q117": {
+   "ranked": [
+    {
+     "id": "m239",
+     "score": 0.82
+    },
+    {
+     "id": "m212",
+     "score": 0.91
+    },
+    {
+     "id": "m220",
+     "score": 0.89
+    },
+    {
+     "id": "m004",
+     "score": 0.84
+    },
+    {
+     "id": "m055",
+     "score": 0.82
+    },
+    {
+     "id": "m070",
+     "score": 0.82
+    },
+    {
+     "id": "m119",
+     "score": 0.82
+    },
+    {
+     "id": "m219",
+     "score": 0.78
+    },
+    {
+     "id": "m222",
+     "score": 0.78
+    },
+    {
+     "id": "m152",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m212",
+     "score": 5,
+     "chars": 24
+    },
+    {
+     "id": "m220",
+     "score": 4,
+     "chars": 23
+    },
+    {
+     "id": "m004",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m239",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m055",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.4492
+  },
+  "q118": {
+   "ranked": [
+    {
+     "id": "m237",
+     "score": 0.81
+    },
+    {
+     "id": "m214",
+     "score": 0.92
+    },
+    {
+     "id": "m018",
+     "score": 0.89
+    },
+    {
+     "id": "m003",
+     "score": 0.88
+    },
+    {
+     "id": "m205",
+     "score": 0.87
+    },
+    {
+     "id": "m191",
+     "score": 0.8
+    },
+    {
+     "id": "m039",
+     "score": 0.8
+    },
+    {
+     "id": "m074",
+     "score": 0.79
+    },
+    {
+     "id": "m013",
+     "score": 0.78
+    },
+    {
+     "id": "m178",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m237",
+     "score": 5,
+     "chars": 19
+    },
+    {
+     "id": "m214",
+     "score": 4,
+     "chars": 25
+    },
+    {
+     "id": "m018",
+     "score": 3,
+     "chars": 21
+    },
+    {
+     "id": "m003",
+     "score": 2,
+     "chars": 28
+    },
+    {
+     "id": "m205",
+     "score": 1,
+     "chars": 27
+    }
+   ],
+   "ms": 0.4859
+  },
+  "q119": {
+   "ranked": [
+    {
+     "id": "m003",
+     "score": 0.88
+    },
+    {
+     "id": "m195",
+     "score": 0.88
+    },
+    {
+     "id": "m222",
+     "score": 0.87
+    },
+    {
+     "id": "m053",
+     "score": 0.82
+    },
+    {
+     "id": "m219",
+     "score": 0.78
+    },
+    {
+     "id": "m220",
+     "score": 0.77
+    },
+    {
+     "id": "m152",
+     "score": 0.76
+    },
+    {
+     "id": "m205",
+     "score": 0.76
+    },
+    {
+     "id": "m007",
+     "score": 0.75
+    },
+    {
+     "id": "m166",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m003",
+     "score": 5,
+     "chars": 28
+    },
+    {
+     "id": "m195",
+     "score": 4,
+     "chars": 26
+    },
+    {
+     "id": "m222",
+     "score": 3,
+     "chars": 20
+    },
+    {
+     "id": "m053",
+     "score": 2,
+     "chars": 26
+    },
+    {
+     "id": "m219",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.5737
+  },
+  "q120": {
+   "ranked": [
+    {
+     "id": "m240",
+     "score": 0.89
+    },
+    {
+     "id": "m055",
+     "score": 0.94
+    },
+    {
+     "id": "m191",
+     "score": 0.92
+    },
+    {
+     "id": "m173",
+     "score": 0.91
+    },
+    {
+     "id": "m224",
+     "score": 0.91
+    },
+    {
+     "id": "m188",
+     "score": 0.81
+    },
+    {
+     "id": "m161",
+     "score": 0.8
+    },
+    {
+     "id": "m080",
+     "score": 0.79
+    },
+    {
+     "id": "m046",
+     "score": 0.79
+    },
+    {
+     "id": "m104",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m240",
+     "score": 5,
+     "chars": 26
+    },
+    {
+     "id": "m055",
+     "score": 4,
+     "chars": 23
+    },
+    {
+     "id": "m191",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m173",
+     "score": 2,
+     "chars": 29
+    },
+    {
+     "id": "m224",
+     "score": 1,
+     "chars": 30
+    }
+   ],
+   "ms": 0.4946
+  },
+  "q121": {
+   "ranked": [
+    {
+     "id": "m072",
+     "score": 0.94
+    },
+    {
+     "id": "m130",
+     "score": 0.92
+    },
+    {
+     "id": "m127",
+     "score": 0.91
+    },
+    {
+     "id": "m163",
+     "score": 0.91
+    },
+    {
+     "id": "m029",
+     "score": 0.91
+    },
+    {
+     "id": "m035",
+     "score": 0.91
+    },
+    {
+     "id": "m062",
+     "score": 0.9
+    },
+    {
+     "id": "m121",
+     "score": 0.89
+    },
+    {
+     "id": "m182",
+     "score": 0.89
+    },
+    {
+     "id": "m083",
+     "score": 0.85
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m072",
+     "score": 5,
+     "chars": 25
+    },
+    {
+     "id": "m130",
+     "score": 4,
+     "chars": 18
+    },
+    {
+     "id": "m127",
+     "score": 3,
+     "chars": 26
+    },
+    {
+     "id": "m163",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m029",
+     "score": 1,
+     "chars": 25
+    }
+   ],
+   "ms": 0.8688
+  },
+  "q122": {
+   "ranked": [
+    {
+     "id": "m236",
+     "score": 0.78
+    },
+    {
+     "id": "m035",
+     "score": 0.89
+    },
+    {
+     "id": "m142",
+     "score": 0.86
+    },
+    {
+     "id": "m230",
+     "score": 0.86
+    },
+    {
+     "id": "m136",
+     "score": 0.86
+    },
+    {
+     "id": "m079",
+     "score": 0.79
+    },
+    {
+     "id": "m122",
+     "score": 0.79
+    },
+    {
+     "id": "m163",
+     "score": 0.79
+    },
+    {
+     "id": "m192",
+     "score": 0.78
+    },
+    {
+     "id": "m223",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m236",
+     "score": 5,
+     "chars": 25
+    },
+    {
+     "id": "m035",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m142",
+     "score": 3,
+     "chars": 31
+    },
+    {
+     "id": "m230",
+     "score": 2,
+     "chars": 31
+    },
+    {
+     "id": "m136",
+     "score": 1,
+     "chars": 29
+    }
+   ],
+   "ms": 0.4248
+  },
+  "q123": {
+   "ranked": [
+    {
+     "id": "m004",
+     "score": 0.9
+    },
+    {
+     "id": "m088",
+     "score": 0.9
+    },
+    {
+     "id": "m031",
+     "score": 0.84
+    },
+    {
+     "id": "m075",
+     "score": 0.83
+    },
+    {
+     "id": "m076",
+     "score": 0.82
+    },
+    {
+     "id": "m200",
+     "score": 0.82
+    },
+    {
+     "id": "m068",
+     "score": 0.81
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m004",
+     "score": 5,
+     "chars": 24
+    },
+    {
+     "id": "m088",
+     "score": 4,
+     "chars": 28
+    },
+    {
+     "id": "m031",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m075",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m076",
+     "score": 1,
+     "chars": 26
+    }
+   ],
+   "ms": 0.496
+  },
+  "q124": {
+   "ranked": [
+    {
+     "id": "m130",
+     "score": 0.92
+    },
+    {
+     "id": "m163",
+     "score": 0.91
+    },
+    {
+     "id": "m029",
+     "score": 0.91
+    },
+    {
+     "id": "m072",
+     "score": 0.91
+    },
+    {
+     "id": "m013",
+     "score": 0.82
+    },
+    {
+     "id": "m197",
+     "score": 0.81
+    },
+    {
+     "id": "m199",
+     "score": 0.77
+    },
+    {
+     "id": "m151",
+     "score": 0.77
+    },
+    {
+     "id": "m083",
+     "score": 0.77
+    },
+    {
+     "id": "m109",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m130",
+     "score": 5,
+     "chars": 18
+    },
+    {
+     "id": "m163",
+     "score": 4,
+     "chars": 23
+    },
+    {
+     "id": "m029",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m072",
+     "score": 2,
+     "chars": 25
+    },
+    {
+     "id": "m013",
+     "score": 1,
+     "chars": 24
+    }
+   ],
+   "ms": 0.4594
+  },
+  "q125": {
+   "ranked": [
+    {
+     "id": "m003",
+     "score": 0.95
+    },
+    {
+     "id": "m160",
+     "score": 0.79
+    },
+    {
+     "id": "m223",
+     "score": 0.78
+    },
+    {
+     "id": "m093",
+     "score": 0.78
+    },
+    {
+     "id": "m201",
+     "score": 0.78
+    },
+    {
+     "id": "m034",
+     "score": 0.78
+    },
+    {
+     "id": "m172",
+     "score": 0.78
+    },
+    {
+     "id": "m048",
+     "score": 0.77
+    },
+    {
+     "id": "m055",
+     "score": 0.76
+    },
+    {
+     "id": "m123",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m003",
+     "score": 5,
+     "chars": 28
+    },
+    {
+     "id": "m160",
+     "score": 4,
+     "chars": 22
+    },
+    {
+     "id": "m223",
+     "score": 3,
+     "chars": 26
+    },
+    {
+     "id": "m093",
+     "score": 2,
+     "chars": 18
+    },
+    {
+     "id": "m201",
+     "score": 1,
+     "chars": 25
+    }
+   ],
+   "ms": 0.6317
+  },
+  "q126": {
+   "ranked": [
+    {
+     "id": "m076",
+     "score": 0.92
+    },
+    {
+     "id": "m059",
+     "score": 0.85
+    },
+    {
+     "id": "m155",
+     "score": 0.82
+    },
+    {
+     "id": "m230",
+     "score": 0.82
+    },
+    {
+     "id": "m080",
+     "score": 0.81
+    },
+    {
+     "id": "m008",
+     "score": 0.8
+    },
+    {
+     "id": "m012",
+     "score": 0.79
+    },
+    {
+     "id": "m015",
+     "score": 0.79
+    },
+    {
+     "id": "m023",
+     "score": 0.79
+    },
+    {
+     "id": "m028",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m076",
+     "score": 5,
+     "chars": 26
+    },
+    {
+     "id": "m059",
+     "score": 4,
+     "chars": 19
+    },
+    {
+     "id": "m155",
+     "score": 3,
+     "chars": 18
+    },
+    {
+     "id": "m230",
+     "score": 2,
+     "chars": 31
+    },
+    {
+     "id": "m080",
+     "score": 1,
+     "chars": 21
+    }
+   ],
+   "ms": 0.4516
+  },
+  "q127": {
+   "ranked": [
+    {
+     "id": "m061",
+     "score": 0.96
+    },
+    {
+     "id": "m056",
+     "score": 0.96
+    },
+    {
+     "id": "m029",
+     "score": 0.92
+    },
+    {
+     "id": "m097",
+     "score": 0.79
+    },
+    {
+     "id": "m108",
+     "score": 0.79
+    },
+    {
+     "id": "m156",
+     "score": 0.79
+    },
+    {
+     "id": "m118",
+     "score": 0.79
+    },
+    {
+     "id": "m045",
+     "score": 0.78
+    },
+    {
+     "id": "m058",
+     "score": 0.76
+    },
+    {
+     "id": "m015",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m061",
+     "score": 5,
+     "chars": 32
+    },
+    {
+     "id": "m056",
+     "score": 4,
+     "chars": 22
+    },
+    {
+     "id": "m029",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m097",
+     "score": 2,
+     "chars": 21
+    },
+    {
+     "id": "m108",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.6914
+  },
+  "q128": {
+   "ranked": [
+    {
+     "id": "m123",
+     "score": 0.89
+    },
+    {
+     "id": "m217",
+     "score": 0.89
+    },
+    {
+     "id": "m009",
+     "score": 0.81
+    },
+    {
+     "id": "m207",
+     "score": 0.81
+    },
+    {
+     "id": "m218",
+     "score": 0.8
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m123",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m217",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m009",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m207",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m218",
+     "score": 1,
+     "chars": 27
+    }
+   ],
+   "ms": 0.4399
+  },
+  "q129": {
+   "ranked": [
+    {
+     "id": "m136",
+     "score": 0.93
+    },
+    {
+     "id": "m235",
+     "score": 0.75
+    },
+    {
+     "id": "m017",
+     "score": 0.83
+    },
+    {
+     "id": "m069",
+     "score": 0.81
+    },
+    {
+     "id": "m020",
+     "score": 0.8
+    },
+    {
+     "id": "m052",
+     "score": 0.8
+    },
+    {
+     "id": "m076",
+     "score": 0.76
+    },
+    {
+     "id": "m013",
+     "score": 0.75
+    },
+    {
+     "id": "m119",
+     "score": 0.75
+    },
+    {
+     "id": "m001",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m136",
+     "score": 5,
+     "chars": 29
+    },
+    {
+     "id": "m235",
+     "score": 4,
+     "chars": 23
+    },
+    {
+     "id": "m017",
+     "score": 3,
+     "chars": 28
+    },
+    {
+     "id": "m069",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m020",
+     "score": 1,
+     "chars": 24
+    }
+   ],
+   "ms": 0.6227
+  },
+  "q130": {
+   "ranked": [
+    {
+     "id": "m240",
+     "score": 0.87
+    },
+    {
+     "id": "m238",
+     "score": 0.75
+    },
+    {
+     "id": "m035",
+     "score": 0.89
+    },
+    {
+     "id": "m233",
+     "score": 0.88
+    },
+    {
+     "id": "m223",
+     "score": 0.78
+    },
+    {
+     "id": "m037",
+     "score": 0.78
+    },
+    {
+     "id": "m142",
+     "score": 0.77
+    },
+    {
+     "id": "m221",
+     "score": 0.77
+    },
+    {
+     "id": "m230",
+     "score": 0.76
+    },
+    {
+     "id": "m132",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m240",
+     "score": 5,
+     "chars": 26
+    },
+    {
+     "id": "m238",
+     "score": 4,
+     "chars": 22
+    },
+    {
+     "id": "m035",
+     "score": 3,
+     "chars": 27
+    },
+    {
+     "id": "m233",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m223",
+     "score": 1,
+     "chars": 26
+    }
+   ],
+   "ms": 0.5873
+  },
+  "q131": {
+   "ranked": [
+    {
+     "id": "m239",
+     "score": 0.9
+    },
+    {
+     "id": "m150",
+     "score": 0.97
+    },
+    {
+     "id": "m092",
+     "score": 0.95
+    },
+    {
+     "id": "m016",
+     "score": 0.91
+    },
+    {
+     "id": "m199",
+     "score": 0.9
+    },
+    {
+     "id": "m211",
+     "score": 0.9
+    },
+    {
+     "id": "m226",
+     "score": 0.9
+    },
+    {
+     "id": "m084",
+     "score": 0.9
+    },
+    {
+     "id": "m113",
+     "score": 0.9
+    },
+    {
+     "id": "m025",
+     "score": 0.9
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m239",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m150",
+     "score": 4,
+     "chars": 26
+    },
+    {
+     "id": "m092",
+     "score": 3,
+     "chars": 31
+    },
+    {
+     "id": "m016",
+     "score": 2,
+     "chars": 35
+    },
+    {
+     "id": "m199",
+     "score": 1,
+     "chars": 19
+    }
+   ],
+   "ms": 0.785
+  },
+  "q132": {
+   "ranked": [
+    {
+     "id": "m072",
+     "score": 0.9
+    },
+    {
+     "id": "m134",
+     "score": 0.9
+    },
+    {
+     "id": "m064",
+     "score": 0.89
+    },
+    {
+     "id": "m059",
+     "score": 0.81
+    },
+    {
+     "id": "m079",
+     "score": 0.81
+    },
+    {
+     "id": "m121",
+     "score": 0.8
+    },
+    {
+     "id": "m068",
+     "score": 0.8
+    },
+    {
+     "id": "m038",
+     "score": 0.79
+    },
+    {
+     "id": "m127",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m072",
+     "score": 5,
+     "chars": 25
+    },
+    {
+     "id": "m134",
+     "score": 4,
+     "chars": 21
+    },
+    {
+     "id": "m064",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m059",
+     "score": 2,
+     "chars": 19
+    },
+    {
+     "id": "m079",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.5197
+  },
+  "q133": {
+   "ranked": [
+    {
+     "id": "m239",
+     "score": 0.82
+    },
+    {
+     "id": "m212",
+     "score": 0.91
+    },
+    {
+     "id": "m119",
+     "score": 0.89
+    },
+    {
+     "id": "m004",
+     "score": 0.84
+    },
+    {
+     "id": "m135",
+     "score": 0.81
+    },
+    {
+     "id": "m160",
+     "score": 0.8
+    },
+    {
+     "id": "m150",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m212",
+     "score": 5,
+     "chars": 24
+    },
+    {
+     "id": "m119",
+     "score": 4,
+     "chars": 23
+    },
+    {
+     "id": "m004",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m239",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m135",
+     "score": 1,
+     "chars": 19
+    }
+   ],
+   "ms": 0.5662
+  },
+  "q134": {
+   "ranked": [
+    {
+     "id": "m120",
+     "score": 0.96
+    },
+    {
+     "id": "m180",
+     "score": 0.94
+    },
+    {
+     "id": "m030",
+     "score": 0.93
+    },
+    {
+     "id": "m164",
+     "score": 0.9
+    },
+    {
+     "id": "m090",
+     "score": 0.9
+    },
+    {
+     "id": "m203",
+     "score": 0.9
+    },
+    {
+     "id": "m106",
+     "score": 0.9
+    },
+    {
+     "id": "m206",
+     "score": 0.89
+    },
+    {
+     "id": "m019",
+     "score": 0.89
+    },
+    {
+     "id": "m075",
+     "score": 0.89
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m120",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m180",
+     "score": 4,
+     "chars": 29
+    },
+    {
+     "id": "m030",
+     "score": 3,
+     "chars": 21
+    },
+    {
+     "id": "m164",
+     "score": 2,
+     "chars": 19
+    },
+    {
+     "id": "m090",
+     "score": 1,
+     "chars": 18
+    }
+   ],
+   "ms": 0.7616
+  },
+  "q135": {
+   "ranked": [
+    {
+     "id": "m085",
+     "score": 0.9
+    },
+    {
+     "id": "m177",
+     "score": 0.84
+    },
+    {
+     "id": "m139",
+     "score": 0.83
+    },
+    {
+     "id": "m012",
+     "score": 0.81
+    },
+    {
+     "id": "m230",
+     "score": 0.8
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m085",
+     "score": 5,
+     "chars": 25
+    },
+    {
+     "id": "m177",
+     "score": 4,
+     "chars": 18
+    },
+    {
+     "id": "m139",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m012",
+     "score": 2,
+     "chars": 26
+    },
+    {
+     "id": "m230",
+     "score": 1,
+     "chars": 31
+    }
+   ],
+   "ms": 0.3865
+  },
+  "q136": {
+   "ranked": [
+    {
+     "id": "m024",
+     "score": 0.93
+    },
+    {
+     "id": "m018",
+     "score": 0.92
+    },
+    {
+     "id": "m143",
+     "score": 0.9
+    },
+    {
+     "id": "m214",
+     "score": 0.81
+    },
+    {
+     "id": "m222",
+     "score": 0.75
+    },
+    {
+     "id": "m031",
+     "score": 0.74
+    },
+    {
+     "id": "m160",
+     "score": 0.74
+    },
+    {
+     "id": "m167",
+     "score": 0.73
+    },
+    {
+     "id": "m195",
+     "score": 0.73
+    },
+    {
+     "id": "m183",
+     "score": 0.73
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m024",
+     "score": 5,
+     "chars": 19
+    },
+    {
+     "id": "m018",
+     "score": 4,
+     "chars": 21
+    },
+    {
+     "id": "m143",
+     "score": 3,
+     "chars": 22
+    },
+    {
+     "id": "m214",
+     "score": 2,
+     "chars": 25
+    },
+    {
+     "id": "m222",
+     "score": 1,
+     "chars": 20
+    }
+   ],
+   "ms": 0.581
+  },
+  "q137": {
+   "ranked": [
+    {
+     "id": "m240",
+     "score": 0.73
+    },
+    {
+     "id": "m031",
+     "score": 0.92
+    },
+    {
+     "id": "m132",
+     "score": 0.82
+    },
+    {
+     "id": "m024",
+     "score": 0.79
+    },
+    {
+     "id": "m112",
+     "score": 0.79
+    },
+    {
+     "id": "m087",
+     "score": 0.77
+    },
+    {
+     "id": "m003",
+     "score": 0.77
+    },
+    {
+     "id": "m117",
+     "score": 0.77
+    },
+    {
+     "id": "m002",
+     "score": 0.77
+    },
+    {
+     "id": "m162",
+     "score": 0.75
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m240",
+     "score": 5,
+     "chars": 26
+    },
+    {
+     "id": "m031",
+     "score": 4,
+     "chars": 25
+    },
+    {
+     "id": "m132",
+     "score": 3,
+     "chars": 30
+    },
+    {
+     "id": "m024",
+     "score": 2,
+     "chars": 19
+    },
+    {
+     "id": "m112",
+     "score": 1,
+     "chars": 22
+    }
+   ],
+   "ms": 0.5366
+  },
+  "q138": {
+   "ranked": [
+    {
+     "id": "m093",
+     "score": 0.94
+    },
+    {
+     "id": "m100",
+     "score": 0.81
+    },
+    {
+     "id": "m216",
+     "score": 0.8
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m093",
+     "score": 3,
+     "chars": 18
+    },
+    {
+     "id": "m100",
+     "score": 2,
+     "chars": 25
+    },
+    {
+     "id": "m216",
+     "score": 1,
+     "chars": 29
+    }
+   ],
+   "ms": 0.2836
+  },
+  "q139": {
+   "ranked": [
+    {
+     "id": "m237",
+     "score": 0.81
+    },
+    {
+     "id": "m184",
+     "score": 0.85
+    },
+    {
+     "id": "m210",
+     "score": 0.84
+    },
+    {
+     "id": "m223",
+     "score": 0.8
+    },
+    {
+     "id": "m130",
+     "score": 0.79
+    },
+    {
+     "id": "m017",
+     "score": 0.79
+    },
+    {
+     "id": "m077",
+     "score": 0.78
+    },
+    {
+     "id": "m163",
+     "score": 0.77
+    },
+    {
+     "id": "m199",
+     "score": 0.77
+    },
+    {
+     "id": "m151",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m237",
+     "score": 5,
+     "chars": 19
+    },
+    {
+     "id": "m184",
+     "score": 4,
+     "chars": 21
+    },
+    {
+     "id": "m210",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m223",
+     "score": 2,
+     "chars": 26
+    },
+    {
+     "id": "m130",
+     "score": 1,
+     "chars": 18
+    }
+   ],
+   "ms": 0.5369
+  },
+  "q140": {
+   "ranked": [
+    {
+     "id": "m239",
+     "score": 0.82
+    },
+    {
+     "id": "m237",
+     "score": 0.81
+    },
+    {
+     "id": "m191",
+     "score": 0.95
+    },
+    {
+     "id": "m140",
+     "score": 0.93
+    },
+    {
+     "id": "m132",
+     "score": 0.93
+    },
+    {
+     "id": "m043",
+     "score": 0.91
+    },
+    {
+     "id": "m024",
+     "score": 0.91
+    },
+    {
+     "id": "m162",
+     "score": 0.9
+    },
+    {
+     "id": "m101",
+     "score": 0.9
+    },
+    {
+     "id": "m018",
+     "score": 0.9
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m239",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m237",
+     "score": 4,
+     "chars": 19
+    },
+    {
+     "id": "m191",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m140",
+     "score": 2,
+     "chars": 29
+    },
+    {
+     "id": "m132",
+     "score": 1,
+     "chars": 30
+    }
+   ],
+   "ms": 0.4607
+  },
+  "q141": {
+   "ranked": [
+    {
+     "id": "m121",
+     "score": 0.82
+    },
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m016",
+     "score": 0.81
+    },
+    {
+     "id": "m025",
+     "score": 0.81
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m121",
+     "score": 4,
+     "chars": 20
+    },
+    {
+     "id": "m050",
+     "score": 3,
+     "chars": 29
+    },
+    {
+     "id": "m016",
+     "score": 2,
+     "chars": 35
+    },
+    {
+     "id": "m025",
+     "score": 1,
+     "chars": 26
+    }
+   ],
+   "ms": 0.4289
+  },
+  "q142": {
+   "ranked": [
+    {
+     "id": "m001",
+     "score": 0.9
+    },
+    {
+     "id": "m177",
+     "score": 0.84
+    },
+    {
+     "id": "m135",
+     "score": 0.83
+    },
+    {
+     "id": "m218",
+     "score": 0.82
+    },
+    {
+     "id": "m180",
+     "score": 0.82
+    },
+    {
+     "id": "m012",
+     "score": 0.81
+    },
+    {
+     "id": "m176",
+     "score": 0.81
+    },
+    {
+     "id": "m158",
+     "score": 0.79
+    },
+    {
+     "id": "m126",
+     "score": 0.79
+    },
+    {
+     "id": "m100",
+     "score": 0.79
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m001",
+     "score": 5,
+     "chars": 26
+    },
+    {
+     "id": "m177",
+     "score": 4,
+     "chars": 18
+    },
+    {
+     "id": "m135",
+     "score": 3,
+     "chars": 19
+    },
+    {
+     "id": "m218",
+     "score": 2,
+     "chars": 27
+    },
+    {
+     "id": "m180",
+     "score": 1,
+     "chars": 29
+    }
+   ],
+   "ms": 0.564
+  },
+  "q143": {
+   "ranked": [
+    {
+     "id": "m162",
+     "score": 0.79
+    },
+    {
+     "id": "m001",
+     "score": 0.79
+    },
+    {
+     "id": "m217",
+     "score": 0.78
+    },
+    {
+     "id": "m148",
+     "score": 0.77
+    },
+    {
+     "id": "m149",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m162",
+     "score": 5,
+     "chars": 24
+    },
+    {
+     "id": "m001",
+     "score": 4,
+     "chars": 26
+    },
+    {
+     "id": "m217",
+     "score": 3,
+     "chars": 27
+    },
+    {
+     "id": "m148",
+     "score": 2,
+     "chars": 31
+    },
+    {
+     "id": "m149",
+     "score": 1,
+     "chars": 31
+    }
+   ],
+   "ms": 0.4667
+  },
+  "q144": {
+   "ranked": [
+    {
+     "id": "m103",
+     "score": 0.83
+    },
+    {
+     "id": "m218",
+     "score": 0.82
+    },
+    {
+     "id": "m041",
+     "score": 0.82
+    },
+    {
+     "id": "m152",
+     "score": 0.82
+    },
+    {
+     "id": "m203",
+     "score": 0.8
+    },
+    {
+     "id": "m226",
+     "score": 0.8
+    },
+    {
+     "id": "m193",
+     "score": 0.8
+    },
+    {
+     "id": "m071",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m103",
+     "score": 5,
+     "chars": 28
+    },
+    {
+     "id": "m218",
+     "score": 4,
+     "chars": 27
+    },
+    {
+     "id": "m041",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m152",
+     "score": 2,
+     "chars": 28
+    },
+    {
+     "id": "m203",
+     "score": 1,
+     "chars": 23
+    }
+   ],
+   "ms": 0.5288
+  },
+  "q145": {
+   "ranked": [
+    {
+     "id": "m122",
+     "score": 0.84
+    },
+    {
+     "id": "m152",
+     "score": 0.83
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m122",
+     "score": 2,
+     "chars": 23
+    },
+    {
+     "id": "m152",
+     "score": 1,
+     "chars": 28
+    }
+   ],
+   "ms": 0.4786
+  },
+  "q146": {
+   "ranked": [],
+   "deployed": [],
+   "ms": 0.1761
+  },
+  "q147": {
+   "ranked": [
+    {
+     "id": "m212",
+     "score": 0.91
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m212",
+     "score": 1,
+     "chars": 24
+    }
+   ],
+   "ms": 0.2725
+  },
+  "q148": {
+   "ranked": [
+    {
+     "id": "m237",
+     "score": 0.81
+    },
+    {
+     "id": "m013",
+     "score": 0.82
+    },
+    {
+     "id": "m073",
+     "score": 0.82
+    },
+    {
+     "id": "m223",
+     "score": 0.8
+    },
+    {
+     "id": "m017",
+     "score": 0.79
+    },
+    {
+     "id": "m077",
+     "score": 0.78
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m237",
+     "score": 5,
+     "chars": 19
+    },
+    {
+     "id": "m013",
+     "score": 4,
+     "chars": 24
+    },
+    {
+     "id": "m073",
+     "score": 3,
+     "chars": 24
+    },
+    {
+     "id": "m223",
+     "score": 2,
+     "chars": 26
+    },
+    {
+     "id": "m017",
+     "score": 1,
+     "chars": 28
+    }
+   ],
+   "ms": 0.3353
+  },
+  "q149": {
+   "ranked": [
+    {
+     "id": "m235",
+     "score": 0.82
+    },
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m151",
+     "score": 0.82
+    },
+    {
+     "id": "m084",
+     "score": 0.82
+    },
+    {
+     "id": "m100",
+     "score": 0.82
+    },
+    {
+     "id": "m080",
+     "score": 0.8
+    },
+    {
+     "id": "m012",
+     "score": 0.78
+    },
+    {
+     "id": "m221",
+     "score": 0.77
+    },
+    {
+     "id": "m071",
+     "score": 0.77
+    },
+    {
+     "id": "m132",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m235",
+     "score": 5,
+     "chars": 23
+    },
+    {
+     "id": "m050",
+     "score": 4,
+     "chars": 29
+    },
+    {
+     "id": "m151",
+     "score": 3,
+     "chars": 25
+    },
+    {
+     "id": "m084",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m100",
+     "score": 1,
+     "chars": 25
+    }
+   ],
+   "ms": 0.726
+  },
+  "q150": {
+   "ranked": [
+    {
+     "id": "m133",
+     "score": 0.83
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m133",
+     "score": 1,
+     "chars": 24
+    }
+   ],
+   "ms": 0.2601
+  },
+  "q151": {
+   "ranked": [
+    {
+     "id": "m177",
+     "score": 0.84
+    },
+    {
+     "id": "m150",
+     "score": 0.83
+    },
+    {
+     "id": "m012",
+     "score": 0.81
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m177",
+     "score": 3,
+     "chars": 18
+    },
+    {
+     "id": "m150",
+     "score": 2,
+     "chars": 26
+    },
+    {
+     "id": "m012",
+     "score": 1,
+     "chars": 26
+    }
+   ],
+   "ms": 0.4249
+  },
+  "q152": {
+   "ranked": [
+    {
+     "id": "m050",
+     "score": 0.82
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m050",
+     "score": 1,
+     "chars": 29
+    }
+   ],
+   "ms": 0.3186
+  },
+  "q153": {
+   "ranked": [
+    {
+     "id": "m184",
+     "score": 0.85
+    },
+    {
+     "id": "m188",
+     "score": 0.83
+    },
+    {
+     "id": "m025",
+     "score": 0.81
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m184",
+     "score": 3,
+     "chars": 21
+    },
+    {
+     "id": "m188",
+     "score": 2,
+     "chars": 20
+    },
+    {
+     "id": "m025",
+     "score": 1,
+     "chars": 26
+    }
+   ],
+   "ms": 0.3602
+  },
+  "q154": {
+   "ranked": [
+    {
+     "id": "m081",
+     "score": 0.91
+    },
+    {
+     "id": "m193",
+     "score": 0.88
+    },
+    {
+     "id": "m203",
+     "score": 0.8
+    },
+    {
+     "id": "m226",
+     "score": 0.8
+    },
+    {
+     "id": "m071",
+     "score": 0.78
+    },
+    {
+     "id": "m188",
+     "score": 0.77
+    },
+    {
+     "id": "m067",
+     "score": 0.76
+    },
+    {
+     "id": "m223",
+     "score": 0.76
+    },
+    {
+     "id": "m152",
+     "score": 0.76
+    },
+    {
+     "id": "m201",
+     "score": 0.76
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m081",
+     "score": 5,
+     "chars": 22
+    },
+    {
+     "id": "m193",
+     "score": 4,
+     "chars": 22
+    },
+    {
+     "id": "m203",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m226",
+     "score": 2,
+     "chars": 21
+    },
+    {
+     "id": "m071",
+     "score": 1,
+     "chars": 29
+    }
+   ],
+   "ms": 0.469
+  },
+  "q155": {
+   "ranked": [
+    {
+     "id": "m046",
+     "score": 0.82
+    },
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m173",
+     "score": 0.81
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m046",
+     "score": 3,
+     "chars": 27
+    },
+    {
+     "id": "m050",
+     "score": 2,
+     "chars": 29
+    },
+    {
+     "id": "m173",
+     "score": 1,
+     "chars": 29
+    }
+   ],
+   "ms": 0.3557
+  },
+  "q156": {
+   "ranked": [
+    {
+     "id": "m130",
+     "score": 0.83
+    },
+    {
+     "id": "m122",
+     "score": 0.83
+    },
+    {
+     "id": "m050",
+     "score": 0.82
+    },
+    {
+     "id": "m004",
+     "score": 0.81
+    },
+    {
+     "id": "m148",
+     "score": 0.8
+    },
+    {
+     "id": "m055",
+     "score": 0.79
+    },
+    {
+     "id": "m168",
+     "score": 0.78
+    },
+    {
+     "id": "m149",
+     "score": 0.78
+    },
+    {
+     "id": "m019",
+     "score": 0.77
+    },
+    {
+     "id": "m025",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m130",
+     "score": 5,
+     "chars": 18
+    },
+    {
+     "id": "m122",
+     "score": 4,
+     "chars": 23
+    },
+    {
+     "id": "m050",
+     "score": 3,
+     "chars": 29
+    },
+    {
+     "id": "m004",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m148",
+     "score": 1,
+     "chars": 31
+    }
+   ],
+   "ms": 0.5103
+  },
+  "q157": {
+   "ranked": [
+    {
+     "id": "m050",
+     "score": 0.82
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m050",
+     "score": 1,
+     "chars": 29
+    }
+   ],
+   "ms": 0.3396
+  },
+  "q158": {
+   "ranked": [
+    {
+     "id": "m114",
+     "score": 0.84
+    },
+    {
+     "id": "m029",
+     "score": 0.83
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m114",
+     "score": 2,
+     "chars": 24
+    },
+    {
+     "id": "m029",
+     "score": 1,
+     "chars": 25
+    }
+   ],
+   "ms": 0.3388
+  },
+  "q159": {
+   "ranked": [
+    {
+     "id": "m238",
+     "score": 0.75
+    },
+    {
+     "id": "m237",
+     "score": 0.76
+    },
+    {
+     "id": "m069",
+     "score": 0.84
+    },
+    {
+     "id": "m122",
+     "score": 0.84
+    },
+    {
+     "id": "m164",
+     "score": 0.84
+    },
+    {
+     "id": "m100",
+     "score": 0.83
+    },
+    {
+     "id": "m151",
+     "score": 0.82
+    },
+    {
+     "id": "m061",
+     "score": 0.81
+    },
+    {
+     "id": "m080",
+     "score": 0.79
+    },
+    {
+     "id": "m006",
+     "score": 0.77
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m237",
+     "score": 5,
+     "chars": 19
+    },
+    {
+     "id": "m069",
+     "score": 4,
+     "chars": 23
+    },
+    {
+     "id": "m122",
+     "score": 3,
+     "chars": 23
+    },
+    {
+     "id": "m164",
+     "score": 2,
+     "chars": 19
+    },
+    {
+     "id": "m100",
+     "score": 1,
+     "chars": 25
+    }
+   ],
+   "ms": 0.6374
+  },
+  "q160": {
+   "ranked": [
+    {
+     "id": "m188",
+     "score": 0.79
+    },
+    {
+     "id": "m208",
+     "score": 0.78
+    },
+    {
+     "id": "m206",
+     "score": 0.78
+    },
+    {
+     "id": "m053",
+     "score": 0.78
+    },
+    {
+     "id": "m087",
+     "score": 0.77
+    },
+    {
+     "id": "m003",
+     "score": 0.77
+    },
+    {
+     "id": "m043",
+     "score": 0.77
+    },
+    {
+     "id": "m024",
+     "score": 0.75
+    },
+    {
+     "id": "m031",
+     "score": 0.74
+    },
+    {
+     "id": "m162",
+     "score": 0.74
+    }
+   ],
+   "deployed": [
+    {
+     "id": "m188",
+     "score": 5,
+     "chars": 20
+    },
+    {
+     "id": "m208",
+     "score": 4,
+     "chars": 25
+    },
+    {
+     "id": "m206",
+     "score": 3,
+     "chars": 22
+    },
+    {
+     "id": "m053",
+     "score": 2,
+     "chars": 26
+    },
+    {
+     "id": "m087",
+     "score": 1,
+     "chars": 28
+    }
+   ],
+   "ms": 0.5945
+  }
+ },
+ "notes": [
+  "Package: dsh-prime-memory 0.26.55 (npm tarball), dist/index.js imported unmodified. Dependencies as declared by the package (jieba, sqlite-vec, undici, schemastery) installed from npm during the image build; host packages @deepseek-ai/dsh-llm, dsh-tools, dsh-home-paths are stubbed (a message constructor, an identity defineTool, a path helper).",
+  "Write path: the product writes memories through a model-driven pipeline (raw turns, then L1 extraction and de-duplication by a model, then scene and persona distillation). None of that is measured. Every memory is written verbatim with memory_add, which the plugin offers for 'remember this' requests and gates behind a high-privilege setting (switched on here). type = the tool default (episodic), priority = default 80, created_at/updated_at = the memory's date at 12:00 UTC. L2/L3 distillation, the persona and scene navigation blocks (system-prompt side) are not part of the measured lists.",
+  "deployed = the memory injection message the pre-step hook adds before the user message; the adapter runs the plugin's registered pre-step handlers as a chain with a stand-in agent whose message has source kind user. Each question uses a fresh agent id (the plugin does not re-inject records already injected into the same session). The injected items carry no ids: an item is matched to a memory by its full text, and an item the plugin shortened (over 500 characters, or over the rest of the 2000-character budget; it ends with the plugin's fixed suffix) by its unique prefix. A shortened memory counts as delivered and is marked `shortened`; `chars` is the length of the item as injected. Items that match no memory count as noise.",
+  "ms times the whole pre-step chain for one question (all registered handlers, one of which is the memory injection).",
+  "Date.now() is set to the day after the last memory while questions run, so the plugin's 30-day freshness weighting sees real ages; during ingest the real clock runs and dates are passed explicitly.",
+  "ranked = memory_search tool, which applies no score threshold; it is the same search as the hook's, with the hook's threshold, domain gate, per-session suppression and budget applied afterwards.",
+  "Write failures: 0. Question failures: 0. Returned items that could not be mapped to a memory id: 0. Delivered items shortened by the plugin: 0. Attempts to call a model: 0.",
+  "Log lines at warning/error level from the plugin during the run: W [memory] 检索策略 hybrid 需要向量能力(embedding 未启用/不可用),本次运行按 keyword(FTS5 BM25)检索 | W [memory] 蒸馏模型路由解析失败: 无法解析蒸馏模型路由:请在插件 config 中配置 llm.provider / llm.model,或确保存在默认模型选择 @ at resolveModelRoute (file:///app/node_modules/dsh-prime-memory/dist/ll."
+ ]
+}

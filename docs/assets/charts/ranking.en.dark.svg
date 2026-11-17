@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="610" viewBox="0 0 1000 610" role="img" lang="en">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="862" viewBox="0 0 1000 862" role="img" lang="en">
 <style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#c3c2b7;font-size:13px}.t{font-size:17px;font-weight:600;fill:#f0efec}.l{font-size:13px;fill:#f0efec}.lb{font-size:13px;font-weight:600;fill:#f0efec}.s{font-size:11px;fill:#c3c2b7}.grid{stroke:#2c2c2a;stroke-width:1;fill:none}.axis{stroke:#383835;stroke-width:1;fill:none}.tick{stroke:#f0efec;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#3987e5}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
-<rect width="1000" height="610" fill="#1a1a19"/>
+<rect width="1000" height="862" fill="#1a1a19"/>
 <text x="24.0" y="32.0" class="t">Hit@5 per system (bar) and Hit@1 (tick): share of questions with a right memory in the top results</text>
 <rect x="24.0" y="47.0" width="14" height="8" rx="2" class="fa"/>
 <text x="46.0" y="56.0" class="s">feiyu-memgate configurations</text>
@@ -8,16 +8,16 @@
 <text x="253.5" y="56.0" class="s">other projects</text>
 <line x1="362.2" y1="45.0" x2="362.2" y2="57.0" class="tick"/>
 <text x="374.2" y="56.0" class="s">tick: Hit@1</text>
-<line x1="330.0" y1="80.0" x2="330.0" y2="506.0" class="axis"/>
-<text x="330.0" y="524.0" class="s" text-anchor="middle">0%</text>
-<line x1="440.0" y1="80.0" x2="440.0" y2="506.0" class="grid"/>
-<text x="440.0" y="524.0" class="s" text-anchor="middle">25%</text>
-<line x1="550.0" y1="80.0" x2="550.0" y2="506.0" class="grid"/>
-<text x="550.0" y="524.0" class="s" text-anchor="middle">50%</text>
-<line x1="660.0" y1="80.0" x2="660.0" y2="506.0" class="grid"/>
-<text x="660.0" y="524.0" class="s" text-anchor="middle">75%</text>
-<line x1="770.0" y1="80.0" x2="770.0" y2="506.0" class="grid"/>
-<text x="770.0" y="524.0" class="s" text-anchor="middle">100%</text>
+<line x1="330.0" y1="80.0" x2="330.0" y2="758.0" class="axis"/>
+<text x="330.0" y="776.0" class="s" text-anchor="middle">0%</text>
+<line x1="440.0" y1="80.0" x2="440.0" y2="758.0" class="grid"/>
+<text x="440.0" y="776.0" class="s" text-anchor="middle">25%</text>
+<line x1="550.0" y1="80.0" x2="550.0" y2="758.0" class="grid"/>
+<text x="550.0" y="776.0" class="s" text-anchor="middle">50%</text>
+<line x1="660.0" y1="80.0" x2="660.0" y2="758.0" class="grid"/>
+<text x="660.0" y="776.0" class="s" text-anchor="middle">75%</text>
+<line x1="770.0" y1="80.0" x2="770.0" y2="758.0" class="grid"/>
+<text x="770.0" y="776.0" class="s" text-anchor="middle">100%</text>
 <text x="24.0" y="104.5" class="l">memsearch</text>
 <text x="212.0" y="104.0" class="s">hybrid</text>
 <path d="M330.0,93.0 H758.7 A4.0,4.0 0 0 1 762.7,97.0 V103.0 A4.0,4.0 0 0 1 758.7,107.0 H330.0 Z" fill="#898781"/>
@@ -66,49 +66,107 @@
 <line x1="671.0" y1="286.0" x2="671.0" y2="306.0" class="tick"/>
 <text x="756.0" y="300.5" class="lb">95.0%</text>
 <text x="799.4" y="300.0" class="s">@1 77.5%</text>
-<text x="24.0" y="328.5" class="l">dsh-mnemon + embeddings</text>
-<text x="212.0" y="328.0" class="s">hybrid</text>
-<path d="M330.0,317.0 H725.7 A4.0,4.0 0 0 1 729.7,321.0 V327.0 A4.0,4.0 0 0 1 725.7,331.0 H330.0 Z" fill="#898781"/>
-<line x1="682.0" y1="314.0" x2="682.0" y2="334.0" class="tick"/>
-<text x="737.7" y="328.5" class="lb">90.8%</text>
-<text x="781.0" y="328.0" class="s">@1 80.0%</text>
-<text x="24.0" y="356.5" class="l">lingshu</text>
-<text x="212.0" y="356.0" class="s">keyword</text>
-<path d="M330.0,345.0 H685.3 A4.0,4.0 0 0 1 689.3,349.0 V355.0 A4.0,4.0 0 0 1 685.3,359.0 H330.0 Z" fill="#898781"/>
-<line x1="616.0" y1="342.0" x2="616.0" y2="362.0" class="tick"/>
-<text x="697.3" y="356.5" class="lb">81.7%</text>
-<text x="736.8" y="356.0" class="s">@1 65.0%</text>
-<text x="24.0" y="384.5" class="l">feiyu-memgate sqlite</text>
-<text x="212.0" y="384.0" class="s">keyword</text>
-<path d="M330.0,373.0 H685.3 A4.0,4.0 0 0 1 689.3,377.0 V383.0 A4.0,4.0 0 0 1 685.3,387.0 H330.0 Z" fill="#3987e5"/>
-<line x1="601.3" y1="370.0" x2="601.3" y2="390.0" class="tick"/>
-<text x="697.3" y="384.5" class="lb">81.7%</text>
-<text x="736.8" y="384.0" class="s">@1 61.7%</text>
-<text x="24.0" y="412.5" class="l">SeekMemory</text>
-<text x="212.0" y="412.0" class="s">keyword</text>
-<path d="M330.0,401.0 H608.3 A4.0,4.0 0 0 1 612.3,405.0 V411.0 A4.0,4.0 0 0 1 608.3,415.0 H330.0 Z" fill="#898781"/>
-<line x1="553.7" y1="398.0" x2="553.7" y2="418.0" class="tick"/>
-<text x="620.3" y="412.5" class="lb">64.2%</text>
-<text x="663.7" y="412.0" class="s">@1 50.8%</text>
-<text x="24.0" y="440.5" class="l">meow-memory</text>
-<text x="212.0" y="440.0" class="s">keyword</text>
-<path d="M330.0,429.0 H604.7 A4.0,4.0 0 0 1 608.7,433.0 V439.0 A4.0,4.0 0 0 1 604.7,443.0 H330.0 Z" fill="#898781"/>
-<line x1="557.3" y1="426.0" x2="557.3" y2="446.0" class="tick"/>
-<text x="616.7" y="440.5" class="lb">63.3%</text>
-<text x="660.0" y="440.0" class="s">@1 51.7%</text>
-<text x="24.0" y="468.5" class="l">dsh-mnemon</text>
+<text x="24.0" y="328.5" class="l">Hindsight (deepseek-flash)</text>
+<text x="212.0" y="328.0" class="s">extraction · LLM</text>
+<path d="M330.0,317.0 H740.3 A4.0,4.0 0 0 1 744.3,321.0 V327.0 A4.0,4.0 0 0 1 740.3,331.0 H330.0 Z" fill="#898781"/>
+<line x1="638.0" y1="314.0" x2="638.0" y2="334.0" class="tick"/>
+<text x="752.3" y="328.5" class="lb">94.2%</text>
+<text x="795.7" y="328.0" class="s">@1 70.0%</text>
+<text x="24.0" y="350.5" class="l">Hindsight</text>
+<text x="24.0" y="362.5" class="s">(claude-haiku-5-5)</text>
+<text x="212.0" y="356.0" class="s">extraction · LLM</text>
+<path d="M330.0,345.0 H729.3 A4.0,4.0 0 0 1 733.3,349.0 V355.0 A4.0,4.0 0 0 1 729.3,359.0 H330.0 Z" fill="#898781"/>
+<line x1="649.0" y1="342.0" x2="649.0" y2="362.0" class="tick"/>
+<text x="741.3" y="356.5" class="lb">91.7%</text>
+<text x="780.8" y="356.0" class="s">@1 72.5%</text>
+<text x="24.0" y="384.5" class="l">dsh-mnemon + embeddings</text>
+<text x="212.0" y="384.0" class="s">hybrid</text>
+<path d="M330.0,373.0 H725.7 A4.0,4.0 0 0 1 729.7,377.0 V383.0 A4.0,4.0 0 0 1 725.7,387.0 H330.0 Z" fill="#898781"/>
+<line x1="682.0" y1="370.0" x2="682.0" y2="390.0" class="tick"/>
+<text x="737.7" y="384.5" class="lb">90.8%</text>
+<text x="781.0" y="384.0" class="s">@1 80.0%</text>
+<text x="24.0" y="412.5" class="l">Hindsight (no model)</text>
+<text x="212.0" y="412.0" class="s">hybrid</text>
+<path d="M330.0,401.0 H722.0 A4.0,4.0 0 0 1 726.0,405.0 V411.0 A4.0,4.0 0 0 1 722.0,415.0 H330.0 Z" fill="#898781"/>
+<line x1="674.7" y1="398.0" x2="674.7" y2="418.0" class="tick"/>
+<text x="734.0" y="412.5" class="lb">90.0%</text>
+<text x="777.4" y="412.0" class="s">@1 78.3%</text>
+<text x="24.0" y="434.5" class="l">dsh-prime-memory</text>
+<text x="24.0" y="446.5" class="s">+ embeddings</text>
+<text x="212.0" y="440.0" class="s">hybrid</text>
+<path d="M330.0,429.0 H696.3 A4.0,4.0 0 0 1 700.3,433.0 V439.0 A4.0,4.0 0 0 1 696.3,443.0 H330.0 Z" fill="#898781"/>
+<line x1="528.0" y1="426.0" x2="528.0" y2="446.0" class="tick"/>
+<text x="708.3" y="440.5" class="lb">84.2%</text>
+<text x="751.7" y="440.0" class="s">@1 45.0%</text>
+<text x="24.0" y="468.5" class="l">lingshu</text>
 <text x="212.0" y="468.0" class="s">keyword</text>
-<path d="M330.0,457.0 H513.0 A4.0,4.0 0 0 1 517.0,461.0 V467.0 A4.0,4.0 0 0 1 513.0,471.0 H330.0 Z" fill="#898781"/>
-<line x1="498.7" y1="454.0" x2="498.7" y2="474.0" class="tick"/>
-<text x="525.0" y="468.5" class="lb">42.5%</text>
-<text x="568.4" y="468.0" class="s">@1 38.3%</text>
-<text x="24.0" y="496.5" class="l">Graphiti</text>
-<text x="212.0" y="496.0" class="s">graph · LLM</text>
-<path d="M330.0,485.0 H384.7 A4.0,4.0 0 0 1 388.7,489.0 V495.0 A4.0,4.0 0 0 1 384.7,499.0 H330.0 Z" fill="#898781"/>
-<line x1="385.0" y1="482.0" x2="385.0" y2="502.0" class="tick"/>
-<text x="396.7" y="496.5" class="lb">13.3%</text>
-<text x="436.1" y="496.0" class="s">@1 12.5%</text>
-<text x="24.0" y="558.0" class="s">A hit needs the right memory among the top 10 results; Hit@5 looks at the top 5. 120 answerable questions, about 0.8 points per question. 16 experiment variants appear in the</text>
-<text x="24.0" y="576.0" class="s">tables only, not in the charts.</text>
-<text x="24.0" y="594.0" class="s">bench/results/summary.md · 240 memories, 160 questions · 2026-11-16</text>
+<path d="M330.0,457.0 H685.3 A4.0,4.0 0 0 1 689.3,461.0 V467.0 A4.0,4.0 0 0 1 685.3,471.0 H330.0 Z" fill="#898781"/>
+<line x1="616.0" y1="454.0" x2="616.0" y2="474.0" class="tick"/>
+<text x="697.3" y="468.5" class="lb">81.7%</text>
+<text x="736.8" y="468.0" class="s">@1 65.0%</text>
+<text x="24.0" y="496.5" class="l">feiyu-memgate sqlite</text>
+<text x="212.0" y="496.0" class="s">keyword</text>
+<path d="M330.0,485.0 H685.3 A4.0,4.0 0 0 1 689.3,489.0 V495.0 A4.0,4.0 0 0 1 685.3,499.0 H330.0 Z" fill="#3987e5"/>
+<line x1="601.3" y1="482.0" x2="601.3" y2="502.0" class="tick"/>
+<text x="697.3" y="496.5" class="lb">81.7%</text>
+<text x="736.8" y="496.0" class="s">@1 61.7%</text>
+<text x="24.0" y="524.5" class="l">dsh-prime-memory</text>
+<text x="212.0" y="524.0" class="s">keyword</text>
+<path d="M330.0,513.0 H652.3 A4.0,4.0 0 0 1 656.3,517.0 V523.0 A4.0,4.0 0 0 1 652.3,527.0 H330.0 Z" fill="#898781"/>
+<line x1="487.7" y1="510.0" x2="487.7" y2="530.0" class="tick"/>
+<text x="664.3" y="524.5" class="lb">74.2%</text>
+<text x="707.7" y="524.0" class="s">@1 35.8%</text>
+<text x="24.0" y="552.5" class="l">dsh-soul-md</text>
+<text x="212.0" y="552.0" class="s">keyword</text>
+<path d="M330.0,541.0 H612.0 A4.0,4.0 0 0 1 616.0,545.0 V551.0 A4.0,4.0 0 0 1 612.0,555.0 H330.0 Z" fill="#898781"/>
+<line x1="557.3" y1="538.0" x2="557.3" y2="558.0" class="tick"/>
+<text x="624.0" y="552.5" class="lb">65.0%</text>
+<text x="667.4" y="552.0" class="s">@1 51.7%</text>
+<text x="24.0" y="580.5" class="l">SeekMemory</text>
+<text x="212.0" y="580.0" class="s">keyword</text>
+<path d="M330.0,569.0 H608.3 A4.0,4.0 0 0 1 612.3,573.0 V579.0 A4.0,4.0 0 0 1 608.3,583.0 H330.0 Z" fill="#898781"/>
+<line x1="553.7" y1="566.0" x2="553.7" y2="586.0" class="tick"/>
+<text x="620.3" y="580.5" class="lb">64.2%</text>
+<text x="663.7" y="580.0" class="s">@1 50.8%</text>
+<text x="24.0" y="608.5" class="l">meow-memory</text>
+<text x="212.0" y="608.0" class="s">keyword</text>
+<path d="M330.0,597.0 H604.7 A4.0,4.0 0 0 1 608.7,601.0 V607.0 A4.0,4.0 0 0 1 604.7,611.0 H330.0 Z" fill="#898781"/>
+<line x1="557.3" y1="594.0" x2="557.3" y2="614.0" class="tick"/>
+<text x="616.7" y="608.5" class="lb">63.3%</text>
+<text x="660.0" y="608.0" class="s">@1 51.7%</text>
+<text x="24.0" y="630.5" class="l">dsh-fish-memory</text>
+<text x="24.0" y="642.5" class="s">+ deepseek-flash expansion</text>
+<text x="212.0" y="636.0" class="s">keyword · LLM</text>
+<path d="M330.0,625.0 H549.7 A4.0,4.0 0 0 1 553.7,629.0 V635.0 A4.0,4.0 0 0 1 549.7,639.0 H330.0 Z" fill="#898781"/>
+<line x1="509.7" y1="622.0" x2="509.7" y2="642.0" class="tick"/>
+<text x="561.7" y="636.5" class="lb">50.8%</text>
+<text x="605.0" y="636.0" class="s">@1 40.8%</text>
+<text x="24.0" y="658.5" class="l">dsh-fish-memory</text>
+<text x="24.0" y="670.5" class="s">+ claude-haiku-5-5 expansion</text>
+<text x="212.0" y="664.0" class="s">keyword · LLM</text>
+<path d="M330.0,653.0 H549.7 A4.0,4.0 0 0 1 553.7,657.0 V663.0 A4.0,4.0 0 0 1 549.7,667.0 H330.0 Z" fill="#898781"/>
+<line x1="506.0" y1="650.0" x2="506.0" y2="670.0" class="tick"/>
+<text x="561.7" y="664.5" class="lb">50.8%</text>
+<text x="605.0" y="664.0" class="s">@1 40.0%</text>
+<text x="24.0" y="692.5" class="l">dsh-fish-memory</text>
+<text x="212.0" y="692.0" class="s">keyword</text>
+<path d="M330.0,681.0 H542.3 A4.0,4.0 0 0 1 546.3,685.0 V691.0 A4.0,4.0 0 0 1 542.3,695.0 H330.0 Z" fill="#898781"/>
+<line x1="506.0" y1="678.0" x2="506.0" y2="698.0" class="tick"/>
+<text x="554.3" y="692.5" class="lb">49.2%</text>
+<text x="597.7" y="692.0" class="s">@1 40.0%</text>
+<text x="24.0" y="720.5" class="l">dsh-mnemon</text>
+<text x="212.0" y="720.0" class="s">keyword</text>
+<path d="M330.0,709.0 H513.0 A4.0,4.0 0 0 1 517.0,713.0 V719.0 A4.0,4.0 0 0 1 513.0,723.0 H330.0 Z" fill="#898781"/>
+<line x1="498.7" y1="706.0" x2="498.7" y2="726.0" class="tick"/>
+<text x="525.0" y="720.5" class="lb">42.5%</text>
+<text x="568.4" y="720.0" class="s">@1 38.3%</text>
+<text x="24.0" y="748.5" class="l">Graphiti</text>
+<text x="212.0" y="748.0" class="s">graph · LLM</text>
+<path d="M330.0,737.0 H384.7 A4.0,4.0 0 0 1 388.7,741.0 V747.0 A4.0,4.0 0 0 1 384.7,751.0 H330.0 Z" fill="#898781"/>
+<line x1="385.0" y1="734.0" x2="385.0" y2="754.0" class="tick"/>
+<text x="396.7" y="748.5" class="lb">13.3%</text>
+<text x="436.1" y="748.0" class="s">@1 12.5%</text>
+<text x="24.0" y="810.0" class="s">A hit needs the right memory among the top 10 results; Hit@5 looks at the top 5. 120 answerable questions, about 0.8 points per question. 16 experiment variants appear in the</text>
+<text x="24.0" y="828.0" class="s">tables only, not in the charts.</text>
+<text x="24.0" y="846.0" class="s">bench/results/summary.md · 240 memories, 160 questions · 2026-11-17</text>
 </svg>

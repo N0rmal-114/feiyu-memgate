@@ -1,32 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="598" viewBox="0 0 1000 598" role="img" lang="zh">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="850" viewBox="0 0 1000 850" role="img" lang="zh">
 <style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#52514e;font-size:13px}.t{font-size:17px;font-weight:600;fill:#0b0b0b}.l{font-size:13px;fill:#0b0b0b}.lb{font-size:13px;font-weight:600;fill:#0b0b0b}.s{font-size:11px;fill:#52514e}.grid{stroke:#e1e0d9;stroke-width:1;fill:none}.axis{stroke:#c3c2b7;stroke-width:1;fill:none}.tick{stroke:#0b0b0b;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#2a78d6}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
-<rect width="1000" height="598" fill="#fcfcfb"/>
+<rect width="1000" height="850" fill="#fcfcfb"/>
 <text x="24.0" y="32.0" class="t">分题型的 Hit@5：字面题、改写题、更新题各一栏，系统顺序同上图</text>
 <rect x="24.0" y="47.0" width="14" height="8" rx="2" class="fa"/>
 <text x="46.0" y="56.0" class="s">feiyu-memgate 的配置</text>
 <rect x="186.1" y="47.0" width="14" height="8" rx="2" class="fo"/>
 <text x="208.1" y="56.0" class="s">其他项目</text>
 <text x="224.0" y="90.0" class="lb">字面 · 45 题</text>
-<line x1="224.0" y1="106.0" x2="224.0" y2="532.0" class="axis"/>
-<text x="224.0" y="550.0" class="s" text-anchor="middle">0%</text>
-<line x1="299.0" y1="106.0" x2="299.0" y2="532.0" class="grid"/>
-<text x="299.0" y="550.0" class="s" text-anchor="middle">50%</text>
-<line x1="374.0" y1="106.0" x2="374.0" y2="532.0" class="grid"/>
-<text x="374.0" y="550.0" class="s" text-anchor="middle">100%</text>
+<line x1="224.0" y1="106.0" x2="224.0" y2="784.0" class="axis"/>
+<text x="224.0" y="802.0" class="s" text-anchor="middle">0%</text>
+<line x1="299.0" y1="106.0" x2="299.0" y2="784.0" class="grid"/>
+<text x="299.0" y="802.0" class="s" text-anchor="middle">50%</text>
+<line x1="374.0" y1="106.0" x2="374.0" y2="784.0" class="grid"/>
+<text x="374.0" y="802.0" class="s" text-anchor="middle">100%</text>
 <text x="478.0" y="90.0" class="lb">改写 · 55 题</text>
-<line x1="478.0" y1="106.0" x2="478.0" y2="532.0" class="axis"/>
-<text x="478.0" y="550.0" class="s" text-anchor="middle">0%</text>
-<line x1="553.0" y1="106.0" x2="553.0" y2="532.0" class="grid"/>
-<text x="553.0" y="550.0" class="s" text-anchor="middle">50%</text>
-<line x1="628.0" y1="106.0" x2="628.0" y2="532.0" class="grid"/>
-<text x="628.0" y="550.0" class="s" text-anchor="middle">100%</text>
+<line x1="478.0" y1="106.0" x2="478.0" y2="784.0" class="axis"/>
+<text x="478.0" y="802.0" class="s" text-anchor="middle">0%</text>
+<line x1="553.0" y1="106.0" x2="553.0" y2="784.0" class="grid"/>
+<text x="553.0" y="802.0" class="s" text-anchor="middle">50%</text>
+<line x1="628.0" y1="106.0" x2="628.0" y2="784.0" class="grid"/>
+<text x="628.0" y="802.0" class="s" text-anchor="middle">100%</text>
 <text x="732.0" y="90.0" class="lb">更新 · 20 题</text>
-<line x1="732.0" y1="106.0" x2="732.0" y2="532.0" class="axis"/>
-<text x="732.0" y="550.0" class="s" text-anchor="middle">0%</text>
-<line x1="807.0" y1="106.0" x2="807.0" y2="532.0" class="grid"/>
-<text x="807.0" y="550.0" class="s" text-anchor="middle">50%</text>
-<line x1="882.0" y1="106.0" x2="882.0" y2="532.0" class="grid"/>
-<text x="882.0" y="550.0" class="s" text-anchor="middle">100%</text>
+<line x1="732.0" y1="106.0" x2="732.0" y2="784.0" class="axis"/>
+<text x="732.0" y="802.0" class="s" text-anchor="middle">0%</text>
+<line x1="807.0" y1="106.0" x2="807.0" y2="784.0" class="grid"/>
+<text x="807.0" y="802.0" class="s" text-anchor="middle">50%</text>
+<line x1="882.0" y1="106.0" x2="882.0" y2="784.0" class="grid"/>
+<text x="882.0" y="802.0" class="s" text-anchor="middle">100%</text>
 <text x="24.0" y="130.5" class="l">memsearch</text>
 <path d="M224.0,119.0 H370.0 A4.0,4.0 0 0 1 374.0,123.0 V129.0 A4.0,4.0 0 0 1 370.0,133.0 H224.0 Z" fill="#898781"/>
 <text x="380.0" y="130.0" class="s">100.0%</text>
@@ -83,54 +83,120 @@
 <text x="623.1" y="326.0" class="s">92.7%</text>
 <path d="M732.0,315.0 H863.0 A4.0,4.0 0 0 1 867.0,319.0 V325.0 A4.0,4.0 0 0 1 863.0,329.0 H732.0 Z" fill="#898781"/>
 <text x="873.0" y="326.0" class="s">90.0%</text>
-<text x="24.0" y="354.5" class="l">dsh-mnemon + 向量</text>
+<text x="24.0" y="354.5" class="l">Hindsight（deepseek-flash）</text>
 <path d="M224.0,343.0 H370.0 A4.0,4.0 0 0 1 374.0,347.0 V353.0 A4.0,4.0 0 0 1 370.0,357.0 H224.0 Z" fill="#898781"/>
 <text x="380.0" y="354.0" class="s">100.0%</text>
-<path d="M478.0,343.0 H602.2 A4.0,4.0 0 0 1 606.2,347.0 V353.0 A4.0,4.0 0 0 1 602.2,357.0 H478.0 Z" fill="#898781"/>
-<text x="612.2" y="354.0" class="s">85.5%</text>
-<path d="M732.0,343.0 H855.5 A4.0,4.0 0 0 1 859.5,347.0 V353.0 A4.0,4.0 0 0 1 855.5,357.0 H732.0 Z" fill="#898781"/>
-<text x="865.5" y="354.0" class="s">85.0%</text>
-<text x="24.0" y="382.5" class="l">lingshu</text>
+<path d="M478.0,343.0 H607.6 A4.0,4.0 0 0 1 611.6,347.0 V353.0 A4.0,4.0 0 0 1 607.6,357.0 H478.0 Z" fill="#898781"/>
+<text x="617.6" y="354.0" class="s">89.1%</text>
+<path d="M732.0,343.0 H870.5 A4.0,4.0 0 0 1 874.5,347.0 V353.0 A4.0,4.0 0 0 1 870.5,357.0 H732.0 Z" fill="#898781"/>
+<text x="880.5" y="354.0" class="s">95.0%</text>
+<text x="24.0" y="376.5" class="l">Hindsight</text>
+<text x="24.0" y="388.5" class="s">（claude-haiku-5-5）</text>
 <path d="M224.0,371.0 H370.0 A4.0,4.0 0 0 1 374.0,375.0 V381.0 A4.0,4.0 0 0 1 370.0,385.0 H224.0 Z" fill="#898781"/>
 <text x="380.0" y="382.0" class="s">100.0%</text>
-<path d="M478.0,371.0 H569.5 A4.0,4.0 0 0 1 573.5,375.0 V381.0 A4.0,4.0 0 0 1 569.5,385.0 H478.0 Z" fill="#898781"/>
-<text x="579.5" y="382.0" class="s">63.6%</text>
-<path d="M732.0,371.0 H863.0 A4.0,4.0 0 0 1 867.0,375.0 V381.0 A4.0,4.0 0 0 1 863.0,385.0 H732.0 Z" fill="#898781"/>
-<text x="873.0" y="382.0" class="s">90.0%</text>
-<text x="24.0" y="410.5" class="l">feiyu-memgate sqlite</text>
-<path d="M224.0,399.0 H370.0 A4.0,4.0 0 0 1 374.0,403.0 V409.0 A4.0,4.0 0 0 1 370.0,413.0 H224.0 Z" fill="#2a78d6"/>
+<path d="M478.0,371.0 H599.5 A4.0,4.0 0 0 1 603.5,375.0 V381.0 A4.0,4.0 0 0 1 599.5,385.0 H478.0 Z" fill="#898781"/>
+<text x="609.5" y="382.0" class="s">83.6%</text>
+<path d="M732.0,371.0 H870.5 A4.0,4.0 0 0 1 874.5,375.0 V381.0 A4.0,4.0 0 0 1 870.5,385.0 H732.0 Z" fill="#898781"/>
+<text x="880.5" y="382.0" class="s">95.0%</text>
+<text x="24.0" y="410.5" class="l">dsh-mnemon + 向量</text>
+<path d="M224.0,399.0 H370.0 A4.0,4.0 0 0 1 374.0,403.0 V409.0 A4.0,4.0 0 0 1 370.0,413.0 H224.0 Z" fill="#898781"/>
 <text x="380.0" y="410.0" class="s">100.0%</text>
-<path d="M478.0,399.0 H569.5 A4.0,4.0 0 0 1 573.5,403.0 V409.0 A4.0,4.0 0 0 1 569.5,413.0 H478.0 Z" fill="#2a78d6"/>
-<text x="579.5" y="410.0" class="s">63.6%</text>
-<path d="M732.0,399.0 H863.0 A4.0,4.0 0 0 1 867.0,403.0 V409.0 A4.0,4.0 0 0 1 863.0,413.0 H732.0 Z" fill="#2a78d6"/>
-<text x="873.0" y="410.0" class="s">90.0%</text>
-<text x="24.0" y="438.5" class="l">SeekMemory</text>
-<path d="M224.0,427.0 H366.7 A4.0,4.0 0 0 1 370.7,431.0 V437.0 A4.0,4.0 0 0 1 366.7,441.0 H224.0 Z" fill="#898781"/>
-<text x="376.7" y="438.0" class="s">97.8%</text>
-<path d="M478.0,427.0 H523.1 A4.0,4.0 0 0 1 527.1,431.0 V437.0 A4.0,4.0 0 0 1 523.1,441.0 H478.0 Z" fill="#898781"/>
-<text x="533.1" y="438.0" class="s">32.7%</text>
-<path d="M732.0,427.0 H840.5 A4.0,4.0 0 0 1 844.5,431.0 V437.0 A4.0,4.0 0 0 1 840.5,441.0 H732.0 Z" fill="#898781"/>
-<text x="850.5" y="438.0" class="s">75.0%</text>
-<text x="24.0" y="466.5" class="l">meow-memory</text>
-<path d="M224.0,455.0 H366.7 A4.0,4.0 0 0 1 370.7,459.0 V465.0 A4.0,4.0 0 0 1 366.7,469.0 H224.0 Z" fill="#898781"/>
-<text x="376.7" y="466.0" class="s">97.8%</text>
-<path d="M478.0,455.0 H520.4 A4.0,4.0 0 0 1 524.4,459.0 V465.0 A4.0,4.0 0 0 1 520.4,469.0 H478.0 Z" fill="#898781"/>
-<text x="530.4" y="466.0" class="s">30.9%</text>
-<path d="M732.0,455.0 H840.5 A4.0,4.0 0 0 1 844.5,459.0 V465.0 A4.0,4.0 0 0 1 840.5,469.0 H732.0 Z" fill="#898781"/>
-<text x="850.5" y="466.0" class="s">75.0%</text>
-<text x="24.0" y="494.5" class="l">dsh-mnemon</text>
-<path d="M224.0,483.0 H363.3 A4.0,4.0 0 0 1 367.3,487.0 V493.0 A4.0,4.0 0 0 1 363.3,497.0 H224.0 Z" fill="#898781"/>
-<text x="373.3" y="494.0" class="s">95.6%</text>
-<path d="M478.0,483.0 H490.4 A4.0,4.0 0 0 1 494.4,487.0 V493.0 A4.0,4.0 0 0 1 490.4,497.0 H478.0 Z" fill="#898781"/>
-<text x="500.4" y="494.0" class="s">10.9%</text>
-<path d="M732.0,483.0 H743.0 A4.0,4.0 0 0 1 747.0,487.0 V493.0 A4.0,4.0 0 0 1 743.0,497.0 H732.0 Z" fill="#898781"/>
-<text x="753.0" y="494.0" class="s">10.0%</text>
-<text x="24.0" y="522.5" class="l">Graphiti</text>
-<path d="M224.0,511.0 H256.7 A4.0,4.0 0 0 1 260.7,515.0 V521.0 A4.0,4.0 0 0 1 256.7,525.0 H224.0 Z" fill="#898781"/>
-<text x="266.7" y="522.0" class="s">24.4%</text>
-<path d="M478.0,511.0 H482.2 A4.0,4.0 0 0 1 486.2,515.0 V521.0 A4.0,4.0 0 0 1 482.2,525.0 H478.0 Z" fill="#898781"/>
-<text x="492.2" y="522.0" class="s">5.5%</text>
-<path d="M732.0,511.0 H743.0 A4.0,4.0 0 0 1 747.0,515.0 V521.0 A4.0,4.0 0 0 1 743.0,525.0 H732.0 Z" fill="#898781"/>
-<text x="753.0" y="522.0" class="s">10.0%</text>
-<text x="24.0" y="582.0" class="s">bench/results/summary.md · 240 条记忆，160 个问题 · 2026-11-16</text>
+<path d="M478.0,399.0 H602.2 A4.0,4.0 0 0 1 606.2,403.0 V409.0 A4.0,4.0 0 0 1 602.2,413.0 H478.0 Z" fill="#898781"/>
+<text x="612.2" y="410.0" class="s">85.5%</text>
+<path d="M732.0,399.0 H855.5 A4.0,4.0 0 0 1 859.5,403.0 V409.0 A4.0,4.0 0 0 1 855.5,413.0 H732.0 Z" fill="#898781"/>
+<text x="865.5" y="410.0" class="s">85.0%</text>
+<text x="24.0" y="438.5" class="l">Hindsight（无模型）</text>
+<path d="M224.0,427.0 H370.0 A4.0,4.0 0 0 1 374.0,431.0 V437.0 A4.0,4.0 0 0 1 370.0,441.0 H224.0 Z" fill="#898781"/>
+<text x="380.0" y="438.0" class="s">100.0%</text>
+<path d="M478.0,427.0 H594.0 A4.0,4.0 0 0 1 598.0,431.0 V437.0 A4.0,4.0 0 0 1 594.0,441.0 H478.0 Z" fill="#898781"/>
+<text x="604.0" y="438.0" class="s">80.0%</text>
+<path d="M732.0,427.0 H870.5 A4.0,4.0 0 0 1 874.5,431.0 V437.0 A4.0,4.0 0 0 1 870.5,441.0 H732.0 Z" fill="#898781"/>
+<text x="880.5" y="438.0" class="s">95.0%</text>
+<text x="24.0" y="466.5" class="l">dsh-prime-memory + 向量</text>
+<path d="M224.0,455.0 H370.0 A4.0,4.0 0 0 1 374.0,459.0 V465.0 A4.0,4.0 0 0 1 370.0,469.0 H224.0 Z" fill="#898781"/>
+<text x="380.0" y="466.0" class="s">100.0%</text>
+<path d="M478.0,455.0 H574.9 A4.0,4.0 0 0 1 578.9,459.0 V465.0 A4.0,4.0 0 0 1 574.9,469.0 H478.0 Z" fill="#898781"/>
+<text x="584.9" y="466.0" class="s">67.3%</text>
+<path d="M732.0,455.0 H870.5 A4.0,4.0 0 0 1 874.5,459.0 V465.0 A4.0,4.0 0 0 1 870.5,469.0 H732.0 Z" fill="#898781"/>
+<text x="880.5" y="466.0" class="s">95.0%</text>
+<text x="24.0" y="494.5" class="l">lingshu</text>
+<path d="M224.0,483.0 H370.0 A4.0,4.0 0 0 1 374.0,487.0 V493.0 A4.0,4.0 0 0 1 370.0,497.0 H224.0 Z" fill="#898781"/>
+<text x="380.0" y="494.0" class="s">100.0%</text>
+<path d="M478.0,483.0 H569.5 A4.0,4.0 0 0 1 573.5,487.0 V493.0 A4.0,4.0 0 0 1 569.5,497.0 H478.0 Z" fill="#898781"/>
+<text x="579.5" y="494.0" class="s">63.6%</text>
+<path d="M732.0,483.0 H863.0 A4.0,4.0 0 0 1 867.0,487.0 V493.0 A4.0,4.0 0 0 1 863.0,497.0 H732.0 Z" fill="#898781"/>
+<text x="873.0" y="494.0" class="s">90.0%</text>
+<text x="24.0" y="522.5" class="l">feiyu-memgate sqlite</text>
+<path d="M224.0,511.0 H370.0 A4.0,4.0 0 0 1 374.0,515.0 V521.0 A4.0,4.0 0 0 1 370.0,525.0 H224.0 Z" fill="#2a78d6"/>
+<text x="380.0" y="522.0" class="s">100.0%</text>
+<path d="M478.0,511.0 H569.5 A4.0,4.0 0 0 1 573.5,515.0 V521.0 A4.0,4.0 0 0 1 569.5,525.0 H478.0 Z" fill="#2a78d6"/>
+<text x="579.5" y="522.0" class="s">63.6%</text>
+<path d="M732.0,511.0 H863.0 A4.0,4.0 0 0 1 867.0,515.0 V521.0 A4.0,4.0 0 0 1 863.0,525.0 H732.0 Z" fill="#2a78d6"/>
+<text x="873.0" y="522.0" class="s">90.0%</text>
+<text x="24.0" y="550.5" class="l">dsh-prime-memory</text>
+<path d="M224.0,539.0 H366.7 A4.0,4.0 0 0 1 370.7,543.0 V549.0 A4.0,4.0 0 0 1 366.7,553.0 H224.0 Z" fill="#898781"/>
+<text x="376.7" y="550.0" class="s">97.8%</text>
+<path d="M478.0,539.0 H544.9 A4.0,4.0 0 0 1 548.9,543.0 V549.0 A4.0,4.0 0 0 1 544.9,553.0 H478.0 Z" fill="#898781"/>
+<text x="554.9" y="550.0" class="s">47.3%</text>
+<path d="M732.0,539.0 H870.5 A4.0,4.0 0 0 1 874.5,543.0 V549.0 A4.0,4.0 0 0 1 870.5,553.0 H732.0 Z" fill="#898781"/>
+<text x="880.5" y="550.0" class="s">95.0%</text>
+<text x="24.0" y="578.5" class="l">dsh-soul-md</text>
+<path d="M224.0,567.0 H370.0 A4.0,4.0 0 0 1 374.0,571.0 V577.0 A4.0,4.0 0 0 1 370.0,581.0 H224.0 Z" fill="#898781"/>
+<text x="380.0" y="578.0" class="s">100.0%</text>
+<path d="M478.0,567.0 H531.3 A4.0,4.0 0 0 1 535.3,571.0 V577.0 A4.0,4.0 0 0 1 531.3,581.0 H478.0 Z" fill="#898781"/>
+<text x="541.3" y="578.0" class="s">38.2%</text>
+<path d="M732.0,567.0 H818.0 A4.0,4.0 0 0 1 822.0,571.0 V577.0 A4.0,4.0 0 0 1 818.0,581.0 H732.0 Z" fill="#898781"/>
+<text x="828.0" y="578.0" class="s">60.0%</text>
+<text x="24.0" y="606.5" class="l">SeekMemory</text>
+<path d="M224.0,595.0 H366.7 A4.0,4.0 0 0 1 370.7,599.0 V605.0 A4.0,4.0 0 0 1 366.7,609.0 H224.0 Z" fill="#898781"/>
+<text x="376.7" y="606.0" class="s">97.8%</text>
+<path d="M478.0,595.0 H523.1 A4.0,4.0 0 0 1 527.1,599.0 V605.0 A4.0,4.0 0 0 1 523.1,609.0 H478.0 Z" fill="#898781"/>
+<text x="533.1" y="606.0" class="s">32.7%</text>
+<path d="M732.0,595.0 H840.5 A4.0,4.0 0 0 1 844.5,599.0 V605.0 A4.0,4.0 0 0 1 840.5,609.0 H732.0 Z" fill="#898781"/>
+<text x="850.5" y="606.0" class="s">75.0%</text>
+<text x="24.0" y="634.5" class="l">meow-memory</text>
+<path d="M224.0,623.0 H366.7 A4.0,4.0 0 0 1 370.7,627.0 V633.0 A4.0,4.0 0 0 1 366.7,637.0 H224.0 Z" fill="#898781"/>
+<text x="376.7" y="634.0" class="s">97.8%</text>
+<path d="M478.0,623.0 H520.4 A4.0,4.0 0 0 1 524.4,627.0 V633.0 A4.0,4.0 0 0 1 520.4,637.0 H478.0 Z" fill="#898781"/>
+<text x="530.4" y="634.0" class="s">30.9%</text>
+<path d="M732.0,623.0 H840.5 A4.0,4.0 0 0 1 844.5,627.0 V633.0 A4.0,4.0 0 0 1 840.5,637.0 H732.0 Z" fill="#898781"/>
+<text x="850.5" y="634.0" class="s">75.0%</text>
+<text x="24.0" y="656.5" class="l">dsh-fish-memory</text>
+<text x="24.0" y="668.5" class="s">+ deepseek-flash 扩词</text>
+<path d="M224.0,651.0 H356.7 A4.0,4.0 0 0 1 360.7,655.0 V661.0 A4.0,4.0 0 0 1 356.7,665.0 H224.0 Z" fill="#898781"/>
+<text x="366.7" y="662.0" class="s">91.1%</text>
+<path d="M478.0,651.0 H495.8 A4.0,4.0 0 0 1 499.8,655.0 V661.0 A4.0,4.0 0 0 1 495.8,665.0 H478.0 Z" fill="#898781"/>
+<text x="505.8" y="662.0" class="s">14.5%</text>
+<path d="M732.0,651.0 H818.0 A4.0,4.0 0 0 1 822.0,655.0 V661.0 A4.0,4.0 0 0 1 818.0,665.0 H732.0 Z" fill="#898781"/>
+<text x="828.0" y="662.0" class="s">60.0%</text>
+<text x="24.0" y="684.5" class="l">dsh-fish-memory</text>
+<text x="24.0" y="696.5" class="s">+ claude-haiku-5-5 扩词</text>
+<path d="M224.0,679.0 H353.3 A4.0,4.0 0 0 1 357.3,683.0 V689.0 A4.0,4.0 0 0 1 353.3,693.0 H224.0 Z" fill="#898781"/>
+<text x="363.3" y="690.0" class="s">88.9%</text>
+<path d="M478.0,679.0 H498.5 A4.0,4.0 0 0 1 502.5,683.0 V689.0 A4.0,4.0 0 0 1 498.5,693.0 H478.0 Z" fill="#898781"/>
+<text x="508.5" y="690.0" class="s">16.4%</text>
+<path d="M732.0,679.0 H818.0 A4.0,4.0 0 0 1 822.0,683.0 V689.0 A4.0,4.0 0 0 1 818.0,693.0 H732.0 Z" fill="#898781"/>
+<text x="828.0" y="690.0" class="s">60.0%</text>
+<text x="24.0" y="718.5" class="l">dsh-fish-memory</text>
+<path d="M224.0,707.0 H353.3 A4.0,4.0 0 0 1 357.3,711.0 V717.0 A4.0,4.0 0 0 1 353.3,721.0 H224.0 Z" fill="#898781"/>
+<text x="363.3" y="718.0" class="s">88.9%</text>
+<path d="M478.0,707.0 H493.1 A4.0,4.0 0 0 1 497.1,711.0 V717.0 A4.0,4.0 0 0 1 493.1,721.0 H478.0 Z" fill="#898781"/>
+<text x="503.1" y="718.0" class="s">12.7%</text>
+<path d="M732.0,707.0 H818.0 A4.0,4.0 0 0 1 822.0,711.0 V717.0 A4.0,4.0 0 0 1 818.0,721.0 H732.0 Z" fill="#898781"/>
+<text x="828.0" y="718.0" class="s">60.0%</text>
+<text x="24.0" y="746.5" class="l">dsh-mnemon</text>
+<path d="M224.0,735.0 H363.3 A4.0,4.0 0 0 1 367.3,739.0 V745.0 A4.0,4.0 0 0 1 363.3,749.0 H224.0 Z" fill="#898781"/>
+<text x="373.3" y="746.0" class="s">95.6%</text>
+<path d="M478.0,735.0 H490.4 A4.0,4.0 0 0 1 494.4,739.0 V745.0 A4.0,4.0 0 0 1 490.4,749.0 H478.0 Z" fill="#898781"/>
+<text x="500.4" y="746.0" class="s">10.9%</text>
+<path d="M732.0,735.0 H743.0 A4.0,4.0 0 0 1 747.0,739.0 V745.0 A4.0,4.0 0 0 1 743.0,749.0 H732.0 Z" fill="#898781"/>
+<text x="753.0" y="746.0" class="s">10.0%</text>
+<text x="24.0" y="774.5" class="l">Graphiti</text>
+<path d="M224.0,763.0 H256.7 A4.0,4.0 0 0 1 260.7,767.0 V773.0 A4.0,4.0 0 0 1 256.7,777.0 H224.0 Z" fill="#898781"/>
+<text x="266.7" y="774.0" class="s">24.4%</text>
+<path d="M478.0,763.0 H482.2 A4.0,4.0 0 0 1 486.2,767.0 V773.0 A4.0,4.0 0 0 1 482.2,777.0 H478.0 Z" fill="#898781"/>
+<text x="492.2" y="774.0" class="s">5.5%</text>
+<path d="M732.0,763.0 H743.0 A4.0,4.0 0 0 1 747.0,767.0 V773.0 A4.0,4.0 0 0 1 743.0,777.0 H732.0 Z" fill="#898781"/>
+<text x="753.0" y="774.0" class="s">10.0%</text>
+<text x="24.0" y="834.0" class="s">bench/results/summary.md · 240 条记忆，160 个问题 · 2026-11-17</text>
 </svg>

@@ -132,6 +132,69 @@
    "zh": "非推荐的技术栈：嵌入式 Kuzu（上游已标记弃用）+ 一个小 LLM（deepseek-flash）做提取，中文单句记忆；总共约 118 万 tokens；返回的是提取出的事实边，不是原文。",
    "en": "Non-recommended stack: embedded Kuzu (deprecated upstream) + a small LLM (deepseek-flash) for extraction, on one-sentence Chinese memories; about 1.18 M tokens; it returns extracted fact edges, not the original text."}
  },
+ "dsh-fish-memory": {
+  "label": {"zh": "dsh-fish-memory", "en": "dsh-fish-memory"},
+  "project": "dsh-fish-memory", "kind": "keyword", "llm": false,
+  "caveat": {
+   "zh": "插件自己的 remember 工具逐字写入；每轮自动注入走它的 recall()：查询门、词稀有度证据分、阈值 0.30、最多 6 条、800 字预算。后台关键词扩展需要模型，这里没有模型，被跳过；平均只交付约 2 条，约三分之一的问题因查询门或没有命中词而安静。",
+   "en": "Verbatim writes through the plugin's own remember tool; the per-turn injection runs its recall(): query gate, word-rarity evidence score, threshold 0.30, at most 6 items, 800-character budget. The background keyword expansion needs a model and is skipped here; about 2 items are delivered on average, and about a third of the questions stay quiet because of the query gate or no matching word."}
+ },
+ "dsh-fish-memory-expand-deepseek-flash": {
+  "label": {"zh": "dsh-fish-memory + deepseek-flash 扩词", "en": "dsh-fish-memory + deepseek-flash expansion"},
+  "project": "dsh-fish-memory", "kind": "keyword", "llm": true,
+  "caveat": {
+   "zh": "同 dsh-fish-memory，插件自己的后台关键词扩展用 deepseek-flash 运行（关闭思考；121 次调用，约 6.2 万输入 / 0.3 万输出 tokens，来自 API 用量）；写入仍是逐字，模型只补检索词，不改写记忆。",
+   "en": "As dsh-fish-memory, with the plugin's own background keyword expansion run by deepseek-flash (thinking disabled; 121 calls, about 62 k input / 3 k output tokens, from the API usage); writes stay verbatim, the model only adds retrieval words and does not rewrite memories."}
+ },
+ "dsh-fish-memory-expand-claude-haiku-5-5": {
+  "label": {"zh": "dsh-fish-memory + claude-haiku-5-5 扩词", "en": "dsh-fish-memory + claude-haiku-5-5 expansion"},
+  "project": "dsh-fish-memory", "kind": "keyword", "llm": true,
+  "caveat": {
+   "zh": "同 dsh-fish-memory，后台关键词扩展用 claude-haiku-5-5 运行（显式关闭思考，不发送 temperature）；写入仍是逐字。",
+   "en": "As dsh-fish-memory, with the background keyword expansion run by claude-haiku-5-5 (thinking explicitly disabled, no temperature sent); writes stay verbatim."}
+ },
+ "dsh-prime-memory": {
+  "label": {"zh": "dsh-prime-memory", "en": "dsh-prime-memory"},
+  "project": "dsh-prime-memory", "kind": "keyword", "llm": false,
+  "caveat": {
+   "zh": "memory_add 直接写入 L1（产品里由模型从对话蒸馏，这里没测）；默认召回：FTS5 BM25 + jieba/二元分词，阈值 0.3，最多 5 条，新鲜度加权，字数预算 2000；向量关闭。",
+   "en": "memory_add writes L1 directly (the product distils conversation with a model; not measured); default recall: FTS5 BM25 over jieba and bigram tokens, threshold 0.3, at most 5 items, freshness weighting, 2000-character budget; embeddings off."}
+ },
+ "dsh-prime-memory-embedding": {
+  "label": {"zh": "dsh-prime-memory + 向量", "en": "dsh-prime-memory + embeddings"},
+  "project": "dsh-prime-memory", "kind": "hybrid", "llm": false,
+  "caveat": {
+   "zh": "同 dsh-prime-memory，打开了插件可选的远程向量模式（bge-m3），关键词和向量结果融合；仍是直接写入。",
+   "en": "As dsh-prime-memory with the plugin's optional remote-embedding mode switched on (bge-m3), keyword and vector results fused; still written directly."}
+ },
+ "dsh-soul-md": {
+  "label": {"zh": "dsh-soul-md", "en": "dsh-soul-md"},
+  "project": "dsh-soul-md", "kind": "keyword", "llm": false,
+  "caveat": {
+   "zh": "只测记忆部分（人设卡不是记忆）；每条记忆写成一个 topic 文件；检索按词和汉字二元组命中 key / 标题 / 摘要 / 正文打分，没有分数阈值，只要共享一个词就是候选；默认 5 个 topic、1600 字。",
+   "en": "Only the memory half is measured (persona cards are not memory); each memory is written as one topic file; search scores word and Han-bigram hits in key / title / summary / body, with no score threshold, so a shared term makes a candidate; defaults 5 topics, 1600 characters."}
+ },
+ "hindsight-chunks": {
+  "label": {"zh": "Hindsight（无模型）", "en": "Hindsight (no model)"},
+  "project": "hindsight", "kind": "hybrid", "llm": false,
+  "caveat": {
+   "zh": "Hindsight 服务端的无模型模式：每条记忆逐字存为一个 chunk，不做事实提取，不做 consolidation；召回用服务端默认的四路（语义、关键词、图、时间）融合 + 本地重排序，嵌入换成 bge-m3；只受 2000 token 预算限制，平均交付约 94 条。插件默认的 reflect 注入是模型写的文字，不是记忆列表，没有测。",
+   "en": "Hindsight's server in its mode without a model: each memory stored verbatim as one chunk, no fact extraction, no consolidation; recall is the server's default four arms (semantic, keyword, graph, temporal) fused and reranked by its local cross-encoder, with bge-m3 embeddings; limited only by the 2000-token budget, about 94 items delivered on average. The plugin's default reflect injection is a model-written text, not a list of memories, and is not measured."}
+ },
+ "hindsight-llm-deepseek-flash": {
+  "label": {"zh": "Hindsight（deepseek-flash）", "en": "Hindsight (deepseek-flash)"},
+  "project": "hindsight", "kind": "extraction", "llm": true,
+  "caveat": {
+   "zh": "Hindsight 服务端的默认工作方式：模型逐条提取事实并 consolidation 成 observation（模型 deepseek-flash，关闭思考），召回为 observation 类型，其余同 hindsight-chunks。插件默认的 reflect 注入是模型写的文字，不是记忆列表，没有测。",
+   "en": "Hindsight's server as it works by default: a model (deepseek-flash, thinking disabled) extracts facts from each memory and consolidates them into observations; recall returns observations, the rest as hindsight-chunks. The plugin's default reflect injection is a model-written text, not a list of memories, and is not measured."}
+ },
+ "hindsight-llm-claude-haiku-5-5": {
+  "label": {"zh": "Hindsight（claude-haiku-5-5）", "en": "Hindsight (claude-haiku-5-5)"},
+  "project": "hindsight", "kind": "extraction", "llm": true,
+  "caveat": {
+   "zh": "Hindsight 服务端的默认工作方式：模型逐条提取事实并 consolidation 成 observation（模型 claude-haiku-5-5，关闭思考），召回为 observation 类型，其余同 hindsight-chunks。插件默认的 reflect 注入是模型写的文字，不是记忆列表，没有测。",
+   "en": "Hindsight's server as it works by default: a model (claude-haiku-5-5, thinking disabled) extracts facts from each memory and consolidates them into observations; recall returns observations, the rest as hindsight-chunks. The plugin's default reflect injection is a model-written text, not a list of memories, and is not measured."}
+ },
  "seekmemory": {
   "label": {"zh": "SeekMemory", "en": "SeekMemory"},
   "project": "seekmemory", "kind": "keyword", "llm": false,

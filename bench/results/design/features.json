@@ -1,5 +1,5 @@
 {
- "date": "2026-11-15",
+ "date": "2026-11-17",
  "note_zh": "每一行是被测项目在基准所用版本上的功能事实，不是评分。依据：bench/systems.json、各适配器的 README、bench/results/summary.md 里的说明、research/reports/ 下的调研报告，以及项目自己的公开仓库页面；查不到的写“未确认”。",
  "note_en": "Each row holds functional facts about a benchmarked project at the version the benchmark used; it is not a score. Sources: bench/systems.json, each adapter's README, the notes in bench/results/summary.md, the reports under research/reports/, and the project's own public repository page; anything not found there is 'not confirmed'.",
  "columns": [
@@ -129,6 +129,58 @@
    "delivery": {"zh": "每条用户消息前自动注入关键词命中的前 2 条；无分数线；字数预算：未确认", "en": "Before every user message, the top 2 keyword hits are injected automatically; no threshold; character budget: not confirmed"},
    "forgetting": {"zh": "排序时按时间降权，不删除；删除是把状态改成归档（行保留）", "en": "Recency lowers the ranking without deleting; deleting sets the status to archived (row kept)"},
    "license": {"zh": "MIT", "en": "MIT"}
+  },
+  {
+   "key": "dsh-fish-memory",
+   "name": "dsh-fish-memory",
+   "url": "https://github.com/Yuuyuko-uu/dsh-fish-memory",
+   "benchmark_rows": ["dsh-fish-memory", "dsh-fish-memory-expand-deepseek-flash", "dsh-fish-memory-expand-claude-haiku-5-5"],
+   "version": {"zh": "1.6.1（提交 55f4aad）", "en": "1.6.1 (commit 55f4aad)"},
+   "form": {"zh": "DSH 插件", "en": "DSH plugin"},
+   "retrieval": {"zh": "关键词：按词稀有度算证据分（查询里的稀有词在记忆里出现；模型写的扩展词全额计分，只出现在正文里的词打折），再按新鲜度、重要度、情绪加权排序", "en": "Keyword: a word-rarity evidence score (rare query words found in the memory; expansion words written by the model count in full, words only in the text at a discount), then ordered with freshness, importance and emotion weights"},
+   "write_llm": {"zh": "是：由模型通过 remember 工具决定存什么（每日限额 8 条，近似重复的合并强化）；写入后的后台关键词扩展另调用模型", "en": "Yes: the model decides what to store through the remember tool (daily quota 8, near-duplicates are reinforced); the background keyword expansion after each write makes a further model call"},
+   "delivery": {"zh": "每轮自动注入（recall()）：有查询门（信息太少的消息不召回）；证据分阈值 0.30；条数随最高证据分取 1 – 6 条；字数预算 800；没有检索工具", "en": "Injected automatically every turn (recall()): a query gate (a message with too little information recalls nothing); an evidence threshold of 0.30; 1 – 6 items depending on the top evidence score; a character budget of 800; no search tool"},
+   "forgetting": {"zh": "排序里有新鲜度项；近似重复的记忆合并强化，与更新的记忆几乎相同的旧行标为被取代，不再召回；是否删除：未确认", "en": "Freshness is a term in the ordering; near-duplicates are reinforced, and a row almost identical to a newer one is marked superseded and never recalled; whether anything is deleted: not confirmed"},
+   "license": {"zh": "插件自己的许可：允许使用、修改和商用，再分发代码须署名作者", "en": "The plugin's own licence: use, modification and commercial use allowed; redistribution of the code must name the author"}
+  },
+  {
+   "key": "dsh-prime-memory",
+   "name": "dsh-prime-memory",
+   "url": "https://github.com/drscrewdriver/dsh-prime-memory",
+   "benchmark_rows": ["dsh-prime-memory", "dsh-prime-memory-embedding"],
+   "version": {"zh": "0.26.55（提交 a909278）", "en": "0.26.55 (commit a909278)"},
+   "form": {"zh": "DSH 插件", "en": "DSH plugin"},
+   "retrieval": {"zh": "关键词：SQLite FTS5 的 BM25，中文用 jieba 分词加汉字二元组；默认向量关闭，可选远程向量模式，开启后关键词和向量结果融合", "en": "Keyword: SQLite FTS5 BM25 over jieba words plus Han bigrams; embeddings are off by default, and an optional remote-embedding mode fuses the keyword and vector results"},
+   "write_llm": {"zh": "是：默认由模型把采集到的对话蒸馏成记忆（L1 抽取与去重，再到场景块和人设）；也可以用 memory_add / memory_import 工具直接写入（本基准的做法）", "en": "Yes: by default a model distils captured conversation turns into memories (L1 extraction and de-duplication, then scene blocks and persona); memories can also be written directly with the memory_add / memory_import tools (what this benchmark does)"},
+   "delivery": {"zh": "每条新用户消息前自动搜索并注入 <relevant-memories>：分数线 0.3，最多 5 条，新鲜度（30 天）加权排序，同一会话里已注入的不再注入，字数预算每条 500、共 2000；另有 memory_search 工具", "en": "Before every new user message it searches and injects a <relevant-memories> message: score threshold 0.3, at most 5 items, 30-day freshness weighting in the order, records already injected in the session suppressed, a character budget of 500 per memory and 2000 in total; a memory_search tool exists as well"},
+   "forgetting": {"zh": "新鲜度（30 天）加权只作用于排序；记录有有效期字段，怎么过期或删除：未确认", "en": "The 30-day freshness weighting only affects the order; records carry validity fields, how they expire or are deleted: not confirmed"},
+   "license": {"zh": "MIT", "en": "MIT"}
+  },
+  {
+   "key": "dsh-soul-md",
+   "name": "dsh-soul-md",
+   "url": "https://github.com/Scorp1o117/dsh-soul-md",
+   "benchmark_rows": ["dsh-soul-md"],
+   "version": {"zh": "0.12.5（提交 83ea19d）", "en": "0.12.5 (commit 83ea19d)"},
+   "form": {"zh": "DSH 插件：人设卡加文件形式的长期记忆（基准只测记忆部分）", "en": "DSH plugin: persona cards plus file-based long-term memory (the benchmark measures only the memory half)"},
+   "retrieval": {"zh": "关键词：把查询切成词和汉字二元组，在 topic 的 key、标题、摘要、正文里按命中打分（key 加标题每词 4 分，摘要 2 分，正文 1 分），同分按 key 排序", "en": "Keyword: the query is split into words and Han bigrams and scored against a topic's key, title, summary and body (4 per term in key plus title, 2 in the summary, 1 in the body), ties ordered by key"},
+   "write_llm": {"zh": "宿主模型通过 memory_append / memory_rewrite 工具写 Markdown 文件，插件不另起模型调用；memory_digest 请模型提出修改建议，由用户手动确认，不属于自动写入", "en": "The host model writes Markdown files through the memory_append / memory_rewrite tools and the plugin makes no model call of its own; memory_digest asks a model for edit proposals that the user confirms by hand, so it is not automatic writing"},
+   "delivery": {"zh": "常驻系统提示词段：core 文本加所有 topic 的索引（key、标题、摘要，有字数上限）；从会话的第二条用户消息起每轮注入“可能相关的记忆”块，默认 5 个 topic、1600 字，没有分数线（共享一个词就是候选）；另有 memory_search 工具", "en": "A standing system-prompt section: the core text plus an index of every topic (key, title, summary, capped in characters); from the second user message of a session on, a \"possibly relevant memory\" block every turn, 5 topics and 1600 characters by default, with no score threshold (one shared term makes a candidate); a memory_search tool exists as well"},
+   "forgetting": {"zh": "未确认", "en": "not confirmed"},
+   "license": {"zh": "未确认", "en": "not confirmed"}
+  },
+  {
+   "key": "hindsight",
+   "name": "Hindsight",
+   "url": "https://github.com/vectorize-io/hindsight",
+   "benchmark_rows": ["hindsight-chunks", "hindsight-llm-deepseek-flash", "hindsight-llm-claude-haiku-5-5"],
+   "version": {"zh": "服务端 hindsight-api-slim 1.2.1（提交 5318be8）；DSH 插件 @vectorize-io/hindsight-coding-agents 0.8.7", "en": "Server hindsight-api-slim 1.2.1 (commit 5318be8); DSH plugin @vectorize-io/hindsight-coding-agents 0.8.7"},
+   "form": {"zh": "服务（HTTP，PostgreSQL 加 pgvector），DSH 插件是它的客户端", "en": "Server (HTTP, PostgreSQL with pgvector); the DSH plugin is a client of it"},
+   "retrieval": {"zh": "四路检索：语义、关键词、图、时间，融合后用交叉编码器重排序，按 token 预算截断；记忆是模型从内容里抽取的事实，再由模型归并成 observation，并链接到实体", "en": "Four arms: semantic, keyword, graph and temporal, fused and reranked by a cross-encoder, cut by a token budget; memories are facts a model extracts from the content, consolidated by a model into observations and linked to entities"},
+   "write_llm": {"zh": "是：默认由模型逐条提取事实并归并成 observation；也有无模型模式（每条记忆存成一个原文块，不归并）", "en": "Yes: by default a model extracts facts from each item and consolidates them into observations; a mode without a model also exists (each memory stored as one verbatim chunk, no consolidation)"},
+   "delivery": {"zh": "插件在会话的第一条提示时注入模型写的“reflect”综合文字，不是记忆列表；只召回的选项 autoInject: \"recall\" 调服务端召回，请求体为类型 observation、预算 low、max_tokens 2000，没有条数上限和分数线", "en": "At the first prompt of a session the plugin injects a model-written \"reflect\" synthesis, not a list of memories; its recall-only option autoInject: \"recall\" calls the server's recall with types observation, budget low and max_tokens 2000, with no item limit and no score threshold"},
+   "forgetting": {"zh": "未确认", "en": "not confirmed"},
+   "license": {"zh": "未确认", "en": "not confirmed"}
   }
  ]
 }
