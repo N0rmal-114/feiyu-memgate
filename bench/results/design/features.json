@@ -8,6 +8,7 @@
   {"key": "form", "zh": "形态", "en": "Form"},
   {"key": "retrieval", "zh": "怎么检索", "en": "How it retrieves"},
   {"key": "write_llm", "zh": "默认写入是否调用大模型", "en": "Default write calls a language model"},
+  {"key": "consolidation", "zh": "归并、改写与后台整理", "en": "Merging, rewriting and background upkeep"},
   {"key": "delivery", "zh": "默认交付什么", "en": "What it delivers by default"},
   {"key": "forgetting", "zh": "遗忘或衰减", "en": "Forgetting or decay"},
   {"key": "license", "zh": "许可证", "en": "Licence"}
@@ -22,6 +23,7 @@
    "form": {"zh": "网关：HTTP 服务，也可以在聊天程序的进程内调用", "en": "Gateway: an HTTP service, or called in-process from the chat program"},
    "retrieval": {"zh": "按后端选：关键词（sqlite，字符二元组加 IDF）、向量（embedding）、混合（hybrid，概率“或”融合），或通过 openviking 后端用 OpenViking 的向量检索", "en": "Chosen by backend: keyword (sqlite, character bigrams + IDF), vector (embedding), hybrid (probabilistic-OR fusion), or OpenViking's vector search through the openviking backend"},
    "write_llm": {"zh": "否。用 openviking 后端时，抽取由 OpenViking 用它自己配置的模型做", "en": "No. With the openviking backend, extraction is done by OpenViking with the model configured there"},
+   "consolidation": {"zh": "无：只存原文，不抽取、不归并、不改写。同一件事的新旧两条并存，召回时分数接近的几条里新的排在前面（`newer_first`）", "en": "None: it stores the original text and does not extract, merge or rewrite. An older and a newer memory of the same thing both stay; at recall, among items with close scores the newer one comes first (`newer_first`)"},
    "delivery": {"zh": "最多 5 条（上限 10）；有分数线（min_score、relative_score；默认是宽松档 broad，向量和混合配置每题约 1.5 – 2.5 条，`profile = \"precise\"` 精确档约 0.7 – 1.2 条）；有字数预算（默认 1500 字，整条取舍）；由聊天程序在回复前调用召回（AstrBot 示例每轮回复前自动召回）", "en": "Up to 5 items (ceiling 10); score thresholds (min_score, relative_score; the default is the broad profile, which delivers about 1.5 – 2.5 items per question with the vector and hybrid configurations, and `profile = \"precise\"` about 0.7 – 1.2); a character budget (1500 by default, whole items only); the chat program calls recall before replying (the AstrBot example does so before every reply)"},
    "forgetting": {"zh": "可选的遗忘曲线，默认关闭：长期没被用到的记忆先降权，再存档后删除；存档在保留期内可恢复", "en": "Optional forgetting curve, off by default: memories that go unused are down-weighted, then archived and deleted; the archive can be restored within its retention"},
    "license": {"zh": "MIT", "en": "MIT"}
@@ -35,6 +37,7 @@
    "form": {"zh": "库（带命令行）加 DSH 插件", "en": "Library (with a CLI) plus a DSH plugin"},
    "retrieval": {"zh": "混合：稠密向量加 BM25，RRF 融合（默认 Milvus Lite）；记忆存成 Markdown 文件", "en": "Hybrid: dense vectors plus BM25 fused by RRF (Milvus Lite by default); memories are Markdown files"},
    "write_llm": {"zh": "库：否，建索引只算嵌入。DSH 插件采集对话时默认用模型总结每一轮（据项目 README 的配置说明）", "en": "Library: no, indexing only computes embeddings. The DSH plugin summarises each captured turn with a model by default (per the project's README configuration section)"},
+   "consolidation": {"zh": "未确认。库里的记忆是 Markdown 文件，由人或程序直接编辑；DSH 插件写入的是模型对每轮对话的总结", "en": "Not confirmed. In the library a memory is a Markdown file edited by a person or a program; the DSH plugin writes a model's summary of each turn"},
    "delivery": {"zh": "前 5 条；无分数线；无字数预算；插件不自动注入，由模型决定是否调用 memory-recall 技能", "en": "Top 5; no threshold; no character budget; the plugin does not inject automatically, the model decides whether to call the memory-recall skill"},
    "forgetting": {"zh": "无衰减或过期；删除跟随 Markdown 文件", "en": "No decay or expiry; deletion follows the Markdown files"},
    "license": {"zh": "MIT", "en": "MIT"}
@@ -48,6 +51,7 @@
    "form": {"zh": "库（进程内调用 Memory 接口）", "en": "Library (in-process Memory API)"},
    "retrieval": {"zh": "混合：语义向量加 BM25 加实体加权；默认写入时先由大模型抽取事实，存的是事实", "en": "Hybrid: semantic vectors plus BM25 plus an entity boost; by default a language model extracts facts at write time and the facts are stored"},
    "write_llm": {"zh": "是：add 的正常路径（infer=True）每次调用一次大模型；infer=False 只算嵌入", "en": "Yes: the normal add path (infer=True) makes one language-model call per add; infer=False only computes embeddings"},
+   "consolidation": {"zh": "未确认。写入的是模型从内容里抽取出的独立事实", "en": "Not confirmed. What is stored are separate facts a model extracts from the content"},
    "delivery": {"zh": "top_k 20；分数线 0.1；无字数预算；不注入，提示词由应用自己拼", "en": "top_k 20; threshold 0.1; no character budget; no injection, the application builds the prompt"},
    "forgetting": {"zh": "无自动衰减；可选按条到期日（expiration_date）", "en": "No automatic decay; an optional per-memory expiry date (expiration_date)"},
    "license": {"zh": "未确认", "en": "not confirmed"}
@@ -61,6 +65,7 @@
    "form": {"zh": "服务（HTTP），另有 DSH 插件", "en": "Server (HTTP), with a DSH plugin"},
    "retrieval": {"zh": "向量检索记忆文件（本基准用 bge-m3）；会话提交时由大模型抽取记忆", "en": "Vector search over memory files (bge-m3 in this benchmark); memories are extracted by a language model on session commit"},
    "write_llm": {"zh": "是：正常写入（会话提交）由配置的模型抽取；直接写记忆文件（本基准的做法）不调模型", "en": "Yes: the normal write (session commit) extracts with the configured model; writing memory files directly (as this benchmark does) does not"},
+   "consolidation": {"zh": "未确认（本基准没有用到）", "en": "Not confirmed (not used in this benchmark)"},
    "delivery": {"zh": "API 默认 10 条；无分数线；字数预算：未确认；DSH 插件的默认值和是否自动注入：未确认", "en": "API default 10 items; no threshold; character budget: not confirmed; the DSH plugin's defaults and whether it injects automatically: not confirmed"},
    "forgetting": {"zh": "未确认", "en": "not confirmed"},
    "license": {"zh": "未确认", "en": "not confirmed"}
@@ -74,6 +79,7 @@
    "form": {"zh": "库", "en": "Library"},
    "retrieval": {"zh": "图：大模型从文本抽取实体和带时间的事实边，在事实边上做 BM25 加向量的混合检索（RRF）", "en": "Graph: a language model extracts entities and time-stamped fact edges; search is hybrid BM25 plus vectors over the fact edges (RRF)"},
    "write_llm": {"zh": "是：没有大模型写不进去（本基准实测每条记忆约 2.5 次调用）", "en": "Yes: nothing can be written without a language model (measured here: about 2.5 calls per memory)"},
+   "consolidation": {"zh": "模型抽取实体和带时间的事实边；被新事实否定的旧事实边标记失效，不删除", "en": "A model extracts entities and timed fact edges; an old fact edge contradicted by a new fact is marked invalid, not deleted"},
    "delivery": {"zh": "默认 10 条；有余弦下限 0.6；无 token 预算；返回事实边，提示词由调用方拼", "en": "10 items by default; a cosine floor of 0.6; no token budget; returns fact edges, the caller builds the prompt"},
    "forgetting": {"zh": "无时间衰减；被新事实否定的旧事实标记失效，不删除", "en": "No time decay; facts contradicted by newer ones are marked invalid, not deleted"},
    "license": {"zh": "Apache-2.0", "en": "Apache-2.0"}
@@ -87,6 +93,7 @@
    "form": {"zh": "宿主无关的内核库加宿主适配器（AstrBot；DSH 适配器 0.0.1）", "en": "Host-independent kernel library plus host adapters (AstrBot; DSH adapter 0.0.1)"},
    "retrieval": {"zh": "关键词：BM25 加图激活，无向量检索", "en": "Keyword: BM25 plus graph activation, no vector search"},
    "write_llm": {"zh": "是：正常写入路径是宿主模型抽取（有每日次数上限），另有夜间整理", "en": "Yes: the normal write path is extraction by the host model (with a daily limit), plus a nightly consolidation"},
+   "consolidation": {"zh": "夜间整理（每晚最多 12 次调用、6 万 token）；回复用上了某条记忆才强化它", "en": "Nightly consolidation (at most 12 calls and 60,000 tokens per night); a memory is reinforced only when a reply actually used it"},
    "delivery": {"zh": "最多 8 条；有证据阈值（相对最高分）；有字数预算（600 字）；宿主每轮自动注入", "en": "Up to 8 items; an evidence gate (relative to the best candidate); a character budget (600); injected automatically by the host every turn"},
    "forgetting": {"zh": "遗忘曲线 R(t)=exp(-t/S)；定期清扫把保持率低于 0.3 的非 fact 记忆标为遗忘（行保留，可逆）；fact 级不遗忘", "en": "Forgetting curve R(t)=exp(-t/S); a periodic sweep marks non-fact memories whose retention falls below 0.3 as forgotten (row kept, reversible); level fact is never forgotten"},
    "license": {"zh": "Apache-2.0", "en": "Apache-2.0"}
@@ -100,6 +107,7 @@
    "form": {"zh": "DSH 插件", "en": "DSH plugin"},
    "retrieval": {"zh": "关键词加实体加图信号（SQLite）；向量是可选项，默认关闭", "en": "Keyword, entity and graph signals (SQLite); vectors are optional and off by default"},
    "write_llm": {"zh": "是：默认写入路径是大模型驱动的空闲复盘", "en": "Yes: the default write path is a language-model-driven idle review"},
+   "consolidation": {"zh": "空闲复盘：由模型驱动的后台写入，默认开启，两次至少间隔 5 分钟，每个会话最多 20 次；运行时记忆的快照在修正、删除或累计到第 5 份时整理一次", "en": "Idle review: background writes driven by a model, on by default, at least 5 minutes apart, at most 20 per session; the runtime memory snapshots are consolidated on a correction, a deletion or the fifth snapshot"},
    "delivery": {"zh": "运行时记忆（USER.md、MEMORY.md）的快照在记忆变化时自动追加进对话；记忆空间由模型调用召回工具，每次最多 4 条、3600 字，有分数线（默认策略丢掉 0.25 以下）", "en": "A snapshot of runtime memory (USER.md, MEMORY.md) is appended to the conversation automatically when memory changes; Memory Spaces are recalled when the model calls the recall tool, at most 4 results and 3600 characters per call, with a score floor (the default policy drops below 0.25)"},
    "forgetting": {"zh": "按 id 软删除；容量满时自动裁掉最弱的记忆；时间衰减：未确认", "en": "Soft delete by id; the weakest memories are pruned automatically when capacity is reached; time decay: not confirmed"},
    "license": {"zh": "未确认", "en": "not confirmed"}
@@ -113,6 +121,7 @@
    "form": {"zh": "DSH 插件（Node，带一个 Python 子进程）", "en": "DSH plugin (Node, with a Python child process)"},
    "retrieval": {"zh": "关键词：BM25，无向量；记忆是普通文件", "en": "Keyword: BM25, no vectors; memories are plain files"},
    "write_llm": {"zh": "否：写入闸门、去重和索引都是规则代码", "en": "No: the write gate, dedupe and index are rule-based code"},
+   "consolidation": {"zh": "规则代码，不用模型：写入闸门（接受、合并、丢弃、推迟）和去重；后台维护默认关闭", "en": "Rule-based code, no model: a write gate (accept, merge, drop, defer) and dedupe; background maintenance is off by default"},
    "delivery": {"zh": "每轮自动注入会话里最新的 4 条（共 1400 字）和最近 10 条消息（900 字），不看问题、无分数线；按问题检索要模型调用 cg 工具", "en": "Every turn it injects the 4 newest items of the session (1400 characters) and the last 10 messages (900 characters), regardless of the question and without a threshold; question-based search is a cg tool the model calls"},
    "forgetting": {"zh": "只降权和折叠，不自动删除；可以手动软删到回收区", "en": "Down-weighting and folding only, no automatic deletion; manual soft delete to a trash area"},
    "license": {"zh": "未确认", "en": "not confirmed"}
@@ -126,6 +135,7 @@
    "form": {"zh": "DSH 插件", "en": "DSH plugin"},
    "retrieval": {"zh": "关键词：BM25（中文按字二元组），按重要度和时间加权", "en": "Keyword: BM25 (Chinese as character bigrams), weighted by importance and recency"},
    "write_llm": {"zh": "宿主代理的模型通过工具写入并填关键词，不另起模型调用；后台反思和梦境整合另用宿主模型", "en": "The host agent's model writes through a tool and supplies the keywords, with no separate model call; background reflection and dream consolidation use the host model as well"},
+   "consolidation": {"zh": "后台反思（连续 7 步工具调用后追加一轮）和整理（每个时间窗口最多一次，6 小时冷却），都用宿主模型", "en": "Background reflection (one extra round after 7 consecutive tool-call steps) and consolidation (at most once per time window, 6-hour cooldown), both with the host model"},
    "delivery": {"zh": "每条用户消息前自动注入关键词命中的前 2 条；无分数线；字数预算：未确认", "en": "Before every user message, the top 2 keyword hits are injected automatically; no threshold; character budget: not confirmed"},
    "forgetting": {"zh": "排序时按时间降权，不删除；删除是把状态改成归档（行保留）", "en": "Recency lowers the ranking without deleting; deleting sets the status to archived (row kept)"},
    "license": {"zh": "MIT", "en": "MIT"}
@@ -139,6 +149,7 @@
    "form": {"zh": "DSH 插件", "en": "DSH plugin"},
    "retrieval": {"zh": "关键词：按词稀有度算证据分（查询里的稀有词在记忆里出现；模型写的扩展词全额计分，只出现在正文里的词打折），再按新鲜度、重要度、情绪加权排序", "en": "Keyword: a word-rarity evidence score (rare query words found in the memory; expansion words written by the model count in full, words only in the text at a discount), then ordered with freshness, importance and emotion weights"},
    "write_llm": {"zh": "是：由模型通过 remember 工具决定存什么（每日限额 8 条，近似重复的合并强化）；写入后的后台关键词扩展另调用模型", "en": "Yes: the model decides what to store through the remember tool (daily quota 8, near-duplicates are reinforced); the background keyword expansion after each write makes a further model call"},
+   "consolidation": {"zh": "近似重复的记忆合并强化；与更新的记忆几乎相同的旧行标为被取代，不再召回；后台关键词扩展由模型给记忆补检索词", "en": "Near-duplicate memories are merged and reinforced; an old row almost identical to a newer memory is marked superseded and never recalled; the background keyword expansion has a model add search words to a memory"},
    "delivery": {"zh": "每轮自动注入（recall()）：有查询门（信息太少的消息不召回）；证据分阈值 0.30；条数随最高证据分取 1 – 6 条；字数预算 800；没有检索工具", "en": "Injected automatically every turn (recall()): a query gate (a message with too little information recalls nothing); an evidence threshold of 0.30; 1 – 6 items depending on the top evidence score; a character budget of 800; no search tool"},
    "forgetting": {"zh": "排序里有新鲜度项；近似重复的记忆合并强化，与更新的记忆几乎相同的旧行标为被取代，不再召回；是否删除：未确认", "en": "Freshness is a term in the ordering; near-duplicates are reinforced, and a row almost identical to a newer one is marked superseded and never recalled; whether anything is deleted: not confirmed"},
    "license": {"zh": "插件自己的许可：允许使用、修改和商用，再分发代码须署名作者", "en": "The plugin's own licence: use, modification and commercial use allowed; redistribution of the code must name the author"}
@@ -152,6 +163,7 @@
    "form": {"zh": "DSH 插件", "en": "DSH plugin"},
    "retrieval": {"zh": "关键词：SQLite FTS5 的 BM25，中文用 jieba 分词加汉字二元组；默认向量关闭，可选远程向量模式，开启后关键词和向量结果融合", "en": "Keyword: SQLite FTS5 BM25 over jieba words plus Han bigrams; embeddings are off by default, and an optional remote-embedding mode fuses the keyword and vector results"},
    "write_llm": {"zh": "是：默认由模型把采集到的对话蒸馏成记忆（L1 抽取与去重，再到场景块和人设）；也可以用 memory_add / memory_import 工具直接写入（本基准的做法）", "en": "Yes: by default a model distils captured conversation turns into memories (L1 extraction and de-duplication, then scene blocks and persona); memories can also be written directly with the memory_add / memory_import tools (what this benchmark does)"},
+   "consolidation": {"zh": "模型把对话蒸馏成 L1 记录并去重，再整理成 L2 场景块和 L3 人设", "en": "A model distils the conversation into L1 records and de-duplicates them, then builds L2 scene blocks and an L3 persona"},
    "delivery": {"zh": "每条新用户消息前自动搜索并注入 <relevant-memories>：分数线 0.3，最多 5 条，新鲜度（30 天）加权排序，同一会话里已注入的不再注入，字数预算每条 500、共 2000；另有 memory_search 工具", "en": "Before every new user message it searches and injects a <relevant-memories> message: score threshold 0.3, at most 5 items, 30-day freshness weighting in the order, records already injected in the session suppressed, a character budget of 500 per memory and 2000 in total; a memory_search tool exists as well"},
    "forgetting": {"zh": "新鲜度（30 天）加权只作用于排序；记录有有效期字段，怎么过期或删除：未确认", "en": "The 30-day freshness weighting only affects the order; records carry validity fields, how they expire or are deleted: not confirmed"},
    "license": {"zh": "MIT", "en": "MIT"}
@@ -165,6 +177,7 @@
    "form": {"zh": "DSH 插件：人设卡加文件形式的长期记忆（基准只测记忆部分）", "en": "DSH plugin: persona cards plus file-based long-term memory (the benchmark measures only the memory half)"},
    "retrieval": {"zh": "关键词：把查询切成词和汉字二元组，在 topic 的 key、标题、摘要、正文里按命中打分（key 加标题每词 4 分，摘要 2 分，正文 1 分），同分按 key 排序", "en": "Keyword: the query is split into words and Han bigrams and scored against a topic's key, title, summary and body (4 per term in key plus title, 2 in the summary, 1 in the body), ties ordered by key"},
    "write_llm": {"zh": "宿主模型通过 memory_append / memory_rewrite 工具写 Markdown 文件，插件不另起模型调用；memory_digest 请模型提出修改建议，由用户手动确认，不属于自动写入", "en": "The host model writes Markdown files through the memory_append / memory_rewrite tools and the plugin makes no model call of its own; memory_digest asks a model for edit proposals that the user confirms by hand, so it is not automatic writing"},
+   "consolidation": {"zh": "宿主模型用 memory_rewrite 改写 topic 文件；memory_digest 由模型提出修改建议，用户手动确认后才生效", "en": "The host model rewrites topic files with memory_rewrite; memory_digest has the model propose changes, which take effect only after the user confirms them by hand"},
    "delivery": {"zh": "常驻系统提示词段：core 文本加所有 topic 的索引（key、标题、摘要，有字数上限）；从会话的第二条用户消息起每轮注入“可能相关的记忆”块，默认 5 个 topic、1600 字，没有分数线（共享一个词就是候选）；另有 memory_search 工具", "en": "A standing system-prompt section: the core text plus an index of every topic (key, title, summary, capped in characters); from the second user message of a session on, a \"possibly relevant memory\" block every turn, 5 topics and 1600 characters by default, with no score threshold (one shared term makes a candidate); a memory_search tool exists as well"},
    "forgetting": {"zh": "未确认", "en": "not confirmed"},
    "license": {"zh": "未确认", "en": "not confirmed"}
@@ -178,6 +191,7 @@
    "form": {"zh": "服务（HTTP，PostgreSQL 加 pgvector），DSH 插件是它的客户端", "en": "Server (HTTP, PostgreSQL with pgvector); the DSH plugin is a client of it"},
    "retrieval": {"zh": "四路检索：语义、关键词、图、时间，融合后用交叉编码器重排序，按 token 预算截断；记忆是模型从内容里抽取的事实，再由模型归并成 observation，并链接到实体", "en": "Four arms: semantic, keyword, graph and temporal, fused and reranked by a cross-encoder, cut by a token budget; memories are facts a model extracts from the content, consolidated by a model into observations and linked to entities"},
    "write_llm": {"zh": "是：默认由模型逐条提取事实并归并成 observation；也有无模型模式（每条记忆存成一个原文块，不归并）", "en": "Yes: by default a model extracts facts from each item and consolidates them into observations; a mode without a model also exists (each memory stored as one verbatim chunk, no consolidation)"},
+   "consolidation": {"zh": "模型逐条提取事实，再归并成 observation 并链接到实体；reflect 由模型写出综合文字。无模型模式不归并", "en": "A model extracts facts from each memory, then consolidates them into observations linked to entities; reflect has a model write a synthesized text. The mode without a model does not consolidate"},
    "delivery": {"zh": "插件在会话的第一条提示时注入模型写的“reflect”综合文字，不是记忆列表；只召回的选项 autoInject: \"recall\" 调服务端召回，请求体为类型 observation、预算 low、max_tokens 2000，没有条数上限和分数线", "en": "At the first prompt of a session the plugin injects a model-written \"reflect\" synthesis, not a list of memories; its recall-only option autoInject: \"recall\" calls the server's recall with types observation, budget low and max_tokens 2000, with no item limit and no score threshold"},
    "forgetting": {"zh": "未确认", "en": "not confirmed"},
    "license": {"zh": "未确认", "en": "not confirmed"}
