@@ -1030,7 +1030,7 @@ AstrBot 的接入示例在 [integrations/astrbot](integrations/astrbot/)。
 
 | 包 | 作用 |
 |---|---|
-| [dsh-feiyu-memgate](plugins/dsh-feiyu-memgate/README.zh.md) | 给 DSH 对话加上长期记忆：自带并自动启动本网关，每轮自动召回，给模型“记住”和“查找”两个工具，带设置页面。每项功能都能单独关掉。默认用关键词检索，不需要模型，也不下载任何东西；用向量检索时可以选择同时用关键词检索并合并结果（混合，默认关闭）。 |
+| [dsh-feiyu-memgate](plugins/dsh-feiyu-memgate/README.zh.md) | 给 DSH 对话加上长期记忆：自带并自动启动本网关，每轮自动召回，给模型“记住”和“查找”两个工具，带设置页面。记忆块写明今天的日期和每条记忆是多久以前的事，对话里给过的记忆不再重复给。每项功能都能单独关掉。默认用关键词检索，不需要模型，也不下载任何东西；用向量检索时可以选择同时用关键词检索并合并结果（混合，默认关闭）。 |
 | [dsh-feiyu-memgate-embed](plugins/dsh-feiyu-memgate-embed/README.zh.md) | 可选的附加包：在本机只用 CPU 运行向量模型，让换了说法的问题也能找到记忆。模型在设置页面里点“下载并启用”之后才下载。 |
 
 安装：在 DSH 的插件页面安装 `dsh-feiyu-memgate`，或运行 `dsh plugin --profile <name> add dsh-feiyu-memgate`。要求、设置和测试范围见各自的说明。
@@ -1104,13 +1104,17 @@ stages = ["min_score", { type = "recency_stage:Recency", half_life_days = 30 }, 
 | [docs/architecture.md](docs/architecture.md) | 一次召回、一次写入经过什么 |
 | [docs/deployment.md](docs/deployment.md) | 部署方案：进程形态、检索档位、分数线档位，各自的数据和选择建议 |
 | [docs/embedded.md](docs/embedded.md) | 进程内运行：用法、限制、和独立服务的区别 |
-| [docs/configuration.md](docs/configuration.md) | 每一项配置和 HTTP 接口 |
+| [docs/configuration.md](docs/configuration.md) | 每一项配置 |
+| [docs/api.md](docs/api.md) | API 参考：HTTP 接口、Python 客户端、扩展接口、命令行、DSH 插件的接口 |
 | [docs/backends.md](docs/backends.md) | 各后端的原理、默认分数线的来历 |
 | [docs/pieces.md](docs/pieces.md) | 插槽的契约，怎么选用、替换、自己实现 |
+| [docs/extending.md](docs/extending.md) | 二次开发指引：接进自己的聊天程序、用别的语言接入、自己做后端和召回步骤、发布成包 |
+| [docs/development.md](docs/development.md) | 开发指南：环境、目录结构、测试、生成和打包的部分、发布 |
 | [docs/forgetting.md](docs/forgetting.md) | 遗忘曲线的机制、配置和运维 |
 | [docs/security.md](docs/security.md) | 防什么、怎么防、防不了什么 |
 | [docs/roadmap.md](docs/roadmap.md) | 还没做的部分 |
-| [docs/design/](docs/design/) | 来源项目里的原始设计文档和改造前的审计 |
+| [docs/design/](docs/design/) | 设计说明：来源项目里的原始设计文档和改造前的审计，以及本仓库后来的设计 |
+| [CHANGELOG.md](CHANGELOG.md) | 网关的更新记录；插件的在 [plugins/dsh-feiyu-memgate/CHANGELOG.md](plugins/dsh-feiyu-memgate/CHANGELOG.md) |
 | [bench/](bench/README.md) | 基准的数据、规则、适配器和复现方法 |
 | [bench/results/design/](bench/results/design/features.md) | 各项目的功能对照，和本项目的设计自检 |
 | [plugins/](plugins/dsh-feiyu-memgate/README.zh.md) | DeepSeek Harness 插件和它的向量附加包 |
@@ -1124,7 +1128,7 @@ stages = ["min_score", { type = "recency_stage:Recency", half_life_days = 30 }, 
 python -m unittest discover -s tests -t .
 ```
 
-目前是 1394 个测试。网关的做法来自来源项目里实际运行的版本，但需要说明：
+目前网关有 1470 个测试，两个插件另有 427 个；每次推送和每个 pull request 都会在 Linux 和 Windows 上自动运行。网关的做法来自来源项目里实际运行的版本，但需要说明：
 
 - 改成框架之后的这一版还没有经过长时间的线上运行。
 - 遗忘曲线只在模拟里验证过，默认关闭。

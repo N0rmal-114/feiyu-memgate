@@ -268,7 +268,7 @@ CI 不做的事：不运行 `sync-gateway`（它没有检查模式），不重�
 
 - **网关的版本号写在两处**：`pyproject.toml` 的 `[project] version` 和 `src/feiyu_memgate/__init__.py` 的 `__version__`。没有测试检查两处一致，改版本号要两处都改。
 - **`CHANGELOG.md`** 现在有“未发布”和“0.1.0”两节；条目先写在“未发布”下面。
-- **插件的版本号**在各自的 `package.json`（主插件 0.4.0，附加包 0.1.0）。两个插件的 `tests/package.test.js` 都把自己的版本号写死了（主插件是 `assert.equal(pkg.version, '0.4.0')`），所以改版本号时测试也要一起改。主插件的 [CHANGELOG.md](../plugins/dsh-feiyu-memgate/CHANGELOG.md) 每个版本一节，写着日期和打包进去的网关对应的提交。`engines.dsh` 的范围也由 `package.test.js` 检查。
+- **插件的版本号**在各自的 `package.json`（主插件 0.3.1，附加包 0.1.0）。两个插件的 `tests/package.test.js` 都把自己的版本号写死了（主插件是 `assert.equal(pkg.version, '0.3.1')`），所以改版本号时测试也要一起改。主插件的 [CHANGELOG.md](../plugins/dsh-feiyu-memgate/CHANGELOG.md) 每个版本一节，写着日期和打包进去的网关对应的提交。`engines.dsh` 的范围也由 `package.test.js` 检查。
 - **打包的网关**：`plugins/dsh-feiyu-memgate/python/` 和 `python/GATEWAY_VERSION.json` 由 `npm run sync-gateway` 生成（见上面）。测试要求记录里的 `dirty` 是 `false`，所以顺序是：先提交网关的改动，再运行 `sync-gateway`，再跑测试。
 - npm 包里放什么由 `package.json` 的 `files` 决定（主插件：`index.js`、`src/`、`client/`、`python/`、`locale/`、`docs/`、`cordis.patch.yml`、`icon.png`、`LICENSE`），`package.test.js` 检查列出的每个路径都存在。
 

@@ -53,7 +53,7 @@ function satisfies(version, range, includePrerelease) {
 
 test('manifest fields', () => {
   assert.equal(pkg.name, 'dsh-feiyu-memgate')
-  assert.equal(pkg.version, '0.3.0')
+  assert.equal(pkg.version, '0.3.1')
   assert.equal(pkg.type, 'module')
   assert.equal(pkg.license, 'MIT')
   assert.equal(pkg.author, 'N0rmal')
@@ -181,6 +181,13 @@ test('the python copy matches GATEWAY_VERSION.json', () => {
   const version = /__version__\s*=\s*"([^"]+)"/.exec(read('python/feiyu_memgate/__init__.py'))[1]
   assert.equal(version, record.version)
   assert.ok(!JSON.stringify(record).match(/[A-Za-z]:\\|\/Users\/|\/home\//), 'no local path in the record')
+})
+
+test('the bundled gateway is the one that dates a memory by the message time and formats ages', () => {
+  // 0.3.1 sends `time` with every memory and asks for ages in the block: an older gateway copy would ignore both.
+  assert.match(read('python/feiyu_memgate/backends/base.py'), /def message_date\(/)
+  assert.match(read('python/feiyu_memgate/client/block.py'), /def age_text\(/)
+  assert.equal(JSON.parse(read('python/GATEWAY_VERSION.json')).dirty, false)
 })
 
 test('the entry exports name, inject, Config and apply, and no default export', async () => {

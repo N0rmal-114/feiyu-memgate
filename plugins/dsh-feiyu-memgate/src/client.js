@@ -254,9 +254,13 @@ export function createClient({ url, token, fetch: fetchImpl = globalThis.fetch, 
     }
   }
 
+  // opts.time: the message's own time ("2026-11-17T20:15:03+09:00", at most 40 characters), which the
+  // gateway uses to date the memory. Not a Python option: the Python client's remember() takes no time.
   async function rememberStatus(text, opts) {
     if (typeof text !== 'string' || !pyStrip(text)) return 'failed'
-    return rememberMessages([{ role: 'user', content: text }], opts)
+    const message = { role: 'user', content: text }
+    if (typeof opts?.time === 'string') message.time = opts.time
+    return rememberMessages([message], opts)
   }
 
   async function reportUsed(items, { timeoutMs = 5000, signal } = {}) {

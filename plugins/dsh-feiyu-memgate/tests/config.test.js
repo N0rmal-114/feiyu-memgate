@@ -13,7 +13,10 @@ test('defaults', () => {
     retrieval: { tier: 'auto', hybrid: false, url: '', model: '', apiKey: '' },
     gateway: { mode: 'managed', python: '', dataDir: '' },
     external: { url: '', token: '' },
-    advanced: { recallLimit: 5, recallTimeoutMs: 4000, language: 'auto', profile: 'broad', dailyWrites: 50, redaction: true, newerFirst: true, forgetting: false },
+    advanced: {
+      recallLimit: 5, recallTimeoutMs: 4000, language: 'auto', skipRepeats: true, showAge: true, failureNote: true, captureMinChars: 4,
+      profile: 'broad', dailyWrites: 50, redaction: true, newerFirst: true, forgetting: false,
+    },
   })
   assert.ok(Object.isFrozen(DEFAULTS.modules))
 })
@@ -147,6 +150,42 @@ test('the field table lists every setting once, labelled and explained in both l
       for (const option of field.options ?? []) assert.ok(option.label.en && option.label.zh, `${field.key}=${option.value}`)
     }
   }
+})
+
+test('the chat settings: three switches that are on and a character count of 4, each with help in both languages', () => {
+  const group = FIELDS.find((g) => g.group === 'advanced')
+  assert.deepEqual(group.fields.map((f) => f.key), [
+    'recallLimit', 'recallTimeoutMs', 'language', 'skipRepeats', 'showAge', 'failureNote', 'captureMinChars',
+    'profile', 'dailyWrites', 'redaction', 'newerFirst', 'forgetting',
+  ])
+  for (const key of ['advanced.skipRepeats', 'advanced.showAge', 'advanced.failureNote']) {
+    const field = SETTING_KEYS[key]
+    assert.equal(field.kind, 'boolean', key)
+    assert.equal(field.default, true, key)
+    assert.ok(field.label.en && field.label.zh && field.help.en && field.help.zh, key)
+  }
+  const chars = SETTING_KEYS['advanced.captureMinChars']
+  assert.deepEqual([chars.kind, chars.default, chars.min, chars.max], ['integer', 4, 0, 50])
+  assert.match(chars.help.en, /0 turns the length check off/)
+  assert.match(chars.help.zh, /0 表示不按字数过滤/)
+  // Values are checked like every other setting: a wrong type or a value out of range gives the default.
+  const s = readConfig({ advanced: { skipRepeats: 'no', showAge: 0, failureNote: null, captureMinChars: 51 } }).advanced
+  assert.deepEqual([s.skipRepeats, s.showAge, s.failureNote, s.captureMinChars], [true, true, true, 4])
+  assert.equal(readConfig({ advanced: { captureMinChars: 0 } }).advanced.captureMinChars, 0)
+  assert.equal(readConfig({ advanced: { captureMinChars: 50 } }).advanced.captureMinChars, 50)
+  assert.equal(readConfig({ advanced: { captureMinChars: -1 } }).advanced.captureMinChars, 4)
+  assert.equal(readConfig({ advanced: { captureMinChars: 2.5 } }).advanced.captureMinChars, 4)
+  const off = readConfig({ advanced: { skipRepeats: false, showAge: false, failureNote: false } }).advanced
+  assert.deepEqual([off.skipRepeats, off.showAge, off.failureNote], [false, false, false])
+  // Typed in /memgate set.
+  assert.deepEqual(parseSetting(chars, '0'), { ok: true, value: 0 })
+  assert.deepEqual(parseSetting(chars, '50'), { ok: true, value: 50 })
+  for (const bad of ['51', '-1', '4.5', 'four', '']) assert.equal(parseSetting(chars, bad).ok, false, bad)
+  assert.deepEqual(parseSetting(SETTING_KEYS['advanced.skipRepeats'], 'off'), { ok: true, value: false })
+  assert.deepEqual(parseSetting(SETTING_KEYS['advanced.showAge'], '关'), { ok: true, value: false })
+  // The schema for the host carries the range.
+  const schema = buildConfigSchema(recordingSchema())
+  assert.deepEqual([schema.dict.advanced.dict.captureMinChars.meta.min, schema.dict.advanced.dict.captureMinChars.meta.max], [0, 50])
 })
 
 test('retrieval.hybrid: a boolean, off by default, right after the tier, with help in both languages', () => {

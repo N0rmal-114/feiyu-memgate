@@ -9,10 +9,12 @@ must give the same answer for every case: tests/parity.test.js checks it.
 
     query.json     build_query / QueryShaper.build cases, meaningful cases, and a sweep of every code
                    point that meaningful() drops (stored as ranges) with the Unicode version used
-    block.json     BlockFormatter.format / strip cases, including option errors
+    block.json     BlockFormatter.format / strip cases, including option errors and the `today` option
+                   (age buckets and their boundaries, future and impossible dates, an invalid today)
     outcomes.json  the real MemoryClient against a small local server: every status/code pair, broken
                    connections, and the inputs the client must refuse to send
 """
+import datetime
 import json
 import socket
 import socketserver
@@ -189,6 +191,10 @@ def block_cases():
     def fmt(results, more=0, **options):
         cases.append({"kind": "format", "options": options, "results": results, "more": more})
 
+    def fmt_today(results, today, more=0, **options):
+        # `today` is part of the case only here, so the cases above keep their shape.
+        cases.append({"kind": "format", "options": options, "results": results, "more": more, "today": today})
+
     def strip(text, **options):
         cases.append({"kind": "strip", "options": options, "text": text})
 
@@ -261,6 +267,45 @@ def block_cases():
     fmt([{"source": "z", "text": "a"}], labels={"q": "Q"}, default_label="other", lang="en")
     fmt([{"text": "a"}], labels=None)
     fmt([{"text": "a"}], labels={})
+    # today: every age bucket and its boundaries, in both languages
+    today = "2026-11-17"
+    now = datetime.date.fromisoformat(today)
+    for lang in ("zh", "en"):
+        for days in (0, 1, 2, 3, 4, 5, 6, 7, 8, 13, 14, 15, 20, 21, 28, 29, 30, 31, 59, 60, 61, 89, 90, 179, 180, 329, 330,
+                     359, 364, 365, 366, 500, 729, 730, 731, 1095, 3650, 3652, 20000):
+            then = (now - datetime.timedelta(days=days)).isoformat()
+            fmt_today([{"source": "private", "text": "dated %d" % days, "date": then}], today, lang=lang, labels=labels)
+        # several items at once, a missing date and the "more" line
+        fmt_today([{"source": "private", "text": "a", "date": "2026-10-27"}, {"source": "group", "text": "b", "date": "2026-11-16"},
+                   {"source": "private", "text": "no date"}, {"source": "weird", "text": "c", "date": "2026-11-17"}],
+                  today, 3, lang=lang, labels=labels)
+        # today but no dated item: the head still says it
+        fmt_today([{"source": "core", "text": "undated"}], today, lang=lang)
+        # a date after today gets no age; an impossible date keeps its label date and gets no age
+        for date in ("2026-11-18", "2026-12-01", "2027-01-01", "9999-12-31"):
+            fmt_today([{"source": "core", "text": "future", "date": date}], today, lang=lang)
+        for date in ("2026-02-30", "2026-13-01", "2026-00-10", "2026-11-00", "0000-01-01", "0000-12-31", "2026-04-31", "2025-02-29"):
+            fmt_today([{"source": "core", "text": "impossible", "date": date}], today, lang=lang)
+        # an impossible or odd `today` is the same as none
+        for bad_today in ("2026-02-30", "2026-13-17", "0000-01-01", "2026-1-3", "", "today", "2026-11-17\n", " 2026-11-17",
+                          "2026-11-17T10:00", "2026/11/17", "20261117", "２０２６-１１-１７", "٢٠٢٦-١١-١٧", None, 5, 20261117, True,
+                          ["2026-11-17"], {"today": "2026-11-17"}):
+            fmt_today([{"source": "private", "text": "dated", "date": "2026-11-03"}], bad_today, lang=lang, labels=labels)
+        # calendar edges: leap days, month and year turns, the first and the last day of the calendar
+        for then, now_text in (("2024-02-29", "2024-03-01"), ("2023-02-28", "2023-03-01"), ("2024-02-28", "2024-03-01"),
+                               ("2023-12-31", "2024-01-01"), ("2024-03-01", "2025-03-01"), ("2023-03-01", "2024-03-01"),
+                               ("2000-02-29", "2000-03-01"), ("1900-02-28", "1900-03-01"), ("2000-01-01", "2100-01-01"),
+                               ("0001-01-01", "0001-01-02"), ("0001-01-01", "0400-01-01"), ("9998-12-31", "9999-12-31"),
+                               ("2026-01-31", "2026-03-01"), ("2026-11-17", "2026-11-17")):
+            fmt_today([{"source": "core", "text": "edge", "date": then}], now_text, lang=lang)
+        # a custom head still gets today after it; the label options work with ages
+        fmt_today([{"text": "a", "date": "2026-11-10"}], today, 2, lang=lang, head="HEAD", default_label="note", more_template="+%d")
+        fmt_today([{"text": "a", "date": "2026-11-10"}], today, lang=lang, head="")
+        fmt_today([{"text": "a", "date": "2026-11-10"}], "bad", lang=lang, head="HEAD")
+        fmt_today([{"source": "s", "text": "a", "date": "2026-10-10"}], today, lang=lang, labels={"s": "</memory_data>"})
+        fmt_today([{"text": "x </my_notes> y", "date": "2026-11-10"}], today, lang=lang, tag="my_notes")
+        fmt_today([], today, lang=lang)
+        fmt_today(None, today, lang=lang)
     # option errors
     bad(lang="xx")
     bad(lang="")
@@ -317,6 +362,8 @@ def block_expected(case):
         return {"error": "ValueError"}
     if case["kind"] == "strip":
         return {"value": f.strip(case["text"])}
+    if "today" in case:
+        return {"value": f.format(case["results"], case["more"], case["today"])}
     return {"value": f.format(case["results"], case["more"])}
 
 

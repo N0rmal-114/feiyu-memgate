@@ -21,6 +21,8 @@ const DEFAULTS = {
     open: '（',
     close: '）',
     gap: '',
+    today: '今天是 %s。',
+    headGap: '',
   },
   en: {
     head:
@@ -32,12 +34,62 @@ const DEFAULTS = {
     open: '(',
     close: ')',
     gap: ' ',
+    today: 'Today is %s.',
+    headGap: ' ',
   },
 }
 
 // Python's `template % n` for the one directive a "more" line may hold.
 function fillMore(template, n) {
   return template.replace(/%([%d])/g, (_, c) => (c === '%' ? '%' : String(n)))
+}
+
+const isLeap = (y) => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0
+const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+// Days since 0001-01-01 of a "YYYY-MM-DD" string, or null for anything else (not a string, wrong form,
+// not a real calendar date: year 0000, month 13, 02-30). Python's _parse_date and date.toordinal().
+function dayNumber(value) {
+  if (typeof value !== 'string' || !DATE_RE.test(value)) return null
+  const y = Number(value.slice(0, 4))
+  const m = Number(value.slice(5, 7))
+  const d = Number(value.slice(8, 10))
+  if (y < 1 || m < 1 || m > 12 || d < 1 || d > DAYS_IN_MONTH[m - 1] + (m === 2 && isLeap(y) ? 1 : 0)) return null
+  // Days before this year, before this month, and the day itself (proleptic Gregorian, as Python's date).
+  const before = (y - 1) * 365 + Math.floor((y - 1) / 4) - Math.floor((y - 1) / 100) + Math.floor((y - 1) / 400)
+  let inYear = 0
+  for (let i = 0; i < m - 1; i++) inYear += DAYS_IN_MONTH[i] + (i === 1 && isLeap(y) ? 1 : 0)
+  return before + inYear + d
+}
+
+/**
+ * How long ago `date` was, counted in calendar days up to `today` (both "YYYY-MM-DD"), in `lang`
+ * ('zh' or 'en'). '' when either is not a real date or `date` is after `today`. Days: 0 today,
+ * 1 yesterday, 2 the day before yesterday ("2 days ago" in English), 3..6 "N days ago", 7..29 weeks
+ * (d // 7), 30..364 months (d // 30), 365 and more years (d // 365). Never throws, except for an
+ * unknown lang. The same rule as the gateway's age_text (client/block.py).
+ */
+export function ageText(date, today, lang = 'zh') {
+  if (typeof lang !== 'string' || !Object.hasOwn(DEFAULTS, lang)) {
+    throw new RangeError('lang must be one of: ' + Object.keys(DEFAULTS).sort().join(', '))
+  }
+  const then = dayNumber(date)
+  const now = dayNumber(today)
+  if (then === null || now === null) return ''
+  const d = now - then
+  if (d < 0) return ''
+  const zh = lang === 'zh'
+  if (d === 0) return zh ? '今天' : 'today'
+  if (d === 1) return zh ? '昨天' : 'yesterday'
+  if (d === 2) return zh ? '前天' : '2 days ago'
+  if (d < 7) return zh ? `${d} 天前` : `${d} days ago`
+  let n
+  let zhUnit
+  let enUnit
+  if (d < 30) [n, zhUnit, enUnit] = [Math.floor(d / 7), '周', 'week']
+  else if (d < 365) [n, zhUnit, enUnit] = [Math.floor(d / 30), '个月', 'month']
+  else [n, zhUnit, enUnit] = [Math.floor(d / 365), '年', 'year']
+  return zh ? `${n} ${zhUnit}前` : `${n} ${enUnit}${n === 1 ? '' : 's'} ago`
 }
 
 /**
@@ -81,7 +133,16 @@ export function createFormatter({ lang = 'zh', tag = 'memory_data', labels = {},
       .join('\n\n')
   }
 
-  function format(results, more = 0) {
+  /**
+   * The data block for the current message, '' when nothing usable.
+   *
+   * today  "YYYY-MM-DD" or nothing. With a valid date the head also says today's date and each item with a
+   *        date gets its age (see ageText). Anything else counts as nothing and the output is what it was
+   *        before `today` existed. The caller decides what today is (its time zone); nothing here reads a clock.
+   */
+  function format(results, more = 0, options = null) {
+    const today = options?.today
+    const now = dayNumber(today) === null ? null : today
     const lines = []
     for (const item of Array.isArray(results) ? results : []) {
       if (item === null || typeof item !== 'object' || Array.isArray(item) || typeof item.text !== 'string') continue
@@ -89,14 +150,46 @@ export function createFormatter({ lang = 'zh', tag = 'memory_data', labels = {},
       if (!text) continue
       const source = item.source
       let label = typeof source === 'string' && labelMap.has(source) ? labelMap.get(source) : fallbackLabel
-      if (typeof item.date === 'string' && DATE_RE.test(item.date)) label += d.dateSep + item.date
+      if (typeof item.date === 'string' && DATE_RE.test(item.date)) {
+        label += d.dateSep + item.date
+        const age = now === null ? '' : ageText(item.date, now, lang)
+        if (age) label += d.dateSep + age
+      }
       // The label comes from the configuration, but it is cleaned too: a label is data of the caller.
       lines.push(`- ${d.open}${clean(label)}${d.close}${d.gap}${text}`)
     }
     if (!lines.length) return ''
     if (Number.isInteger(more) && more > 0) lines.push(fillMore(moreLine, more))
-    return [`<${tag}>`, headLine, ...lines, `</${tag}>`].join('\n')
+    const head = now === null ? headLine : headLine + d.headGap + d.today.replace('%s', () => now)
+    return [`<${tag}>`, head, ...lines, `</${tag}>`].join('\n')
   }
 
-  return { format, strip, tag }
+  /**
+   * A predicate over the text of a memory: has a block in `blockTexts` (strings, blocks this formatter
+   * wrote earlier) already shown it? For skipping a memory the model has seen in this conversation.
+   *
+   * The text is compared as format() writes it (the same cleaning), never by label or date: the age
+   * after the date changes every day. An item line of a block ends with the closing bracket, the gap
+   * and the text, so a block's line matches when it ends with exactly that. The one imprecision:
+   * the label is not parsed, so a memory whose text is the tail of another one that begins with a
+   * closing bracket and the same words after it (for example "（备注）喝茶" and "喝茶") counts as
+   * seen. The cost is one memory left out of a block; the memory itself is not touched.
+   * Only the formatter's own language is looked for.
+   */
+  function seen(blockTexts) {
+    const lines = []
+    for (const block of Array.isArray(blockTexts) ? blockTexts : []) {
+      if (typeof block !== 'string') continue
+      for (const line of block.split('\n')) if (line.startsWith('- ')) lines.push(line)
+    }
+    return (text) => {
+      if (typeof text !== 'string') return false
+      const tail = clean(text)
+      if (!tail) return false
+      const suffix = d.close + d.gap + tail
+      return lines.some((line) => line.endsWith(suffix))
+    }
+  }
+
+  return { format, strip, seen, tag }
 }

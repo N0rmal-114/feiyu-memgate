@@ -235,6 +235,34 @@ test('retrieval.hybrid is set like any switch, by full or bare name', async () =
   assert.match((await run('set retrieval.hybrid maybe')).text, /retrieval\.hybrid takes on or off\./)
 })
 
+test('the chat settings are listed, set and reset like every other setting', async () => {
+  const { run, writes } = harness()
+  const config = await run('config')
+  assert.ok(config.text.includes('advanced.skipRepeats = on  (on)'), config.text)
+  assert.ok(config.text.includes('advanced.showAge = on  (on)'))
+  assert.ok(config.text.includes('advanced.failureNote = on  (on)'))
+  assert.ok(config.text.includes('advanced.captureMinChars = 4  (4)'))
+  assert.equal((await run('set advanced.captureMinChars 0')).text, 'Saved: advanced.captureMinChars = 0 (was 4).')
+  assert.equal((await run('set captureminchars 12')).text, 'Saved: advanced.captureMinChars = 12 (was 0).', 'a bare name is enough')
+  assert.match((await run('set advanced.captureMinChars 51')).text, /takes a whole number from 0 to 50/)
+  assert.match((await run('set advanced.captureMinChars -1')).text, /takes a whole number from 0 to 50/)
+  assert.equal((await run('set skipRepeats off')).text, 'Saved: advanced.skipRepeats = off (was on).')
+  assert.equal((await run('set advanced.showAge off')).text, 'Saved: advanced.showAge = off (was on).')
+  assert.equal((await run('set failurenote off')).text, 'Saved: advanced.failureNote = off (was on).')
+  assert.match((await run('set advanced.showAge maybe')).text, /advanced\.showAge takes on or off\./)
+  assert.equal((await run('reset advanced.captureMinChars')).text, 'Reset: advanced.captureMinChars is back to its default (4).')
+  assert.deepEqual(writes.map((ops) => [ops[0].op, ops[0].path.join('.'), ops[0].value]), [
+    ['set', 'advanced.captureMinChars', 0],
+    ['set', 'advanced.captureMinChars', 12],
+    ['set', 'advanced.skipRepeats', false],
+    ['set', 'advanced.showAge', false],
+    ['set', 'advanced.failureNote', false],
+    ['unset', 'advanced.captureMinChars', undefined],
+  ])
+  const zh = await harness({ lang: 'zh' }).run('set advanced.failureNote off')
+  assert.match(zh.text, /^已保存：advanced\.failureNote = /)
+})
+
 test('use chooses a tier and says when it cannot run yet', async () => {
   const { run, writes } = harness()
   const local = await run('use local')

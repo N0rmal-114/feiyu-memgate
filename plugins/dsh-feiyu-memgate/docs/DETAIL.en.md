@@ -5,11 +5,12 @@ The DeepSeek Harness (DSH) plugin for the [feiyu-memgate](https://github.com/N0r
 ## After install
 
 1. The first time a memory feature is needed, the plugin starts the bundled gateway in the background. DSH does not wait for it.
-2. When you send a message, the plugin looks up related memories and adds them after your message, in a block marked as data, not instructions. At most 5 by default; most turns get fewer, and many get none. The lookup waits at most 4 seconds and is skipped when slower.
-3. The block stays in the conversation history, so the context grows on every turn that has one. Nothing before your current message changes, so the prompt cache is not affected.
-4. The model has two tools: `memgate_remember` saves one sentence, `memgate_search` looks memories up. A short section in the system prompt tells it to save only when you ask it to remember something or state a lasting fact, and never to save secrets.
-5. With the default settings a memory is written only when the model calls `memgate_remember`. With `modules.autoCapture` on, your own messages are also stored after each turn.
-6. Memories are kept in SQLite files in `<DSH home>/data/feiyu-memgate/`. `<DSH home>` is the folder named by the `DSH_HOME` environment variable, or `.dsh` in your user folder when it is not set.
+2. When you send a message, the plugin looks up related memories and adds them after your message, in a block marked as data, not instructions. The block says today's date (the date on this computer) and each dated memory shows how long ago it was, for example `（记忆，2026-10-27，3 周前）` in Chinese or `(memory, 2026-10-27, 3 weeks ago)` in English. At most 5 by default; most turns get fewer, and many get none. The lookup waits at most 4 seconds and is skipped when slower.
+3. The block stays in the conversation history, so the context grows on every turn that has one. Nothing before your current message changes, so the prompt cache is not affected. A memory that a block still in the history already shows is not added again (`advanced.skipRepeats`); if the host compacts the conversation and the block is gone, the memory is given again.
+4. If the lookup of a turn times out or fails, or the bundled gateway is still starting, one short note after your message tells the model that memory could not be searched, so it does not take that for "no related memory". It is added on the first turn of a failure streak only (`advanced.failureNote`).
+5. The model has two tools: `memgate_remember` saves one sentence, `memgate_search` looks memories up. A short section in the system prompt (in Chinese or English, following `advanced.language`) tells it to save only when you ask it to remember something or state a lasting fact, never to save secrets, and how to write a memory: a sentence that can be understood on its own (who or what, not "he" or "this"), times as dates, and for a change the new state as a full sentence that says what it replaces.
+6. With the default settings a memory is written only when the model calls `memgate_remember`. With `modules.autoCapture` on, your own messages are also stored after each turn, except commands, filler and messages shorter than `advanced.captureMinChars` (4 by default). Every saved message carries the local time of this computer, and the memory is dated by that day.
+7. Memories are kept in SQLite files in `<DSH home>/data/feiyu-memgate/`. `<DSH home>` is the folder named by the `DSH_HOME` environment variable, or `.dsh` in your user folder when it is not set.
 
 ## Requirements
 
@@ -40,6 +41,10 @@ Every setting can be changed in three places: this plugin's settings page on the
 | `retrieval.tier` | How memories are found: `auto`, `keyword`, `endpoint`, `local` | `auto` |
 | `retrieval.hybrid` | Also search by keyword in the vector tiers and fuse the results (no effect under `keyword`) | off |
 | `advanced.recallLimit` | Most memories added per turn | 5 |
+| `advanced.skipRepeats` | Do not add a memory that a block still in the history already shows | on |
+| `advanced.showAge` | The block says today's date and how long ago each memory is | on |
+| `advanced.failureNote` | Tell the model when the lookup of a turn failed | on |
+| `advanced.captureMinChars` | Automatic capture skips a message with fewer meaningful characters (0 to 50; 0 turns the length test off) | 4 |
 | `advanced.profile` | `broad`: more memories per turn, misses less, more noise, faster context growth; `precise`: about one close match per turn | `broad` |
 | `advanced.dailyWrites` | Most memories written per day, 0 for no cap | 50 |
 | `advanced.redaction` | Remove keys, tokens and passwords when saving and recalling | on |
@@ -75,12 +80,13 @@ Measured basis, in the gateway's own benchmark with bge-m3 (nothing was measured
 ## Limits
 
 - Keyword search does not find reworded questions: in the gateway's own benchmark it delivered a right memory for none of 55 reworded questions. See the [benchmark](https://github.com/N0rmal-114/feiyu-memgate#基准测试) (in Chinese).
-- The memory block stays in the history, so the context grows.
+- The memory block stays in the history, so the context grows. `advanced.skipRepeats` keeps the same memory from being added again while its block is there.
+- Not verified in a live chat. The 0.3.1 changes (no repeated memories, today's date and ages, the way memories are written, the filter of automatic capture, the note about a failed lookup) were exercised in unit tests and in a simulated host, not in a live conversation with a model. Whether a model follows the new instructions, and whether the date and ages improve its answers, was not measured. "Today" is the date on this computer.
 - Only memories the model chose to save exist, unless automatic capture is on.
 - The daily write cap is counted in memory, per DSH process, and starts again when the gateway restarts.
 - The settings page depends on host UI interfaces that are still changing; without it, every setting can be changed with `/memgate` or in the profile file.
 - Real-host testing. Tested in the installed DeepSeek Harness 0.2.2-rc.1 on Windows 11 with an isolated profile: the plugin loads, the bundled gateway starts with a Python from PATH, the settings page renders and saves, the status and model routes answer only to the owner session, the chat command works, and with the add-on and bge-small-zh-v1.5 the local tier is used and reworded questions find their memories. Installing the add-on from npm through the settings page was run too, with the dependency's install script refused: the add-on is installed and enabled, the model is downloaded and the local tier takes over (the path that allows the script was not run). The hybrid switch of 0.3.0 was also run in an isolated profile, with a stand-in embeddings service on the local machine, not a real model: with the `endpoint` tier and `retrieval.hybrid` on, the gateway starts with a hybrid store and the memories of the keyword store are copied into both the vector file and the keyword index; after one memory was removed from the vector file while the host was stopped, the next start removed it from the index too. In that profile, where the plugin is linked from its source folder, the settings form says the settings are not available (0.2.0 behaves the same there), so the new switch was not seen in the form and was set through the profile file. Not tested: macOS and Linux desktops, the Desktop application's own window (the web profile of the same host was used), and a conversation with a real model (automatic recall and the two tools were exercised in tests and against the gateway, not in a live chat).
-- This is version 0.3.0. It adds the optional `retrieval.hybrid` switch (off by default); no default changed.
+- This is version 0.3.1; what each version changed is in the [changelog](https://github.com/N0rmal-114/feiyu-memgate/blob/main/plugins/dsh-feiyu-memgate/CHANGELOG.md) (Chinese). It changes defaults, and each change has a switch: repeated memories are skipped (`advanced.skipRepeats`), the memory block shows today's date and the age of each memory (`advanced.showAge`), a failed lookup is announced to the model (`advanced.failureNote`), and automatic capture skips trivial messages (`advanced.captureMinChars`). Saved memories carry the local time, and the bundled gateway is updated to the same version.
 
 ## Troubleshooting
 
@@ -88,4 +94,4 @@ Start with `/memgate status`. If no Python is found, install Python 3.11 or late
 
 ## Licence
 
-MIT. The bundled gateway is the same author's project [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate), under the same licence, version 0.1.0 at commit `403931fee02961435abe9b09245781afcdcb19de`.
+MIT. The bundled gateway is the same author's project [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate), under the same licence, version 0.1.0 at commit `9b006191b065af6b489f1df1bbc52138896215ce`.

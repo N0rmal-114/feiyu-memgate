@@ -59,7 +59,8 @@ test(`buildQuery(): ${query.build.length} golden cases`, () => {
 })
 
 test(`block formatter: ${block.cases.length} golden cases`, () => {
-  assert.ok(block.cases.length >= 80)
+  assert.ok(block.cases.length >= 400)
+  assert.ok(block.cases.filter((c) => 'today' in c).length >= 150, 'the cases of the today option')
   for (const c of block.cases) {
     const label = JSON.stringify(c).slice(0, 160)
     let formatter
@@ -70,7 +71,7 @@ test(`block formatter: ${block.cases.length} golden cases`, () => {
       continue
     }
     assert.ok(!c.expected.error, label)
-    const got = c.kind === 'strip' ? formatter.strip(c.text) : formatter.format(c.results, c.more)
+    const got = c.kind === 'strip' ? formatter.strip(c.text) : 'today' in c ? formatter.format(c.results, c.more, { today: c.today }) : formatter.format(c.results, c.more)
     assert.deepEqual(got, c.expected.value, label)
   }
 })

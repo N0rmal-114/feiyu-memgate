@@ -41,7 +41,7 @@ test('real gateway: remember, recall, used and health', { skip: SRC ? false : 's
   const configPath = path.join(dir, 'gateway.toml')
   fs.writeFileSync(configPath, toml)
   const code = `import sys; sys.path.insert(0, ${JSON.stringify(path.resolve(SRC))}); from feiyu_memgate.cli import main; main()`
-  const child = spawn(PYTHON, ['-I', '-c', code, 'serve', '--config', configPath], {
+  const child = spawn(PYTHON, ['-I', '-B', '-c', code, 'serve', '--config', configPath], {
     env: { ...process.env, GATEWAY_TOKEN_OWNER: TOKEN, PYTHONIOENCODING: 'utf-8' },
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
@@ -163,7 +163,7 @@ test('real gateway, hybrid endpoint store: both files hold the same refs, recall
   const configPath = path.join(dir, 'gateway.toml')
   fs.writeFileSync(configPath, text)
   const code = `import sys; sys.path.insert(0, ${JSON.stringify(path.resolve(SRC))}); from feiyu_memgate.cli import main; sys.exit(main())`
-  const child = spawn(PYTHON, ['-I', '-c', code, 'serve', '--config', configPath], {
+  const child = spawn(PYTHON, ['-I', '-B', '-c', code, 'serve', '--config', configPath], {
     env: { ...process.env, ...env, [TOKEN_ENV]: TOKEN, PYTHONIOENCODING: 'utf-8' },
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,

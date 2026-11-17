@@ -257,7 +257,8 @@ class MemoryClient:
                 "busy": _count(data.get("busy"))}
 
     def recall(self, query, timeout=8.5, tenant_id=None):
-        """Return a list of {"id","source","text","score"} dicts, [] on any failure."""
+        """Return a list of {"id","source","text","score"} dicts (plus "date" when the memory has one),
+        [] on any failure."""
         detail = self.recall_detail(query, timeout, tenant_id)
         return detail["results"] if detail else []
 

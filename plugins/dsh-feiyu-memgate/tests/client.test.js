@@ -101,6 +101,25 @@ test('remember: saved, skipped, unsure; body shape', () =>
   }))
 let server_status = 'ok'
 
+test('remember: rememberStatus takes the time of the message and sends it as the message time', () =>
+  withServer((req, res) => json(res, 200, { status: 'ok' }), async (client, server) => {
+    const time = '2026-11-17T20:15:03+09:00'
+    assert.equal(await client.rememberStatus('The class moved to Thursdays', { time }), 'saved')
+    assert.deepEqual(server.requests[0].json, { messages: [{ role: 'user', content: 'The class moved to Thursdays', time }] })
+    // Without a time, or with one that is not text, the body is what it always was.
+    await client.rememberStatus('a', { time: undefined })
+    await client.rememberStatus('b', { time: 5 })
+    await client.rememberStatus('c')
+    assert.deepEqual(server.requests.slice(1).map((r) => r.json), [
+      { messages: [{ role: 'user', content: 'a' }] },
+      { messages: [{ role: 'user', content: 'b' }] },
+      { messages: [{ role: 'user', content: 'c' }] },
+    ])
+    // A time over the gateway's limit of 40 characters is not sent at all.
+    assert.equal(await client.rememberStatus('d', { time: 'x'.repeat(41) }), 'failed')
+    assert.equal(server.requests.length, 4)
+  }))
+
 test('used: sends source and id only', () =>
   withServer(usual, async (client, server) => {
     assert.equal(await client.reportUsed([{ id: 'a', source: 'private', text: 'never sent', score: 1 }, { id: 'b', source: 'private' }]), true)

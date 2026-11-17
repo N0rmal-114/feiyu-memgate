@@ -445,6 +445,60 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
           }
         },
         {
+          "key": "skipRepeats",
+          "kind": "boolean",
+          "default": true,
+          "label": {
+            "en": "Skip repeated memories",
+            "zh": "不重复给同一条记忆"
+          },
+          "help": {
+            "en": "Leave out a memory that an earlier memory block of this conversation still shows, compared by its text. If nothing new is left, no block is added. Off: only a block identical to the previous one is left out.",
+            "zh": "这个对话里前面的记忆块还留着的记忆，不再给第二次（按记忆的文字比较）。没有新的就不加记忆块。关掉：只有和上一个记忆块完全相同时才不加。"
+          }
+        },
+        {
+          "key": "showAge",
+          "kind": "boolean",
+          "default": true,
+          "label": {
+            "en": "Show today's date and each memory's age",
+            "zh": "写明今天的日期和每条记忆的时间"
+          },
+          "help": {
+            "en": "The memory block says today's date (the date on this computer) and how long ago each dated memory is, for example 3 weeks ago. Off: the block shows only the absolute dates.",
+            "zh": "记忆块里写明今天的日期（这台电脑上的日期），以及每条有日期的记忆是多久以前的事，例如“3 周前”。关掉：只写具体日期。"
+          }
+        },
+        {
+          "key": "failureNote",
+          "kind": "boolean",
+          "default": true,
+          "label": {
+            "en": "Tell the model when recall failed",
+            "zh": "召回失败时告诉模型"
+          },
+          "help": {
+            "en": "When the lookup of a turn times out, fails, or the bundled gateway is still starting, add one short note after the user message, so the model does not take it for \"no related memory\". Only on the first turn of a failure streak.",
+            "zh": "这一轮的查询超时、出错，或者自带网关还在启动时，在用户消息之后加一行说明，免得模型当作“没有相关记忆”。连续失败时只在第一轮加。"
+          }
+        },
+        {
+          "key": "captureMinChars",
+          "kind": "integer",
+          "default": 4,
+          "min": 0,
+          "max": 50,
+          "label": {
+            "en": "Automatic capture: shortest message",
+            "zh": "自动记录：最短的消息"
+          },
+          "help": {
+            "en": "With automatic capture on, a message is not saved when it is a command, only filler, or has fewer meaningful characters than this (0 to 50; punctuation, spaces and emoji do not count). 0 turns the length check off.",
+            "zh": "自动记录打开时，命令、只有语气词的消息，以及有意义的字数少于这个数的消息不保存（0 到 50；标点、空格和表情不算字数）。0 表示不按字数过滤。"
+          }
+        },
+        {
           "key": "profile",
           "kind": "choice",
           "default": "broad",

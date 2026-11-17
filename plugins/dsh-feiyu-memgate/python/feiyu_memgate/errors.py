@@ -10,7 +10,7 @@ class ConfigError(Exception):
     """The configuration cannot be used. The message names the setting, never a secret value."""
 
 
-# The code a refusal gets when its guard names none, by HTTP status (docs/configuration.md).
+# The code a refusal gets when its guard names none, by HTTP status (docs/api.md).
 _CODE_BY_STATUS = {400: "bad_request", 401: "unauthorized", 403: "forbidden", 404: "not_found",
                    413: "too_large", 429: "rate_limited", 503: "busy"}
 

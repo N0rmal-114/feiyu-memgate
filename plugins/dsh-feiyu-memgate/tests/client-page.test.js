@@ -107,6 +107,20 @@ test('the field table in the script is the one in src/config.js (npm run sync-cl
   assert.deepEqual(plain(load().internals.FIELDS), plain(FIELDS))
 })
 
+test('the page script carries the four chat settings with their kinds, defaults and range', () => {
+  const table = plain(load().internals.FIELDS)
+  const advanced = table.find((g) => g.group === 'advanced').fields
+  const row = (key) => advanced.find((f) => f.key === key)
+  for (const key of ['skipRepeats', 'showAge', 'failureNote']) assert.deepEqual([row(key).kind, row(key).default], ['boolean', true], key)
+  assert.deepEqual([row('captureMinChars').kind, row('captureMinChars').default, row('captureMinChars').min, row('captureMinChars').max], ['integer', 4, 0, 50])
+  const { en, zh } = plain(load().internals.dictionaries())
+  for (const key of ['skipRepeats', 'showAge', 'failureNote', 'captureMinChars']) {
+    assert.equal(en[`f.advanced.${key}`], row(key).label.en)
+    assert.equal(zh[`f.advanced.${key}`], row(key).label.zh)
+    assert.equal(zh[`h.advanced.${key}`], row(key).help.zh)
+  }
+})
+
 test('apply registers both dictionaries and the page under <package name>#<row id>', () => {
   const { exports, internals } = load()
   const calls = { effects: [], locale: [], slots: [] }

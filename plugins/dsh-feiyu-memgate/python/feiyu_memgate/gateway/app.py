@@ -6,7 +6,7 @@ caller is a named client with a ClientPolicy (plus, for a client whose tokens ar
 to a tenant, the tenant its token names: see identify()), and every answer is a Reply
 (status, body, note) with the HTTP meaning of `status`. recall() and remember() never
 raise; an error body is always {"error": <human text>, "code": <stable code>}
-(the codes are listed in docs/configuration.md).
+(the codes are listed in docs/api.md).
 
 Standard library only.
 """

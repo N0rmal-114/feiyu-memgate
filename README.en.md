@@ -1033,7 +1033,7 @@ Two DSH plugin packages live under `plugins/` in this repository. Each is publis
 
 | Package | What it does |
 |---|---|
-| [dsh-feiyu-memgate](plugins/dsh-feiyu-memgate/README.md) | Adds long-term memory to DSH conversations: it ships this gateway and starts it by itself, recalls at the start of every turn, gives the model a remember tool and a search tool, and has a settings page. Each feature can be switched off on its own. The default is keyword retrieval, which needs no model and downloads nothing; with a vector tier it can also combine keyword and vector search (hybrid, off by default). |
+| [dsh-feiyu-memgate](plugins/dsh-feiyu-memgate/README.md) | Adds long-term memory to DSH conversations: it ships this gateway and starts it by itself, recalls at the start of every turn, gives the model a remember tool and a search tool, and has a settings page. The memory block states today's date and the age of each memory, and a memory already shown in the conversation is not given again. Each feature can be switched off on its own. The default is keyword retrieval, which needs no model and downloads nothing; with a vector tier it can also combine keyword and vector search (hybrid, off by default). |
 | [dsh-feiyu-memgate-embed](plugins/dsh-feiyu-memgate-embed/README.md) | Optional add-on: runs an embedding model on this machine, on the CPU only, so that reworded questions find their memories too. A model is downloaded only after you press "Download and enable" on the settings page. |
 
 To install, add `dsh-feiyu-memgate` on DSH's plugin page, or run `dsh plugin --profile <name> add dsh-feiyu-memgate`. Requirements, settings and what was tested are in each package's README.
@@ -1107,13 +1107,17 @@ Put the class file next to the configuration file. No installation is needed. Th
 | [docs/architecture.md](docs/architecture.md) (Chinese) | What one recall and one write go through |
 | [docs/deployment.md](docs/deployment.md) (Chinese) | Deployment options: process layout, retrieval tier and threshold profile, with the data for each and advice on choosing |
 | [docs/embedded.md](docs/embedded.md) (Chinese) | Running in-process: usage, limits, and how it differs from a separate service |
-| [docs/configuration.md](docs/configuration.md) (Chinese) | Every configuration option and the HTTP interface |
+| [docs/configuration.md](docs/configuration.md) (Chinese) | Every configuration option |
+| [docs/api.md](docs/api.md) (Chinese) | API reference: the HTTP interface, the Python client, the extension interfaces, the command line, and the interfaces of the DSH plugin |
 | [docs/backends.md](docs/backends.md) (Chinese) | How each backend works, and where the default score thresholds came from |
 | [docs/pieces.md](docs/pieces.md) (Chinese) | Slot contracts, and how to choose, replace and implement them |
+| [docs/extending.md](docs/extending.md) (Chinese) | Building on the project: connecting your own chat program, using another language, writing a backend or a recall stage, publishing it as a package |
+| [docs/development.md](docs/development.md) (Chinese) | Working on this repository: requirements, layout, tests, the generated and bundled parts, releases |
 | [docs/forgetting.md](docs/forgetting.md) (Chinese) | Mechanism, configuration and operation of the forgetting curve |
 | [docs/security.md](docs/security.md) (Chinese) | What it defends against, how, and what it cannot defend against |
 | [docs/roadmap.md](docs/roadmap.md) (Chinese) | What is not done yet |
-| [docs/design/](docs/design/) (Chinese) | Original design documents from the project this was extracted from, and the audit done before the rework |
+| [docs/design/](docs/design/) (Chinese) | Design notes: the original documents from the project this was extracted from, the audit done before the rework, and later designs written in this repository |
+| [CHANGELOG.md](CHANGELOG.md) (Chinese) | Changes of the gateway; the plugin's are in [plugins/dsh-feiyu-memgate/CHANGELOG.md](plugins/dsh-feiyu-memgate/CHANGELOG.md) |
 | [bench/](bench/README.md) (Chinese) | Benchmark data, rules, adapters and reproduction steps |
 | [bench/results/design/](bench/results/design/features.en.md) | Feature comparison of the projects, and this project's design self-check |
 | [plugins/](plugins/dsh-feiyu-memgate/README.md) | The DeepSeek Harness plugin and its embedding add-on |
@@ -1127,7 +1131,7 @@ Version 0.1.0. Running the tests needs no installation:
 python -m unittest discover -s tests -t .
 ```
 
-There are currently 1394 tests. The gateway's approach comes from the version that actually ran in the project it was extracted from, but note the following:
+The gateway currently has 1470 tests and the two plugins another 427; they run automatically on Linux and Windows for every push and pull request. The gateway's approach comes from the version that actually ran in the project it was extracted from, but note the following:
 
 - This version, after the rework into a framework, has not yet run in production for a long time.
 - The forgetting curve has been verified only in simulation and is off by default.
