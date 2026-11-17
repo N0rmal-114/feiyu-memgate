@@ -273,10 +273,11 @@ class BackupOpenRealErrorsTests(TempDirCase):
         self.assertFalse((self.dir / "out").exists())
 
     def test_a_wrong_key(self):
+        from feiyu_memgate.tools import crypto
         try:
-            from feiyu_memgate.tools import crypto
             crypto.encrypt_dirs({}, b"a" * 32)
-        except ImportError:
+        except crypto.CryptoMissing:
+            # tools/crypto.py imports the library only when it is used, and reports its absence itself
             self.skipTest("the cryptography library is not installed")
         source = self.dir / "src"
         source.mkdir()

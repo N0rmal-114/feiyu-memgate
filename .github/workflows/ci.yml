@@ -1,0 +1,79 @@
+# Runs the tests of the gateway and of the two DSH plugins, and checks that the generated blocks in the
+# plugin are in step with their sources. Only GitHub's own actions are used.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gateway:
+    name: Gateway (Python ${{ matrix.python }}, ${{ matrix.os }}${{ matrix.extra && ', with the backup extra' || '' }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12', '3.13']
+        include:
+          # The Ubuntu / 3.12 run also installs the optional `backup` extra: the tests of the encrypted
+          # backup are skipped in every other run, which install nothing at all.
+          - os: ubuntu-latest
+            python: '3.12'
+            extra: true
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      # The package itself has no dependencies, so the other runs install nothing.
+      - name: Install the backup extra
+        if: matrix.extra
+        run: python -m pip install "cryptography>=42"
+      # -B: the plugin tests below refuse byte-code files next to the bundled sources, and this keeps the
+      # tree clean everywhere.
+      - name: Gateway tests
+        run: python -B -m unittest discover -s tests -t .
+
+  plugins:
+    name: Plugins (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      # The plugin tests need no npm install. FEIYU_MEMGATE_SRC switches on the tests that start the real
+      # gateway and the checks against the gateway sources.
+      - name: dsh-feiyu-memgate tests
+        working-directory: plugins/dsh-feiyu-memgate
+        env:
+          FEIYU_MEMGATE_SRC: ../../src
+        run: node --test
+      - name: The settings page's field table is in step with src/config.js
+        working-directory: plugins/dsh-feiyu-memgate
+        run: npm run sync-client -- --check
+      - name: The model catalogue is in step with the embedding add-on
+        working-directory: plugins/dsh-feiyu-memgate
+        run: npm run sync-catalogue -- --check
+      - name: dsh-feiyu-memgate-embed tests
+        working-directory: plugins/dsh-feiyu-memgate-embed
+        env:
+          FEIYU_MEMGATE_SRC: ../..
+          DSH_FEIYU_MEMGATE_SRC: ../dsh-feiyu-memgate
+        run: node --test

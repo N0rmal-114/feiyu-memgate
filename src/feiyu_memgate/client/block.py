@@ -58,7 +58,8 @@ def age_text(date, today, lang="zh"):
 
     "" when either is not a real date or `date` is after `today`. Days: 0 today, 1 yesterday,
     2 the day before yesterday ("2 days ago" in English), 3..6 "N days ago", 7..29 weeks (d // 7),
-    30..364 months (d // 30), 365 and more years (d // 365). Never raises."""
+    30..364 months (d // 30), 365 and more years (d // 365). A bad date never raises; an unknown
+    `lang` is a ValueError, as in BlockFormatter."""
     if lang not in _DEFAULTS:
         raise ValueError("lang must be one of: " + ", ".join(sorted(_DEFAULTS)))
     then, now = _parse_date(date), _parse_date(today)

@@ -12,6 +12,9 @@ python -m unittest discover -s tests -t .
 
 备份加密的测试需要 `cryptography`（`pip install cryptography`），没装时会自动跳过。
 
+- 仓库的结构、插件的测试和生成的部分、CI、发版时能看到的步骤：[docs/development.md](docs/development.md)。
+- 在 feiyu-memgate 之上做自己的东西（接进聊天程序、用别的语言接入、发布成包）：[docs/extending.md](docs/extending.md)。
+
 ## 几条约定
 
 - **网关、客户端和内置拼图只用标准库。** 网关拿着所有存储的密钥，依赖越少越好。需要第三方库的拼图请做成单独的包，通过入口点注册（见 pieces.md）。

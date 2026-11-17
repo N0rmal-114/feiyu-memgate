@@ -1,0 +1,25 @@
+# 自己写一个存储后端：jsonl_backend.py 就放在这份配置旁边，配置里写“模块名:类名”。
+# 加载配置时，配置文件所在的文件夹会排在 Python 搜索路径的最前面，不用安装，也不用改 feiyu-memgate。
+# 记忆存在 data/notes.jsonl（相对于运行命令时所在的文件夹，文件夹不存在会自己建）。
+#
+# 先在环境变量 GATEWAY_TOKEN_OWNER 里放一个至少 32 个字符的随机令牌，然后：
+#
+#   feiyu-memgate check --config examples/custom-backend/gateway.toml
+#   feiyu-memgate serve --config examples/custom-backend/gateway.toml
+
+[stores.notes]
+type = "jsonl_backend:JsonLinesBackend"
+path = "data/notes.jsonl"
+
+[clients.owner]
+token_env = "GATEWAY_TOKEN_OWNER"
+recall = ["notes"]
+write = "notes"
+daily_writes = 50
+
+[recall]
+# min_score 不写分数线时用后端自己声明的值（jsonl_backend.py 里的 broad_min_score）。
+stages = ["min_score", "redact", "dedupe", "budget"]
+
+[write]
+guards = ["redact", { type = "daily_cap", utc_offset_hours = 8 }]

@@ -230,7 +230,7 @@ class NoLinks(WriteGuard):
 
 `ctx` 有 `client`、`tenant_id`、`policy`、`public`、`redact`、`key`（客户端名，多租户时是 `客户端:租户`）、`context`（请求里可选的 `context` 对象）、`state`（这一次写入里你自己的状态）。守卫对象可以有自己的状态（计数器），但要能被多个线程同时用；要在 `rollback` 里撤回的东西放在 `ctx.state[self]`。
 
-`WriteRejected(status, error, note="", code=None)`：`status` 是 400 到 599 的状态码，`error` 是给人看的话，`note` 进访问日志，`code` 是给程序的稳定错误码，不给就按状态码取通用值（429 是 `rate_limited`，403 是 `forbidden`，其余 4xx 是 `bad_request`）。
+`WriteRejected(status, error, note="", code=None)`：`status` 是 400 到 599 的状态码，`error` 是给人看的话，`note` 进访问日志，`code` 是给程序的稳定错误码，不给就按状态码取通用值（400 是 `bad_request`，401 是 `unauthorized`，403 是 `forbidden`，404 是 `not_found`，413 是 `too_large`，429 是 `rate_limited`，503 是 `busy`；其余 4xx 是 `bad_request`，其余 5xx 是 `internal`）。全部错误码见 [api.md](api.md#错误码)。
 
 守卫出错时：
 

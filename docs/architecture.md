@@ -2,6 +2,8 @@
 
 feiyu-memgate 是放在“聊天程序”和“记忆存储”中间的一层网关。聊天程序（机器人插件、直播程序、语音助手）只拿网关的令牌，问网关要记忆、把要记的话交给网关；存储的密钥只有网关拿着。
 
+每个对外接口（HTTP 接口、Python 客户端、做拼图用的扩展接口、命令行）的逐项说明在 [api.md](api.md)。
+
 ```
  聊天程序                      feiyu-memgate 网关                          记忆存储
 ┌──────────────┐  令牌  ┌──────────────────────────────────────┐  密钥  ┌──────────────┐
@@ -60,7 +62,7 @@ feiyu-memgate 是放在“聊天程序”和“记忆存储”中间的一层网
 5. **收尾**：存储说成功以后，各个守卫的 `after` 才执行。写入没成（后面的守卫拒绝、存储出错、守卫或存储什么都没留）时，已经放行的守卫按相反顺序 `rollback`：`daily_cap` 先占名额后写，没成就把名额还回去，所以失败的和被跳过的写入不占次数，同时来的写入也不会超过上限。守卫或存储什么都没留时回 200 `{"status": "skipped"}`。
 6. **跟踪结果**：有的存储是“先收下、后台再整理”（OpenViking 用大模型抽取）。网关会在之后几分钟里回头看每次写入的下场，统计“存下了 / 整理后什么都没留 / 一直没消息 / 等的太多被挤出跟踪表”，放进 `/healthz?deep=1`。所以调用方应该对用户说“已经交给记忆服务了”，而不是“已经记住了”。
 
-`recall()` 和 `remember()` 在同一个进程里直接调用时也从不抛异常：意外的错误变成 500 `internal`，日志里只有错误类型。每个错误回答都带一个稳定的错误码，表在 [configuration.md](configuration.md#错误码)。
+`recall()` 和 `remember()` 在同一个进程里直接调用时也从不抛异常：意外的错误变成 500 `internal`，日志里只有错误类型。每个错误回答都带一个稳定的错误码，表在 [api.md](api.md#错误码)。
 
 ## 谁能读写什么：ClientPolicy
 
@@ -117,7 +119,7 @@ feiyu-memgate 是放在“聊天程序”和“记忆存储”中间的一层网
 
 ## 只用标准库
 
-网关、客户端和内置拼图都只用 Python 标准库。这是有意的：网关拿着所有存储的密钥，依赖越少，被依赖拖下水的可能越小，也越容易审计。唯一的例外是备份加密要用 `cryptography`（`pip install feiyu-memgate[backup]`）；缺这个库时备份会停下并说明，不会退回明文。
+网关、客户端和内置拼图都只用 Python 标准库。这是有意的：网关拿着所有存储的密钥，依赖越少，被依赖拖下水的可能越小，也越容易审计。唯一的例外是备份加密要用 `cryptography`（从源码安装时是 `pip install -e ".[backup]"`，或单独装 `pip install "cryptography>=42"`）；缺这个库时备份会停下并说明，不会退回明文。
 
 ## 目录
 
@@ -135,7 +137,8 @@ src/feiyu_memgate/
   client/            给聊天程序用的客户端
   tools/             备份、评测、租户管理
 integrations/astrbot AstrBot 接入示例
-examples/            配置示例、自己写召回步骤的示例（custom-stage）、评测用的假数据
+examples/            配置示例（quickstart、hybrid、multi-tenant、openviking、embedded）、自己写召回步骤和存储后端的示例
+                     （custom-stage、custom-backend）、一轮对话的完整流程（chat-loop）、评测用的假数据（eval）
 bench/               记忆检索基准：数据、各系统的适配器和结果
 research/            同类记忆项目的调研和对比
 docs/design/         原始设计文档

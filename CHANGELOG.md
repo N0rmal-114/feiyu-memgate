@@ -12,7 +12,7 @@
 - 配置里的普通令牌不能以 `fmg1.` 开头（这个前缀留给租户绑定令牌），否则启动报错。
 - 客户端配置里的 `token_env` 变成可选：不写表示这个客户端没有令牌，不能通过 HTTP 认证，只能在进程内使用。
 - 多租户客户端的 `recall` 里要写 `"@tenant"` 才会搜租户自己的存储，它在列表里的位置就是搜索和排列的顺序（以前总是自动加在最后）。没有 `tenants` 的客户端写 `"@tenant"` 启动报错。
-- 错误回答多了稳定的 `code`：`{"error": "...", "code": "..."}`。程序请按 `code` 判断，`error` 的措辞可能改。全部错误码见 configuration.md。
+- 错误回答多了稳定的 `code`：`{"error": "...", "code": "..."}`。程序请按 `code` 判断，`error` 的措辞可能改。全部错误码见 api.md。
 - 格式不对的 `tenant_id` 现在是 400 `bad_tenant`（以前是 403）；没登记的租户仍是 403，`code` 为 `unknown_tenant`。
 - 召回时网关内部的意外错误是 500 `internal`（以前是 503）。
 - 召回步骤的默认一套里去掉了 `drop_marker`，要用请自己加在 `fill_text` 后面。
@@ -42,6 +42,9 @@
 
 ### 新增
 
+- 文档：`docs/api.md`（API 参考：HTTP 接口、Python 客户端、扩展接口、命令行、DSH 插件的接口，逐项按代码核对）。HTTP 接口和“写死的上限”两节从 `configuration.md` 移到了这里，原处留有指向新位置的说明。`docs/development.md`（开发指南）、`docs/extending.md`（二次开发指引）。
+- 示例：`examples/custom-backend`（一个文件写成的存储后端）、`examples/chat-loop`（一轮对话从查询到写入的完整流程）。
+- 自动检查：每次推送和每个 pull request 在 Linux 和 Windows 上运行网关和两个插件的测试（`.github/workflows/ci.yml`）。
 - 记忆的日期取自消息自己的 `time`：`sqlite`、`embedding`、`hybrid`、`inmemory` 后端写入时，消息的 `time` 开头是真实存在的 `YYYY-MM-DD` 日期（后面可以接 `T` 或空格再接时间）就用这个日期，不换算时区；没有或不合格时和以前一样（当天的 UTC 日期，`inmemory` 不记日期）。**已经发送 `time` 的客户端，升级后会在记忆上看到这个日期，而不再是 UTC 的当天。** `openviking` 后端不涉及。新增 `feiyu_memgate.backends.base.message_date(message, default)`。
 - `BlockFormatter.format` 多一个可选的 `today`（`YYYY-MM-DD`，`format_block` 同）：传了之后资料块写明今天的日期，每条有日期的记忆带上多久以前（今天、昨天、前天、N 天前、N 周前、N 个月前、N 年前），规则公开为 `feiyu_memgate.client.block.age_text`。不传或传的日期不合格时，输出和以前逐字相同。AstrBot 示例插件传入本机日期，`remember` 工具保存时带上本机的当前日期时间。
 - DeepSeek Harness（DSH）插件，在 `plugins/` 下，发布到 npm：`dsh-feiyu-memgate`（自带网关、自动召回、记住和查找两个工具、设置页面，默认关键词检索）和可选的 `dsh-feiyu-memgate-embed`（本机 CPU 运行向量模型，模型点击后才下载）。两个包的版本号各自独立。
@@ -74,6 +77,9 @@
 
 ### 修好的
 
+- `pyproject.toml` 的构建要求改成 `setuptools>=77`：`license = "MIT"` 加 `license-files` 的写法从这个版本起才被接受。
+- 没装 `cryptography` 时，测试 `test_a_wrong_key` 报错而不是跳过。
+- 文档里和代码不一致的几处：`healthz?deep=1` 里 `stores` 的取值（`ok` 或 `down`）、`limit` 类型不对时的错误码、`/v1/remember` 对 `role` 和空内容的要求、`/v1/used` 的上限、`WriteRejected` 按状态码取的默认错误码。
 - HTTP 服务器把 `PUT`、`DELETE`、`PATCH`、`HEAD`、`OPTIONS` 都当成 `GET` 处理，`DELETE /healthz` 会回 200 和健康信息。现在每个方法用自己的名字：路由表里没有的“方法 + 路径”回 405 `method_not_allowed`（路径不认识回 404），访问日志里是真实的方法；`HEAD` 只回状态和头，没有正文。
 - 写入守卫抛异常时以前可能留下做了一半的事：现在回 500 `guard_error`，什么都不写，已经放行的守卫按相反顺序撤回。
 - 每日写入上限在同时来的写入下可能被超过：现在先占名额后写，没成就还回去。

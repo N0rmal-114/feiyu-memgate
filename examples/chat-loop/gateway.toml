@@ -1,0 +1,23 @@
+# chat_loop.py 在自己的进程里用的网关：记忆只放在内存里，不写文件，不开端口，不用向量模型。
+# 进程结束，记忆就没了：这个例子只演示每一轮怎么用记忆，不演示存储。要保存记忆，把存储换成
+# examples/quickstart 里的 sqlite。
+#
+#   python examples/chat-loop/chat_loop.py
+#
+# 进程内用法不需要令牌（LocalClient 按名字取下面的 "owner"）；token_env 留着，是为了这份配置
+# 也能直接给 feiyu-memgate check 用，变量没设置也不影响进程内使用。
+
+[stores.notes]
+type = "inmemory"
+
+[clients.owner]
+token_env = "GATEWAY_TOKEN_OWNER"
+recall = ["notes"]
+write = "notes"
+daily_writes = 50
+
+[recall]
+stages = ["min_score", "redact", "dedupe", "budget"]
+
+[write]
+guards = ["redact", { type = "daily_cap", utc_offset_hours = 8 }]
