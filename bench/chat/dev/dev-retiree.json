@@ -1,0 +1,937 @@
+{
+ "world": "dev-retiree",
+ "persona": "退休的铁路调度员，和老伴住在一起，爱钓鱼",
+ "clusters": {
+  "c01": {
+   "entity": "钓竿",
+   "terms": [
+    "钓竿",
+    "老黑"
+   ]
+  },
+  "c02": {
+   "entity": "东湾水库",
+   "terms": [
+    "东湾"
+   ]
+  },
+  "c03": {
+   "entity": "鲫鱼",
+   "terms": [
+    "鲫鱼"
+   ]
+  },
+  "c04": {
+   "entity": "月季",
+   "terms": [
+    "月季"
+   ]
+  },
+  "c05": {
+   "entity": "编组站",
+   "terms": [
+    "编组站",
+    "调度"
+   ]
+  },
+  "c06": {
+   "entity": "降压药",
+   "terms": [
+    "降压药"
+   ]
+  },
+  "c07": {
+   "entity": "孙子",
+   "terms": [
+    "小宝",
+    "孙子"
+   ]
+  },
+  "c08": {
+   "entity": "象棋",
+   "terms": [
+    "象棋",
+    "老顾"
+   ]
+  },
+  "c09": {
+   "entity": "腰托",
+   "terms": [
+    "腰托",
+    "腰椎"
+   ]
+  },
+  "c10": {
+   "entity": "京剧",
+   "terms": [
+    "京剧"
+   ]
+  },
+  "c11": {
+   "entity": "豆腐脑",
+   "terms": [
+    "豆腐脑",
+    "胖婶"
+   ]
+  },
+  "c12": {
+   "entity": "乌云",
+   "terms": [
+    "乌云",
+    "大狗"
+   ]
+  },
+  "c13": {
+   "entity": "理发",
+   "terms": [
+    "理发",
+    "小马"
+   ]
+  },
+  "c14": {
+   "entity": "呼噜",
+   "terms": [
+    "呼噜"
+   ]
+  }
+ },
+ "memories": {
+  "m001": {
+   "text": "主人有一根用了十年的碳素钓竿，亲切地叫它老黑",
+   "date": "2025-01-13",
+   "cluster": "c01",
+   "role": "fact"
+  },
+  "m002": {
+   "text": "主人最常去的钓点是东湾水库，坐公交要一个半小时",
+   "date": "2025-01-31",
+   "cluster": "c02",
+   "role": "fact"
+  },
+  "m003": {
+   "text": "主人今年六十三岁，退休三年，和老伴住在市里的老小区",
+   "date": "2025-02-10",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m004": {
+   "text": "主人钓回来的鲫鱼，老伴最爱做成酸菜鲫鱼汤",
+   "date": "2025-02-27",
+   "cluster": "c03",
+   "role": "fact"
+  },
+  "m005": {
+   "text": "主人和老伴的女儿在外地工作，每年回家两次",
+   "date": "2025-03-15",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m006": {
+   "text": "老伴爱种月季，阳台上摆了二十多盆，天天浇水修枝",
+   "date": "2025-03-17",
+   "cluster": "c04",
+   "role": "fact"
+  },
+  "m007": {
+   "text": "主人当了二十八年铁路调度员，最后几年在城西编组站",
+   "date": "2025-04-13",
+   "cluster": "c05",
+   "role": "fact"
+  },
+  "m008": {
+   "text": "主人喜欢喝浓茶，退休后保温杯从不离手",
+   "date": "2025-04-28",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m009": {
+   "text": "主人血压偏高，每天早上吃一粒降压药，由老伴分好放在药盒里",
+   "date": "2025-05-01",
+   "cluster": "c06",
+   "role": "fact"
+  },
+  "m010": {
+   "text": "主人的孙子叫小宝，五岁，每周日会被送来爷爷奶奶家玩",
+   "date": "2025-05-28",
+   "cluster": "c07",
+   "role": "fact"
+  },
+  "m011": {
+   "text": "主人养成了早睡早起的习惯，天不亮就醒",
+   "date": "2025-05-31",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m012": {
+   "text": "主人每天下午去小区凉亭下象棋，对手是退休教师老顾",
+   "date": "2025-06-15",
+   "cluster": "c08",
+   "role": "fact"
+  },
+  "m013": {
+   "text": "主人腰椎不好，钓鱼时要戴着腰托，坐久了还是会疼",
+   "date": "2025-07-03",
+   "cluster": "c09",
+   "role": "fact"
+  },
+  "m014": {
+   "text": "主人的老花镜度数又加深了，看报纸要拿远点",
+   "date": "2025-07-03",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m015": {
+   "text": "主人爱听京剧，每晚饭后要听半小时《空城计》",
+   "date": "2025-07-30",
+   "cluster": "c10",
+   "role": "fact"
+  },
+  "m016": {
+   "text": "主人每周三陪老伴去超市采购，负责拎东西",
+   "date": "2025-08-16",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m017": {
+   "text": "主人每天早上去菜市场买豆腐脑，摊主是胖婶，总多加一勺糖",
+   "date": "2025-08-17",
+   "cluster": "c11",
+   "role": "fact"
+  },
+  "m018": {
+   "text": "老黑的第二节在河边被人踩断了，主人心疼得一晚没睡好",
+   "date": "2025-08-24",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m019": {
+   "text": "东湾水库放水，水位低了一大截，主人坐了一天空手回来",
+   "date": "2025-09-08",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m020": {
+   "text": "楼下邻居养了一条黑色的大狗，叫乌云，老伴很怕它",
+   "date": "2025-09-13",
+   "cluster": "c12",
+   "role": "fact"
+  },
+  "m021": {
+   "text": "主人在小区门口的修鞋摊补过一次皮鞋，花了十块钱",
+   "date": "2025-09-18",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m022": {
+   "text": "月季长了蚜虫，老伴蹲在阳台喷了一上午药",
+   "date": "2025-09-27",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m023": {
+   "text": "老伴嫌今天的鲫鱼刺多，改做了鱼丸，主人吃了两大碗",
+   "date": "2025-09-29",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m024": {
+   "text": "主人每月十五号去老街的理发店剃头，师傅叫小马",
+   "date": "2025-10-01",
+   "cluster": "c13",
+   "role": "fact"
+  },
+  "m025": {
+   "text": "小宝想学钓鱼，主人给他削了根小竹竿，结果钓上来一只拖鞋",
+   "date": "2025-10-11",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m026": {
+   "text": "主人在街上听见火车鸣笛，想起在编组站值夜班的日子",
+   "date": "2025-10-18",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m027": {
+   "text": "主人的社保卡被老伴收在抽屉里，每次看病才拿出来",
+   "date": "2025-10-21",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m028": {
+   "text": "主人睡觉爱打呼噜，老伴被吵得睡不好，为此分房睡过一阵",
+   "date": "2025-10-28",
+   "cluster": "c14",
+   "role": "fact"
+  },
+  "m029": {
+   "text": "主人忘了吃降压药，头晕得在椅子上坐了半小时才缓过来",
+   "date": "2025-11-02",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m030": {
+   "text": "主人最近学会用手机看天气预报，说比电视台准",
+   "date": "2025-12-04",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m031": {
+   "text": "老顾悔棋被主人当场抓住，两人在凉亭里吵了半天",
+   "date": "2025-12-08",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m032": {
+   "text": "主人没戴腰托在河边坐了三小时，起身时腰卡住，被路人扶了一把",
+   "date": "2025-12-23",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m033": {
+   "text": "小区联欢会上主人唱了一段京剧，跑调了被老伴笑了一周",
+   "date": "2025-12-27",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m034": {
+   "text": "主人年轻时在铁路职工运动会上拿过跳远第三名",
+   "date": "2026-01-06",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m035": {
+   "text": "胖婶的豆腐脑涨了五毛，主人嘀咕了一路",
+   "date": "2026-01-11",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m036": {
+   "text": "乌云挣脱了绳子冲进楼道，老伴吓得躲进了电梯",
+   "date": "2026-02-01",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m037": {
+   "text": "主人家的老电视是十年前买的，换台要拍一下才行",
+   "date": "2026-02-08",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m038": {
+   "text": "小马给主人剃头时聊起儿子考上了大学，主人也跟着高兴",
+   "date": "2026-02-16",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m039": {
+   "text": "小宝换牙掉了门牙，趁主人不注意把牙塞进了鱼饵盒",
+   "date": "2026-02-21",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m040": {
+   "text": "老伴给主人贴了止鼾贴，说打呼噜的声音小了一半",
+   "date": "2026-03-09",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m041": {
+   "text": "主人前年摔过一跤，膝盖青了一个月",
+   "date": "2026-03-24",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m042": {
+   "text": "主人花了六十块让修竿师傅接好老黑，说比买新的划算",
+   "date": "2026-04-01",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m043": {
+   "text": "主人把钓到的八条鲫鱼分给邻居，邻居回送了一袋青菜",
+   "date": "2026-04-05",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m044": {
+   "text": "主人在东湾遇到一位同样退休的老铁路，聊了一下午",
+   "date": "2026-04-10",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m045": {
+   "text": "阳台的月季开了第一朵，老伴拍了照发给在外地的女儿",
+   "date": "2026-04-14",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m046": {
+   "text": "主人梦见自己又在调度室里排车，醒来发现才凌晨三点",
+   "date": "2026-04-26",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m047": {
+   "text": "主人不爱吃甜食，每次老伴买蛋糕他只尝一口",
+   "date": "2026-04-26",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m048": {
+   "text": "医生把主人的降压药换了一种，说副作用会小一些",
+   "date": "2026-05-05",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m049": {
+   "text": "主人连输老顾三盘，回家后一整晚话都不多",
+   "date": "2026-05-09",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m050": {
+   "text": "老伴给主人的腰托缝了一层棉垫，说这样不硌",
+   "date": "2026-05-18",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m051": {
+   "text": "主人去戏园子听了场京剧，坐在第三排，听着听着睡着了",
+   "date": "2026-05-30",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m052": {
+   "text": "胖婶今天没出摊，主人转了半条街才吃上包子",
+   "date": "2026-06-08",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m053": {
+   "text": "老伴爱追电视剧，主人陪着看了一整部家庭伦理剧",
+   "date": "2026-06-09",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m054": {
+   "text": "小宝把遥控器藏进了米缸，全家翻了一个多小时才找到",
+   "date": "2026-06-16",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m055": {
+   "text": "邻居带着乌云上门道歉，还送了老伴一盒点心",
+   "date": "2026-06-20",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m056": {
+   "text": "老伴把主人的呼噜录了下来放给他听，他死活不承认是自己",
+   "date": "2026-06-24",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m057": {
+   "text": "理发店涨价到十五块，小马不好意思地解释了半天",
+   "date": "2026-06-29",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m058": {
+   "text": "主人每年清明会去给父母扫墓，带一瓶他们爱喝的白酒",
+   "date": "2026-07-12",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m059": {
+   "text": "小区的物业姓贾，每次修水管都说下午来，下午也不来",
+   "date": "2026-08-14",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m060": {
+   "text": "主人打算过年给自己买一双防滑的新胶鞋",
+   "date": "2026-09-27",
+   "cluster": null,
+   "role": "filler"
+  }
+ },
+ "cases": [
+  {
+   "id": "r01",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "晚饭想喝点鲜的汤",
+   "direct": [
+    "m004"
+   ],
+   "chain": [
+    "m023",
+    "m043"
+   ],
+   "also_ok": [],
+   "why": "想喝鲜汤，想到老伴做的鱼汤"
+  },
+  {
+   "id": "r02",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "阳台上飞了好多小虫子",
+   "direct": [
+    "m006"
+   ],
+   "chain": [
+    "m022",
+    "m045"
+   ],
+   "also_ok": [],
+   "why": "阳台小虫，想到老伴养的花"
+  },
+  {
+   "id": "r03",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "半夜听见货车过桥",
+   "direct": [
+    "m007"
+   ],
+   "chain": [
+    "m026",
+    "m046"
+   ],
+   "also_ok": [],
+   "why": "货车声，想到他当年的铁路工作"
+  },
+  {
+   "id": "r04",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "头有点发晕，坐会儿",
+   "direct": [
+    "m009"
+   ],
+   "chain": [
+    "m029",
+    "m048"
+   ],
+   "also_ok": [],
+   "why": "头晕，想到他的血压和药"
+  },
+  {
+   "id": "r05",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "家里今天好清静",
+   "direct": [
+    "m010"
+   ],
+   "chain": [
+    "m025",
+    "m039",
+    "m054"
+   ],
+   "also_ok": [],
+   "why": "家里清静，想到只在周日来的小孙子"
+  },
+  {
+   "id": "r06",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "下午闲得发慌",
+   "direct": [
+    "m012"
+   ],
+   "chain": [
+    "m031",
+    "m049"
+   ],
+   "also_ok": [],
+   "why": "下午没事，想到他每天下午的消遣"
+  },
+  {
+   "id": "r07",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "坐久了站起来好费劲",
+   "direct": [
+    "m013"
+   ],
+   "chain": [
+    "m032",
+    "m050"
+   ],
+   "also_ok": [
+    "m041"
+   ],
+   "why": "坐久起身费劲，想到他的腰"
+  },
+  {
+   "id": "r08",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "晚饭后想听点热闹的",
+   "direct": [
+    "m015"
+   ],
+   "chain": [
+    "m033",
+    "m051"
+   ],
+   "also_ok": [],
+   "why": "饭后想听热闹的，想到他的老习惯"
+  },
+  {
+   "id": "r09",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "早上遛弯遛饿了",
+   "direct": [
+    "m017"
+   ],
+   "chain": [
+    "m035",
+    "m052"
+   ],
+   "also_ok": [
+    "m011"
+   ],
+   "why": "早上饿了，想到每天早晨的早点摊"
+  },
+  {
+   "id": "r10",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "老伴今天不敢下楼",
+   "direct": [
+    "m020"
+   ],
+   "chain": [
+    "m036",
+    "m055"
+   ],
+   "also_ok": [],
+   "why": "老伴不敢下楼，想到她怕楼下的狗"
+  },
+  {
+   "id": "r11",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "头发长得好快",
+   "direct": [
+    "m024"
+   ],
+   "chain": [
+    "m038",
+    "m057"
+   ],
+   "also_ok": [],
+   "why": "头发长了，想到每月剃头"
+  },
+  {
+   "id": "r12",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "老伴今早眼圈好黑",
+   "direct": [
+    "m028"
+   ],
+   "chain": [
+    "m040",
+    "m056"
+   ],
+   "also_ok": [],
+   "why": "老伴没睡好，想到他的鼾声"
+  },
+  {
+   "id": "n01",
+   "type": "remark-named",
+   "history": [],
+   "message": "老黑今天终于上了鱼",
+   "direct": [
+    "m001",
+    "m018",
+    "m042"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n02",
+   "type": "remark-named",
+   "history": [],
+   "message": "明天打算再去东湾看看",
+   "direct": [
+    "m002",
+    "m019",
+    "m044"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n03",
+   "type": "remark-named",
+   "history": [],
+   "message": "小宝周日又要来了",
+   "direct": [
+    "m010",
+    "m025",
+    "m039",
+    "m054"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n04",
+   "type": "remark-named",
+   "history": [],
+   "message": "老顾今天没来下棋",
+   "direct": [
+    "m012",
+    "m031",
+    "m049"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n05",
+   "type": "remark-named",
+   "history": [],
+   "message": "胖婶今天出摊了吗",
+   "direct": [
+    "m017",
+    "m035",
+    "m052"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n06",
+   "type": "remark-named",
+   "history": [],
+   "message": "小马的剪子好像换新的了",
+   "direct": [
+    "m024",
+    "m038",
+    "m057"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f01",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "那根陪我十年的竿子又出问题了"
+    },
+    {
+     "role": "assistant",
+     "content": "哎呀，严重吗？"
+    }
+   ],
+   "message": "后来花了多少钱",
+   "direct": [
+    "m042"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m001"
+   ]
+  },
+  {
+   "id": "f02",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "明天打算去远点的水边"
+    },
+    {
+     "role": "assistant",
+     "content": "是去常去的那个地方吗？"
+    }
+   ],
+   "message": "上次怎么回事来着",
+   "direct": [
+    "m019"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m002"
+   ]
+  },
+  {
+   "id": "f03",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "老伴天天盯着我吃药"
+    },
+    {
+     "role": "assistant",
+     "content": "那你有没有偷偷漏过？"
+    }
+   ],
+   "message": "那次多吓人",
+   "direct": [
+    "m029"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m009"
+   ]
+  },
+  {
+   "id": "f04",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "周日小宝要来"
+    },
+    {
+     "role": "assistant",
+     "content": "那你们爷孙俩打算玩什么？"
+    }
+   ],
+   "message": "他想学那个",
+   "direct": [
+    "m025"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m010"
+   ]
+  },
+  {
+   "id": "f05",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "该去剃头了"
+    },
+    {
+     "role": "assistant",
+     "content": "还是去老街那家？"
+    }
+   ],
+   "message": "他儿子后来呢",
+   "direct": [
+    "m038"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m024"
+   ]
+  },
+  {
+   "id": "f06",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "昨晚收音机里放了段戏"
+    },
+    {
+     "role": "assistant",
+     "content": "是老剧目吗？"
+    }
+   ],
+   "message": "叫什么来着",
+   "direct": [
+    "m015"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f07",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "老伴昨天下楼碰到邻居了"
+    },
+    {
+     "role": "assistant",
+     "content": "有什么事吗？"
+    }
+   ],
+   "message": "它又乱跑了吗",
+   "direct": [
+    "m036"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m020",
+    "m055"
+   ]
+  },
+  {
+   "id": "f08",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "昨晚又梦到上班的事"
+    },
+    {
+     "role": "assistant",
+     "content": "是那段值班的日子吗？"
+    }
+   ],
+   "message": "在哪个站来着",
+   "direct": [
+    "m007"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m046"
+   ]
+  },
+  {
+   "id": "q01",
+   "type": "quiet",
+   "history": [],
+   "message": "想买台新的电风扇",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q02",
+   "type": "quiet",
+   "history": [],
+   "message": "今天想吃饺子",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q03",
+   "type": "quiet",
+   "history": [],
+   "message": "楼下装修，电钻响了一天",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q04",
+   "type": "quiet",
+   "history": [],
+   "message": "刚给自行车打了气",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  }
+ ]
+}

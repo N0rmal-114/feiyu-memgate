@@ -1,0 +1,936 @@
+{
+ "world": "dev-teacher",
+ "persona": "小城实验小学的美术老师，三十出头，住在南方小城，和父母同住",
+ "clusters": {
+  "c01": {
+   "entity": "龟",
+   "terms": [
+    "墩墩",
+    "龟"
+   ]
+  },
+  "c02": {
+   "entity": "广场舞",
+   "terms": [
+    "广场舞",
+    "红姨"
+   ]
+  },
+  "c03": {
+   "entity": "兰花",
+   "terms": [
+    "兰花"
+   ]
+  },
+  "c04": {
+   "entity": "皮皮",
+   "terms": [
+    "皮皮"
+   ]
+  },
+  "c05": {
+   "entity": "糖水",
+   "terms": [
+    "糖水",
+    "甜姨"
+   ]
+  },
+  "c06": {
+   "entity": "按摩仪",
+   "terms": [
+    "按摩仪"
+   ]
+  },
+  "c07": {
+   "entity": "小粉",
+   "terms": [
+    "小粉"
+   ]
+  },
+  "c08": {
+   "entity": "水彩",
+   "terms": [
+    "水彩",
+    "骑楼"
+   ]
+  },
+  "c09": {
+   "entity": "看牙",
+   "terms": [
+    "牙",
+    "林医生"
+   ]
+  },
+  "c10": {
+   "entity": "相亲",
+   "terms": [
+    "相亲"
+   ]
+  },
+  "c11": {
+   "entity": "失眠",
+   "terms": [
+    "失眠",
+    "白噪音"
+   ]
+  },
+  "c12": {
+   "entity": "虾",
+   "terms": [
+    "虾"
+   ]
+  },
+  "c13": {
+   "entity": "驾校",
+   "terms": [
+    "驾校"
+   ]
+  },
+  "c14": {
+   "entity": "晕车",
+   "terms": [
+    "晕车"
+   ]
+  }
+ },
+ "memories": {
+  "m001": {
+   "text": "主人养了一只巴西龟，名叫墩墩，住在阳台的大鱼缸里",
+   "date": "2025-01-13",
+   "cluster": "c01",
+   "role": "fact"
+  },
+  "m002": {
+   "text": "主人的妈妈每天饭后去小区跳广场舞，领舞的是红姨",
+   "date": "2025-01-31",
+   "cluster": "c02",
+   "role": "fact"
+  },
+  "m003": {
+   "text": "主人是小城实验小学的美术老师，教三到五年级的学生",
+   "date": "2025-02-10",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m004": {
+   "text": "主人的爸爸退休后迷上养兰花，窗台上摆了十几盆",
+   "date": "2025-02-27",
+   "cluster": "c03",
+   "role": "fact"
+  },
+  "m005": {
+   "text": "主人和爸妈住在老小区的三楼，自己的房间朝北",
+   "date": "2025-03-15",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m006": {
+   "text": "主人班上有个叫皮皮的男生，上美术课总把颜料抹到衣服上",
+   "date": "2025-03-17",
+   "cluster": "c04",
+   "role": "fact"
+  },
+  "m007": {
+   "text": "主人最爱喝老城区甜姨糖水铺的红豆沙，每次都要少糖",
+   "date": "2025-04-13",
+   "cluster": "c05",
+   "role": "fact"
+  },
+  "m008": {
+   "text": "主人的手机屏幕右下角摔出了一道裂纹，一直没去换",
+   "date": "2025-04-28",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m009": {
+   "text": "主人批作业总低着头，肩颈很僵，买了台按摩仪放在办公室",
+   "date": "2025-05-01",
+   "cluster": "c06",
+   "role": "fact"
+  },
+  "m010": {
+   "text": "主人上下班骑一辆粉色的电动车，她管它叫小粉",
+   "date": "2025-05-28",
+   "cluster": "c07",
+   "role": "fact"
+  },
+  "m011": {
+   "text": "主人最近在追一部讲民国画家的电视剧，每晚看两集",
+   "date": "2025-05-31",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m012": {
+   "text": "主人周末爱画水彩，最爱画老街上的骑楼",
+   "date": "2025-06-15",
+   "cluster": "c08",
+   "role": "fact"
+  },
+  "m013": {
+   "text": "主人很怕看牙，一直固定找小区对面诊所的林医生",
+   "date": "2025-07-03",
+   "cluster": "c09",
+   "role": "fact"
+  },
+  "m014": {
+   "text": "主人每个月发工资后，都会先给爸妈转一笔家用",
+   "date": "2025-07-03",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m015": {
+   "text": "红姨送了主人妈妈一条丝巾，妈妈戴着去买了一星期菜",
+   "date": "2025-07-17",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m016": {
+   "text": "主人的妈妈一直张罗着给她相亲，主人嫌烦又不好意思拒绝",
+   "date": "2025-07-30",
+   "cluster": "c10",
+   "role": "fact"
+  },
+  "m017": {
+   "text": "主人在学校旁的文具店买了一套新的勾线笔，用起来很顺手",
+   "date": "2025-08-16",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m018": {
+   "text": "主人睡眠浅，经常半夜醒来，睡前要放一段白噪音才睡得着",
+   "date": "2025-08-17",
+   "cluster": "c11",
+   "role": "fact"
+  },
+  "m019": {
+   "text": "墩墩趁主人换水时爬出鱼缸，躲到了花盆后面，找了半小时",
+   "date": "2025-08-24",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m020": {
+   "text": "主人对虾过敏，吃一口就起疹子，从小就不碰",
+   "date": "2025-09-13",
+   "cluster": "c12",
+   "role": "fact"
+  },
+  "m021": {
+   "text": "主人的高中同学阿宁在广州做设计，约好明年来小城玩",
+   "date": "2025-09-18",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m022": {
+   "text": "皮皮画了一幅主人的肖像，把她画成了长头发的巫婆",
+   "date": "2025-09-27",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m023": {
+   "text": "爸爸的一盆兰花开了，特意叫主人拍照发给了老家的亲戚",
+   "date": "2025-09-29",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m024": {
+   "text": "主人一直没有驾照，今年报了驾校，教练姓董",
+   "date": "2025-10-01",
+   "cluster": "c13",
+   "role": "fact"
+  },
+  "m025": {
+   "text": "甜姨糖水铺把红豆沙从六块涨到八块，主人嘴上嫌贵还是照买",
+   "date": "2025-10-18",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m026": {
+   "text": "主人带学生去郊外的茶园写生，有个学生走丢了十分钟",
+   "date": "2025-10-21",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m027": {
+   "text": "主人晕车很严重，坐大巴要提前吃晕车药，还得坐在前排",
+   "date": "2025-10-28",
+   "cluster": "c14",
+   "role": "fact"
+  },
+  "m028": {
+   "text": "主人把按摩仪的充电线落在办公室，周末专门回学校去拿",
+   "date": "2025-11-02",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m029": {
+   "text": "小粉在校门口被人碰倒，后视镜掉了，主人用胶带粘了回去",
+   "date": "2025-11-23",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m030": {
+   "text": "主人近视三百度，戴一副细框眼镜，镜腿用久了有点松",
+   "date": "2025-12-04",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m031": {
+   "text": "主人画的一幅骑楼被小城文化馆选中，挂在了展板上",
+   "date": "2025-12-08",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m032": {
+   "text": "主人智齿发炎肿了半边脸，林医生给开了三天的消炎药",
+   "date": "2025-12-23",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m033": {
+   "text": "妈妈跳舞时崴了脚，红姨扶着她一路慢慢走回了家",
+   "date": "2025-12-26",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m034": {
+   "text": "妈妈约了个在银行上班的相亲对象，主人借口加班没有去",
+   "date": "2025-12-27",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m035": {
+   "text": "主人喜欢喝无糖的乌龙茶，办公室的茶杯是学生送的",
+   "date": "2026-01-06",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m036": {
+   "text": "主人连着三晚失眠，凌晨三点就醒，白天上课直打哈欠",
+   "date": "2026-01-11",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m037": {
+   "text": "同事聚餐端上白灼虾，主人只能喝汤，脖子上还是起了几个红点",
+   "date": "2026-02-01",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m038": {
+   "text": "主人在小城新开的商场看了一场动画电影，哭得有点丢人",
+   "date": "2026-02-08",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m039": {
+   "text": "驾校练倒库那天，主人压了线，董教练在旁边叹了口气",
+   "date": "2026-02-16",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m040": {
+   "text": "主人坐大巴去省城参加培训，晕车吐了两次，到了脸都是白的",
+   "date": "2026-03-09",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m041": {
+   "text": "主人总忘记银行卡的密码，已经去柜台重置过两次",
+   "date": "2026-03-24",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m042": {
+   "text": "主人给墩墩买了块晒背的平台，墩墩第一天就趴上去不肯下来",
+   "date": "2026-04-01",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m043": {
+   "text": "主人拿抹布时碰倒一盆兰花，被爸爸念叨了整整一晚上",
+   "date": "2026-04-05",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m044": {
+   "text": "皮皮的妈妈来学校道歉，还带了一袋橘子放在主人桌上",
+   "date": "2026-04-14",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m045": {
+   "text": "甜姨送了主人一碗刚出的杨枝甘露，请她帮忙试试味道",
+   "date": "2026-04-26",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m046": {
+   "text": "学校的刘校长开会爱拖堂，主人经常憋着不敢去洗手间",
+   "date": "2026-04-26",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m047": {
+   "text": "同事借走按摩仪用了一次，直说舒服，主人让她自己买一台",
+   "date": "2026-05-05",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m048": {
+   "text": "主人在街边画骑楼，被路过的大爷围观，还被指点了屋檐的画法",
+   "date": "2026-05-09",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m049": {
+   "text": "小粉半路没电，主人推着它走了两公里去修车铺充电",
+   "date": "2026-05-17",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m050": {
+   "text": "林医生给主人补了颗蛀牙，麻药没过就吃东西，咬破了嘴唇",
+   "date": "2026-05-18",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m051": {
+   "text": "广场舞队要参加社区比赛，主人帮阿姨们画了队服上的图案",
+   "date": "2026-05-20",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m052": {
+   "text": "主人和一位姓韩的相亲对象喝了杯奶茶，聊的全是各自的工作",
+   "date": "2026-05-30",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m053": {
+   "text": "妈妈煮了酸枣仁汤，主人喝完还是醒了两次，只好又开了白噪音",
+   "date": "2026-06-08",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m054": {
+   "text": "主人报名了市里青年教师的公开课比赛，准备讲剪纸",
+   "date": "2026-06-09",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m055": {
+   "text": "主人误吃了一个虾饺，赶紧吃了抗过敏药，在家躺了大半天",
+   "date": "2026-06-20",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m056": {
+   "text": "主人买了晕车贴贴在耳后，到站时还是觉得头晕想吐",
+   "date": "2026-06-24",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m057": {
+   "text": "主人在驾校约不到科目三的考试名额，只好排到下个月",
+   "date": "2026-06-29",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m058": {
+   "text": "主人的口红只用一个色号，用完就直接买同款",
+   "date": "2026-07-12",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m059": {
+   "text": "主人睡前爱看半小时漫画，近来在看一部讲厨师的",
+   "date": "2026-08-14",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m060": {
+   "text": "主人家的路由器放在客厅，视频总卡，爸爸坚持不肯换",
+   "date": "2026-09-27",
+   "cluster": null,
+   "role": "filler"
+  }
+ },
+ "cases": [
+  {
+   "id": "r01",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "周末要出门两天，放心不下",
+   "direct": [
+    "m001"
+   ],
+   "chain": [
+    "m019",
+    "m042"
+   ],
+   "also_ok": [],
+   "why": "出门几天，惦记家里要喂的宠物"
+  },
+  {
+   "id": "r02",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "晚上楼下音响好吵",
+   "direct": [
+    "m002"
+   ],
+   "chain": [
+    "m015",
+    "m033",
+    "m051"
+   ],
+   "also_ok": [
+    "m005"
+   ],
+   "why": "夜里楼下音乐吵，想到妈妈跳的舞"
+  },
+  {
+   "id": "r03",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "热得想喝点凉的甜的",
+   "direct": [
+    "m007"
+   ],
+   "chain": [
+    "m025",
+    "m045"
+   ],
+   "also_ok": [],
+   "why": "热，想喝凉的甜的"
+  },
+  {
+   "id": "r04",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "改完作业脖子好酸",
+   "direct": [
+    "m009"
+   ],
+   "chain": [
+    "m028",
+    "m047"
+   ],
+   "also_ok": [],
+   "why": "低头批作业，脖子酸，想到按摩的东西"
+  },
+  {
+   "id": "r05",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "雨好大，没带雨衣",
+   "direct": [
+    "m010"
+   ],
+   "chain": [
+    "m029",
+    "m049"
+   ],
+   "also_ok": [],
+   "why": "下雨要骑电动车，想到那辆车"
+  },
+  {
+   "id": "r06",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "拍到几栋老房子，好有味道",
+   "direct": [
+    "m012"
+   ],
+   "chain": [
+    "m031",
+    "m048"
+   ],
+   "also_ok": [],
+   "why": "看到老房子，想到她爱画的老街建筑"
+  },
+  {
+   "id": "r07",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "腮帮子隐隐作疼",
+   "direct": [
+    "m013"
+   ],
+   "chain": [
+    "m032",
+    "m050"
+   ],
+   "also_ok": [],
+   "why": "腮帮子疼，想到牙和牙医"
+  },
+  {
+   "id": "r08",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "下个月就三十三了",
+   "direct": [
+    "m016"
+   ],
+   "chain": [
+    "m034",
+    "m052"
+   ],
+   "also_ok": [],
+   "why": "年纪渐长，想到妈妈催着相亲"
+  },
+  {
+   "id": "r09",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "晚上喝了杯浓茶",
+   "direct": [
+    "m018"
+   ],
+   "chain": [
+    "m036",
+    "m053"
+   ],
+   "also_ok": [
+    "m035"
+   ],
+   "why": "浓茶，怕睡不着，想到她睡眠浅"
+  },
+  {
+   "id": "r10",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "同事约了海鲜自助",
+   "direct": [
+    "m020"
+   ],
+   "chain": [
+    "m037",
+    "m055"
+   ],
+   "also_ok": [],
+   "why": "海鲜自助，想到她的过敏"
+  },
+  {
+   "id": "r11",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "又打不到车了",
+   "direct": [
+    "m024"
+   ],
+   "chain": [
+    "m039",
+    "m057"
+   ],
+   "also_ok": [],
+   "why": "打不到车，想到她在学开车"
+  },
+  {
+   "id": "r12",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "明天要坐大巴去市里",
+   "direct": [
+    "m027"
+   ],
+   "chain": [
+    "m040",
+    "m056"
+   ],
+   "also_ok": [],
+   "why": "坐大巴，想到她会晕车"
+  },
+  {
+   "id": "n01",
+   "type": "remark-named",
+   "history": [],
+   "message": "墩墩今天又不肯吃饭",
+   "direct": [
+    "m001",
+    "m019",
+    "m042"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n02",
+   "type": "remark-named",
+   "history": [],
+   "message": "路过甜姨那儿，买了一碗",
+   "direct": [
+    "m007",
+    "m025",
+    "m045"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n03",
+   "type": "remark-named",
+   "history": [],
+   "message": "红姨今天又来我家串门了",
+   "direct": [
+    "m002",
+    "m015",
+    "m033",
+    "m051"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n04",
+   "type": "remark-named",
+   "history": [],
+   "message": "小粉的轮胎好像有点瘪",
+   "direct": [
+    "m010",
+    "m029",
+    "m049"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n05",
+   "type": "remark-named",
+   "history": [],
+   "message": "皮皮今天居然安静了",
+   "direct": [
+    "m006",
+    "m022",
+    "m044"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n06",
+   "type": "remark-named",
+   "history": [],
+   "message": "明天得去找林医生",
+   "direct": [
+    "m013",
+    "m032",
+    "m050"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f01",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "我爸最近天天对着窗台发呆"
+    },
+    {
+     "role": "assistant",
+     "content": "是在看他那些宝贝吧？"
+    }
+   ],
+   "message": "对，还拍照呢",
+   "direct": [
+    "m023"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m004"
+   ]
+  },
+  {
+   "id": "f02",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "周末得回学校一趟"
+    },
+    {
+     "role": "assistant",
+     "content": "是有什么东西要拿吗？"
+    }
+   ],
+   "message": "对，一根线",
+   "direct": [
+    "m028"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m009"
+   ]
+  },
+  {
+   "id": "f03",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "科目二又练了一下午"
+    },
+    {
+     "role": "assistant",
+     "content": "辛苦了，今天练得怎么样？"
+    }
+   ],
+   "message": "教练又叹气了",
+   "direct": [
+    "m039"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m024"
+   ]
+  },
+  {
+   "id": "f04",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "上周我妈安排的那个，你还记得吗"
+    },
+    {
+     "role": "assistant",
+     "content": "记得一点，后来你去了吗？"
+    }
+   ],
+   "message": "没去，找了借口",
+   "direct": [
+    "m034"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m016"
+   ]
+  },
+  {
+   "id": "f05",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "同事聚餐点了一大桌菜"
+    },
+    {
+     "role": "assistant",
+     "content": "你吃得开心吗？"
+    }
+   ],
+   "message": "我只能喝汤",
+   "direct": [
+    "m020",
+    "m037"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f06",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "上周去省城培训了"
+    },
+    {
+     "role": "assistant",
+     "content": "路上还顺利吗？"
+    }
+   ],
+   "message": "还是老样子",
+   "direct": [
+    "m027",
+    "m040"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m056"
+   ]
+  },
+  {
+   "id": "f07",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "那幅画被选上了，真厉害"
+    },
+    {
+     "role": "assistant",
+     "content": "是啊，你一定很开心吧？"
+    }
+   ],
+   "message": "挂在哪来着",
+   "direct": [
+    "m031"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m012"
+   ]
+  },
+  {
+   "id": "f08",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "家里那个小家伙又不见了"
+    },
+    {
+     "role": "assistant",
+     "content": "不会又跑出去了吧？"
+    }
+   ],
+   "message": "上回躲在哪来着",
+   "direct": [
+    "m019"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m001"
+   ]
+  },
+  {
+   "id": "q01",
+   "type": "quiet",
+   "history": [],
+   "message": "今天股市涨得不错",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q02",
+   "type": "quiet",
+   "history": [],
+   "message": "昨晚的球赛太精彩了",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q03",
+   "type": "quiet",
+   "history": [],
+   "message": "想学弹钢琴了",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q04",
+   "type": "quiet",
+   "history": [],
+   "message": "新买的拖鞋有点大",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  }
+ ]
+}

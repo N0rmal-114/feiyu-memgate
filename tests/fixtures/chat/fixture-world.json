@@ -1,0 +1,46 @@
+{
+  "world": "fixture-demo",
+  "persona": "A made-up person with an ice-cream habit, a cat, a coffee machine and an evening run.",
+  "clusters": {
+    "c01": {"entity": "冰淇淋", "terms": ["冰淇淋"]},
+    "c02": {"entity": "年糕", "terms": ["年糕", "橘猫"]},
+    "c03": {"entity": "咖啡机", "terms": ["咖啡机"]},
+    "c04": {"entity": "跑步", "terms": ["跑步"]}
+  },
+  "memories": {
+    "m001": {"text": "主人喜欢吃冰淇淋，天气热的时候一天能吃两个", "date": "2026-06-02", "cluster": "c01", "role": "fact"},
+    "m002": {"text": "主人上次在公园吃冰淇淋的时候，冰淇淋掉在了地上", "date": "2026-08-15", "cluster": "c01", "role": "episode"},
+    "m003": {"text": "主人养了一只橘猫，名字叫年糕，是家里唯一的宠物，三岁了", "date": "2026-06-10", "cluster": "c02", "role": "fact"},
+    "m004": {"text": "年糕上个月把主人的水杯碰到了地上", "date": "2026-09-03", "cluster": "c02", "role": "episode"},
+    "m005": {"text": "年糕每天早上六点准时叫主人起床喂饭", "date": "2026-09-20", "cluster": "c02", "role": "episode"},
+    "m006": {"text": "主人家里有一台咖啡机，每天早上都用它做咖啡", "date": "2026-06-20", "cluster": "c03", "role": "fact"},
+    "m007": {"text": "咖啡机上周坏了一次，主人自己拧开修好了", "date": "2026-10-05", "cluster": "c03", "role": "episode"},
+    "m008": {"text": "主人有晚上跑步的习惯，一般晚上出去跑五公里左右", "date": "2026-07-01", "cluster": "c04", "role": "fact"},
+    "m009": {"text": "主人上周跑步的时候下雨了，淋得浑身都湿透了", "date": "2026-10-12", "cluster": "c04", "role": "episode"},
+    "m010": {"text": "主人的手机屏幕摔裂过，一直没去换", "date": "2026-08-20", "cluster": null, "role": "filler"},
+    "m011": {"text": "主人的老家在一个靠海的小城市里", "date": "2026-07-18", "cluster": null, "role": "filler"},
+    "m012": {"text": "主人最近在读一本讲历史的厚书，读得很慢", "date": "2026-09-28", "cluster": null, "role": "filler"}
+  },
+  "cases": [
+    {"id": "r01", "type": "remark-assoc", "history": [], "message": "最近天气有点热",
+     "direct": ["m001"], "chain": ["m002"], "also_ok": [], "why": "热，想吃冷的"},
+    {"id": "r02", "type": "remark-assoc", "history": [], "message": "家里的宠物今年三岁了",
+     "direct": ["m003"], "chain": ["m004", "m005"], "also_ok": [], "why": "说到宠物，想起主人养的猫"},
+    {"id": "r03", "type": "remark-assoc", "history": [], "message": "今天晚上想出去走走",
+     "direct": ["m008"], "chain": ["m009"], "also_ok": ["m012"], "why": "晚上出门，想起他的习惯"},
+    {"id": "n01", "type": "remark-named", "history": [], "message": "年糕呢",
+     "direct": ["m003", "m004", "m005"], "chain": [], "also_ok": [], "why": "提到了猫的名字"},
+    {"id": "n02", "type": "remark-named", "history": [], "message": "咖啡机又响了",
+     "direct": ["m006", "m007"], "chain": [], "also_ok": [], "why": "提到了咖啡机"},
+    {"id": "f01", "type": "follow-up",
+     "history": [{"role": "user", "content": "咖啡机呢"},
+                 {"role": "assistant", "content": "在厨房里放着呢"}],
+     "message": "后来坏过吗", "direct": ["m007"], "chain": [], "also_ok": ["m006"], "why": "接着问那台机器"},
+    {"id": "f02", "type": "follow-up",
+     "history": [{"role": "user", "content": "年糕呢"},
+                 {"role": "assistant", "content": "在沙发上睡觉呢"}],
+     "message": "摔杯子了吗", "direct": ["m004"], "chain": [], "also_ok": ["m005"], "why": "接着问猫的事"},
+    {"id": "q01", "type": "quiet", "history": [], "message": "哈哈股市今天大涨",
+     "direct": [], "chain": [], "also_ok": [], "why": "和任何记忆无关"}
+  ]
+}

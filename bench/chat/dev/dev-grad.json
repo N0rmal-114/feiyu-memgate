@@ -1,0 +1,940 @@
+{
+ "world": "dev-grad",
+ "persona": "生物专业硕士二年级学生，住宿舍，做湿实验",
+ "clusters": {
+  "c01": {
+   "entity": "细胞",
+   "terms": [
+    "细胞",
+    "小圆"
+   ]
+  },
+  "c02": {
+   "entity": "导师",
+   "terms": [
+    "吴老板",
+    "导师"
+   ]
+  },
+  "c03": {
+   "entity": "条带",
+   "terms": [
+    "条带"
+   ]
+  },
+  "c04": {
+   "entity": "室友",
+   "terms": [
+    "老蔡",
+    "室友"
+   ]
+  },
+  "c05": {
+   "entity": "麻辣烫",
+   "terms": [
+    "麻辣烫"
+   ]
+  },
+  "c06": {
+   "entity": "小论文",
+   "terms": [
+    "小论文"
+   ]
+  },
+  "c07": {
+   "entity": "羽毛球",
+   "terms": [
+    "羽毛球"
+   ]
+  },
+  "c08": {
+   "entity": "家教",
+   "terms": [
+    "家教",
+    "小陆"
+   ]
+  },
+  "c09": {
+   "entity": "乳胶",
+   "terms": [
+    "乳胶"
+   ]
+  },
+  "c10": {
+   "entity": "腊肠",
+   "terms": [
+    "腊肠"
+   ]
+  },
+  "c11": {
+   "entity": "洗衣机",
+   "terms": [
+    "洗衣机"
+   ]
+  },
+  "c12": {
+   "entity": "女友",
+   "terms": [
+    "晴晴",
+    "女友"
+   ]
+  },
+  "c13": {
+   "entity": "能量饮料",
+   "terms": [
+    "能量饮料"
+   ]
+  },
+  "c14": {
+   "entity": "师兄",
+   "terms": [
+    "阿正",
+    "师兄"
+   ]
+  }
+ },
+ "memories": {
+  "m001": {
+   "text": "主人培养的HeLa细胞被他叫作小圆，要每三天传代一次",
+   "date": "2025-01-13",
+   "cluster": "c01",
+   "role": "fact"
+  },
+  "m002": {
+   "text": "主人的导师姓吴，实验室的人都叫她吴老板，每周一上午开组会",
+   "date": "2025-01-31",
+   "cluster": "c02",
+   "role": "fact"
+  },
+  "m003": {
+   "text": "主人是生物专业硕士二年级的学生，住在两人间的研究生宿舍",
+   "date": "2025-02-10",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m004": {
+   "text": "主人做免疫印迹，条带总是发糊，已经重复了五次",
+   "date": "2025-02-27",
+   "cluster": "c03",
+   "role": "fact"
+  },
+  "m005": {
+   "text": "主人的手机壳是半透明的，里面夹着一张旧的火车票",
+   "date": "2025-03-15",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m006": {
+   "text": "主人的室友叫老蔡，学计算机的，每晚玩游戏到凌晨",
+   "date": "2025-03-17",
+   "cluster": "c04",
+   "role": "fact"
+  },
+  "m007": {
+   "text": "主人常去食堂二楼的麻辣烫窗口，阿姨记得他不要香菜",
+   "date": "2025-04-13",
+   "cluster": "c05",
+   "role": "fact"
+  },
+  "m008": {
+   "text": "主人把课题的开题报告重新改了一遍，答辩老师说还要再精简",
+   "date": "2025-04-28",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m009": {
+   "text": "主人在写自己的第一篇小论文，卡在讨论部分好几周了",
+   "date": "2025-05-01",
+   "cluster": "c06",
+   "role": "fact"
+  },
+  "m010": {
+   "text": "主人参加了学校的羽毛球社，每周三晚上去打两个小时",
+   "date": "2025-05-28",
+   "cluster": "c07",
+   "role": "fact"
+  },
+  "m011": {
+   "text": "主人去年双十一买了一把电动剃须刀，用了三天就不转了",
+   "date": "2025-05-31",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m012": {
+   "text": "主人周末给高二的学生小陆做生物家教，一次两小时",
+   "date": "2025-06-15",
+   "cluster": "c08",
+   "role": "fact"
+  },
+  "m013": {
+   "text": "主人对乳胶手套过敏，做实验要戴丁腈的，不然手背起红疹",
+   "date": "2025-07-03",
+   "cluster": "c09",
+   "role": "fact"
+  },
+  "m014": {
+   "text": "主人在图书馆三楼靠窗的位置占了个固定座，用书包压着",
+   "date": "2025-07-03",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m015": {
+   "text": "组会上主人的数据被吴老板问得答不上来，汗湿了衬衫",
+   "date": "2025-07-17",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m016": {
+   "text": "主人的妈妈每个月都会给他寄一箱自己灌的腊肠",
+   "date": "2025-07-30",
+   "cluster": "c10",
+   "role": "fact"
+  },
+  "m017": {
+   "text": "主人的近视有四百度，实验室护目镜外面还要戴自己的眼镜",
+   "date": "2025-08-16",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m018": {
+   "text": "宿舍楼里的洗衣机总被人占着，主人只能半夜去洗衣服",
+   "date": "2025-08-17",
+   "cluster": "c11",
+   "role": "fact"
+  },
+  "m019": {
+   "text": "主人周末也得回实验室给细胞换液，错过了和同学的聚餐",
+   "date": "2025-08-24",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m020": {
+   "text": "主人有个异地的女友叫晴晴，在外地读博，每周六晚上视频",
+   "date": "2025-09-13",
+   "cluster": "c12",
+   "role": "fact"
+  },
+  "m021": {
+   "text": "主人有一台用了三年的旧笔记本，风扇响得像拖拉机",
+   "date": "2025-09-18",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m022": {
+   "text": "老蔡凌晨打赢游戏大喊一声，把主人从床上吓醒了",
+   "date": "2025-09-27",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m023": {
+   "text": "主人换了新的转膜液，条带还是糊的，怀疑是抗体出了问题",
+   "date": "2025-09-29",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m024": {
+   "text": "主人做实验熬夜时要靠能量饮料提神，一周要喝四五罐",
+   "date": "2025-10-01",
+   "cluster": "c13",
+   "role": "fact"
+  },
+  "m025": {
+   "text": "麻辣烫窗口涨价了，主人少点了一份宽粉",
+   "date": "2025-10-18",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m026": {
+   "text": "主人上学期拿过二等奖学金，一共五千块",
+   "date": "2025-10-21",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m027": {
+   "text": "主人的师兄姓郑，实验室的万事通，大家都叫他阿正",
+   "date": "2025-10-28",
+   "cluster": "c14",
+   "role": "fact"
+  },
+  "m028": {
+   "text": "小论文被审稿人要求补做两个实验，主人对着邮件叹了半天气",
+   "date": "2025-11-02",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m029": {
+   "text": "主人在羽毛球场上扑球摔了一跤，膝盖蹭掉一大块皮",
+   "date": "2025-11-23",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m030": {
+   "text": "主人讨厌早上八点的课，每次都是踩着铃声进教室",
+   "date": "2025-12-04",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m031": {
+   "text": "小陆这次月考生物考了八十分，主人请他喝了杯奶茶",
+   "date": "2025-12-08",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m032": {
+   "text": "实验室乳胶手套用完，主人忘了换，手背痒了一整晚",
+   "date": "2025-12-23",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m033": {
+   "text": "吴老板出差回来，给组里每人带了一盒当地的点心",
+   "date": "2025-12-26",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m034": {
+   "text": "快递压坏了，腊肠渗了油，主人拿去食堂请阿姨帮忙蒸熟",
+   "date": "2025-12-27",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m035": {
+   "text": "主人最近在追一部科幻小说，每晚睡前看十几页",
+   "date": "2026-01-06",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m036": {
+   "text": "主人半夜去洗衣机那儿，发现别人的衣服还堵在里面，只好抱着盆回来",
+   "date": "2026-01-11",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m037": {
+   "text": "晴晴突然来宿舍楼下看他，主人从实验室一路跑了回去",
+   "date": "2026-02-01",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m038": {
+   "text": "主人的高中同学小宇在深圳上班，说好暑假来找他玩",
+   "date": "2026-02-08",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m039": {
+   "text": "主人的能量饮料被隔壁组同学顺走了两罐，他在冰箱上贴了纸条",
+   "date": "2026-02-16",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m040": {
+   "text": "阿正帮主人排查了一整个下午，发现是移液枪漏气",
+   "date": "2026-03-09",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m041": {
+   "text": "主人每次回老家，爸爸都会开车去火车站接他",
+   "date": "2026-03-24",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m042": {
+   "text": "小圆被污染了，培养基一夜变黄，主人只能从头复苏一管",
+   "date": "2026-04-01",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m043": {
+   "text": "条带终于清晰了，主人对着胶片拍了十张照片存进手机",
+   "date": "2026-04-05",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m044": {
+   "text": "老蔡带回一箱泡面，分了主人两包，说是赔罪",
+   "date": "2026-04-14",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m045": {
+   "text": "主人连吃了一周麻辣烫，嘴角上火起了个泡",
+   "date": "2026-04-26",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m046": {
+   "text": "主人在校园里买过一辆二手自行车，花了六十块，后来链条掉了",
+   "date": "2026-04-26",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m047": {
+   "text": "主人把小论文里的图重画了三遍，还是不满意",
+   "date": "2026-05-05",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m048": {
+   "text": "小陆家长拖了半个月的家教费，主人委婉地催了一次",
+   "date": "2026-05-09",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m049": {
+   "text": "羽毛球社组织内部赛，主人第一轮就输了，请对手喝了瓶水",
+   "date": "2026-05-17",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m050": {
+   "text": "主人去校医院开了抗过敏药膏，医生说以后别碰乳胶",
+   "date": "2026-05-18",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m051": {
+   "text": "吴老板在组会上夸了主人的新图，说有进步，主人高兴了一整天",
+   "date": "2026-05-20",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m052": {
+   "text": "主人把腊肠分给实验室的同学，大家都说比超市的好吃",
+   "date": "2026-05-30",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m053": {
+   "text": "洗衣机把主人的白衬衫洗成了粉红色，他查了半天才发现是红袜子",
+   "date": "2026-06-08",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m054": {
+   "text": "主人的指甲总是剪得很短，因为做实验不能留指甲",
+   "date": "2026-06-09",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m055": {
+   "text": "主人因为做实验放了鸽子，晴晴生了一晚上的气",
+   "date": "2026-06-20",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m056": {
+   "text": "阿正请组里的人吃了顿火锅，庆祝他的文章被接收了",
+   "date": "2026-06-24",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m057": {
+   "text": "主人一天喝了四罐能量饮料，手抖得连移液枪都握不稳",
+   "date": "2026-06-29",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m058": {
+   "text": "主人的体检报告显示轻度脂肪肝，他决定少喝奶茶",
+   "date": "2026-07-12",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m059": {
+   "text": "主人参加过研究生合唱团的选拔，唱到第二句就被刷了",
+   "date": "2026-08-14",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m060": {
+   "text": "主人在学校超市办了会员卡，积分攒了两年一直没用",
+   "date": "2026-09-27",
+   "cluster": null,
+   "role": "filler"
+  }
+ },
+ "cases": [
+  {
+   "id": "r01",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "周末也要去一趟实验室",
+   "direct": [
+    "m001"
+   ],
+   "chain": [
+    "m019",
+    "m042"
+   ],
+   "also_ok": [
+    "m028"
+   ],
+   "why": "周末要去实验室，想到要定期照料的细胞"
+  },
+  {
+   "id": "r02",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "周一又要汇报了",
+   "direct": [
+    "m002"
+   ],
+   "chain": [
+    "m015",
+    "m033",
+    "m051"
+   ],
+   "also_ok": [
+    "m008"
+   ],
+   "why": "周一汇报，想到每周一的组会"
+  },
+  {
+   "id": "r03",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "耳塞又不顶用了",
+   "direct": [
+    "m006"
+   ],
+   "chain": [
+    "m022",
+    "m044"
+   ],
+   "also_ok": [
+    "m003"
+   ],
+   "why": "耳塞不管用，想到宿舍里的噪音"
+  },
+  {
+   "id": "r04",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "好想吃点热辣的",
+   "direct": [
+    "m007"
+   ],
+   "chain": [
+    "m025",
+    "m045"
+   ],
+   "also_ok": [],
+   "why": "想吃热辣的，想到常吃的食堂窗口"
+  },
+  {
+   "id": "r05",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "收件箱里红点又多了",
+   "direct": [
+    "m009"
+   ],
+   "chain": [
+    "m028",
+    "m047"
+   ],
+   "also_ok": [],
+   "why": "盼着又怕收到的邮件，想到投稿"
+  },
+  {
+   "id": "r06",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "好久没出汗了",
+   "direct": [
+    "m010"
+   ],
+   "chain": [
+    "m029",
+    "m049"
+   ],
+   "also_ok": [],
+   "why": "想运动出汗，想到每周的球社"
+  },
+  {
+   "id": "r07",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "待会儿要去给人讲题",
+   "direct": [
+    "m012"
+   ],
+   "chain": [
+    "m031",
+    "m048"
+   ],
+   "also_ok": [],
+   "why": "要讲题，想到周末的补课兼职"
+  },
+  {
+   "id": "r08",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "手背痒得厉害",
+   "direct": [
+    "m013"
+   ],
+   "chain": [
+    "m032",
+    "m050"
+   ],
+   "also_ok": [],
+   "why": "手背痒，想到手套过敏"
+  },
+  {
+   "id": "r09",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "取快递去咯",
+   "direct": [
+    "m016"
+   ],
+   "chain": [
+    "m034",
+    "m052"
+   ],
+   "also_ok": [],
+   "why": "取快递，想到妈妈寄来的箱子"
+  },
+  {
+   "id": "r10",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "衣服堆了一周了",
+   "direct": [
+    "m018"
+   ],
+   "chain": [
+    "m036",
+    "m053"
+   ],
+   "also_ok": [],
+   "why": "衣服堆着，想到宿舍洗衣的麻烦"
+  },
+  {
+   "id": "r11",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "抢到一张高铁票",
+   "direct": [
+    "m020"
+   ],
+   "chain": [
+    "m037",
+    "m055"
+   ],
+   "also_ok": [
+    "m005",
+    "m041"
+   ],
+   "why": "抢到车票，想到异地的女朋友"
+  },
+  {
+   "id": "r12",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "眼皮重得抬不起来",
+   "direct": [
+    "m024"
+   ],
+   "chain": [
+    "m039",
+    "m057"
+   ],
+   "also_ok": [],
+   "why": "犯困，想到他靠提神饮料撑着"
+  },
+  {
+   "id": "n01",
+   "type": "remark-named",
+   "history": [],
+   "message": "小圆今天长得特别好",
+   "direct": [
+    "m001",
+    "m019",
+    "m042"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n02",
+   "type": "remark-named",
+   "history": [],
+   "message": "吴老板今天心情不错",
+   "direct": [
+    "m002",
+    "m015",
+    "m033",
+    "m051"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n03",
+   "type": "remark-named",
+   "history": [],
+   "message": "老蔡又在打游戏了",
+   "direct": [
+    "m006",
+    "m022",
+    "m044"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n04",
+   "type": "remark-named",
+   "history": [],
+   "message": "今天的条带终于出来了",
+   "direct": [
+    "m004",
+    "m023",
+    "m043"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n05",
+   "type": "remark-named",
+   "history": [],
+   "message": "阿正又在帮我看数据",
+   "direct": [
+    "m027",
+    "m040",
+    "m056"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n06",
+   "type": "remark-named",
+   "history": [],
+   "message": "小陆下周要期中考试了",
+   "direct": [
+    "m012",
+    "m031",
+    "m048"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f01",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "周末我又得去一趟实验室"
+    },
+    {
+     "role": "assistant",
+     "content": "是要做实验吗？"
+    }
+   ],
+   "message": "上次因此错过啥",
+   "direct": [
+    "m019"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m001"
+   ]
+  },
+  {
+   "id": "f02",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "明天组会我有点慌"
+    },
+    {
+     "role": "assistant",
+     "content": "是数据还没整理好吗？"
+    }
+   ],
+   "message": "她上次怎么说的",
+   "direct": [
+    "m015"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m002",
+    "m051"
+   ]
+  },
+  {
+   "id": "f03",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "今天做实验手又痒了"
+    },
+    {
+     "role": "assistant",
+     "content": "是不是手套的问题？"
+    }
+   ],
+   "message": "对，后来涂了啥",
+   "direct": [
+    "m050"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m013"
+   ]
+  },
+  {
+   "id": "f04",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "周六晚上要和她视频"
+    },
+    {
+     "role": "assistant",
+     "content": "好久没见了吧？"
+    }
+   ],
+   "message": "上次她气了多久",
+   "direct": [
+    "m055"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m020"
+   ]
+  },
+  {
+   "id": "f05",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "那个报错终于解决了"
+    },
+    {
+     "role": "assistant",
+     "content": "怎么解决的？"
+    }
+   ],
+   "message": "多亏了他帮忙",
+   "direct": [
+    "m040"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m027"
+   ]
+  },
+  {
+   "id": "f06",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "妈妈又寄东西来了"
+    },
+    {
+     "role": "assistant",
+     "content": "这次是什么？"
+    }
+   ],
+   "message": "老样子，咸的",
+   "direct": [
+    "m016"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f07",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "那张胶又白做了"
+    },
+    {
+     "role": "assistant",
+     "content": "还是糊吗？"
+    }
+   ],
+   "message": "已经第几次了",
+   "direct": [
+    "m004"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m023"
+   ]
+  },
+  {
+   "id": "f08",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "昨晚在宿舍没睡好"
+    },
+    {
+     "role": "assistant",
+     "content": "又是隔壁床的动静？"
+    }
+   ],
+   "message": "这次他喊了啥",
+   "direct": [
+    "m022"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m006"
+   ]
+  },
+  {
+   "id": "q01",
+   "type": "quiet",
+   "history": [],
+   "message": "最近想去爬山",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q02",
+   "type": "quiet",
+   "history": [],
+   "message": "今天路过一家新开的花店",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q03",
+   "type": "quiet",
+   "history": [],
+   "message": "地铁上看到有人在吵架",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q04",
+   "type": "quiet",
+   "history": [],
+   "message": "最近物价涨得厉害",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  }
+ ]
+}

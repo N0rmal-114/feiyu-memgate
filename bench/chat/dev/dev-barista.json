@@ -1,0 +1,940 @@
+{
+ "world": "dev-barista",
+ "persona": "二十多岁的男生，以前送外卖，现在在咖啡馆做咖啡师，独自租房住",
+ "clusters": {
+  "c01": {
+   "entity": "仓鼠",
+   "terms": [
+    "仓鼠",
+    "团长"
+   ]
+  },
+  "c02": {
+   "entity": "左膝旧伤",
+   "terms": [
+    "旧伤",
+    "左膝"
+   ]
+  },
+  "c03": {
+   "entity": "杰哥",
+   "terms": [
+    "杰哥",
+    "阿杰"
+   ]
+  },
+  "c04": {
+   "entity": "拉花",
+   "terms": [
+    "拉花"
+   ]
+  },
+  "c05": {
+   "entity": "可乐",
+   "terms": [
+    "可乐"
+   ]
+  },
+  "c06": {
+   "entity": "房东",
+   "terms": [
+    "石叔",
+    "房东"
+   ]
+  },
+  "c07": {
+   "entity": "窗",
+   "terms": [
+    "窗"
+   ]
+  },
+  "c08": {
+   "entity": "吉他",
+   "terms": [
+    "吉他"
+   ]
+  },
+  "c09": {
+   "entity": "小卖部",
+   "terms": [
+    "小卖部"
+   ]
+  },
+  "c10": {
+   "entity": "拉面",
+   "terms": [
+    "拉面"
+   ]
+  },
+  "c11": {
+   "entity": "闹钟",
+   "terms": [
+    "闹钟"
+   ]
+  },
+  "c12": {
+   "entity": "球鞋",
+   "terms": [
+    "球鞋"
+   ]
+  },
+  "c13": {
+   "entity": "啤酒",
+   "terms": [
+    "啤酒"
+   ]
+  },
+  "c14": {
+   "entity": "咖啡车",
+   "terms": [
+    "咖啡车"
+   ]
+  }
+ },
+ "memories": {
+  "m001": {
+   "text": "主人在出租屋里养了一只金丝熊仓鼠，名叫团长",
+   "date": "2025-01-13",
+   "cluster": "c01",
+   "role": "fact"
+  },
+  "m002": {
+   "text": "主人送外卖时摔过车，左膝落下旧伤，阴雨天会隐隐发酸",
+   "date": "2025-01-31",
+   "cluster": "c02",
+   "role": "fact"
+  },
+  "m003": {
+   "text": "主人二十六岁，老家在外省县城，来省会打工已经四年",
+   "date": "2025-02-10",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m004": {
+   "text": "主人送外卖时的老同事叫阿杰，大家都喊他杰哥，两人还常联系",
+   "date": "2025-02-27",
+   "cluster": "c03",
+   "role": "fact"
+  },
+  "m005": {
+   "text": "主人之前送了两年外卖，去年转行进了咖啡馆当学徒",
+   "date": "2025-03-13",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m006": {
+   "text": "主人练拉花已经三个月，最拿手的是爱心，天鹅还拉不成形",
+   "date": "2025-03-17",
+   "cluster": "c04",
+   "role": "fact"
+  },
+  "m007": {
+   "text": "主人下班后爱喝一罐冰可乐，说比咖啡更解乏",
+   "date": "2025-04-13",
+   "cluster": "c05",
+   "role": "fact"
+  },
+  "m008": {
+   "text": "主人手机屏保是老家的一条黄狗，已经十一岁了",
+   "date": "2025-04-24",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m009": {
+   "text": "主人租的单间，房东姓石，主人叫他石叔，每月五号来收租",
+   "date": "2025-05-01",
+   "cluster": "c06",
+   "role": "fact"
+  },
+  "m010": {
+   "text": "主人的地铁卡是张旧卡，余额总是不够，刷到一半被拦住",
+   "date": "2025-05-25",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m011": {
+   "text": "主人出租屋的窗框漏风，一下雨就渗水，他贴了胶条",
+   "date": "2025-05-28",
+   "cluster": "c07",
+   "role": "fact"
+  },
+  "m012": {
+   "text": "主人有一把二手吉他，自学了半年，只会弹几个和弦",
+   "date": "2025-06-15",
+   "cluster": "c08",
+   "role": "fact"
+  },
+  "m013": {
+   "text": "主人最近在追一个做家常菜的短视频博主",
+   "date": "2025-06-25",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m014": {
+   "text": "主人的妈妈在老家县城开小卖部，每晚九点和他视频",
+   "date": "2025-07-03",
+   "cluster": "c09",
+   "role": "fact"
+  },
+  "m015": {
+   "text": "主人最爱吃楼下的兰州拉面，老板总是多给一勺辣子",
+   "date": "2025-07-30",
+   "cluster": "c10",
+   "role": "fact"
+  },
+  "m016": {
+   "text": "主人讨厌香菜，点什么都要交代一遍不要香菜",
+   "date": "2025-08-06",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m017": {
+   "text": "主人早班五点半起床，闹钟要响三遍才醒得过来",
+   "date": "2025-08-17",
+   "cluster": "c11",
+   "role": "fact"
+  },
+  "m018": {
+   "text": "团长半夜在跑轮上狂奔，吱呀声吵得主人睡不着",
+   "date": "2025-08-24",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m019": {
+   "text": "主人上个月打篮球扭了手腕，贴了一周膏药",
+   "date": "2025-09-06",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m020": {
+   "text": "主人站了一整天吧台，左膝疼得上楼梯要扶着扶手",
+   "date": "2025-09-08",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m021": {
+   "text": "主人是球鞋爱好者，有一双白色的球鞋一直舍不得穿",
+   "date": "2025-09-13",
+   "cluster": "c12",
+   "role": "fact"
+  },
+  "m022": {
+   "text": "主人拉花拉的爱心被顾客拍了照发朋友圈，他偷偷截图存了下来",
+   "date": "2025-09-27",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m023": {
+   "text": "杰哥约主人吃烧烤，说他又换了个平台，一天要跑二十多单",
+   "date": "2025-09-29",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m024": {
+   "text": "主人酒量差，一杯啤酒下肚就脸红，被同事笑过好几次",
+   "date": "2025-10-01",
+   "cluster": "c13",
+   "role": "fact"
+  },
+  "m025": {
+   "text": "主人买过一张彩票，只中了五块钱，到现在没兑",
+   "date": "2025-10-07",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m026": {
+   "text": "主人决心戒可乐，坚持了七天，第八天喝了一罐觉得格外好喝",
+   "date": "2025-10-18",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m027": {
+   "text": "主人想攒钱开一辆自己的咖啡车，已经存了一年多",
+   "date": "2025-10-28",
+   "cluster": "c14",
+   "role": "fact"
+  },
+  "m028": {
+   "text": "石叔来检查热水器，顺便抱怨主人阳台的衣服晾得太乱",
+   "date": "2025-11-02",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m029": {
+   "text": "主人喜欢在地铁上刷短视频，常常坐过站",
+   "date": "2025-11-18",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m030": {
+   "text": "下大雨时窗台积了一滩水，主人拿毛巾堵了半夜",
+   "date": "2025-11-23",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m031": {
+   "text": "主人在天台练吉他，邻居上来敲门说太晚了",
+   "date": "2025-12-08",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m032": {
+   "text": "同事想给主人介绍女朋友，主人说等攒够钱再说",
+   "date": "2025-12-19",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m033": {
+   "text": "妈妈在视频里叫主人回家吃饭，说小卖部生意不太好",
+   "date": "2025-12-23",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m034": {
+   "text": "楼下拉面店涨价了，主人嘴上抱怨，每周还是去三次",
+   "date": "2025-12-27",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m035": {
+   "text": "闹钟没响，主人迟到二十分钟，被店长扣了二十块",
+   "date": "2026-01-11",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m036": {
+   "text": "主人后背有一块胎记，从来不在同事面前脱外套",
+   "date": "2026-01-19",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m037": {
+   "text": "路上有人踩了主人的球鞋，他当场蹲下来擦了十分钟",
+   "date": "2026-02-01",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m038": {
+   "text": "同事聚会上主人喝了半杯啤酒就脸红，被起哄了半天",
+   "date": "2026-02-16",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m039": {
+   "text": "主人路过健身房被推销办卡，站在门口犹豫了十分钟没办",
+   "date": "2026-03-02",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m040": {
+   "text": "主人去看了一辆二手咖啡车，车主要价太高，他没买",
+   "date": "2026-03-09",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m041": {
+   "text": "团长从笼子里逃了出来，主人在床底下找到它，两颊塞满了瓜子",
+   "date": "2026-04-01",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m042": {
+   "text": "主人的身份证快到期了，打算过年回老家换",
+   "date": "2026-04-02",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m043": {
+   "text": "杰哥骑车摔伤了腿，主人拎着一袋水果去出租屋看他",
+   "date": "2026-04-05",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m044": {
+   "text": "主人去理疗店针灸了一次，医生说是旧伤加劳损，让他少站",
+   "date": "2026-04-10",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m045": {
+   "text": "主人一周练拉花用掉三箱牛奶，被店长委婉地说了一顿",
+   "date": "2026-04-14",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m046": {
+   "text": "主人囤在冰箱里的一箱可乐被来串门的朋友喝掉了一半",
+   "date": "2026-04-26",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m047": {
+   "text": "石叔说下个月起房租要涨一百块，主人在考虑要不要搬家",
+   "date": "2026-05-05",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m048": {
+   "text": "主人给吉他换了新琴弦，音准一下子好了很多",
+   "date": "2026-05-09",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m049": {
+   "text": "主人很怕坐过山车，被同事拉去游乐园时只肯在下面拍照",
+   "date": "2026-05-14",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m050": {
+   "text": "主人买了密封胶把窗框重新打了一圈，当晚下雨居然没漏",
+   "date": "2026-05-17",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m051": {
+   "text": "妈妈在小卖部里拿着主人买的新电饭煲，对着视频笑得合不拢嘴",
+   "date": "2026-05-18",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m052": {
+   "text": "拉面店老板多送了主人一个卤蛋，说看他最近瘦了",
+   "date": "2026-05-30",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m053": {
+   "text": "主人买了个会满屋跑的闹钟，第二天追着它跑了半个房间",
+   "date": "2026-06-08",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m054": {
+   "text": "主人的蓝牙耳机丢了一只，剩下的一只还在用",
+   "date": "2026-06-14",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m055": {
+   "text": "主人在二手平台卖掉一双球鞋，换回了一台二手磨豆机",
+   "date": "2026-06-20",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m056": {
+   "text": "主人每月把三成工资存进专门的卡，攒咖啡车的钱已经有一万多",
+   "date": "2026-06-24",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m057": {
+   "text": "主人在便利店买啤酒，被店员查了身份证，说他看着像高中生",
+   "date": "2026-06-29",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m058": {
+   "text": "主人在二手市场买了台旧显示器，三十块钱还送了线",
+   "date": "2026-07-15",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m059": {
+   "text": "店里的同事小琳爱吃辣，每次点餐都要特辣",
+   "date": "2026-08-26",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m060": {
+   "text": "主人的黑色工作围裙洗得太多，已经褪成了灰色",
+   "date": "2026-09-26",
+   "cluster": null,
+   "role": "filler"
+  }
+ },
+ "cases": [
+  {
+   "id": "r01",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "一个人住有点冷清",
+   "direct": [
+    "m001"
+   ],
+   "chain": [
+    "m018",
+    "m041"
+   ],
+   "also_ok": [
+    "m032"
+   ],
+   "why": "独居冷清，想到屋里养的小动物"
+  },
+  {
+   "id": "r02",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "最近爬楼梯越来越吃力",
+   "direct": [
+    "m002"
+   ],
+   "chain": [
+    "m020",
+    "m044"
+   ],
+   "also_ok": [
+    "m005"
+   ],
+   "why": "爬楼梯吃力，想到他的膝伤"
+  },
+  {
+   "id": "r03",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "下班了好想来点冰的",
+   "direct": [
+    "m007"
+   ],
+   "chain": [
+    "m026",
+    "m046"
+   ],
+   "also_ok": [],
+   "why": "下班累了想来点冰的带气的"
+  },
+  {
+   "id": "r04",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "又到月初了",
+   "direct": [
+    "m009"
+   ],
+   "chain": [
+    "m028",
+    "m047"
+   ],
+   "also_ok": [
+    "m027"
+   ],
+   "why": "月初，想到交租和房东"
+  },
+  {
+   "id": "r05",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "半夜被雨声吵醒",
+   "direct": [
+    "m011"
+   ],
+   "chain": [
+    "m030",
+    "m050"
+   ],
+   "also_ok": [
+    "m002"
+   ],
+   "why": "半夜下雨，想到漏雨的窗"
+  },
+  {
+   "id": "r06",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "指尖又磨出茧了",
+   "direct": [
+    "m012"
+   ],
+   "chain": [
+    "m031",
+    "m048"
+   ],
+   "also_ok": [],
+   "why": "指尖磨出茧，想到练琴"
+  },
+  {
+   "id": "r07",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "好想吃家里的菜",
+   "direct": [
+    "m014"
+   ],
+   "chain": [
+    "m033",
+    "m051"
+   ],
+   "also_ok": [
+    "m013"
+   ],
+   "why": "想家，想到妈妈和老家"
+  },
+  {
+   "id": "r08",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "今天不想做饭",
+   "direct": [
+    "m015"
+   ],
+   "chain": [
+    "m034",
+    "m052"
+   ],
+   "also_ok": [
+    "m013"
+   ],
+   "why": "不想做饭，想到楼下常吃的面馆"
+  },
+  {
+   "id": "r09",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "明早要去开店，该睡了",
+   "direct": [
+    "m017"
+   ],
+   "chain": [
+    "m035",
+    "m053"
+   ],
+   "also_ok": [],
+   "why": "明早要起得很早，想到闹钟"
+  },
+  {
+   "id": "r10",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "路上被人踩了一脚",
+   "direct": [
+    "m021"
+   ],
+   "chain": [
+    "m037",
+    "m055"
+   ],
+   "also_ok": [],
+   "why": "被踩脚，想到他珍惜的白鞋"
+  },
+  {
+   "id": "r11",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "朋友约我晚上撸串",
+   "direct": [
+    "m024"
+   ],
+   "chain": [
+    "m038",
+    "m057"
+   ],
+   "also_ok": [
+    "m023"
+   ],
+   "why": "撸串会喝酒，他一杯就脸红"
+  },
+  {
+   "id": "r12",
+   "type": "remark-assoc",
+   "history": [],
+   "message": "看到街边有人摆摊",
+   "direct": [
+    "m027"
+   ],
+   "chain": [
+    "m040",
+    "m056"
+   ],
+   "also_ok": [],
+   "why": "看到摆摊，想到他想开的流动咖啡摊"
+  },
+  {
+   "id": "n01",
+   "type": "remark-named",
+   "history": [],
+   "message": "团长今天又在啃笼子",
+   "direct": [
+    "m001",
+    "m018",
+    "m041"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n02",
+   "type": "remark-named",
+   "history": [],
+   "message": "杰哥发来一条微信",
+   "direct": [
+    "m004",
+    "m023",
+    "m043"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n03",
+   "type": "remark-named",
+   "history": [],
+   "message": "石叔今天又在门口转悠",
+   "direct": [
+    "m009",
+    "m028",
+    "m047"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n04",
+   "type": "remark-named",
+   "history": [],
+   "message": "今天的拉花拉砸了好几杯",
+   "direct": [
+    "m006",
+    "m022",
+    "m045"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n05",
+   "type": "remark-named",
+   "history": [],
+   "message": "楼下拉面今天关门了",
+   "direct": [
+    "m015",
+    "m034",
+    "m052"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n06",
+   "type": "remark-named",
+   "history": [],
+   "message": "吉他琴头好像有点松了",
+   "direct": [
+    "m012",
+    "m031",
+    "m048"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f01",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "昨晚老同事又给我打电话了"
+    },
+    {
+     "role": "assistant",
+     "content": "是以前一起送外卖的那位？"
+    }
+   ],
+   "message": "对，他那条腿",
+   "direct": [
+    "m043"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m004"
+   ]
+  },
+  {
+   "id": "f02",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "我最近老往银行跑"
+    },
+    {
+     "role": "assistant",
+     "content": "是在存钱吗？"
+    }
+   ],
+   "message": "存了多久来着",
+   "direct": [
+    "m027"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m056"
+   ]
+  },
+  {
+   "id": "f03",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "月底要去交房租"
+    },
+    {
+     "role": "assistant",
+     "content": "是转账还是当面给？"
+    }
+   ],
+   "message": "他几号来来着",
+   "direct": [
+    "m009"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f04",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "今天站了十个小时，累瘫"
+    },
+    {
+     "role": "assistant",
+     "content": "下班想怎么放松一下？"
+    }
+   ],
+   "message": "老样子，冰的",
+   "direct": [
+    "m007"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f05",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "今晚打算练一会儿琴"
+    },
+    {
+     "role": "assistant",
+     "content": "在家练会不会吵到邻居？"
+    }
+   ],
+   "message": "上次就被说了",
+   "direct": [
+    "m031"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m012"
+   ]
+  },
+  {
+   "id": "f06",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "中午去楼下吃了顿好的"
+    },
+    {
+     "role": "assistant",
+     "content": "哪家呀？"
+    }
+   ],
+   "message": "就老地方",
+   "direct": [
+    "m015"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m034",
+    "m052"
+   ]
+  },
+  {
+   "id": "f07",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "今天店长夸我了"
+    },
+    {
+     "role": "assistant",
+     "content": "夸你哪方面呀？"
+    }
+   ],
+   "message": "就我练的那个",
+   "direct": [
+    "m006"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m022",
+    "m045"
+   ]
+  },
+  {
+   "id": "f08",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "上楼梯都有点吃力了"
+    },
+    {
+     "role": "assistant",
+     "content": "是膝盖又不舒服了吗？"
+    }
+   ],
+   "message": "医生怎么说的",
+   "direct": [
+    "m044"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m002"
+   ]
+  },
+  {
+   "id": "q01",
+   "type": "quiet",
+   "history": [],
+   "message": "最近想去看场电影",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q02",
+   "type": "quiet",
+   "history": [],
+   "message": "今天股市涨了没",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q03",
+   "type": "quiet",
+   "history": [],
+   "message": "我想学游泳",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q04",
+   "type": "quiet",
+   "history": [],
+   "message": "刚吃了一个橘子",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  }
+ ]
+}
