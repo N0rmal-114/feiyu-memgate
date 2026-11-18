@@ -1,0 +1,968 @@
+{
+ "world": "dev-driver",
+ "persona": "沈阳的出租车司机，五十多岁，一个人住在铁西区，儿子在深圳工作",
+ "clusters": {
+  "c01": {
+   "entity": "儿子",
+   "terms": [
+    "儿子",
+    "小磊",
+    "深圳"
+   ]
+  },
+  "c02": {
+   "entity": "腰",
+   "terms": [
+    "腰",
+    "腰垫"
+   ]
+  },
+  "c03": {
+   "entity": "老李",
+   "terms": [
+    "老李",
+    "交班"
+   ]
+  },
+  "c04": {
+   "entity": "酸菜",
+   "terms": [
+    "酸菜"
+   ]
+  },
+  "c05": {
+   "entity": "早点",
+   "terms": [
+    "豆腐脑",
+    "刘记"
+   ]
+  },
+  "c06": {
+   "entity": "尿酸",
+   "terms": [
+    "尿酸",
+    "啤酒"
+   ]
+  },
+  "c07": {
+   "entity": "派单",
+   "terms": [
+    "派单",
+    "打车软件"
+   ]
+  },
+  "c08": {
+   "entity": "眼药水",
+   "terms": [
+    "眼药水"
+   ]
+  },
+  "c09": {
+   "entity": "冷面",
+   "terms": [
+    "冷面",
+    "西塔"
+   ]
+  },
+  "c10": {
+   "entity": "雪地胎",
+   "terms": [
+    "雪地胎"
+   ]
+  },
+  "c11": {
+   "entity": "牛奶",
+   "terms": [
+    "牛奶",
+    "乳糖"
+   ]
+  },
+  "c12": {
+   "entity": "鹦鹉",
+   "terms": [
+    "福宝",
+    "鹦鹉"
+   ]
+  },
+  "c13": {
+   "entity": "机场",
+   "terms": [
+    "机场",
+    "桃仙"
+   ]
+  },
+  "c14": {
+   "entity": "象棋",
+   "terms": [
+    "象棋",
+    "老赵"
+   ]
+  },
+  "c15": {
+   "entity": "评书",
+   "terms": [
+    "评书"
+   ]
+  }
+ },
+ "memories": {
+  "m001": {
+   "text": "主人的儿子小磊在深圳做程序员，一年只有春节才回沈阳",
+   "date": "2025-01-13",
+   "cluster": "c01",
+   "role": "fact"
+  },
+  "m002": {
+   "text": "主人腰椎不好，开久了就疼，在座椅上垫了一块护腰垫",
+   "date": "2025-02-10",
+   "cluster": "c02",
+   "role": "fact"
+  },
+  "m003": {
+   "text": "主人今年五十四岁，开了二十多年出租车，一直在沈阳跑",
+   "date": "2025-02-10",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m004": {
+   "text": "老李交班时迟到了四十分钟，主人在公园门口等得直跺脚",
+   "date": "2025-03-19",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m005": {
+   "text": "主人一个人住在铁西区一栋老楼的四楼，楼道里没有电梯",
+   "date": "2025-04-01",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m006": {
+   "text": "每年十月底大白菜上市，主人都要在阳台腌一大缸酸菜",
+   "date": "2025-04-16",
+   "cluster": "c04",
+   "role": "fact"
+  },
+  "m007": {
+   "text": "主人每天出车前都在刘记早点铺吃咸口豆腐脑，配两根油条",
+   "date": "2025-05-23",
+   "cluster": "c05",
+   "role": "fact"
+  },
+  "m008": {
+   "text": "主人的老花镜总找不到，已经在不同的地方放了三副",
+   "date": "2025-06-01",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m009": {
+   "text": "老乡聚会上大家开了啤酒，主人只喝白水，被笑话了一晚上",
+   "date": "2025-06-20",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m010": {
+   "text": "小磊视频时发现主人瘦了，非让主人按时吃饭",
+   "date": "2025-07-01",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m011": {
+   "text": "主人每晚睡前用热水泡脚，一边泡一边看电视剧",
+   "date": "2025-07-21",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m012": {
+   "text": "主人手机上装着打车软件，一有派单就叮咚响个不停，主人嫌吵",
+   "date": "2025-07-27",
+   "cluster": "c07",
+   "role": "fact"
+  },
+  "m013": {
+   "text": "主人开车盯着路一整天，眼睛干涩，储物格里总放着一瓶眼药水",
+   "date": "2025-08-24",
+   "cluster": "c08",
+   "role": "fact"
+  },
+  "m014": {
+   "text": "主人和老李合开一辆出租车，主人开白班，每天下午四点在北陵公园门口交班",
+   "date": "2025-08-25",
+   "cluster": "c03",
+   "role": "fact"
+  },
+  "m015": {
+   "text": "主人的保温杯里常年泡着菊花和枸杞，杯盖上有一道裂痕",
+   "date": "2025-09-09",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m016": {
+   "text": "主人拉完一趟长途下车扶着腰，半天直不起来",
+   "date": "2025-09-14",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m017": {
+   "text": "主人带乘客去西塔吃冷面，乘客吃得太满意，多给了五十块车费",
+   "date": "2025-09-21",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m018": {
+   "text": "主人腌的酸菜缸被邻居家小孩碰歪了，卤水洒了一地",
+   "date": "2025-10-17",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m019": {
+   "text": "每年十一月主人都要给车换上雪地胎，找的是铁西区一家老修车铺",
+   "date": "2025-10-28",
+   "cluster": "c10",
+   "role": "fact"
+  },
+  "m020": {
+   "text": "主人的驾驶座上挂着一个红色的平安结，是前几年同行送的",
+   "date": "2025-11-09",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m021": {
+   "text": "刘记的老板娘多给主人盛了半勺卤，主人当天开车都带着劲",
+   "date": "2025-11-13",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m022": {
+   "text": "主人乳糖不耐受，喝一口牛奶就拉肚子，从来不碰奶制品",
+   "date": "2025-11-25",
+   "cluster": "c11",
+   "role": "fact"
+  },
+  "m023": {
+   "text": "主人尿酸偏高，医生叮嘱少喝啤酒，少吃动物内脏和海鲜",
+   "date": "2025-12-05",
+   "cluster": "c06",
+   "role": "fact"
+  },
+  "m024": {
+   "text": "小磊给主人寄来一箱深圳的荔枝，主人分给了同行们一半",
+   "date": "2025-12-14",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m025": {
+   "text": "主人去年在铁西区的澡堂泡了一次，水太烫，出来头晕了半天",
+   "date": "2025-12-29",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m026": {
+   "text": "福宝趁主人清理鸟笼时飞出来，落在窗帘杆上，哄了半个钟头才下来",
+   "date": "2026-01-01",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m027": {
+   "text": "打车软件派来一单，导航却把乘客位置标错了，主人白跑了三公里",
+   "date": "2026-01-02",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m028": {
+   "text": "老李在车后座落了一把雨伞，主人第二天特意带给他",
+   "date": "2026-01-05",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m029": {
+   "text": "主人的眼药水用完了，在药店买到另一个牌子，滴着有点刺",
+   "date": "2026-01-23",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m030": {
+   "text": "主人偶尔凌晨去桃仙机场排队接早班飞机的客人，一趟能跑一百多块",
+   "date": "2026-01-29",
+   "cluster": "c13",
+   "role": "fact"
+  },
+  "m031": {
+   "text": "主人夏天最爱去西塔的金花冷面馆，每次都要加一份牛肉和半个鸡蛋",
+   "date": "2026-02-14",
+   "cluster": "c09",
+   "role": "fact"
+  },
+  "m032": {
+   "text": "主人在小区门口的修锁摊配过一把钥匙，师傅只收了五块",
+   "date": "2026-02-17",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m033": {
+   "text": "修车铺的师傅说雪地胎纹路磨平了，劝主人换新的，主人心疼了好几天",
+   "date": "2026-02-25",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m034": {
+   "text": "主人等活儿的时候爱在出租车休息站和老赵下象棋，十盘总要输六盘",
+   "date": "2026-03-07",
+   "cluster": "c14",
+   "role": "fact"
+  },
+  "m035": {
+   "text": "主人误喝了一口牛奶咖啡，在服务区的厕所里待了二十分钟",
+   "date": "2026-03-18",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m036": {
+   "text": "主人家里养了一只绿色鹦鹉叫福宝，学会了一句“师傅去哪儿”",
+   "date": "2026-03-22",
+   "cluster": "c12",
+   "role": "fact"
+  },
+  "m037": {
+   "text": "评书正讲到紧要关头，乘客上车让主人换成音乐，主人憋了一路",
+   "date": "2026-04-04",
+   "cluster": "c15",
+   "role": "episode"
+  },
+  "m038": {
+   "text": "主人的腰垫被乘客的行李压坏了一角，海绵漏了出来",
+   "date": "2026-04-13",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m039": {
+   "text": "主人的驾照每年都要审验，上个月去交警队办了续期",
+   "date": "2026-04-19",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m040": {
+   "text": "主人用自己腌的酸菜炖了一锅白肉，请老乡们来家里吃",
+   "date": "2026-04-24",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m041": {
+   "text": "主人在机场排了三个小时的队，最后接到一个只去隔壁小区的客人",
+   "date": "2026-05-07",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m042": {
+   "text": "刘记早点铺休息了三天，主人只好在便利店凑合了一顿",
+   "date": "2026-05-09",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m043": {
+   "text": "小磊说想接主人去深圳过冬，主人嫌那边太湿，没答应",
+   "date": "2026-05-12",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m044": {
+   "text": "主人复查尿酸降了一点，高兴得想请自己吃顿好的，又忍住了",
+   "date": "2026-05-21",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m045": {
+   "text": "主人把眼药水落在了乘客座位上，乘客追了半条街还给了主人",
+   "date": "2026-06-01",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m046": {
+   "text": "老赵连赢三盘后得意地哼起了小曲，主人把棋盘一推，说今天不下了",
+   "date": "2026-06-03",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m047": {
+   "text": "老李的女儿考上了大学，老李请主人在铁西吃了顿炖菜",
+   "date": "2026-06-04",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m048": {
+   "text": "主人在红灯前接了一个派单，被后面的车按喇叭催了半天",
+   "date": "2026-06-06",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m049": {
+   "text": "福宝半夜突然喊师傅去哪儿，把主人吓得从床上坐了起来",
+   "date": "2026-06-08",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m050": {
+   "text": "主人家楼下新开了一家超市，鸡蛋比别处便宜五毛",
+   "date": "2026-06-08",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m051": {
+   "text": "冷面馆的醋瓶空了，主人只好加了点辣酱，吃完直呼不对味",
+   "date": "2026-06-13",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m052": {
+   "text": "主人开车时爱听评书电台，一讲到关键处就盼着别遇上红灯",
+   "date": "2026-06-25",
+   "cluster": "c15",
+   "role": "fact"
+  },
+  "m053": {
+   "text": "主人换雪地胎时排了两小时的队，旁边一排出租车都在等",
+   "date": "2026-06-29",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m054": {
+   "text": "主人买了乳糖酶片放在车里，说是救急，但至今没敢试",
+   "date": "2026-07-11",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m055": {
+   "text": "主人最爱穿一件深蓝色的旧夹克，袖口磨白了也舍不得扔",
+   "date": "2026-07-28",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m056": {
+   "text": "休息站的象棋少了一颗马，主人用瓶盖凑合着代替",
+   "date": "2026-08-06",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m057": {
+   "text": "主人给福宝买了新鸟笼，福宝怕生，三天不肯吃东西",
+   "date": "2026-08-08",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m058": {
+   "text": "桃仙机场路上起了大雾，主人开得很慢，客人还是赶上了飞机",
+   "date": "2026-08-08",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m059": {
+   "text": "主人下载了一整部评书，堵车的时候拿出来听",
+   "date": "2026-08-18",
+   "cluster": "c15",
+   "role": "episode"
+  },
+  "m060": {
+   "text": "主人的堂哥在大连开了家小饭馆，说好等主人退休去住几天",
+   "date": "2026-09-27",
+   "cluster": null,
+   "role": "filler"
+  }
+ },
+ "cases": [
+  {
+   "id": "r01",
+   "type": "remark-assoc",
+   "kind": "craving",
+   "history": [],
+   "message": "早上起来就想喝口热乎的",
+   "direct": [
+    "m007"
+   ],
+   "chain": [
+    "m021",
+    "m042"
+   ],
+   "also_ok": [
+    "m015"
+   ],
+   "why": "早晨想喝热的，常去的早点铺"
+  },
+  {
+   "id": "r02",
+   "type": "remark-assoc",
+   "kind": "craving",
+   "history": [],
+   "message": "热得啥也吃不下，想来点爽口的",
+   "direct": [
+    "m031"
+   ],
+   "chain": [
+    "m017",
+    "m051"
+   ],
+   "also_ok": [],
+   "why": "热天没胃口，常去的冷面馆"
+  },
+  {
+   "id": "r03",
+   "type": "remark-assoc",
+   "kind": "body",
+   "history": [],
+   "message": "看东西有点发糊",
+   "direct": [
+    "m013"
+   ],
+   "chain": [
+    "m029",
+    "m045"
+   ],
+   "also_ok": [
+    "m008"
+   ],
+   "why": "开了一天车眼睛干涩，想到眼药水"
+  },
+  {
+   "id": "r04",
+   "type": "remark-assoc",
+   "kind": "body",
+   "history": [],
+   "message": "收车下来，半天才站得直",
+   "direct": [
+    "m002"
+   ],
+   "chain": [
+    "m016",
+    "m038"
+   ],
+   "also_ok": [],
+   "why": "久坐开车，想到腰疼和腰垫"
+  },
+  {
+   "id": "r05",
+   "type": "remark-assoc",
+   "kind": "trigger",
+   "history": [],
+   "message": "手机嗡嗡响了一天",
+   "direct": [
+    "m012"
+   ],
+   "chain": [
+    "m027",
+    "m048"
+   ],
+   "also_ok": [],
+   "why": "手机一直响，想到打车软件的派单"
+  },
+  {
+   "id": "r06",
+   "type": "remark-assoc",
+   "kind": "trigger",
+   "history": [],
+   "message": "天气预报说夜里有大雪",
+   "direct": [
+    "m019"
+   ],
+   "chain": [
+    "m033",
+    "m053"
+   ],
+   "also_ok": [],
+   "why": "下大雪，想到换雪地胎"
+  },
+  {
+   "id": "r07",
+   "type": "remark-assoc",
+   "kind": "time",
+   "history": [],
+   "message": "快下午四点了",
+   "direct": [
+    "m014"
+   ],
+   "chain": [
+    "m004",
+    "m028",
+    "m047"
+   ],
+   "also_ok": [],
+   "why": "四点要去交班，想到老李"
+  },
+  {
+   "id": "r08",
+   "type": "remark-assoc",
+   "kind": "time",
+   "history": [],
+   "message": "十月快过完了",
+   "direct": [
+    "m006"
+   ],
+   "chain": [
+    "m018",
+    "m040"
+   ],
+   "also_ok": [
+    "m019"
+   ],
+   "why": "十月底是腌酸菜的时候"
+  },
+  {
+   "id": "r09",
+   "type": "remark-assoc",
+   "kind": "trait",
+   "history": [],
+   "message": "老乡聚会，说要整两瓶好酒",
+   "direct": [
+    "m023"
+   ],
+   "chain": [
+    "m009",
+    "m044"
+   ],
+   "also_ok": [],
+   "why": "喝酒聚会，想到尿酸高不能喝酒"
+  },
+  {
+   "id": "r10",
+   "type": "remark-assoc",
+   "kind": "trait",
+   "history": [],
+   "message": "乘客送了我一杯热奶茶",
+   "direct": [
+    "m022"
+   ],
+   "chain": [
+    "m035",
+    "m054"
+   ],
+   "also_ok": [],
+   "why": "奶茶，想到乳糖不耐受"
+  },
+  {
+   "id": "r11",
+   "type": "remark-assoc",
+   "kind": "emotion",
+   "history": [],
+   "message": "刷到别人一家团圆的视频",
+   "direct": [
+    "m001"
+   ],
+   "chain": [
+    "m010",
+    "m024",
+    "m043"
+   ],
+   "also_ok": [],
+   "why": "团圆，想到不在身边的儿子"
+  },
+  {
+   "id": "r12",
+   "type": "remark-assoc",
+   "kind": "emotion",
+   "history": [],
+   "message": "收车到家，屋里静悄悄的",
+   "direct": [
+    "m036"
+   ],
+   "chain": [
+    "m026",
+    "m049",
+    "m057"
+   ],
+   "also_ok": [
+    "m005",
+    "m001"
+   ],
+   "why": "家里静，想到等着的鹦鹉"
+  },
+  {
+   "id": "n01",
+   "type": "remark-named",
+   "history": [],
+   "message": "福宝今天又学了一句新话",
+   "direct": [
+    "m036",
+    "m026",
+    "m049",
+    "m057"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n02",
+   "type": "remark-named",
+   "history": [],
+   "message": "刘记今天居然没开门",
+   "direct": [
+    "m007",
+    "m021",
+    "m042"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n03",
+   "type": "remark-named",
+   "history": [],
+   "message": "老李今天又晚了点",
+   "direct": [
+    "m014",
+    "m004",
+    "m028",
+    "m047"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n04",
+   "type": "remark-named",
+   "history": [],
+   "message": "小磊说下个月可能回来",
+   "direct": [
+    "m001",
+    "m010",
+    "m024",
+    "m043"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n05",
+   "type": "remark-named",
+   "history": [],
+   "message": "西塔那家今天排了老长的队",
+   "direct": [
+    "m031",
+    "m017",
+    "m051"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n06",
+   "type": "remark-named",
+   "history": [],
+   "message": "腰垫好像该换了",
+   "direct": [
+    "m002",
+    "m016",
+    "m038"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f01",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "昨晚跟小磊视频了"
+    },
+    {
+     "role": "assistant",
+     "content": "他最近怎么样？"
+    }
+   ],
+   "message": "他说我瘦了",
+   "direct": [
+    "m010"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m001"
+   ]
+  },
+  {
+   "id": "f02",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "家里那只话痨又闹腾了"
+    },
+    {
+     "role": "assistant",
+     "content": "是不是又学新词了？"
+    }
+   ],
+   "message": "半夜吓我一跳",
+   "direct": [
+    "m049"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m036"
+   ]
+  },
+  {
+   "id": "f03",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "今天交班的时候又吵了两句"
+    },
+    {
+     "role": "assistant",
+     "content": "这次又因为什么？"
+    }
+   ],
+   "message": "晚了快一小时",
+   "direct": [
+    "m004"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m014"
+   ]
+  },
+  {
+   "id": "f04",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "今天凌晨接了个早班飞机的单"
+    },
+    {
+     "role": "assistant",
+     "content": "一大早出门，辛苦了，顺利吗？"
+    }
+   ],
+   "message": "排了三个钟头",
+   "direct": [
+    "m041"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m030"
+   ]
+  },
+  {
+   "id": "f05",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "刘记今天人好多"
+    },
+    {
+     "role": "assistant",
+     "content": "那你排到队了吗？"
+    }
+   ],
+   "message": "老板娘还多给了",
+   "direct": [
+    "m021"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m007"
+   ]
+  },
+  {
+   "id": "f06",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "同行说周末去喝两杯"
+    },
+    {
+     "role": "assistant",
+     "content": "你去吗？"
+    }
+   ],
+   "message": "我可不敢",
+   "direct": [
+    "m023",
+    "m009"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f07",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "雪地胎的事你还记得吗"
+    },
+    {
+     "role": "assistant",
+     "content": "记得，是不是该换了？"
+    }
+   ],
+   "message": "排队排了俩钟头",
+   "direct": [
+    "m053"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m019"
+   ]
+  },
+  {
+   "id": "f08",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "新买的缸又得挪地方了"
+    },
+    {
+     "role": "assistant",
+     "content": "是腌菜那个缸吗？"
+    }
+   ],
+   "message": "洒了一地",
+   "direct": [
+    "m018"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m006"
+   ]
+  },
+  {
+   "id": "q01",
+   "type": "quiet",
+   "history": [],
+   "message": "新买的毛巾有点硬",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q02",
+   "type": "quiet",
+   "history": [],
+   "message": "对面楼的窗外挂了一串红灯笼",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q03",
+   "type": "quiet",
+   "history": [],
+   "message": "白球鞋刷了半天还是发黄",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q04",
+   "type": "quiet",
+   "history": [],
+   "message": "今天的月亮好圆啊",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  }
+ ]
+}

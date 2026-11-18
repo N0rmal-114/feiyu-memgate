@@ -1,0 +1,954 @@
+{
+ "world": "dev-parent",
+ "persona": "郑州的全职妈妈（宝妈），三十出头，带着五岁的大女儿和两岁的小儿子，丈夫常加班",
+ "clusters": {
+  "c01": {
+   "entity": "芒果过敏",
+   "terms": [
+    "芒果",
+    "糖糖"
+   ]
+  },
+  "c02": {
+   "entity": "游乐场",
+   "terms": [
+    "滑梯",
+    "游乐场"
+   ]
+  },
+  "c03": {
+   "entity": "夜奶",
+   "terms": [
+    "夜奶",
+    "豆豆"
+   ]
+  },
+  "c04": {
+   "entity": "婆婆",
+   "terms": [
+    "婆婆"
+   ]
+  },
+  "c05": {
+   "entity": "老公加班",
+   "terms": [
+    "老公",
+    "加班"
+   ]
+  },
+  "c06": {
+   "entity": "菜市场",
+   "terms": [
+    "菜市场",
+    "王姨"
+   ]
+  },
+  "c07": {
+   "entity": "绘本",
+   "terms": [
+    "绘本"
+   ]
+  },
+  "c08": {
+   "entity": "空气炸锅",
+   "terms": [
+    "空气炸锅",
+    "鸡翅"
+   ]
+  },
+  "c09": {
+   "entity": "胡辣汤",
+   "terms": [
+    "胡辣汤",
+    "油条"
+   ]
+  },
+  "c10": {
+   "entity": "腱鞘炎",
+   "terms": [
+    "腱鞘炎",
+    "护腕"
+   ]
+  },
+  "c11": {
+   "entity": "雨衣",
+   "terms": [
+    "雨衣",
+    "小黄鸭"
+   ]
+  },
+  "c12": {
+   "entity": "家长群",
+   "terms": [
+    "家长群",
+    "接龙"
+   ]
+  },
+  "c13": {
+   "entity": "坐飞机",
+   "terms": [
+    "飞机",
+    "坐飞机"
+   ]
+  },
+  "c14": {
+   "entity": "闺蜜",
+   "terms": [
+    "闺蜜",
+    "小雅"
+   ]
+  }
+ },
+ "memories": {
+  "m001": {
+   "text": "主人的大女儿糖糖对芒果过敏，一吃嘴边就起红疹，家里从来不买",
+   "date": "2025-01-13",
+   "cluster": "c01",
+   "role": "fact"
+  },
+  "m002": {
+   "text": "主人今年三十二岁，以前在郑州一家外贸公司做行政，生了二胎后辞职在家",
+   "date": "2025-02-10",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m003": {
+   "text": "主人每天傍晚带两个孩子去小区的游乐场，小儿子只肯玩那个蓝色滑梯",
+   "date": "2025-02-12",
+   "cluster": "c02",
+   "role": "fact"
+  },
+  "m004": {
+   "text": "主人一家住在郑东新区的两居室，小区的电梯总是很慢",
+   "date": "2025-03-13",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m005": {
+   "text": "主人想给豆豆断夜奶，哄了三晚，豆豆哭得邻居敲了墙",
+   "date": "2025-03-23",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m006": {
+   "text": "主人的婆婆住在周口，每个月底来住三四天，帮忙带孩子",
+   "date": "2025-04-22",
+   "cluster": "c04",
+   "role": "fact"
+  },
+  "m007": {
+   "text": "主人的手机相册里有四千多张照片，几乎全是两个孩子的",
+   "date": "2025-04-24",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m008": {
+   "text": "主人最近在追一部讲民宿老板的综艺，趁孩子睡了偷偷看",
+   "date": "2025-05-25",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m009": {
+   "text": "主人的老公在互联网公司上班，经常加班到晚上十点多才到家",
+   "date": "2025-05-31",
+   "cluster": "c05",
+   "role": "fact"
+  },
+  "m010": {
+   "text": "主人每天早上冲一杯速溶拿铁，喝到一半就凉了",
+   "date": "2025-06-25",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m011": {
+   "text": "王姨看主人带着两个孩子，每次都多送一把小葱，不肯收钱",
+   "date": "2025-06-30",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m012": {
+   "text": "主人的弟弟在南京读研，暑假会来郑州住上一阵",
+   "date": "2025-08-06",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m013": {
+   "text": "主人每晚洗完澡给两个孩子读绘本，大女儿最爱听一本讲小熊的",
+   "date": "2025-08-08",
+   "cluster": "c07",
+   "role": "fact"
+  },
+  "m014": {
+   "text": "幼儿园加餐发了芒果布丁，老师打来电话，主人赶去给糖糖涂了药膏",
+   "date": "2025-08-24",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m015": {
+   "text": "主人家的洗衣机甩干时哐哐响，一直没找人来修",
+   "date": "2025-09-06",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m016": {
+   "text": "主人买了台空气炸锅，孩子们最爱吃里面做出来的鸡翅",
+   "date": "2025-09-07",
+   "cluster": "c08",
+   "role": "fact"
+  },
+  "m017": {
+   "text": "小儿子从滑梯上溜下来磕破了嘴唇，哭了很久，主人抱着哄了半小时",
+   "date": "2025-09-16",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m018": {
+   "text": "巷口的胡辣汤摊周末歇业，主人转了三条街才喝上一碗，油条已经凉了",
+   "date": "2025-10-07",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m019": {
+   "text": "主人网购了一双运动鞋，打算等孩子大点就去跑步，现在还躺在鞋盒里",
+   "date": "2025-10-07",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m020": {
+   "text": "主人的小儿子豆豆两岁了，每晚凌晨还要醒来喝一次夜奶，主人睡不整觉",
+   "date": "2025-10-15",
+   "cluster": "c03",
+   "role": "fact"
+  },
+  "m021": {
+   "text": "婆婆带来一袋自家蒸的馒头，说郑州的馒头没有麦香味",
+   "date": "2025-10-21",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m022": {
+   "text": "主人天天抱孩子，右手手腕得了腱鞘炎，平时要戴护腕，晚上贴膏药",
+   "date": "2025-11-15",
+   "cluster": "c10",
+   "role": "fact"
+  },
+  "m023": {
+   "text": "主人大学读的是英语专业，现在偶尔给孩子放英文儿歌",
+   "date": "2025-11-18",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m024": {
+   "text": "主人给加班的老公留了饭，他回来时已经凉了，只好自己热一下",
+   "date": "2025-11-19",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m025": {
+   "text": "主人每天早上去小区后门的菜市场买菜，常买王姨摊上的青菜",
+   "date": "2025-12-12",
+   "cluster": "c06",
+   "role": "fact"
+  },
+  "m026": {
+   "text": "大女儿有一件小黄鸭雨衣，下雨天非要穿着出门，还爱专门去踩水坑",
+   "date": "2025-12-15",
+   "cluster": "c11",
+   "role": "fact"
+  },
+  "m027": {
+   "text": "主人每个月去一次超市的会员日，囤洗衣液和卷纸",
+   "date": "2025-12-19",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m028": {
+   "text": "小儿子把绘本撕掉了一页，主人用透明胶带粘好，孩子还要继续翻",
+   "date": "2026-01-10",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m029": {
+   "text": "主人的钥匙总放在鞋柜上，出门前还是要翻半天",
+   "date": "2026-01-19",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m030": {
+   "text": "家长群里有人发错了接龙的格式，主人一条条帮忙改，改到十点",
+   "date": "2026-01-23",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m031": {
+   "text": "主人第一次用空气炸锅做鸡翅，忘了翻面，一面焦了一面还是生的",
+   "date": "2026-02-02",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m032": {
+   "text": "主人怕坐飞机，起飞时手心全是汗，所以家里的旅行都尽量选高铁",
+   "date": "2026-02-22",
+   "cluster": "c13",
+   "role": "fact"
+  },
+  "m033": {
+   "text": "主人每个周末早上都去巷口买胡辣汤，配一根油条，要多放胡椒",
+   "date": "2026-02-25",
+   "cluster": "c09",
+   "role": "fact"
+  },
+  "m034": {
+   "text": "主人前阵子在小区跳蚤市场卖掉了孩子穿小的衣服",
+   "date": "2026-03-02",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m035": {
+   "text": "主人去社区医院理疗腱鞘炎，医生叮嘱少提重物，可孩子天天要抱",
+   "date": "2026-03-09",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m036": {
+   "text": "大女儿穿着小黄鸭雨衣一脚踩进水坑，溅了主人一裤腿泥",
+   "date": "2026-04-01",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m037": {
+   "text": "亲戚寄来一箱芒果，主人没敢拆，连夜送给了楼下的邻居",
+   "date": "2026-04-01",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m038": {
+   "text": "主人的闺蜜小雅是大学同学，也在郑州，两人常约着带孩子一起玩",
+   "date": "2026-04-02",
+   "cluster": "c14",
+   "role": "fact"
+  },
+  "m039": {
+   "text": "主人不爱吃香菜，点外卖时总要备注不要放",
+   "date": "2026-04-02",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m040": {
+   "text": "豆豆夜里喝完奶不肯睡，主人抱着他在客厅来回走了一个小时",
+   "date": "2026-04-13",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m041": {
+   "text": "下过雨的游乐场滑梯特别滑，主人拦着不让上，孩子站在一旁生闷气",
+   "date": "2026-04-14",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m042": {
+   "text": "婆婆嫌主人给孩子穿得少，趁主人不注意又给孩子加了一件毛衣",
+   "date": "2026-04-26",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m043": {
+   "text": "主人是大女儿班上家长群的接龙负责人，每天要统计孩子出勤",
+   "date": "2026-04-30",
+   "cluster": "c12",
+   "role": "fact"
+  },
+  "m044": {
+   "text": "老公说下周项目上线，要连着加班一周，主人提前把家务排好了",
+   "date": "2026-05-12",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m045": {
+   "text": "小区门口新开了一家奶茶店，主人想去尝尝，一直没抽出空",
+   "date": "2026-05-14",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m046": {
+   "text": "主人坐飞机去三亚那次，起飞时全程闭着眼，下机后腿软了半天",
+   "date": "2026-05-23",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m047": {
+   "text": "菜市场的猪肉涨了价，主人和王姨聊了半天，最后只买了半斤",
+   "date": "2026-05-25",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m048": {
+   "text": "空气炸锅的篮子沾了油，主人洗了半天，决定以后都垫锡纸",
+   "date": "2026-06-06",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m049": {
+   "text": "主人在小区图书角给孩子换了三本新绘本，大女儿抱着不肯撒手",
+   "date": "2026-06-10",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m050": {
+   "text": "主人家的阳台养了几盆绿萝，浇水总靠孩子提醒",
+   "date": "2026-06-14",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m051": {
+   "text": "主人给孩子也买了一小碗胡辣汤，大女儿辣得直吐舌头，却还要喝",
+   "date": "2026-06-19",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m052": {
+   "text": "小雅来家里吃饭，两人聊到半夜吐槽带孩子的烦心事，笑得很大声",
+   "date": "2026-06-21",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m053": {
+   "text": "主人洗澡时忘了摘护腕，被水泡湿，只好拧干放在暖气上烘",
+   "date": "2026-07-05",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m054": {
+   "text": "每年生日，两个孩子都会画一张贺卡送给主人",
+   "date": "2026-07-15",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m055": {
+   "text": "小黄鸭雨衣的帽子带子断了，主人晚上坐在灯下缝了半个小时",
+   "date": "2026-07-18",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m056": {
+   "text": "主人把家长群设成了免打扰，结果错过了明天要带校服的通知",
+   "date": "2026-08-03",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m057": {
+   "text": "闺蜜小雅送了主人一条围巾，说主人好久没给自己买过东西了",
+   "date": "2026-08-15",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m058": {
+   "text": "主人为了带孩子旅游硬着头皮坐飞机，把大女儿的小手攥出了红印",
+   "date": "2026-08-16",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m059": {
+   "text": "主人每天洗完碗都会把台面擦两遍，说这样孩子才不会碰到脏东西",
+   "date": "2026-08-26",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m060": {
+   "text": "主人家书柜顶上堆着几个没拆封的快递盒，一直没收拾",
+   "date": "2026-09-26",
+   "cluster": null,
+   "role": "filler"
+  }
+ },
+ "cases": [
+  {
+   "id": "r01",
+   "type": "remark-assoc",
+   "kind": "craving",
+   "history": [],
+   "message": "嘴馋了，想吃点香脆的肉",
+   "direct": [
+    "m016"
+   ],
+   "chain": [
+    "m031",
+    "m048"
+   ],
+   "also_ok": [],
+   "why": "想吃香脆的肉，想到孩子爱吃的炸鸡翅"
+  },
+  {
+   "id": "r02",
+   "type": "remark-assoc",
+   "kind": "craving",
+   "history": [],
+   "message": "想吃点热乎乎辣辣的汤",
+   "direct": [
+    "m033"
+   ],
+   "chain": [
+    "m018",
+    "m051"
+   ],
+   "also_ok": [],
+   "why": "想吃热辣的汤，想到周末早上常去喝的那一碗"
+  },
+  {
+   "id": "r03",
+   "type": "remark-assoc",
+   "kind": "body",
+   "history": [],
+   "message": "眼皮沉得睁不开",
+   "direct": [
+    "m020"
+   ],
+   "chain": [
+    "m005",
+    "m040"
+   ],
+   "also_ok": [
+    "m010"
+   ],
+   "why": "困得睁不开眼，想到每晚被叫醒的夜里"
+  },
+  {
+   "id": "r04",
+   "type": "remark-assoc",
+   "kind": "body",
+   "history": [],
+   "message": "拧毛巾的时候手好疼",
+   "direct": [
+    "m022"
+   ],
+   "chain": [
+    "m035",
+    "m053"
+   ],
+   "also_ok": [],
+   "why": "手使不上劲疼，想到抱孩子落下的手腕毛病"
+  },
+  {
+   "id": "r05",
+   "type": "remark-assoc",
+   "kind": "trigger",
+   "history": [],
+   "message": "天阴沉沉的，像要下大雨",
+   "direct": [
+    "m026"
+   ],
+   "chain": [
+    "m036",
+    "m055"
+   ],
+   "also_ok": [
+    "m041"
+   ],
+   "why": "要下大雨，想到孩子下雨天必穿的雨衣"
+  },
+  {
+   "id": "r06",
+   "type": "remark-assoc",
+   "kind": "trigger",
+   "history": [],
+   "message": "手机又嗡嗡响个不停",
+   "direct": [
+    "m043"
+   ],
+   "chain": [
+    "m030",
+    "m056"
+   ],
+   "also_ok": [],
+   "why": "手机一直震，想到停不下来的群消息"
+  },
+  {
+   "id": "r07",
+   "type": "remark-assoc",
+   "kind": "time",
+   "history": [],
+   "message": "又到月底了",
+   "direct": [
+    "m006"
+   ],
+   "chain": [
+    "m021",
+    "m042"
+   ],
+   "also_ok": [],
+   "why": "月底，想到婆婆又要来住几天"
+  },
+  {
+   "id": "r08",
+   "type": "remark-assoc",
+   "kind": "time",
+   "history": [],
+   "message": "晚上八点，孩子洗完澡了",
+   "direct": [
+    "m013"
+   ],
+   "chain": [
+    "m028",
+    "m049"
+   ],
+   "also_ok": [],
+   "why": "洗完澡，想到每晚睡前的读书时间"
+  },
+  {
+   "id": "r09",
+   "type": "remark-assoc",
+   "kind": "trait",
+   "history": [],
+   "message": "幼儿园老师问有没有忌口",
+   "direct": [
+    "m001"
+   ],
+   "chain": [
+    "m014",
+    "m037"
+   ],
+   "also_ok": [],
+   "why": "老师问忌口，想到糖糖对芒果过敏"
+  },
+  {
+   "id": "r10",
+   "type": "remark-assoc",
+   "kind": "trait",
+   "history": [],
+   "message": "暑假想带孩子们去趟新疆玩",
+   "direct": [
+    "m032"
+   ],
+   "chain": [
+    "m046",
+    "m058"
+   ],
+   "also_ok": [],
+   "why": "要去海南，路远想到他怕坐飞机"
+  },
+  {
+   "id": "r11",
+   "type": "remark-assoc",
+   "kind": "emotion",
+   "history": [],
+   "message": "孩子睡了，客厅就剩我一个",
+   "direct": [
+    "m009"
+   ],
+   "chain": [
+    "m024",
+    "m044"
+   ],
+   "also_ok": [
+    "m008"
+   ],
+   "why": "夜里一个人守着，想到还没回家的另一半"
+  },
+  {
+   "id": "r12",
+   "type": "remark-assoc",
+   "kind": "emotion",
+   "history": [],
+   "message": "好想有人陪我逛逛街",
+   "direct": [
+    "m038"
+   ],
+   "chain": [
+    "m052",
+    "m057"
+   ],
+   "also_ok": [],
+   "why": "想有人陪，想到常约的好友"
+  },
+  {
+   "id": "n01",
+   "type": "remark-named",
+   "history": [],
+   "message": "糖糖今天又在墙上乱画",
+   "direct": [
+    "m001",
+    "m014",
+    "m037"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n02",
+   "type": "remark-named",
+   "history": [],
+   "message": "婆婆下周要来住几天",
+   "direct": [
+    "m006",
+    "m021",
+    "m042"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n03",
+   "type": "remark-named",
+   "history": [],
+   "message": "小雅约我周六带孩子出去",
+   "direct": [
+    "m038",
+    "m052",
+    "m057"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n04",
+   "type": "remark-named",
+   "history": [],
+   "message": "豆豆昨晚又醒了好几次",
+   "direct": [
+    "m020",
+    "m005",
+    "m040"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n05",
+   "type": "remark-named",
+   "history": [],
+   "message": "空气炸锅的篮子该洗了",
+   "direct": [
+    "m016",
+    "m031",
+    "m048"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n06",
+   "type": "remark-named",
+   "history": [],
+   "message": "王姨今天没出摊",
+   "direct": [
+    "m025",
+    "m011",
+    "m047"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f01",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "家长群里又有人发错了格式"
+    },
+    {
+     "role": "assistant",
+     "content": "那你得一条条帮忙改了吧？"
+    }
+   ],
+   "message": "又改到十点多",
+   "direct": [
+    "m030"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m043"
+   ]
+  },
+  {
+   "id": "f02",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "最近那个小家伙晚上总不好好睡"
+    },
+    {
+     "role": "assistant",
+     "content": "是不是又半夜醒了？"
+    }
+   ],
+   "message": "邻居都来敲墙了",
+   "direct": [
+    "m005"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m020"
+   ]
+  },
+  {
+   "id": "f03",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "周末想去巷口那家摊子"
+    },
+    {
+     "role": "assistant",
+     "content": "是你常去的那家吗？"
+    }
+   ],
+   "message": "上次转了三条街",
+   "direct": [
+    "m018"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m033"
+   ]
+  },
+  {
+   "id": "f04",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "我婆婆下周又要来了"
+    },
+    {
+     "role": "assistant",
+     "content": "这次打算住几天？"
+    }
+   ],
+   "message": "估计又要加衣服",
+   "direct": [
+    "m042"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m006"
+   ]
+  },
+  {
+   "id": "f05",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "昨天接孩子放学下大雨了"
+    },
+    {
+     "role": "assistant",
+     "content": "那孩子淋湿了吗？"
+    }
+   ],
+   "message": "她专挑水多的走",
+   "direct": [
+    "m036"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m026"
+   ]
+  },
+  {
+   "id": "f06",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "糖糖今天又在问我要黄色的水果"
+    },
+    {
+     "role": "assistant",
+     "content": "是你家一直不买的那种吗？"
+    }
+   ],
+   "message": "上回幼儿园那次",
+   "direct": [
+    "m014"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m001"
+   ]
+  },
+  {
+   "id": "f07",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "昨晚他又忙到半夜才回来"
+    },
+    {
+     "role": "assistant",
+     "content": "辛苦了，你一直等着吗？"
+    }
+   ],
+   "message": "饭都凉了",
+   "direct": [
+    "m024"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m009"
+   ]
+  },
+  {
+   "id": "f08",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "小雅明天要来家里吃饭"
+    },
+    {
+     "role": "assistant",
+     "content": "太好了，好久没见了"
+    }
+   ],
+   "message": "又要聊到半夜",
+   "direct": [
+    "m052"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m038"
+   ]
+  },
+  {
+   "id": "q01",
+   "type": "quiet",
+   "history": [],
+   "message": "客厅的台灯灯泡闪了好几下",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q02",
+   "type": "quiet",
+   "history": [],
+   "message": "卧室窗帘的挂钩掉了一个",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q03",
+   "type": "quiet",
+   "history": [],
+   "message": "餐桌的腿好像有点晃",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q04",
+   "type": "quiet",
+   "history": [],
+   "message": "那家理发店的招牌换成红色了",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  }
+ ]
+}

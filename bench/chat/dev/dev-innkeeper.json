@@ -1,0 +1,972 @@
+{
+ "world": "dev-innkeeper",
+ "persona": "三十多岁，辞掉深圳的设计工作，在云南山村开了一家只有六间房的小客栈",
+ "clusters": {
+  "c01": {
+   "entity": "土狗",
+   "terms": [
+    "土豆",
+    "狗"
+   ]
+  },
+  "c02": {
+   "entity": "手冲咖啡",
+   "terms": [
+    "咖啡",
+    "手冲"
+   ]
+  },
+  "c03": {
+   "entity": "野生菌",
+   "terms": [
+    "野生菌",
+    "菌子"
+   ]
+  },
+  "c04": {
+   "entity": "房东杨阿婆",
+   "terms": [
+    "杨阿婆",
+    "房东"
+   ]
+  },
+  "c05": {
+   "entity": "火塘",
+   "terms": [
+    "火塘"
+   ]
+  },
+  "c06": {
+   "entity": "偏头痛",
+   "terms": [
+    "偏头痛",
+    "风油精"
+   ]
+  },
+  "c07": {
+   "entity": "前同事老周",
+   "terms": [
+    "老周"
+   ]
+  },
+  "c08": {
+   "entity": "摄影师阿凯",
+   "terms": [
+    "阿凯",
+    "摄影师"
+   ]
+  },
+  "c09": {
+   "entity": "烘干机",
+   "terms": [
+    "烘干机"
+   ]
+  },
+  "c10": {
+   "entity": "村口米线",
+   "terms": [
+    "米线",
+    "阿梅"
+   ]
+  },
+  "c11": {
+   "entity": "蜈蚣",
+   "terms": [
+    "蜈蚣"
+   ]
+  },
+  "c12": {
+   "entity": "打雷",
+   "terms": [
+    "打雷",
+    "雷声"
+   ]
+  },
+  "c13": {
+   "entity": "热水器",
+   "terms": [
+    "热水器",
+    "太阳能"
+   ]
+  },
+  "c14": {
+   "entity": "吉他",
+   "terms": [
+    "吉他"
+   ]
+  },
+  "c15": {
+   "entity": "面包车",
+   "terms": [
+    "面包车"
+   ]
+  },
+  "c16": {
+   "entity": "爸爸",
+   "terms": [
+    "爸爸"
+   ]
+  }
+ },
+ "memories": {
+  "m001": {
+   "text": "主人收养了一条村里的土狗，名叫土豆，白天总趴在客栈门口晒太阳",
+   "date": "2025-01-13",
+   "cluster": "c01",
+   "role": "fact"
+  },
+  "m002": {
+   "text": "主人每天早上用手冲壶煮一杯咖啡，豆子是邻村的咖啡农送的",
+   "date": "2025-02-08",
+   "cluster": "c02",
+   "role": "fact"
+  },
+  "m003": {
+   "text": "主人三年前辞掉了深圳一家设计公司的工作，来到了这个山村",
+   "date": "2025-02-10",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m004": {
+   "text": "主人上山捡的一篮菌子，被住客嚷着要炒了当晚饭",
+   "date": "2025-03-15",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m005": {
+   "text": "主人的客栈叫山月，一共只有六间客房，推窗能看见远处的山",
+   "date": "2025-04-01",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m006": {
+   "text": "客栈的房东是隔壁的杨阿婆，七十多岁，每天早上都来院子里转一圈",
+   "date": "2025-04-10",
+   "cluster": "c04",
+   "role": "fact"
+  },
+  "m007": {
+   "text": "客栈堂屋中间有个烧柴的火塘，冬天客人晚上都爱围着烤火聊天",
+   "date": "2025-05-15",
+   "cluster": "c05",
+   "role": "fact"
+  },
+  "m008": {
+   "text": "主人在客栈二楼隔出一间小房自己住，窗户正对着后山",
+   "date": "2025-06-01",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m009": {
+   "text": "主人偏头痛发作那天，客人在前台等了半小时，他强撑着办完入住才回屋躺下",
+   "date": "2025-06-10",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m010": {
+   "text": "土豆把客人晾在院子里的一只拖鞋叼走了，主人满村子找了半天",
+   "date": "2025-07-01",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m011": {
+   "text": "主人的前同事老周，隔三差五发微信劝他回深圳，说职位还给他留着",
+   "date": "2025-07-15",
+   "cluster": "c07",
+   "role": "fact"
+  },
+  "m012": {
+   "text": "主人的手机信号在村里时有时无，要走到院门口才满格",
+   "date": "2025-07-21",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m013": {
+   "text": "有个叫阿凯的摄影师，每年秋天都来客栈住一个月，拍山里的梯田",
+   "date": "2025-08-10",
+   "cluster": "c08",
+   "role": "fact"
+  },
+  "m014": {
+   "text": "杨阿婆送了主人一罐自己腌的酸菜，说客人爱吃可以拿去做小菜",
+   "date": "2025-08-27",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m015": {
+   "text": "烘干机一开就跳闸，把后院的灯也带灭了，主人摸黑检查了半个小时",
+   "date": "2025-09-05",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m016": {
+   "text": "主人雇了一位叫玉姐的村里人，每天上午来打扫客房",
+   "date": "2025-09-09",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m017": {
+   "text": "手冲壶的壶嘴被客人碰歪了，主人那天早上只能凑合泡了杯茶",
+   "date": "2025-09-13",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m018": {
+   "text": "每年雨季主人都会上山捡野生菌，最爱吃的是鸡枞和牛肝菌",
+   "date": "2025-10-09",
+   "cluster": "c03",
+   "role": "fact"
+  },
+  "m019": {
+   "text": "主人早饭常去村口阿梅开的米线店，每次都要加一勺酸菜和辣油",
+   "date": "2025-10-10",
+   "cluster": "c10",
+   "role": "fact"
+  },
+  "m020": {
+   "text": "主人最怕蜈蚣，后院柴堆里常有，每次看到都要叫隔壁阿叔来处理",
+   "date": "2025-11-05",
+   "cluster": "c11",
+   "role": "fact"
+  },
+  "m021": {
+   "text": "火塘的烟熏黑了新刷的墙，主人叹着气又刷了一遍",
+   "date": "2025-11-08",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m022": {
+   "text": "主人最近在看一本讲山区建筑的书，睡前翻几页",
+   "date": "2025-11-09",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m023": {
+   "text": "主人有偏头痛，一熬夜或者天气闷就发作，随身口袋里常备着一瓶风油精",
+   "date": "2025-11-28",
+   "cluster": "c06",
+   "role": "fact"
+  },
+  "m024": {
+   "text": "阿凯给主人拍了张院子门口的照片，主人洗出来挂在了前台",
+   "date": "2025-12-09",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m025": {
+   "text": "打雷的夜里突然停了电，主人抱着枕头缩在床脚，一直熬到雨停",
+   "date": "2025-12-10",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m026": {
+   "text": "土豆被野蜂蜇了鼻子，肿得像颗真土豆，主人心疼地陪了它一晚",
+   "date": "2025-12-14",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m027": {
+   "text": "主人把客栈的小黑板换成了新的，每天写一句当天的天气",
+   "date": "2025-12-29",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m028": {
+   "text": "客栈用的是太阳能热水器，阴天水就不热，客人洗澡时常有意见",
+   "date": "2026-01-05",
+   "cluster": "c13",
+   "role": "fact"
+  },
+  "m029": {
+   "text": "杨阿婆嫌主人院子里的花种得太密，自己动手拔掉了一半",
+   "date": "2026-01-19",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m030": {
+   "text": "主人晚上常在院子里弹吉他，客人想听就围过来坐，不想听就早点睡",
+   "date": "2026-02-09",
+   "cluster": "c14",
+   "role": "fact"
+  },
+  "m031": {
+   "text": "阿梅的米线涨价了一块钱，主人嘴上念叨着，第二天还是照吃",
+   "date": "2026-02-13",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m032": {
+   "text": "主人去年春节在客栈和留下的几位客人一起吃了年夜饭",
+   "date": "2026-02-17",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m033": {
+   "text": "有位客人房里爬进了蜈蚣，主人站在门口不敢进，最后阿叔拿夹子夹走",
+   "date": "2026-03-05",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m034": {
+   "text": "面包车在山路上爆了胎，主人带着一车客人在路边等了两小时",
+   "date": "2026-03-07",
+   "cluster": "c15",
+   "role": "episode"
+  },
+  "m035": {
+   "text": "老周来客栈住了三晚，嘴上说度假，半夜还在回工作消息",
+   "date": "2026-03-12",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m036": {
+   "text": "阿凯走的那天落下一副三脚架，主人帮他寄到了广州",
+   "date": "2026-03-16",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m037": {
+   "text": "主人从小怕打雷，一听到雷声就捂着耳朵缩在被子里，山里的雷雨天又特别多",
+   "date": "2026-03-31",
+   "cluster": "c12",
+   "role": "fact"
+  },
+  "m038": {
+   "text": "主人有次分不清一种野生菌，拍了照去问村里的老人才敢下锅",
+   "date": "2026-04-10",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m039": {
+   "text": "主人的爸爸在杭州，每天早上都会往微信里转一篇养生文章，再配一句早安",
+   "date": "2026-04-11",
+   "cluster": "c16",
+   "role": "fact"
+  },
+  "m040": {
+   "text": "主人请住客喝了杯手冲咖啡，客人喝完非要买两包豆子带走",
+   "date": "2026-04-12",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m041": {
+   "text": "客栈的床单冬天晾几天都不干，主人咬牙买了台烘干机放在后院",
+   "date": "2026-04-13",
+   "cluster": "c09",
+   "role": "fact"
+  },
+  "m042": {
+   "text": "主人每个月骑车去镇上赶一次集，买些日用品和零食",
+   "date": "2026-04-19",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m043": {
+   "text": "连着三天阴天，太阳能热水器罢工，主人烧了十几壶水送到房间",
+   "date": "2026-04-21",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m044": {
+   "text": "主人在火塘边的灰里埋了几个红薯，客人闻着香味都围了过来",
+   "date": "2026-05-06",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m045": {
+   "text": "有客人特意带了火腿肠来看土豆，土豆吃完就跟着人家走了半条街",
+   "date": "2026-05-12",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m046": {
+   "text": "主人的风油精用完了，村里小卖部没有，托去镇上的客人带回了三瓶",
+   "date": "2026-05-18",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m047": {
+   "text": "爸爸转来一篇劝人早睡的文章，主人刚好熬了夜，只好回了个苦笑的表情",
+   "date": "2026-05-31",
+   "cluster": "c16",
+   "role": "episode"
+  },
+  "m048": {
+   "text": "主人不太喝酒，偶尔客人带了自酿的米酒，只抿一小口",
+   "date": "2026-06-08",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m049": {
+   "text": "房东杨阿婆想把租金涨一点，主人去她家喝了两碗茶才谈妥",
+   "date": "2026-06-12",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m050": {
+   "text": "米线店那天卖完了，阿梅从自家锅里舀了碗剩的汤米线给主人",
+   "date": "2026-06-23",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m051": {
+   "text": "吉他的一根弦半夜突然断了，主人修了半天，第二天还是去镇上买了新的",
+   "date": "2026-06-28",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m052": {
+   "text": "主人整理柴堆时看见蜈蚣，吓得扔了火钳，三天没敢靠近后院",
+   "date": "2026-07-04",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m053": {
+   "text": "阿凯凌晨四点就出门等日出，回来时鞋上全是泥，让主人帮忙刷",
+   "date": "2026-07-08",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m054": {
+   "text": "主人开一辆二手面包车去大理站接客人，车门拉起来老是吱吱响",
+   "date": "2026-07-14",
+   "cluster": "c15",
+   "role": "fact"
+  },
+  "m055": {
+   "text": "有位客人半夜被雷声吓醒来敲主人的门，主人比客人还要慌",
+   "date": "2026-07-19",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m056": {
+   "text": "爸爸寄来一箱杭州的藕粉和龙井，主人分给了客人，自己只留了一小包",
+   "date": "2026-07-23",
+   "cluster": "c16",
+   "role": "episode"
+  },
+  "m057": {
+   "text": "主人床头的闹钟是客人落下的，一直没人来取",
+   "date": "2026-07-28",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m058": {
+   "text": "主人请师傅给热水器加了电加热管，从此再没人抱怨洗澡水凉",
+   "date": "2026-07-31",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m059": {
+   "text": "爸爸转来的一篇养生文章其实是谣言，主人花了半小时在微信里给他解释",
+   "date": "2026-09-14",
+   "cluster": "c16",
+   "role": "episode"
+  },
+  "m060": {
+   "text": "主人在院墙上刷了一面白墙，打算以后给客人留言用",
+   "date": "2026-09-27",
+   "cluster": null,
+   "role": "filler"
+  }
+ },
+ "cases": [
+  {
+   "id": "r01",
+   "type": "remark-assoc",
+   "kind": "emotion",
+   "history": [],
+   "message": "客人退房后，院子空荡荡的",
+   "direct": [
+    "m001"
+   ],
+   "chain": [
+    "m010",
+    "m026",
+    "m045"
+   ],
+   "also_ok": [
+    "m030"
+   ],
+   "why": "客人走后冷清，想到陪着他的狗"
+  },
+  {
+   "id": "r02",
+   "type": "remark-assoc",
+   "kind": "emotion",
+   "history": [],
+   "message": "今天有点想家了",
+   "direct": [
+    "m039"
+   ],
+   "chain": [
+    "m047",
+    "m056",
+    "m059"
+   ],
+   "also_ok": [],
+   "why": "想家，想到天天发早安和文章的爸爸"
+  },
+  {
+   "id": "r03",
+   "type": "remark-assoc",
+   "kind": "craving",
+   "history": [],
+   "message": "没睡醒，想来点苦的提神",
+   "direct": [
+    "m002"
+   ],
+   "chain": [
+    "m017",
+    "m040"
+   ],
+   "also_ok": [],
+   "why": "要提神，想到每天早上的咖啡"
+  },
+  {
+   "id": "r04",
+   "type": "remark-assoc",
+   "kind": "craving",
+   "history": [],
+   "message": "肚子咕咕叫，想来碗热汤面",
+   "direct": [
+    "m019"
+   ],
+   "chain": [
+    "m031",
+    "m050"
+   ],
+   "also_ok": [],
+   "why": "想吃热的汤面，想到村口米线店"
+  },
+  {
+   "id": "r05",
+   "type": "remark-assoc",
+   "kind": "body",
+   "history": [],
+   "message": "太阳穴一跳一跳地疼",
+   "direct": [
+    "m023"
+   ],
+   "chain": [
+    "m009",
+    "m046"
+   ],
+   "also_ok": [],
+   "why": "太阳穴跳着疼，想到常犯的偏头痛和风油精"
+  },
+  {
+   "id": "r06",
+   "type": "remark-assoc",
+   "kind": "body",
+   "history": [],
+   "message": "手冻得不听使唤",
+   "direct": [
+    "m007"
+   ],
+   "chain": [
+    "m021",
+    "m044"
+   ],
+   "also_ok": [],
+   "why": "手冻僵，想到堂屋烤火的地方"
+  },
+  {
+   "id": "r07",
+   "type": "remark-assoc",
+   "kind": "trigger",
+   "history": [],
+   "message": "澡洗到一半，水突然凉了",
+   "direct": [
+    "m028"
+   ],
+   "chain": [
+    "m043",
+    "m058"
+   ],
+   "also_ok": [],
+   "why": "洗澡水凉，想到客栈的热水设备"
+  },
+  {
+   "id": "r08",
+   "type": "remark-assoc",
+   "kind": "trigger",
+   "history": [],
+   "message": "客人说下午三点到车站",
+   "direct": [
+    "m054"
+   ],
+   "chain": [
+    "m034"
+   ],
+   "also_ok": [],
+   "why": "有客人到站，想到要开车去接"
+  },
+  {
+   "id": "r09",
+   "type": "remark-assoc",
+   "kind": "time",
+   "history": [],
+   "message": "再过一个月又到雨季了",
+   "direct": [
+    "m018"
+   ],
+   "chain": [
+    "m004",
+    "m038"
+   ],
+   "also_ok": [],
+   "why": "雨季来了，想到上山捡菌子"
+  },
+  {
+   "id": "r10",
+   "type": "remark-assoc",
+   "kind": "time",
+   "history": [],
+   "message": "秋天快到了",
+   "direct": [
+    "m013"
+   ],
+   "chain": [
+    "m024",
+    "m036",
+    "m053"
+   ],
+   "also_ok": [],
+   "why": "秋天，想到每年都来的摄影师"
+  },
+  {
+   "id": "r11",
+   "type": "remark-assoc",
+   "kind": "trait",
+   "history": [],
+   "message": "后院的柴堆该整理了",
+   "direct": [
+    "m020"
+   ],
+   "chain": [
+    "m033",
+    "m052"
+   ],
+   "also_ok": [
+    "m007"
+   ],
+   "why": "整理柴堆，想到他怕虫"
+  },
+  {
+   "id": "r12",
+   "type": "remark-assoc",
+   "kind": "trait",
+   "history": [],
+   "message": "预报说今晚有雷阵雨",
+   "direct": [
+    "m037"
+   ],
+   "chain": [
+    "m025",
+    "m055"
+   ],
+   "also_ok": [],
+   "why": "有雷阵雨，想到他怕打雷"
+  },
+  {
+   "id": "n01",
+   "type": "remark-named",
+   "history": [],
+   "message": "土豆今天又在门口躺了一整天",
+   "direct": [
+    "m001",
+    "m010",
+    "m026",
+    "m045"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n02",
+   "type": "remark-named",
+   "history": [],
+   "message": "手冲壶的把手有点松了",
+   "direct": [
+    "m002",
+    "m017",
+    "m040"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n03",
+   "type": "remark-named",
+   "history": [],
+   "message": "杨阿婆又送来一篮子青菜",
+   "direct": [
+    "m006",
+    "m014",
+    "m029",
+    "m049"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n04",
+   "type": "remark-named",
+   "history": [],
+   "message": "火塘的柴快烧完了",
+   "direct": [
+    "m007",
+    "m021",
+    "m044"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n05",
+   "type": "remark-named",
+   "history": [],
+   "message": "阿凯发消息说下个月要来",
+   "direct": [
+    "m013",
+    "m024",
+    "m036",
+    "m053"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n06",
+   "type": "remark-named",
+   "history": [],
+   "message": "爸爸今天又转了篇文章给我",
+   "direct": [
+    "m039",
+    "m047",
+    "m056",
+    "m059"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f01",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "阿凯下个月又要来了"
+    },
+    {
+     "role": "assistant",
+     "content": "又是来拍山里的景吗？"
+    }
+   ],
+   "message": "这次想住更久",
+   "direct": [
+    "m013"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f02",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "老周又发微信了"
+    },
+    {
+     "role": "assistant",
+     "content": "他又劝你回深圳？"
+    }
+   ],
+   "message": "还说位置留着",
+   "direct": [
+    "m011"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f03",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "后院那堆东西我真不想碰"
+    },
+    {
+     "role": "assistant",
+     "content": "是上次那个吓人的？"
+    }
+   ],
+   "message": "今天还是躲着走",
+   "direct": [
+    "m052"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m020",
+    "m033"
+   ]
+  },
+  {
+   "id": "f04",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "家里那个小家伙又跑出去了"
+    },
+    {
+     "role": "assistant",
+     "content": "又去村里串门了吧？"
+    }
+   ],
+   "message": "还叼回来一只鞋",
+   "direct": [
+    "m010"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m001"
+   ]
+  },
+  {
+   "id": "f05",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "今天去阿梅那儿吃的早饭"
+    },
+    {
+     "role": "assistant",
+     "content": "还是老样子吗？"
+    }
+   ],
+   "message": "不过又涨价了",
+   "direct": [
+    "m031"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m019"
+   ]
+  },
+  {
+   "id": "f06",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "这几天一直阴着"
+    },
+    {
+     "role": "assistant",
+     "content": "客人都还好吗？"
+    },
+    {
+     "role": "user",
+     "content": "有两位在抱怨"
+    },
+    {
+     "role": "assistant",
+     "content": "是不是又和洗澡有关？"
+    }
+   ],
+   "message": "对，还是老毛病",
+   "direct": [
+    "m028"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m043"
+   ]
+  },
+  {
+   "id": "f07",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "今天他又转来一篇文章"
+    },
+    {
+     "role": "assistant",
+     "content": "又是养生的吗？"
+    }
+   ],
+   "message": "这次是条谣言",
+   "direct": [
+    "m059"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m039"
+   ]
+  },
+  {
+   "id": "f08",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "昨晚堂屋又围了一圈人"
+    },
+    {
+     "role": "assistant",
+     "content": "是在火塘边聊天吗？"
+    }
+   ],
+   "message": "还烤了红薯",
+   "direct": [
+    "m044"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m007"
+   ]
+  },
+  {
+   "id": "q01",
+   "type": "quiet",
+   "history": [],
+   "message": "最近想学着做蛋糕",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q02",
+   "type": "quiet",
+   "history": [],
+   "message": "牙膏快用完了",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q03",
+   "type": "quiet",
+   "history": [],
+   "message": "指甲剪不知道丢哪儿了",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q04",
+   "type": "quiet",
+   "history": [],
+   "message": "这两天总想起小时候的动画片",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  }
+ ]
+}

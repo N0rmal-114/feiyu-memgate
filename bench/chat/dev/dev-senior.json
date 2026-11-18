@@ -1,0 +1,969 @@
+{
+ "world": "dev-senior",
+ "persona": "县城一中的高三学生，住校，每周五回家、周日返校，和爸妈奶奶一家住在镇上",
+ "clusters": {
+  "c01": {
+   "entity": "麻辣烫",
+   "terms": [
+    "麻辣烫"
+   ]
+  },
+  "c02": {
+   "entity": "泡面",
+   "terms": [
+    "泡面",
+    "小锅"
+   ]
+  },
+  "c03": {
+   "entity": "奶奶",
+   "terms": [
+    "奶奶"
+   ]
+  },
+  "c04": {
+   "entity": "爸爸的摩托",
+   "terms": [
+    "爸爸",
+    "摩托"
+   ]
+  },
+  "c05": {
+   "entity": "阿黄",
+   "terms": [
+    "阿黄",
+    "土狗"
+   ]
+  },
+  "c06": {
+   "entity": "阿龙",
+   "terms": [
+    "阿龙"
+   ]
+  },
+  "c07": {
+   "entity": "眼镜",
+   "terms": [
+    "眼镜",
+    "近视"
+   ]
+  },
+  "c08": {
+   "entity": "护腕",
+   "terms": [
+    "护腕"
+   ]
+  },
+  "c09": {
+   "entity": "夹灯",
+   "terms": [
+    "夹灯"
+   ]
+  },
+  "c10": {
+   "entity": "老梁",
+   "terms": [
+    "老梁",
+    "班主任"
+   ]
+  },
+  "c11": {
+   "entity": "晕血",
+   "terms": [
+    "晕血",
+    "抽血"
+   ]
+  },
+  "c12": {
+   "entity": "膝盖",
+   "terms": [
+    "膝盖"
+   ]
+  },
+  "c13": {
+   "entity": "数学",
+   "terms": [
+    "数学",
+    "导数"
+   ]
+  },
+  "c14": {
+   "entity": "老胡",
+   "terms": [
+    "老胡"
+   ]
+  },
+  "c15": {
+   "entity": "耳机",
+   "terms": [
+    "耳机",
+    "英语听力"
+   ]
+  }
+ },
+ "memories": {
+  "m001": {
+   "text": "主人最爱学校食堂二楼的麻辣烫，每次都要加一份宽粉和香菜",
+   "date": "2025-01-13",
+   "cluster": "c01",
+   "role": "fact"
+  },
+  "m002": {
+   "text": "主人在宿舍藏了一口小锅，饿了就偷偷煮泡面，必须加个荷包蛋",
+   "date": "2025-02-10",
+   "cluster": "c02",
+   "role": "fact"
+  },
+  "m003": {
+   "text": "主人在县城一中读高三，住在学校的六人间宿舍",
+   "date": "2025-02-10",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m004": {
+   "text": "奶奶塞的萝卜干放久了发了霉，主人偷偷倒掉，没敢告诉奶奶",
+   "date": "2025-03-19",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m005": {
+   "text": "主人想考省城的师范大学，将来想当一名语文老师",
+   "date": "2025-03-20",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m006": {
+   "text": "主人的爸爸每周五傍晚骑一辆旧摩托车到校门口接主人回家，总是提前半小时到",
+   "date": "2025-04-16",
+   "cluster": "c04",
+   "role": "fact"
+  },
+  "m007": {
+   "text": "主人的语文成绩不错，尤其擅长古诗词默写",
+   "date": "2025-05-08",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m008": {
+   "text": "主人家养了一条叫阿黄的土狗，主人一回家它就摇着尾巴扑上来",
+   "date": "2025-05-23",
+   "cluster": "c05",
+   "role": "fact"
+  },
+  "m009": {
+   "text": "主人睡上铺，爬上爬下时总会磕到脑袋",
+   "date": "2025-06-15",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m010": {
+   "text": "阿龙把攒了一周的零花钱买了两个烤红薯，陪主人在操场边吃",
+   "date": "2025-06-20",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m011": {
+   "text": "主人晚自习结束是十点二十，洗漱完差不多十一点才躺下",
+   "date": "2025-07-23",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m012": {
+   "text": "主人近视四百度，戴一副黑框眼镜，一摘下来远处全是重影",
+   "date": "2025-07-27",
+   "cluster": "c07",
+   "role": "fact"
+  },
+  "m013": {
+   "text": "食堂的麻辣烫涨了一块钱，主人嘟囔着还是排队买了一碗",
+   "date": "2025-08-24",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m014": {
+   "text": "主人刷题写得右手腕发酸，买了一副护腕，戴上后写字总觉得别扭",
+   "date": "2025-08-24",
+   "cluster": "c08",
+   "role": "fact"
+  },
+  "m015": {
+   "text": "主人的水杯是妈妈在超市买的，杯盖上印着一只小熊",
+   "date": "2025-09-10",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m016": {
+   "text": "宿管阿姨查寝时闻到泡面味，主人把小锅塞进被子才躲过去",
+   "date": "2025-09-14",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m017": {
+   "text": "夹灯夹得不稳，半夜掉下来砸在下铺，吓得室友大叫了一声",
+   "date": "2025-09-21",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m018": {
+   "text": "主人每次返校，奶奶都会往书包里塞煮好的茶叶蛋和自家腌的萝卜干",
+   "date": "2025-10-12",
+   "cluster": "c03",
+   "role": "fact"
+  },
+  "m019": {
+   "text": "爸爸骑摩托来接主人时下起了大雨，到家时两人浑身湿透，爸爸还硬说不冷",
+   "date": "2025-10-17",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m020": {
+   "text": "主人最近迷上了一部讲航海的纪录片，周末回家会补看",
+   "date": "2025-10-18",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m021": {
+   "text": "班主任老梁爱悄悄站在后窗外看自习，主人一瞥见他的影子就赶紧坐直",
+   "date": "2025-10-28",
+   "cluster": "c10",
+   "role": "fact"
+  },
+  "m022": {
+   "text": "阿黄趁没人看着刨了菜地，把爸妈刚种的青菜苗全翻了出来",
+   "date": "2025-11-13",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m023": {
+   "text": "主人晕血，一看到针头和血就头晕腿软，连抽血都要躺着才敢做",
+   "date": "2025-11-25",
+   "cluster": "c11",
+   "role": "fact"
+  },
+  "m024": {
+   "text": "主人早读总是第一个到，坐在靠窗的第三排",
+   "date": "2025-11-25",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m025": {
+   "text": "主人的死党阿龙在隔壁班，两人心情不好时就一起绕着操场走圈",
+   "date": "2025-12-05",
+   "cluster": "c06",
+   "role": "fact"
+  },
+  "m026": {
+   "text": "测八百米那天主人没跑完，蹲在跑道边揉着膝盖，被体育老师安排补测",
+   "date": "2026-01-01",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m027": {
+   "text": "主人的眼镜腿断了，用胶布缠着戴了一个星期才去配新的",
+   "date": "2026-01-02",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m028": {
+   "text": "主人的妈妈在县城超市做收银员，晚上八点才下班",
+   "date": "2026-01-13",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m029": {
+   "text": "主人把护腕落在了教室，晚自习写作业时右手又酸了起来",
+   "date": "2026-01-23",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m030": {
+   "text": "主人数学是弱项，最怕做导数大题，每次考试都要空两三问",
+   "date": "2026-01-29",
+   "cluster": "c13",
+   "role": "fact"
+  },
+  "m031": {
+   "text": "主人在上铺夹了一盏充电的小夹灯，熄灯后还能靠它再看半小时书",
+   "date": "2026-02-14",
+   "cluster": "c09",
+   "role": "fact"
+  },
+  "m032": {
+   "text": "主人的校服裤子洗得发白，裤脚也短了一截",
+   "date": "2026-02-20",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m033": {
+   "text": "老梁在后窗外站了十分钟，抓到前排同学偷吃零食，全班安静了一节课",
+   "date": "2026-02-25",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m034": {
+   "text": "主人的室友老胡睡觉打呼噜很响，主人经常被吵醒",
+   "date": "2026-03-07",
+   "cluster": "c14",
+   "role": "fact"
+  },
+  "m035": {
+   "text": "体检抽血那天主人躺在床上闭着眼睛，护士刚扎完针他就冒了一头冷汗",
+   "date": "2026-03-18",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m036": {
+   "text": "主人在年级的排名一直在两百名左右徘徊",
+   "date": "2026-03-30",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m037": {
+   "text": "主人月考后拿饭卡请室友吃麻辣烫，结果卡里只剩两块钱了",
+   "date": "2026-04-01",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m038": {
+   "text": "英语听力放到一半没了声音，主人才发现耳机线被自己坐断了",
+   "date": "2026-04-04",
+   "cluster": "c15",
+   "role": "episode"
+  },
+  "m039": {
+   "text": "奶奶听说主人快高考了，特意炖了一整只老母鸡，让主人连喝了两天",
+   "date": "2026-04-11",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m040": {
+   "text": "泡面汤洒在了床单上，主人半夜蹲在水房里偷偷搓洗",
+   "date": "2026-04-13",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m041": {
+   "text": "主人初中打篮球伤过左膝盖，不能剧烈跑跳，一到阴雨天还会隐隐作痛",
+   "date": "2026-04-15",
+   "cluster": "c12",
+   "role": "fact"
+  },
+  "m042": {
+   "text": "爸爸在摩托车后座绑了块棉垫，说怕主人坐一路被颠得屁股疼",
+   "date": "2026-04-24",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m043": {
+   "text": "月考数学只考了九十分，主人把卷子折成小方块塞进书包最底层",
+   "date": "2026-05-07",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m044": {
+   "text": "阿黄吃了邻居的剩骨头拉肚子，爸妈带它去看了兽医，主人回家才知道",
+   "date": "2026-05-09",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m045": {
+   "text": "主人在学校的书法比赛里拿过三等奖，奖品是一支钢笔",
+   "date": "2026-05-18",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m046": {
+   "text": "阿龙在月考里作文跑题了，主人陪他走了十圈，还请他喝了瓶汽水",
+   "date": "2026-05-21",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m047": {
+   "text": "同学笑主人戴护腕像练武的，主人红着脸摘下来塞进了抽屉",
+   "date": "2026-06-01",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m048": {
+   "text": "老胡昨晚呼噜打得最响，主人用被子捂着头才睡着，早上还被他笑话",
+   "date": "2026-06-03",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m049": {
+   "text": "主人体检时近视涨到了四百五，配镜师说是熬夜刷题闹的",
+   "date": "2026-06-06",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m050": {
+   "text": "主人睡着前忘了关夹灯，第二天早上一看电早就耗光了",
+   "date": "2026-06-13",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m051": {
+   "text": "主人中午会戴着旧耳机在操场边练英语听力，耳机线缠满了胶带",
+   "date": "2026-06-25",
+   "cluster": "c15",
+   "role": "fact"
+  },
+  "m052": {
+   "text": "主人偶尔会在作业本背面画漫画，画的是班上同学的搞笑样子",
+   "date": "2026-06-25",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m053": {
+   "text": "老梁在班会上念了主人的作文当范文，主人低着头脸红到了耳根",
+   "date": "2026-06-29",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m054": {
+   "text": "同桌不小心划破手指，主人看到血就晕血发作，脸色发白扶着桌子坐了好久",
+   "date": "2026-07-11",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m055": {
+   "text": "阴雨天膝盖疼得厉害，主人晚自习前去校医室贴了一块膏药",
+   "date": "2026-07-26",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m056": {
+   "text": "主人踢了一脚老胡的床板，他消停了十分钟，之后又响了起来",
+   "date": "2026-08-06",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m057": {
+   "text": "数学老师点主人上黑板解导数题，主人站了五分钟一步也没写出来",
+   "date": "2026-08-08",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m058": {
+   "text": "主人晚自习课间爱趴在走廊栏杆上吹风，看远处的山",
+   "date": "2026-08-13",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m059": {
+   "text": "主人英语听力模拟错了六题，决定每天多听一篇，耳机几乎不离身",
+   "date": "2026-08-18",
+   "cluster": "c15",
+   "role": "episode"
+  },
+  "m060": {
+   "text": "主人的同桌爱在课间趴着睡觉，醒来脸上总压出一道红印",
+   "date": "2026-09-20",
+   "cluster": null,
+   "role": "filler"
+  }
+ },
+ "cases": [
+  {
+   "id": "r01",
+   "type": "remark-assoc",
+   "kind": "craving",
+   "history": [],
+   "message": "最近食堂的菜太清淡了",
+   "direct": [
+    "m001"
+   ],
+   "chain": [
+    "m013",
+    "m037"
+   ],
+   "also_ok": [
+    "m002"
+   ],
+   "why": "食堂菜清淡想吃重口，想到食堂二楼的麻辣烫"
+  },
+  {
+   "id": "r02",
+   "type": "remark-assoc",
+   "kind": "craving",
+   "history": [],
+   "message": "晚上躺下又饿了",
+   "direct": [
+    "m002"
+   ],
+   "chain": [
+    "m016",
+    "m040"
+   ],
+   "also_ok": [],
+   "why": "躺下又饿，想到宿舍偷偷煮的泡面"
+  },
+  {
+   "id": "r03",
+   "type": "remark-assoc",
+   "kind": "body",
+   "history": [],
+   "message": "黑板上的字最近有点糊",
+   "direct": [
+    "m012"
+   ],
+   "chain": [
+    "m027",
+    "m049"
+   ],
+   "also_ok": [],
+   "why": "看黑板模糊，想到近视和眼镜"
+  },
+  {
+   "id": "r04",
+   "type": "remark-assoc",
+   "kind": "body",
+   "history": [],
+   "message": "右手最近老是发酸发麻",
+   "direct": [
+    "m014"
+   ],
+   "chain": [
+    "m029",
+    "m047"
+   ],
+   "also_ok": [],
+   "why": "写字多手酸，想到买的护腕"
+  },
+  {
+   "id": "r05",
+   "type": "remark-assoc",
+   "kind": "trigger",
+   "history": [],
+   "message": "熄灯铃响了，题还没做完",
+   "direct": [
+    "m031"
+   ],
+   "chain": [
+    "m017",
+    "m050"
+   ],
+   "also_ok": [],
+   "why": "熄灯后还想做题看书，想到床上的小灯"
+  },
+  {
+   "id": "r06",
+   "type": "remark-assoc",
+   "kind": "trigger",
+   "history": [],
+   "message": "自习课上突然鸦雀无声",
+   "direct": [
+    "m021"
+   ],
+   "chain": [
+    "m033",
+    "m053"
+   ],
+   "also_ok": [],
+   "why": "教室突然安静，想到班主任在窗外"
+  },
+  {
+   "id": "r07",
+   "type": "remark-assoc",
+   "kind": "time",
+   "history": [],
+   "message": "周五下午最后一节课好漫长",
+   "direct": [
+    "m006"
+   ],
+   "chain": [
+    "m019",
+    "m042"
+   ],
+   "also_ok": [
+    "m008"
+   ],
+   "why": "盼着周五放学，想到爸爸骑摩托来接"
+  },
+  {
+   "id": "r08",
+   "type": "remark-assoc",
+   "kind": "time",
+   "history": [],
+   "message": "周日下午又要收拾书包了",
+   "direct": [
+    "m018"
+   ],
+   "chain": [
+    "m004",
+    "m039"
+   ],
+   "also_ok": [
+    "m008"
+   ],
+   "why": "周日收拾书包返校，想到奶奶塞吃的"
+  },
+  {
+   "id": "r09",
+   "type": "remark-assoc",
+   "kind": "trait",
+   "history": [],
+   "message": "下周学校组织全体体检",
+   "direct": [
+    "m023"
+   ],
+   "chain": [
+    "m035",
+    "m054"
+   ],
+   "also_ok": [],
+   "why": "要体检，想到他晕血怕抽血"
+  },
+  {
+   "id": "r10",
+   "type": "remark-assoc",
+   "kind": "trait",
+   "history": [],
+   "message": "下周体育课要测八百米",
+   "direct": [
+    "m041"
+   ],
+   "chain": [
+    "m026",
+    "m055"
+   ],
+   "also_ok": [],
+   "why": "要跑八百米，想到他膝盖有旧伤"
+  },
+  {
+   "id": "r11",
+   "type": "remark-assoc",
+   "kind": "emotion",
+   "history": [],
+   "message": "压力好大，想抱点毛茸茸的",
+   "direct": [
+    "m008"
+   ],
+   "chain": [
+    "m022",
+    "m044"
+   ],
+   "also_ok": [
+    "m025"
+   ],
+   "why": "压力大想抱毛茸茸的，想到家里的狗"
+  },
+  {
+   "id": "r12",
+   "type": "remark-assoc",
+   "kind": "emotion",
+   "history": [],
+   "message": "心里堵得慌，想找人走走",
+   "direct": [
+    "m025"
+   ],
+   "chain": [
+    "m010",
+    "m046"
+   ],
+   "also_ok": [],
+   "why": "心里堵想找人走走，想到死党一起绕操场"
+  },
+  {
+   "id": "n01",
+   "type": "remark-named",
+   "history": [],
+   "message": "麻辣烫窗口今天排了好长的队",
+   "direct": [
+    "m001",
+    "m013",
+    "m037"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n02",
+   "type": "remark-named",
+   "history": [],
+   "message": "妈妈发来了阿黄的视频",
+   "direct": [
+    "m008",
+    "m022",
+    "m044"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n03",
+   "type": "remark-named",
+   "history": [],
+   "message": "老胡今天的呼噜声小了点",
+   "direct": [
+    "m034",
+    "m048",
+    "m056"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n04",
+   "type": "remark-named",
+   "history": [],
+   "message": "今天的导数题又错了一大半",
+   "direct": [
+    "m030",
+    "m043",
+    "m057"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n05",
+   "type": "remark-named",
+   "history": [],
+   "message": "阿龙说他想考体育学院",
+   "direct": [
+    "m025",
+    "m010",
+    "m046"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n06",
+   "type": "remark-named",
+   "history": [],
+   "message": "爸爸说这周可能会晚点到",
+   "direct": [
+    "m006",
+    "m019",
+    "m042"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f01",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "昨晚又被吵醒了"
+    },
+    {
+     "role": "assistant",
+     "content": "是室友老胡的呼噜吗？"
+    }
+   ],
+   "message": "对，还踢床板",
+   "direct": [
+    "m056"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m034",
+    "m048"
+   ]
+  },
+  {
+   "id": "f02",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "上铺那个小灯又掉下来了"
+    },
+    {
+     "role": "assistant",
+     "content": "吓到室友了吧？"
+    }
+   ],
+   "message": "嗯，吓得他大叫",
+   "direct": [
+    "m017"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m031"
+   ]
+  },
+  {
+   "id": "f03",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "体育课测八百米，我又没跑完"
+    },
+    {
+     "role": "assistant",
+     "content": "是膝盖又疼了吗？"
+    }
+   ],
+   "message": "嗯，补测了",
+   "direct": [
+    "m026"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m041"
+   ]
+  },
+  {
+   "id": "f04",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "周五我爸又来得特别早"
+    },
+    {
+     "role": "assistant",
+     "content": "他是不是总到得很早？"
+    }
+   ],
+   "message": "对，半小时起步",
+   "direct": [
+    "m006"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m019",
+    "m042"
+   ]
+  },
+  {
+   "id": "f05",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "上周在操场陪我的那个人"
+    },
+    {
+     "role": "assistant",
+     "content": "是阿龙吗？"
+    }
+   ],
+   "message": "他还请我喝汽水",
+   "direct": [
+    "m046"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m025"
+   ]
+  },
+  {
+   "id": "f06",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "家里那个毛茸茸的瘦了好多"
+    },
+    {
+     "role": "assistant",
+     "content": "是生病了吗？"
+    }
+   ],
+   "message": "说是吃坏了肚子",
+   "direct": [
+    "m044"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m008"
+   ]
+  },
+  {
+   "id": "f07",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "月考卷子发下来了"
+    },
+    {
+     "role": "assistant",
+     "content": "考得怎么样？"
+    },
+    {
+     "role": "user",
+     "content": "最怕的那一科九十分"
+    },
+    {
+     "role": "assistant",
+     "content": "是不是又空了大题？"
+    }
+   ],
+   "message": "对，还藏起来了",
+   "direct": [
+    "m043"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m030",
+    "m057"
+   ]
+  },
+  {
+   "id": "f08",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "奶奶周日又给我塞了东西"
+    },
+    {
+     "role": "assistant",
+     "content": "这次是什么？"
+    }
+   ],
+   "message": "还是老样子",
+   "direct": [
+    "m018"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m004"
+   ]
+  },
+  {
+   "id": "q01",
+   "type": "quiet",
+   "history": [],
+   "message": "隔壁小区在装电梯",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q02",
+   "type": "quiet",
+   "history": [],
+   "message": "公交站牌换成新的了",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q03",
+   "type": "quiet",
+   "history": [],
+   "message": "快递柜又坏了一格",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q04",
+   "type": "quiet",
+   "history": [],
+   "message": "今天窗外好像有人在放烟花，响了几声",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  }
+ ]
+}

@@ -1,0 +1,971 @@
+{
+ "world": "dev-coach",
+ "persona": "广州天河一家连锁健身房的私教，三十岁上下，独居，养了一只黑猫",
+ "clusters": {
+  "c01": {
+   "entity": "猫",
+   "terms": [
+    "煤球",
+    "猫"
+   ]
+  },
+  "c02": {
+   "entity": "张阿姨",
+   "terms": [
+    "张阿姨"
+   ]
+  },
+  "c03": {
+   "entity": "阿俊",
+   "terms": [
+    "阿俊"
+   ]
+  },
+  "c04": {
+   "entity": "刚哥",
+   "terms": [
+    "刚哥"
+   ]
+  },
+  "c05": {
+   "entity": "备赛",
+   "terms": [
+    "备赛",
+    "比赛"
+   ]
+  },
+  "c06": {
+   "entity": "蛋白粉",
+   "terms": [
+    "蛋白粉"
+   ]
+  },
+  "c07": {
+   "entity": "足底筋膜炎",
+   "terms": [
+    "足底筋膜炎",
+    "鞋垫"
+   ]
+  },
+  "c08": {
+   "entity": "团课",
+   "terms": [
+    "团课",
+    "燃脂操"
+   ]
+  },
+  "c09": {
+   "entity": "早茶",
+   "terms": [
+    "早茶",
+    "陈记"
+   ]
+  },
+  "c10": {
+   "entity": "双皮奶",
+   "terms": [
+    "双皮奶"
+   ]
+  },
+  "c11": {
+   "entity": "地铁",
+   "terms": [
+    "地铁",
+    "五号线"
+   ]
+  },
+  "c12": {
+   "entity": "回南天",
+   "terms": [
+    "回南天",
+    "除湿机"
+   ]
+  },
+  "c13": {
+   "entity": "白云山",
+   "terms": [
+    "白云山"
+   ]
+  },
+  "c14": {
+   "entity": "芒果",
+   "terms": [
+    "芒果"
+   ]
+  },
+  "c15": {
+   "entity": "晕船",
+   "terms": [
+    "晕船",
+    "船"
+   ]
+  }
+ },
+ "memories": {
+  "m001": {
+   "text": "主人养了一只黑猫，名叫煤球，是三年前从小区楼下捡回来的",
+   "date": "2025-01-13",
+   "cluster": "c01",
+   "role": "fact"
+  },
+  "m002": {
+   "text": "主人带的学员里有位五十多岁的张阿姨，想赶在女儿婚礼前瘦十斤",
+   "date": "2025-02-10",
+   "cluster": "c02",
+   "role": "fact"
+  },
+  "m003": {
+   "text": "主人是天河区一家连锁健身房的私教，带学员已经五年了",
+   "date": "2025-02-10",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m004": {
+   "text": "阿俊被主人逼着练了一次腿，第二天走路扶着墙，发消息抱怨了一整天",
+   "date": "2025-03-19",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m005": {
+   "text": "主人租了一套四十平的小公寓，住在客村附近的七楼",
+   "date": "2025-04-06",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m006": {
+   "text": "健身房的老板刚哥每月最后一周都要开会，催大家把私教课续费业绩冲上去",
+   "date": "2025-04-16",
+   "cluster": "c04",
+   "role": "fact"
+  },
+  "m007": {
+   "text": "主人在备明年春天的健美比赛，现在每天严格控制碳水和糖",
+   "date": "2025-05-23",
+   "cluster": "c05",
+   "role": "fact"
+  },
+  "m008": {
+   "text": "主人老家在湛江，每年春节才回去一次，爸妈总嫌待得太短",
+   "date": "2025-06-11",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m009": {
+   "text": "主人的蛋白粉见底了，在网上看了半天才选了新的牌子",
+   "date": "2025-06-20",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m010": {
+   "text": "煤球趁主人开门取外卖溜到了楼道里，主人下楼找了半天才抱回来",
+   "date": "2025-07-01",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m011": {
+   "text": "主人站久了脚底就疼，医生说是足底筋膜炎，上课时都要在鞋里垫一副加厚的鞋垫",
+   "date": "2025-07-27",
+   "cluster": "c07",
+   "role": "fact"
+  },
+  "m012": {
+   "text": "主人的手机壳是学员送的，上面印着一只举哑铃的熊",
+   "date": "2025-08-05",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m013": {
+   "text": "主人每周二和周四晚上带燃脂操团课，喊口令喊多了嗓子容易哑，随身带着胖大海",
+   "date": "2025-08-24",
+   "cluster": "c08",
+   "role": "fact"
+  },
+  "m014": {
+   "text": "张阿姨练了两个月体重降了四斤，特意给主人带了一盒自己做的青团",
+   "date": "2025-09-14",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m015": {
+   "text": "陈记茶楼周日人太多，主人排队排了四十分钟才等到位子",
+   "date": "2025-09-21",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m016": {
+   "text": "主人的健身包拉链坏了，一直用别针别着，没舍得换",
+   "date": "2025-09-29",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m017": {
+   "text": "备赛期间主人带着鸡胸肉去朋友家聚餐，坐在桌边只喝白水",
+   "date": "2025-10-01",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m018": {
+   "text": "主人有个大学生学员叫阿俊，每次来只练胸和手臂，从来不肯练腿",
+   "date": "2025-10-12",
+   "cluster": "c03",
+   "role": "fact"
+  },
+  "m019": {
+   "text": "刚哥在例会上点名批评主人的续课率，主人散会后闷头多练了一小时",
+   "date": "2025-10-17",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m020": {
+   "text": "主人最爱吃双皮奶，每周只允许自己吃一碗，当作犒劳",
+   "date": "2025-10-28",
+   "cluster": "c10",
+   "role": "fact"
+  },
+  "m021": {
+   "text": "主人每天坐地铁五号线去上班，早高峰要挤过两趟才上得去",
+   "date": "2025-11-25",
+   "cluster": "c11",
+   "role": "fact"
+  },
+  "m022": {
+   "text": "主人把鞋垫落在家里，站了一上午课，足底筋膜炎犯了，下班一瘸一拐",
+   "date": "2025-11-25",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m023": {
+   "text": "主人和大学室友阿伟约好，年底一起去厦门玩几天",
+   "date": "2025-12-04",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m024": {
+   "text": "主人训练后习惯冲一杯香草味蛋白粉，用的是一个旧摇摇杯",
+   "date": "2025-12-05",
+   "cluster": "c06",
+   "role": "fact"
+  },
+  "m025": {
+   "text": "主人给煤球买了个自动喂食器，煤球第一天就把食盆扒翻了一地",
+   "date": "2025-12-14",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m026": {
+   "text": "团课上音响突然没了声，主人干脆扯着嗓子喊了四十分钟，下课说不出话",
+   "date": "2025-12-19",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m027": {
+   "text": "回南天那几天主人的床单怎么都晾不干，只好抱去楼下烘干店",
+   "date": "2026-01-01",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m028": {
+   "text": "主人每个周日早上都去楼下的陈记茶楼吃早茶，必点干蒸烧卖和凤爪",
+   "date": "2026-01-12",
+   "cluster": "c09",
+   "role": "fact"
+  },
+  "m029": {
+   "text": "主人每天晚上十一点半前睡觉，早上六点半准时起床",
+   "date": "2026-01-28",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m030": {
+   "text": "主人每周六清晨都去爬白云山，一个人走到山顶再下来",
+   "date": "2026-01-29",
+   "cluster": "c13",
+   "role": "fact"
+  },
+  "m031": {
+   "text": "主人去看了一场业余健美比赛，回来后更坚定了要减到目标体重",
+   "date": "2026-02-12",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m032": {
+   "text": "主人常去的那家店双皮奶卖完了，失望地多走了两条街去另一家",
+   "date": "2026-02-25",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m033": {
+   "text": "主人对芒果过敏，一吃嘴角就发痒起红点，从小就不敢碰",
+   "date": "2026-03-07",
+   "cluster": "c14",
+   "role": "fact"
+  },
+  "m034": {
+   "text": "主人在五号线上睡着坐过了两站，下车后只好反方向再坐回来",
+   "date": "2026-03-18",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m035": {
+   "text": "主人去体育用品店挑新鞋垫，导购说足底筋膜炎要选偏硬的，他试了半小时",
+   "date": "2026-03-23",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m036": {
+   "text": "团课里有个学员老跟不上拍子，主人走过去手把手纠正了动作",
+   "date": "2026-03-23",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m037": {
+   "text": "主人的运动水壶是两年前买的，瓶身贴满了健身房送的贴纸",
+   "date": "2026-03-24",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m038": {
+   "text": "同事提议坐游船去珠江上吃夜宵，主人借口要早睡，躲掉了那趟船",
+   "date": "2026-04-04",
+   "cluster": "c15",
+   "role": "episode"
+  },
+  "m039": {
+   "text": "陈记的推车阿姨路过时，主人忍不住又加了一笼肠粉",
+   "date": "2026-04-09",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m040": {
+   "text": "阿俊在朋友圈发了自己的练胸照片，主人在底下评论说该练腿了",
+   "date": "2026-04-11",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m041": {
+   "text": "张阿姨做平板支撑撑了半分钟就趴下，还笑着说自己实在撑不住了",
+   "date": "2026-04-13",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m042": {
+   "text": "主人租的房子一到回南天墙壁就出水，买了台除湿机整天开着",
+   "date": "2026-04-15",
+   "cluster": "c12",
+   "role": "fact"
+  },
+  "m043": {
+   "text": "刚哥请全店私教吃了顿烧鹅饭，主人嘴上说不用，还是添了一碗饭",
+   "date": "2026-04-24",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m044": {
+   "text": "主人爬白云山遇到突然的大雨，躲进半山腰的凉亭等了一小时",
+   "date": "2026-05-07",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m045": {
+   "text": "煤球半夜跳上主人的肚子，主人被踩醒后再也睡不着",
+   "date": "2026-05-12",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m046": {
+   "text": "主人把一袋蛋白粉落在了健身房储物柜里，第二天才取回来",
+   "date": "2026-05-21",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m047": {
+   "text": "主人的头发留得很短，每个月去楼下理发店剪一次",
+   "date": "2026-05-29",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m048": {
+   "text": "同事的生日蛋糕里夹了芒果，主人吃了一口就嘴唇发麻，赶紧吐出来漱口",
+   "date": "2026-06-03",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m049": {
+   "text": "备赛的第三周体重掉得太慢，主人把早餐的燕麦又减了半碗",
+   "date": "2026-06-26",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m050": {
+   "text": "主人把一碗双皮奶端回家边吃边看剧，连勺子都舔得干干净净",
+   "date": "2026-06-29",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m051": {
+   "text": "主人晚上泡完脚用网球滚了二十分钟脚底，说足底筋膜炎总算松快了一点",
+   "date": "2026-07-01",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m052": {
+   "text": "地铁临时停运，主人只好叫了顺风车，结果上班还是迟到十分钟",
+   "date": "2026-07-11",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m053": {
+   "text": "燃脂操下课后，学员塞给主人一盒润喉糖，说听着心疼",
+   "date": "2026-07-11",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m054": {
+   "text": "主人在陈记茶楼把热茶打翻在裤子上，烫得直跳脚",
+   "date": "2026-07-21",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m055": {
+   "text": "主人的妈妈隔三差五寄来自己腌的萝卜干，叮嘱少吃外卖",
+   "date": "2026-07-23",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m056": {
+   "text": "除湿机的水箱满了没人倒，主人下班回家发现地上积了一摊水",
+   "date": "2026-07-26",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m057": {
+   "text": "主人晕船很厉害，几年前坐船去海岛团建吐了一路，从此再不碰任何船",
+   "date": "2026-07-28",
+   "cluster": "c15",
+   "role": "fact"
+  },
+  "m058": {
+   "text": "主人在甜品店点错了饮品，喝到芒果才反应过来，只好吃了抗过敏药",
+   "date": "2026-08-06",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m059": {
+   "text": "主人在白云山上捡到一只别人遗落的手套，挂在了路边的树枝上",
+   "date": "2026-08-08",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m060": {
+   "text": "主人不爱戴运动手环，嫌手腕上戴东西碍事",
+   "date": "2026-09-16",
+   "cluster": null,
+   "role": "filler"
+  }
+ },
+ "cases": [
+  {
+   "id": "r01",
+   "type": "remark-assoc",
+   "kind": "craving",
+   "history": [],
+   "message": "忙了一天，好想犒劳一下自己",
+   "direct": [
+    "m020"
+   ],
+   "chain": [
+    "m032",
+    "m050"
+   ],
+   "also_ok": [
+    "m007"
+   ],
+   "why": "想犒劳自己，想到每周一碗的犒劳甜品"
+  },
+  {
+   "id": "r02",
+   "type": "remark-assoc",
+   "kind": "craving",
+   "history": [],
+   "message": "好想吃热腾腾的点心",
+   "direct": [
+    "m028"
+   ],
+   "chain": [
+    "m015",
+    "m039",
+    "m054"
+   ],
+   "also_ok": [
+    "m020"
+   ],
+   "why": "想吃热点心，想到周日固定去吃的茶楼"
+  },
+  {
+   "id": "r03",
+   "type": "remark-assoc",
+   "kind": "body",
+   "history": [],
+   "message": "早上一下床，脚底板像针扎",
+   "direct": [
+    "m011"
+   ],
+   "chain": [
+    "m022",
+    "m035",
+    "m051"
+   ],
+   "also_ok": [],
+   "why": "脚底板疼，想到站久了犯的足底筋膜炎和鞋垫"
+  },
+  {
+   "id": "r04",
+   "type": "remark-assoc",
+   "kind": "body",
+   "history": [],
+   "message": "喉咙干得像要冒烟",
+   "direct": [
+    "m013"
+   ],
+   "chain": [
+    "m026",
+    "m036",
+    "m053"
+   ],
+   "also_ok": [],
+   "why": "声音哑，想到喊口令带课伤嗓子"
+  },
+  {
+   "id": "r05",
+   "type": "remark-assoc",
+   "kind": "trigger",
+   "history": [],
+   "message": "早高峰又挤到变形",
+   "direct": [
+    "m021"
+   ],
+   "chain": [
+    "m034",
+    "m052"
+   ],
+   "also_ok": [],
+   "why": "早高峰挤，想到每天坐的地铁"
+  },
+  {
+   "id": "r06",
+   "type": "remark-assoc",
+   "kind": "trigger",
+   "history": [],
+   "message": "地板又湿得能滑倒",
+   "direct": [
+    "m042"
+   ],
+   "chain": [
+    "m027",
+    "m056"
+   ],
+   "also_ok": [],
+   "why": "地板返潮，想到回南天和除湿机"
+  },
+  {
+   "id": "r07",
+   "type": "remark-assoc",
+   "kind": "time",
+   "history": [],
+   "message": "周六天刚亮就醒了",
+   "direct": [
+    "m030"
+   ],
+   "chain": [
+    "m044",
+    "m059"
+   ],
+   "also_ok": [],
+   "why": "周六清晨，想到固定去爬的山"
+  },
+  {
+   "id": "r08",
+   "type": "remark-assoc",
+   "kind": "time",
+   "history": [],
+   "message": "快到月底了",
+   "direct": [
+    "m006"
+   ],
+   "chain": [
+    "m019",
+    "m043"
+   ],
+   "also_ok": [],
+   "why": "月底，想到老板开会催续课业绩"
+  },
+  {
+   "id": "r09",
+   "type": "remark-assoc",
+   "kind": "trait",
+   "history": [],
+   "message": "同事从海南带来一箱水果",
+   "direct": [
+    "m033"
+   ],
+   "chain": [
+    "m048",
+    "m058"
+   ],
+   "also_ok": [],
+   "why": "一箱热带水果，想到吃不了的过敏水果"
+  },
+  {
+   "id": "r10",
+   "type": "remark-assoc",
+   "kind": "trait",
+   "history": [],
+   "message": "同事约了周末去海岛玩",
+   "direct": [
+    "m057"
+   ],
+   "chain": [
+    "m038"
+   ],
+   "also_ok": [
+    "m023"
+   ],
+   "why": "去海岛要坐船，想到他晕船"
+  },
+  {
+   "id": "r11",
+   "type": "remark-assoc",
+   "kind": "emotion",
+   "history": [],
+   "message": "回到家，连个迎接的都没有",
+   "direct": [
+    "m001"
+   ],
+   "chain": [
+    "m010",
+    "m025",
+    "m045"
+   ],
+   "also_ok": [
+    "m005"
+   ],
+   "why": "回家没人迎接，想到等着的黑猫"
+  },
+  {
+   "id": "r12",
+   "type": "remark-assoc",
+   "kind": "emotion",
+   "history": [],
+   "message": "今天看到有人瘦了好开心",
+   "direct": [
+    "m002"
+   ],
+   "chain": [
+    "m014",
+    "m041"
+   ],
+   "also_ok": [],
+   "why": "有人瘦了开心，想到想减重的学员"
+  },
+  {
+   "id": "n01",
+   "type": "remark-named",
+   "history": [],
+   "message": "煤球今天又打翻了水碗",
+   "direct": [
+    "m001",
+    "m010",
+    "m025",
+    "m045"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n02",
+   "type": "remark-named",
+   "history": [],
+   "message": "张阿姨说她下周想加课",
+   "direct": [
+    "m002",
+    "m014",
+    "m041"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n03",
+   "type": "remark-named",
+   "history": [],
+   "message": "刚哥又在群里催续课了",
+   "direct": [
+    "m006",
+    "m019",
+    "m043"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n04",
+   "type": "remark-named",
+   "history": [],
+   "message": "在陈记排了半天队",
+   "direct": [
+    "m028",
+    "m015",
+    "m039",
+    "m054"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n05",
+   "type": "remark-named",
+   "history": [],
+   "message": "白云山上今天雾好大",
+   "direct": [
+    "m030",
+    "m044",
+    "m059"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n06",
+   "type": "remark-named",
+   "history": [],
+   "message": "除湿机的水又满了",
+   "direct": [
+    "m042",
+    "m027",
+    "m056"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f01",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "今天煤球又不肯回屋"
+    },
+    {
+     "role": "assistant",
+     "content": "它是不是又溜到楼道里了？"
+    }
+   ],
+   "message": "后来在哪找到的",
+   "direct": [
+    "m010"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m001"
+   ]
+  },
+  {
+   "id": "f02",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "上周带的那个阿姨学员，你还记得吗"
+    },
+    {
+     "role": "assistant",
+     "content": "是想瘦十斤的那位吗？"
+    }
+   ],
+   "message": "她上次送了啥来着",
+   "direct": [
+    "m014"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m002"
+   ]
+  },
+  {
+   "id": "f03",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "刚哥昨天又开会了"
+    },
+    {
+     "role": "assistant",
+     "content": "又是催续课吗？"
+    },
+    {
+     "role": "user",
+     "content": "对，开了一个多小时"
+    },
+    {
+     "role": "assistant",
+     "content": "那你这次被点名了吗？"
+    }
+   ],
+   "message": "这次点名了",
+   "direct": [
+    "m019"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m006"
+   ]
+  },
+  {
+   "id": "f04",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "周日一大早又排队了"
+    },
+    {
+     "role": "assistant",
+     "content": "是你常去的那家吗？"
+    }
+   ],
+   "message": "对，排了好久",
+   "direct": [
+    "m015"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m028"
+   ]
+  },
+  {
+   "id": "f05",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "最近脚底又开始疼了"
+    },
+    {
+     "role": "assistant",
+     "content": "是站久了的老毛病吗？"
+    }
+   ],
+   "message": "上次买了啥来着",
+   "direct": [
+    "m035"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m011"
+   ]
+  },
+  {
+   "id": "f06",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "昨晚家里湿得睡不着"
+    },
+    {
+     "role": "assistant",
+     "content": "那台机器没开吗？"
+    }
+   ],
+   "message": "地上全是水",
+   "direct": [
+    "m056"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m042"
+   ]
+  },
+  {
+   "id": "f07",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "昨天去白云山遇到暴雨了"
+    },
+    {
+     "role": "assistant",
+     "content": "啊，那你躲哪了？"
+    }
+   ],
+   "message": "半山腰那个",
+   "direct": [
+    "m044"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m030"
+   ]
+  },
+  {
+   "id": "f08",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "周末要去朋友家聚餐"
+    },
+    {
+     "role": "assistant",
+     "content": "你现在吃东西还要控制吗？"
+    }
+   ],
+   "message": "还是只喝水",
+   "direct": [
+    "m017"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m007"
+   ]
+  },
+  {
+   "id": "q01",
+   "type": "quiet",
+   "history": [],
+   "message": "想学吉他了",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q02",
+   "type": "quiet",
+   "history": [],
+   "message": "冰箱半夜嗡嗡响得有点吵",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q03",
+   "type": "quiet",
+   "history": [],
+   "message": "打印机又卡纸了",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q04",
+   "type": "quiet",
+   "history": [],
+   "message": "今天脑子里一直转着一首老歌",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  }
+ ]
+}

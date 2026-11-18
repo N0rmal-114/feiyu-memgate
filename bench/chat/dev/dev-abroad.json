@@ -1,0 +1,957 @@
+{
+ "world": "dev-abroad",
+ "persona": "在墨尔本读硕士的中国留学生，二十五岁，和两位室友合租一栋老房子",
+ "clusters": {
+  "c01": {
+   "entity": "Priya",
+   "terms": [
+    "Priya",
+    "小组作业"
+   ]
+  },
+  "c02": {
+   "entity": "志豪",
+   "terms": [
+    "志豪"
+   ]
+  },
+  "c03": {
+   "entity": "团子",
+   "terms": [
+    "团子",
+    "Chloe",
+    "猫"
+   ]
+  },
+  "c04": {
+   "entity": "电车",
+   "terms": [
+    "电车",
+    "86路"
+   ]
+  },
+  "c05": {
+   "entity": "兼职",
+   "terms": [
+    "兼职",
+    "火锅店"
+   ]
+  },
+  "c06": {
+   "entity": "导师",
+   "terms": [
+    "导师",
+    "Wilson"
+   ]
+  },
+  "c07": {
+   "entity": "姐姐",
+   "terms": [
+    "姐姐"
+   ]
+  },
+  "c08": {
+   "entity": "热干面",
+   "terms": [
+    "热干面"
+   ]
+  },
+  "c09": {
+   "entity": "奶茶",
+   "terms": [
+    "奶茶",
+    "云朵铺"
+   ]
+  },
+  "c10": {
+   "entity": "游泳",
+   "terms": [
+    "游泳",
+    "旱鸭子"
+   ]
+  },
+  "c11": {
+   "entity": "蜘蛛",
+   "terms": [
+    "蜘蛛"
+   ]
+  },
+  "c12": {
+   "entity": "花粉",
+   "terms": [
+    "花粉",
+    "过敏"
+   ]
+  },
+  "c13": {
+   "entity": "暖水袋",
+   "terms": [
+    "暖水袋",
+    "电暖器"
+   ]
+  },
+  "c14": {
+   "entity": "早市",
+   "terms": [
+    "早市"
+   ]
+  },
+  "c15": {
+   "entity": "羽毛球",
+   "terms": [
+    "羽毛球",
+    "小周"
+   ]
+  }
+ },
+ "memories": {
+  "m001": {
+   "text": "主人的小组作业搭档Priya是印度来的，做事爱拖，总要等到截止前一天才交自己那部分",
+   "date": "2025-01-13",
+   "cluster": "c01",
+   "role": "fact"
+  },
+  "m002": {
+   "text": "室友志豪是马来西亚来的金融系男生，爱半夜打游戏，键盘敲得很响",
+   "date": "2025-02-10",
+   "cluster": "c02",
+   "role": "fact"
+  },
+  "m003": {
+   "text": "主人在墨尔本一所大学读教育技术的硕士，今年是第二年",
+   "date": "2025-02-10",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m004": {
+   "text": "团子趁主人开着门钻进衣柜睡着了，主人找了半天才发现",
+   "date": "2025-03-19",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m005": {
+   "text": "主人二十五岁，出国前在国内一家公司做过两年运营",
+   "date": "2025-03-20",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m006": {
+   "text": "主人每天坐86路电车去学校，要在车厢里站四十分钟",
+   "date": "2025-04-16",
+   "cluster": "c04",
+   "role": "fact"
+  },
+  "m007": {
+   "text": "主人和两位室友合租一栋老房子的三居室，房租每周分摊",
+   "date": "2025-05-08",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m008": {
+   "text": "主人每周六在唐人街一家火锅店兼职，负责端菜和收盘子",
+   "date": "2025-05-23",
+   "cluster": "c05",
+   "role": "fact"
+  },
+  "m009": {
+   "text": "主人的鼠标滚轮失灵了，一直在用触控板凑合",
+   "date": "2025-06-15",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m010": {
+   "text": "Wilson看完主人的论文初稿，在第二章画满了红圈",
+   "date": "2025-06-20",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m011": {
+   "text": "主人上个月弄丢了一把家门钥匙，向房东补配了一把",
+   "date": "2025-07-23",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m012": {
+   "text": "主人的姐姐在悉尼做护士，主人每次有好消息，她都会转来一个红包当奖励",
+   "date": "2025-07-27",
+   "cluster": "c07",
+   "role": "fact"
+  },
+  "m013": {
+   "text": "Priya在截止前一晚才发来自己写的部分，主人熬到半夜帮她改格式",
+   "date": "2025-08-24",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m014": {
+   "text": "主人是武汉人，想家的时候最想吃一碗加了芝麻酱的热干面",
+   "date": "2025-08-24",
+   "cluster": "c08",
+   "role": "fact"
+  },
+  "m015": {
+   "text": "主人的银行卡是在国内开的，转账总要等两天才到账",
+   "date": "2025-09-10",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m016": {
+   "text": "志豪半夜开着外放打游戏，主人在隔壁房间用枕头捂着耳朵也睡不着",
+   "date": "2025-09-14",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m017": {
+   "text": "主人排了二十分钟队，轮到时云朵铺的茉莉奶茶刚好卖完了",
+   "date": "2025-09-21",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m018": {
+   "text": "室友Chloe养了一只橘猫，名叫团子，总爱溜进主人的房间睡觉",
+   "date": "2025-10-12",
+   "cluster": "c03",
+   "role": "fact"
+  },
+  "m019": {
+   "text": "主人在电车上看书看入了迷，坐过了站，多走了十分钟的路",
+   "date": "2025-10-17",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m020": {
+   "text": "主人在新生活动上领了一个帆布袋，现在天天背着它",
+   "date": "2025-10-18",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m021": {
+   "text": "主人是个旱鸭子，不会游泳，去海边只敢在浅水里踩水",
+   "date": "2025-10-28",
+   "cluster": "c10",
+   "role": "fact"
+  },
+  "m022": {
+   "text": "火锅店老板发工资时，多给了主人五十块当小费",
+   "date": "2025-11-13",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m023": {
+   "text": "主人特别怕蜘蛛，一进堆杂物的车库就浑身发毛",
+   "date": "2025-11-25",
+   "cluster": "c11",
+   "role": "fact"
+  },
+  "m024": {
+   "text": "主人在社团展上报了摄影小组，一直没去参加活动",
+   "date": "2025-11-25",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m025": {
+   "text": "主人的导师Wilson每周四下午和他碰面，讨论论文进度",
+   "date": "2025-12-05",
+   "cluster": "c06",
+   "role": "fact"
+  },
+  "m026": {
+   "text": "主人在公园被花粉呛到，眼睛肿得像核桃，回家吃了药",
+   "date": "2026-01-01",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m027": {
+   "text": "姐姐听说主人拿了奖学金，转来的红包大得主人不敢收",
+   "date": "2026-01-02",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m028": {
+   "text": "主人下载了背单词的软件，已经连续打卡三十天",
+   "date": "2026-01-13",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m029": {
+   "text": "主人在亚洲超市里翻了半天，只找到一包味道不对的热干面",
+   "date": "2026-01-23",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m030": {
+   "text": "主人的房间没有暖气，冬天靠一只暖水袋和一台小电暖器过夜",
+   "date": "2026-01-29",
+   "cluster": "c13",
+   "role": "fact"
+  },
+  "m031": {
+   "text": "主人每周都要去大学街的云朵铺买一杯三分糖的茉莉奶茶",
+   "date": "2026-02-14",
+   "cluster": "c09",
+   "role": "fact"
+  },
+  "m032": {
+   "text": "主人最近迷上了一档讲历史的播客，做家务时会听",
+   "date": "2026-02-20",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m033": {
+   "text": "同学拉主人去学游泳，主人在浅水区扶着池边泡了一小时",
+   "date": "2026-02-25",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m034": {
+   "text": "主人每个周日早上去两站外的露天早市买菜，蔬菜比超市便宜一半",
+   "date": "2026-03-07",
+   "cluster": "c14",
+   "role": "fact"
+  },
+  "m035": {
+   "text": "主人在浴室墙角看到一只蜘蛛，吓得不敢洗澡，等了一个多小时",
+   "date": "2026-03-18",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m036": {
+   "text": "主人去参加过一次英语角，认识了两位本地朋友",
+   "date": "2026-03-30",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m037": {
+   "text": "Priya把小组作业的封面做成了粉红色，主人看了半天才勉强接受",
+   "date": "2026-04-01",
+   "cluster": "c01",
+   "role": "episode"
+  },
+  "m038": {
+   "text": "小周打球时拍子脱手飞了出去，砸中了旁边场地的栏杆",
+   "date": "2026-04-04",
+   "cluster": "c15",
+   "role": "episode"
+  },
+  "m039": {
+   "text": "主人写论文到半夜，团子跳上键盘趴着不肯走",
+   "date": "2026-04-11",
+   "cluster": "c03",
+   "role": "episode"
+  },
+  "m040": {
+   "text": "志豪煮了一大锅叻沙分给主人，主人吃得满头大汗还要再添一碗",
+   "date": "2026-04-13",
+   "cluster": "c02",
+   "role": "episode"
+  },
+  "m041": {
+   "text": "主人对花粉过敏，一到春天眼睛发痒，常年带着抗过敏药",
+   "date": "2026-04-15",
+   "cluster": "c12",
+   "role": "fact"
+  },
+  "m042": {
+   "text": "电车上突然有人查票，主人的交通卡里正好没钱，被罚了一笔款",
+   "date": "2026-04-24",
+   "cluster": "c04",
+   "role": "episode"
+  },
+  "m043": {
+   "text": "暖水袋的塞子没拧紧，漏湿了半张床，主人半夜起来换床单",
+   "date": "2026-05-07",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m044": {
+   "text": "主人在火锅店兼职时端错了桌，客人笑着说没关系",
+   "date": "2026-05-09",
+   "cluster": "c05",
+   "role": "episode"
+  },
+  "m045": {
+   "text": "主人睡前爱刷十分钟朋友圈，经常刷得忘了时间",
+   "date": "2026-05-18",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m046": {
+   "text": "导师临时要开会，把碰面推迟了，主人白跑了一趟学院楼",
+   "date": "2026-05-21",
+   "cluster": "c06",
+   "role": "episode"
+  },
+  "m047": {
+   "text": "同学从国内带来两包热干面，主人当晚就煮了一包",
+   "date": "2026-06-01",
+   "cluster": "c08",
+   "role": "episode"
+  },
+  "m048": {
+   "text": "早市的摊主多送了主人一把香菜，说他是熟客",
+   "date": "2026-06-03",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m049": {
+   "text": "姐姐休假来墨尔本，请主人和两位室友吃了一顿烤肉",
+   "date": "2026-06-06",
+   "cluster": "c07",
+   "role": "episode"
+  },
+  "m050": {
+   "text": "主人把云朵铺的集点卡盖满了章，换了一杯免费的奶茶",
+   "date": "2026-06-13",
+   "cluster": "c09",
+   "role": "episode"
+  },
+  "m051": {
+   "text": "主人每周三晚上和同学小周在学校体育馆打羽毛球",
+   "date": "2026-06-25",
+   "cluster": "c15",
+   "role": "fact"
+  },
+  "m052": {
+   "text": "主人左手腕戴着一条红绳，是出国前外婆给的",
+   "date": "2026-06-25",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m053": {
+   "text": "室友们在海里游泳，主人只敢在沙滩上帮大家看包",
+   "date": "2026-06-29",
+   "cluster": "c10",
+   "role": "episode"
+  },
+  "m054": {
+   "text": "主人在后院的椅子上看到蜘蛛网，吓得扔掉了手里的书",
+   "date": "2026-07-11",
+   "cluster": "c11",
+   "role": "episode"
+  },
+  "m055": {
+   "text": "主人在书包里备了过敏药，上课时偷偷吃了一片，没被老师发现",
+   "date": "2026-07-26",
+   "cluster": "c12",
+   "role": "episode"
+  },
+  "m056": {
+   "text": "主人在早市拎了太多菜，塑料袋勒得手指发红，一路歇了三次",
+   "date": "2026-08-06",
+   "cluster": "c14",
+   "role": "episode"
+  },
+  "m057": {
+   "text": "电暖器让整栋房子跳了闸，主人摸黑去找电箱，撞到了膝盖",
+   "date": "2026-08-08",
+   "cluster": "c13",
+   "role": "episode"
+  },
+  "m058": {
+   "text": "主人的英语口语有点紧张，开口前总要在心里打一遍草稿",
+   "date": "2026-08-13",
+   "cluster": null,
+   "role": "filler"
+  },
+  "m059": {
+   "text": "主人打了两小时羽毛球，第二天手臂酸得连筷子都拿不稳",
+   "date": "2026-08-18",
+   "cluster": "c15",
+   "role": "episode"
+  },
+  "m060": {
+   "text": "主人对澳洲的物价很敏感，买东西前总要换算成人民币",
+   "date": "2026-09-20",
+   "cluster": null,
+   "role": "filler"
+  }
+ },
+ "cases": [
+  {
+   "id": "r01",
+   "type": "remark-assoc",
+   "kind": "craving",
+   "history": [],
+   "message": "想念老家的早餐",
+   "direct": [
+    "m014"
+   ],
+   "chain": [
+    "m029",
+    "m047"
+   ],
+   "also_ok": [],
+   "why": "想念老家的早餐，想到家乡的早点"
+  },
+  {
+   "id": "r02",
+   "type": "remark-assoc",
+   "kind": "craving",
+   "history": [],
+   "message": "下午犯困，想喝点带茶香的",
+   "direct": [
+    "m031"
+   ],
+   "chain": [
+    "m017",
+    "m050"
+   ],
+   "also_ok": [],
+   "why": "想喝带茶香的，想到常买的茉莉奶茶"
+  },
+  {
+   "id": "r03",
+   "type": "remark-assoc",
+   "kind": "body",
+   "history": [],
+   "message": "手脚冰凉，被窝焐不热",
+   "direct": [
+    "m030"
+   ],
+   "chain": [
+    "m043",
+    "m057"
+   ],
+   "also_ok": [],
+   "why": "手脚冰凉，想到取暖的暖水袋"
+  },
+  {
+   "id": "r04",
+   "type": "remark-assoc",
+   "kind": "body",
+   "history": [],
+   "message": "眼睛痒，一直打喷嚏",
+   "direct": [
+    "m041"
+   ],
+   "chain": [
+    "m026",
+    "m055"
+   ],
+   "also_ok": [],
+   "why": "眼睛痒打喷嚏，想到花粉过敏"
+  },
+  {
+   "id": "r05",
+   "type": "remark-assoc",
+   "kind": "trigger",
+   "history": [],
+   "message": "交通卡好像快没钱了",
+   "direct": [
+    "m006"
+   ],
+   "chain": [
+    "m019",
+    "m042"
+   ],
+   "also_ok": [],
+   "why": "交通卡快没钱，想到每天坐的电车"
+  },
+  {
+   "id": "r06",
+   "type": "remark-assoc",
+   "kind": "trigger",
+   "history": [],
+   "message": "冰箱里快空了",
+   "direct": [
+    "m034"
+   ],
+   "chain": [
+    "m048",
+    "m056"
+   ],
+   "also_ok": [],
+   "why": "冰箱空了，想到周日去买菜的地方"
+  },
+  {
+   "id": "r07",
+   "type": "remark-assoc",
+   "kind": "time",
+   "history": [],
+   "message": "又到周四了",
+   "direct": [
+    "m025"
+   ],
+   "chain": [
+    "m010",
+    "m046"
+   ],
+   "also_ok": [],
+   "why": "周四，想到和导师的碰面"
+  },
+  {
+   "id": "r08",
+   "type": "remark-assoc",
+   "kind": "time",
+   "history": [],
+   "message": "明天又是周六了",
+   "direct": [
+    "m008"
+   ],
+   "chain": [
+    "m022",
+    "m044"
+   ],
+   "also_ok": [],
+   "why": "周六，想到要去打工的店"
+  },
+  {
+   "id": "r09",
+   "type": "remark-assoc",
+   "kind": "trait",
+   "history": [],
+   "message": "朋友约周末去冲浪",
+   "direct": [
+    "m021"
+   ],
+   "chain": [
+    "m033",
+    "m053"
+   ],
+   "also_ok": [],
+   "why": "冲浪，想到他不会游泳"
+  },
+  {
+   "id": "r10",
+   "type": "remark-assoc",
+   "kind": "trait",
+   "history": [],
+   "message": "周末要去森林露营",
+   "direct": [
+    "m023"
+   ],
+   "chain": [
+    "m035",
+    "m054"
+   ],
+   "also_ok": [
+    "m041"
+   ],
+   "why": "露营野外，想到他怕蜘蛛"
+  },
+  {
+   "id": "r11",
+   "type": "remark-assoc",
+   "kind": "emotion",
+   "history": [],
+   "message": "深夜对着屏幕，身边没个伴",
+   "direct": [
+    "m018"
+   ],
+   "chain": [
+    "m004",
+    "m039"
+   ],
+   "also_ok": [],
+   "why": "深夜没个伴，想到会溜进房间趴着的猫"
+  },
+  {
+   "id": "r12",
+   "type": "remark-assoc",
+   "kind": "emotion",
+   "history": [],
+   "message": "拿了个高分，特别想报喜",
+   "direct": [
+    "m012"
+   ],
+   "chain": [
+    "m027",
+    "m049"
+   ],
+   "also_ok": [
+    "m025"
+   ],
+   "why": "有喜事想报喜，想到有好消息就发红包的姐姐"
+  },
+  {
+   "id": "n01",
+   "type": "remark-named",
+   "history": [],
+   "message": "团子今天又钻进我被窝了",
+   "direct": [
+    "m018",
+    "m004",
+    "m039"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n02",
+   "type": "remark-named",
+   "history": [],
+   "message": "电车今天又晚点了",
+   "direct": [
+    "m006",
+    "m019",
+    "m042"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n03",
+   "type": "remark-named",
+   "history": [],
+   "message": "Wilson今天居然夸我了",
+   "direct": [
+    "m025",
+    "m010",
+    "m046"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n04",
+   "type": "remark-named",
+   "history": [],
+   "message": "今天去云朵铺买了一杯",
+   "direct": [
+    "m031",
+    "m017",
+    "m050"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n05",
+   "type": "remark-named",
+   "history": [],
+   "message": "志豪昨晚又打游戏到三点",
+   "direct": [
+    "m002",
+    "m016",
+    "m040"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "n06",
+   "type": "remark-named",
+   "history": [],
+   "message": "小周约我这周去打球",
+   "direct": [
+    "m051",
+    "m038",
+    "m059"
+   ],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "f01",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "昨晚又没睡好"
+    },
+    {
+     "role": "assistant",
+     "content": "怎么了，又被吵醒了吗？"
+    }
+   ],
+   "message": "对，三点多",
+   "direct": [
+    "m016"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m002"
+   ]
+  },
+  {
+   "id": "f02",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "周六那家店今天发工资了"
+    },
+    {
+     "role": "assistant",
+     "content": "多不多呀？"
+    }
+   ],
+   "message": "还多给了点",
+   "direct": [
+    "m022"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m008"
+   ]
+  },
+  {
+   "id": "f03",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "今天和小周约了周三"
+    },
+    {
+     "role": "assistant",
+     "content": "还是去体育馆吗？"
+    }
+   ],
+   "message": "手臂又要酸了",
+   "direct": [
+    "m059"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m051"
+   ]
+  },
+  {
+   "id": "f04",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "团子今天又不让我写论文了"
+    },
+    {
+     "role": "assistant",
+     "content": "它又来捣乱了？"
+    }
+   ],
+   "message": "键盘都被占了",
+   "direct": [
+    "m039"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m018"
+   ]
+  },
+  {
+   "id": "f05",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "家里那个毛茸茸的又失踪了"
+    },
+    {
+     "role": "assistant",
+     "content": "是不是又躲起来了？"
+    }
+   ],
+   "message": "上次在哪找到的",
+   "direct": [
+    "m004"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m018"
+   ]
+  },
+  {
+   "id": "f06",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "今天上课差点迟到"
+    },
+    {
+     "role": "assistant",
+     "content": "路上出什么事了？"
+    }
+   ],
+   "message": "多走了十分钟",
+   "direct": [
+    "m019"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m006"
+   ]
+  },
+  {
+   "id": "f07",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "下周得把初稿交上去"
+    },
+    {
+     "role": "assistant",
+     "content": "是交给导师看吗？"
+    }
+   ],
+   "message": "他又要画红圈了",
+   "direct": [
+    "m010"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m025"
+   ]
+  },
+  {
+   "id": "f08",
+   "type": "follow-up",
+   "history": [
+    {
+     "role": "user",
+     "content": "今天路过云朵铺，排了好长的队"
+    },
+    {
+     "role": "assistant",
+     "content": "然后买到了吗？"
+    }
+   ],
+   "message": "没有，卖光了",
+   "direct": [
+    "m017"
+   ],
+   "chain": [],
+   "also_ok": [
+    "m031"
+   ]
+  },
+  {
+   "id": "q01",
+   "type": "quiet",
+   "history": [],
+   "message": "楼下的台阶重新刷了漆",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q02",
+   "type": "quiet",
+   "history": [],
+   "message": "窗台上落了一只小鸟，看了我半天",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q03",
+   "type": "quiet",
+   "history": [],
+   "message": "手机屏幕上有道细划痕",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  },
+  {
+   "id": "q04",
+   "type": "quiet",
+   "history": [],
+   "message": "闹钟换了首新铃声",
+   "direct": [],
+   "chain": [],
+   "also_ok": []
+  }
+ ]
+}
