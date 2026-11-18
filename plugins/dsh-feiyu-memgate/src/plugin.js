@@ -1078,7 +1078,9 @@ export function createPlugin(ctx, config, deps = {}) {
       if (!state || !state.open) return // no lookup was planned for this turn
       state.open = false
       const s = settings()
-      if (!s.modules.autoRecall || !s.advanced.afterthought) return
+      const afterthought = s.modules.autoRecall && s.advanced.afterthought
+      const pooled = s.modules.autoRecall && s.advanced.conversationPool
+      if (!afterthought && !pooled) return
       const ended = event.data?.reason?.kind
       if (ended === 'aborted' || ended === 'error' || ended === 'interrupted') return // no whole reply
       const reply = replyOf(historyOf(session))
@@ -1087,7 +1089,9 @@ export function createPlugin(ctx, config, deps = {}) {
         replyWarned = true
         return
       }
-      const query = buildQuery(reply, null)
+      // What the reply used gets stronger first: the pool is settled before a second lookup starts.
+      if (pooled && reply) pool.reinforce(state, reply)
+      const query = afterthought ? buildQuery(reply, null) : null
       if (query) startSecondLookup(id, state, session, query, s)
     } catch (error) {
       log.warn(`feiyu-memgate: second lookup skipped (${kindOf(error)})`)
@@ -1356,23 +1360,17 @@ export function createPlugin(ctx, config, deps = {}) {
         offDisposed?.()
       }
     },
-    // The second block's own listeners, not switches of the modules group: the state is dropped with its
-    // session while either feature is on, and the reply is read at the end of a turn while the second
-    // lookup is on. Both are removed with the feature, and neither needs automatic capture.
+    // The second block's own listeners, not a switch of the modules group: while either feature is on,
+    // the state is dropped with its session and the end of a turn is read (the pool strengthens what the
+    // reply used; the second lookup, when on, starts from the reply). Neither needs automatic capture.
     recallState: () => {
-      const off = ctx.on('session/disposed', onChatDisposed)
+      const offDisposed = ctx.on('session/disposed', onChatDisposed)
+      const offEvent = ctx.on('session/event', onTurnEnd)
       return () => {
         stopLookups()
         chat.clear()
-        off?.()
-      }
-    },
-    afterthought: () => {
-      const off = ctx.on('session/event', onTurnEnd)
-      return () => {
-        stopLookups()
-        chat.clearPending()
-        off?.()
+        offEvent?.()
+        offDisposed?.()
       }
     },
     // Only while the host offers chat commands: the child fiber runs when the optional `commands`
@@ -1429,7 +1427,11 @@ export function createPlugin(ctx, config, deps = {}) {
     if (active.has('promptSection') && promptLanguage !== resolveLanguage(s.advanced.language, deps.locale)) setModule('promptSection', false)
     for (const name of MODULE_NAMES) setModule(name, s.modules[name])
     setModule('recallState', s.modules.autoRecall && (s.advanced.afterthought || s.advanced.conversationPool))
-    setModule('afterthought', s.modules.autoRecall && s.advanced.afterthought)
+    if (!(s.modules.autoRecall && s.advanced.afterthought)) {
+      // The second lookup is off: abandon a running one and drop what it left.
+      stopLookups()
+      chat.clearPending()
+    }
     try {
       reconcileGateway(s, f)
     } catch (error) {

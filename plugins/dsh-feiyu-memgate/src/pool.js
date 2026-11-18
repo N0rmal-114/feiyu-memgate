@@ -12,7 +12,7 @@ import { meaningful } from './query.js'
 
 export const DECAY = 0.8 // multiplied into every strength at the start of a turn
 export const FORGET_BELOW = 0.2 // an item weaker than this is dropped
-export const PICK_FROM = 1 // an item at least this strong may be brought back
+export const PICK_FROM = 0.3 // an item at least this strong may be brought back (given once: about five turns)
 export const MAX_ITEMS = 24 // per session; beyond it the weakest go
 export const MAX_SESSIONS = 64 // the least recently used session goes first
 export const MENTION_MIN = 3 // characters a message and a memory must share to count as a mention
@@ -145,6 +145,12 @@ export function advance(state, { decay = false, message = null } = {}) {
   if (typeof message === 'string' && message) {
     for (const item of state.items.values()) if (mentions(message, item.text)) item.strength += 1
   }
+}
+
+/** The assistant's reply used what a memory says: every item the reply mentions gains 1 (the rule of `advance`). */
+export function reinforce(state, reply) {
+  if (typeof reply !== 'string' || !reply) return
+  for (const item of state.items.values()) if (mentions(reply, item.text)) item.strength += 1
 }
 
 /** Memories were given this turn: a new one enters at strength 1, a known one gains 1; both take the turn number. */

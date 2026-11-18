@@ -3,7 +3,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  DECAY, FORGET_BELOW, MAX_ITEMS, MAX_SESSIONS, advance, createPool, enter, mentions, offer, pick, takePending,
+  DECAY, FORGET_BELOW, MAX_ITEMS, MAX_SESSIONS, PICK_FROM, advance, createPool, enter, mentions, offer, pick, reinforce, takePending,
 } from '../src/pool.js'
 
 const memory = (text, extra = {}) => ({ text, ...extra })
@@ -121,14 +121,14 @@ test('eviction prefers the weaker over the older', () => {
   assert.ok(state.items.has('fresh'))
 })
 
-test('pick: at least strength 1, strongest first, then the most recently given, then in entering order; at most the limit', () => {
+test('pick: at least strength 0.3, strongest first, then the most recently given, then in entering order; at most the limit', () => {
   const state = fresh()
   enter(state, [memory('first in'), memory('second in'), memory('third in'), memory('fourth in')])
   advance(state, { decay: true, message: 'second in' })
   advance(state, { decay: true })
   enter(state, [memory('fifth in')])
-  // second in: (0.8 + 1) * 0.8 = 1.44; first, third, fourth: 0.64 (not picked); fifth: 1
-  assert.deepEqual(pick(state, { limit: 5 }).map((m) => m.text), ['second in', 'fifth in'])
+  // second in: (0.8 + 1) * 0.8 = 1.44; fifth: 1; first, third, fourth: 0.64, picked after the stronger ones
+  assert.deepEqual(pick(state, { limit: 5 }).map((m) => m.text), ['second in', 'fifth in', 'first in', 'third in', 'fourth in'])
   assert.deepEqual(pick(state, { limit: 1 }).map((m) => m.text), ['second in'])
   assert.deepEqual(pick(state, { limit: 0 }), [])
 
@@ -205,4 +205,37 @@ test('clearPending forgets what a second lookup found in every session and nothi
   assert.equal(a.pending, null)
   assert.equal(b.pending, null)
   assert.equal(a.items.size, 1)
+})
+
+test('an item given once can be picked for about five turns: 1, 0.8, 0.64, 0.51, 0.41, 0.33, and not at 0.26', () => {
+  assert.equal(PICK_FROM, 0.3)
+  const state = fresh()
+  enter(state, [memory('The user keeps a bicycle')])
+  const picked = []
+  for (let i = 0; i < 7; i++) {
+    picked.push(pick(state, { limit: 3 }).length)
+    advance(state, { decay: true })
+  }
+  // strengths 1, 0.8, 0.64, 0.51, 0.41, 0.33 are picked; 0.262 is not
+  assert.deepEqual(picked, [1, 1, 1, 1, 1, 1, 0])
+})
+
+test('reinforce: every item the reply mentions gains 1, the others stay', () => {
+  const state = fresh()
+  enter(state, [memory('The user drinks oolong tea'), memory('The user keeps a bicycle'), memory('主人把自行车放在车库里')])
+  reinforce(state, 'Oolong is a fine choice, and the garage is tidy.')
+  assert.deepEqual(strengths(state), { 'The user drinks oolong tea': 2, 'The user keeps a bicycle': 1, '主人把自行车放在车库里': 1 })
+  reinforce(state, '骑自行车去吧')
+  assert.equal(state.items.get('主人把自行车放在车库里').strength, 2)
+  reinforce(state, '')
+  reinforce(state, undefined)
+  reinforce(state, 'nothing in common here at all')
+  assert.deepEqual(strengths(state), { 'The user drinks oolong tea': 2, 'The user keeps a bicycle': 1, '主人把自行车放在车库里': 2 })
+})
+
+test('reinforce uses the same mention rule: a common word is not a use', () => {
+  const state = fresh()
+  enter(state, [memory('The user drinks oolong tea')])
+  reinforce(state, 'The user said that you can do what you like')
+  assert.equal(state.items.get('The user drinks oolong tea').strength, 1)
 })

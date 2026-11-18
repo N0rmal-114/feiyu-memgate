@@ -930,13 +930,13 @@ test('the second lookup registers its listeners with autoRecall and afterthought
   plugin.reconcile()
   assert.equal(host.count('session/event'), 1)
   assert.equal(host.count('session/disposed'), 1)
-  assert.deepEqual(plugin.activeModules().sort(), ['afterthought', 'autoRecall', 'recallState'])
+  assert.deepEqual(plugin.activeModules().sort(), ['autoRecall', 'recallState'])
   plugin.reconcile()
   assert.equal(host.count('session/event'), 1, 'a second reconcile registers nothing twice')
   advanced.set({ language: 'en', afterthought: false, conversationPool: true })
   plugin.reconcile()
-  assert.equal(host.count('session/event'), 0, 'the pool alone reads no reply')
-  assert.equal(host.count('session/disposed'), 1, 'but it drops a conversation with its session')
+  assert.equal(host.count('session/event'), 1, 'the pool alone reads the end of a turn: it strengthens what the reply used')
+  assert.equal(host.count('session/disposed'), 1, 'and drops a conversation with its session')
   advanced.set({ language: 'en', afterthought: false, conversationPool: false })
   plugin.reconcile()
   assert.equal(host.count('session/event') + host.count('session/disposed'), 0)
@@ -1270,10 +1270,80 @@ test('the conversation pool: after the history loses its blocks the memories in 
   const extra = secondOf(back)
   assert.ok(extra, 'a second block after the compaction')
   assert.deepEqual(shape(back), ['user', 'pool', 'context'], 'no main block: right after the user message')
-  assert.deepEqual(itemLines(extra), [`- (memory) ${M_BIKE}`, `- (memory) ${M_OOLONG}`], 'strongest first; the faded ones stay out')
+  assert.deepEqual(itemLines(extra), [`- (memory) ${M_BIKE}`, `- (memory) ${M_OOLONG}`, `- (memory) ${M_VIOLIN}`], 'strongest first, at most poolSize (3): the cat, as strong as the violin, is cut by the limit')
   assert.ok(blockOf(extra).includes(POOL_HEAD_EN))
   const again = await talk.turn('And what about the tire?')
-  assert.equal(secondOf(again), undefined, 'once: the block is in the history now')
+  assert.deepEqual(itemLines(secondOf(again)), [`- (memory) ${M_CAT}`], 'the three shown are in the history now; only the one the limit cut comes next')
+  assert.equal(secondOf(await talk.turn('And the tire again?')), undefined, 'then nothing is left')
+})
+
+test('the conversation pool: a memory given once comes back after a compaction two turns later', async () => {
+  const handlers = { recall: async (query) => (query.startsWith('Tell me') ? found(M_OOLONG, M_BIKE, M_VIOLIN, M_CAT) : noneFound()) }
+  const { host } = setup({ config: pooled({ poolSize: 4 }), handlers })
+  const talk = conversation(host)
+  await talk.turn('Tell me about oolong, the bicycle, the violin and the cat')
+  await talk.turn('What is the weather like?')
+  talk.compact()
+  const back = await talk.turn('And tomorrow?') // all four at 0.64
+  assert.equal(itemLines(secondOf(back)).length, 4)
+})
+
+test('the conversation pool: a memory not used for a while has fallen under 0.3 and does not come back', async () => {
+  const handlers = { recall: async (query) => (query.startsWith('Tell me') ? found(M_CAT) : noneFound()) }
+  for (const [idle, comes] of [[4, true], [5, false]]) {
+    const { host } = setup({ config: pooled(), handlers })
+    const talk = conversation(host)
+    await talk.turn('Tell me something')
+    for (let i = 0; i < idle; i++) await talk.turn(`Weather ${i} today?`) // the block is still in the history: nothing extra
+    talk.compact()
+    const back = await talk.turn('And tomorrow?') // 0.8 to the power of idle + 1: 0.33 or 0.26
+    assert.equal(Boolean(secondOf(back)), comes, `after ${idle} idle turns`)
+  }
+})
+
+test('the conversation pool: what the reply used is strengthened, with the second lookup off and on', async () => {
+  const handlers = { recall: async (query) => (query.startsWith('Tell me') ? found(M_CAT) : noneFound()) }
+  for (const afterthought of [false, true]) {
+    for (const [reply, comes] of [['Biscuit the cat is adorable.', true], ['Noted.', false]]) {
+      const { host } = setup({ config: pooled({ afterthought }), handlers })
+      const talk = conversation(host)
+      await talk.turn('Tell me something', reply) // used: 2; not used: 1
+      for (let i = 0; i < 5; i++) await talk.turn(`Weather ${i} today?`)
+      talk.compact()
+      const back = await talk.turn('And tomorrow?') // 2 * 0.8^6 = 0.52, or 0.26
+      assert.equal(Boolean(secondOf(back)), comes, `afterthought ${afterthought}, reply ${JSON.stringify(reply)}`)
+    }
+  }
+})
+
+test('the conversation pool: a reply is read only for a turn that was planned and did not end aborted, in error or interrupted', async () => {
+  const handlers = { recall: async (query) => (query.startsWith('Tell me') ? found(M_CAT) : noneFound()) }
+  for (const end of [END('aborted'), END('error'), END('interrupted'), null]) {
+    const { host } = setup({ config: pooled(), handlers })
+    const talk = conversation(host)
+    await talk.turn('Tell me something', 'Biscuit the cat is adorable.', { end })
+    for (let i = 0; i < 5; i++) await talk.turn(`Weather ${i} today?`)
+    talk.compact()
+    assert.equal(secondOf(await talk.turn('And tomorrow?')), undefined, `end ${JSON.stringify(end?.data.reason.kind)}`)
+  }
+  // A subagent session keeps no pool at all.
+  const { host } = setup({ config: pooled(), handlers })
+  const sub = conversation(host, { session: fakeSession({ id: 'sub-3', header: { delegationDepth: 1 }, history: [] }) })
+  await sub.turn('Tell me something', 'Biscuit the cat is adorable.')
+  sub.compact()
+  assert.equal(secondOf(await sub.turn('And tomorrow?')), undefined)
+})
+
+test('both settings off: a reply that uses a memory changes nothing, and no session listener exists', async () => {
+  const handlers = { recall: async (query) => (query.startsWith('Tell me') ? found(M_CAT) : noneFound()) }
+  const { host, clients } = setup({ handlers })
+  assert.equal(host.count('session/event'), 0)
+  const talk = conversation(host)
+  await talk.turn('Tell me something', 'Biscuit the cat is adorable.')
+  talk.compact()
+  const back = await talk.turn('The cat again?')
+  assert.equal(secondOf(back), undefined)
+  assert.equal(clients.calls.recall.length, 2, 'one lookup per turn, no second lookup')
 })
 
 test('the conversation pool: poolSize limits what comes back', async () => {
@@ -1287,16 +1357,6 @@ test('the conversation pool: poolSize limits what comes back', async () => {
     const back = await talk.turn('oolong, bicycle, violin')
     assert.deepEqual(itemLines(secondOf(back)), expected.map((t) => `- (memory) ${t}`), `size ${size}`)
   }
-})
-
-test('the conversation pool: a memory nobody mentions fades and does not come back', async () => {
-  const handlers = { recall: async (query) => (query.startsWith('Tell me') ? found(M_CAT) : noneFound()) }
-  const { host } = setup({ config: pooled(), handlers })
-  const talk = conversation(host)
-  await talk.turn('Tell me something')
-  talk.compact()
-  const back = await talk.turn('Anything about the weekend?')
-  assert.equal(secondOf(back), undefined, 'strength 0.8 after one turn: below 1')
 })
 
 test('the conversation pool: a memory the main lookup delivers is not in the extra block, and keeps its strength', async () => {
