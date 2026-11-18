@@ -162,6 +162,10 @@ const GROUPS = [
         en: 'Leave out a memory that an earlier memory block of this conversation still shows, compared by its text. If nothing new is left, no block is added. Off: only a block identical to the previous one is left out.',
         zh: '这个对话里前面的记忆块还留着的记忆，不再给第二次（按记忆的文字比较）。没有新的就不加记忆块。关掉：只有和上一个记忆块完全相同时才不加。',
       }),
+      bool('linkedRecall', true, { en: 'Recall linked memories', zh: '顺带想起相连的记忆' }, {
+        en: 'With vector retrieval (the endpoint and local tiers, with or without retrieval.hybrid), after the usual lookup the gateway follows the first two memories it found to the memories closest to them and adds at most two, never beyond advanced.recallLimit. Under keyword retrieval it does nothing.',
+        zh: '用向量检索时（endpoint 和 local 两档，开不开 retrieval.hybrid 都一样），网关在平常的查找之后，顺着找到的前两条记忆去找和它们最接近的记忆，最多再加两条，总数不超过 advanced.recallLimit。用 keyword 检索时什么都不做。',
+      }),
       bool('showAge', true, { en: "Show today's date and each memory's age", zh: '写明今天的日期和每条记忆的时间' }, {
         en: "The memory block says today's date (the date on this computer) and how long ago each dated memory is, for example 3 weeks ago. Off: the block shows only the absolute dates.",
         zh: '记忆块里写明今天的日期（这台电脑上的日期），以及每条有日期的记忆是多久以前的事，例如“3 周前”。关掉：只写具体日期。',

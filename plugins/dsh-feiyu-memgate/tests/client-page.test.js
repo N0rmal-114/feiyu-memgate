@@ -107,6 +107,19 @@ test('the field table in the script is the one in src/config.js (npm run sync-cl
   assert.deepEqual(plain(load().internals.FIELDS), plain(FIELDS))
 })
 
+test('the page script carries advanced.linkedRecall right after skipRepeats: a switch that is on, with both languages', () => {
+  const advanced = plain(load().internals.FIELDS).find((g) => g.group === 'advanced').fields
+  const keys = advanced.map((f) => f.key)
+  assert.equal(keys[keys.indexOf('skipRepeats') + 1], 'linkedRecall')
+  const row = advanced.find((f) => f.key === 'linkedRecall')
+  assert.deepEqual([row.kind, row.default, row.label.en, row.label.zh], ['boolean', true, 'Recall linked memories', '顺带想起相连的记忆'])
+  const { en, zh } = plain(load().internals.dictionaries())
+  assert.equal(en['f.advanced.linkedRecall'], row.label.en)
+  assert.equal(zh['f.advanced.linkedRecall'], row.label.zh)
+  assert.equal(en['h.advanced.linkedRecall'], row.help.en)
+  assert.equal(zh['h.advanced.linkedRecall'], row.help.zh)
+})
+
 test('the page script carries the four chat settings with their kinds, defaults and range', () => {
   const table = plain(load().internals.FIELDS)
   const advanced = table.find((g) => g.group === 'advanced').fields

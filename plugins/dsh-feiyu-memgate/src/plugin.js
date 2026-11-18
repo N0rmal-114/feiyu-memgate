@@ -432,7 +432,7 @@ export function createPlugin(ctx, config, deps = {}) {
 
   // The settings a gateway is built from; any change restarts it. Recall limits and the language are
   // not among them: they are read per call.
-  const policyOf = (s) => [s.advanced.profile, s.advanced.dailyWrites, s.advanced.redaction, s.advanced.newerFirst, s.advanced.forgetting]
+  const policyOf = (s) => [s.advanced.profile, s.advanced.dailyWrites, s.advanced.redaction, s.advanced.newerFirst, s.advanced.linkedRecall, s.advanced.forgetting]
   function tierKey(s, tier, f) {
     if (tier === 'endpoint') return [s.retrieval.url, s.retrieval.model, s.retrieval.apiKey]
     // The add-on appearing, changing model, restarting its server or going away changes this key.

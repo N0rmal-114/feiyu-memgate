@@ -14,7 +14,7 @@ test('defaults', () => {
     gateway: { mode: 'managed', python: '', dataDir: '' },
     external: { url: '', token: '' },
     advanced: {
-      recallLimit: 5, recallTimeoutMs: 4000, language: 'auto', skipRepeats: true, showAge: true, failureNote: true, captureMinChars: 4,
+      recallLimit: 5, recallTimeoutMs: 4000, language: 'auto', skipRepeats: true, linkedRecall: true, showAge: true, failureNote: true, captureMinChars: 4,
       profile: 'broad', dailyWrites: 50, redaction: true, newerFirst: true, forgetting: false,
     },
   })
@@ -155,7 +155,7 @@ test('the field table lists every setting once, labelled and explained in both l
 test('the chat settings: three switches that are on and a character count of 4, each with help in both languages', () => {
   const group = FIELDS.find((g) => g.group === 'advanced')
   assert.deepEqual(group.fields.map((f) => f.key), [
-    'recallLimit', 'recallTimeoutMs', 'language', 'skipRepeats', 'showAge', 'failureNote', 'captureMinChars',
+    'recallLimit', 'recallTimeoutMs', 'language', 'skipRepeats', 'linkedRecall', 'showAge', 'failureNote', 'captureMinChars',
     'profile', 'dailyWrites', 'redaction', 'newerFirst', 'forgetting',
   ])
   for (const key of ['advanced.skipRepeats', 'advanced.showAge', 'advanced.failureNote']) {
@@ -186,6 +186,31 @@ test('the chat settings: three switches that are on and a character count of 4, 
   // The schema for the host carries the range.
   const schema = buildConfigSchema(recordingSchema())
   assert.deepEqual([schema.dict.advanced.dict.captureMinChars.meta.min, schema.dict.advanced.dict.captureMinChars.meta.max], [0, 50])
+})
+
+test('advanced.linkedRecall: a boolean, on by default, right after skipRepeats, with help in both languages', () => {
+  const group = FIELDS.find((g) => g.group === 'advanced')
+  const keys = group.fields.map((f) => f.key)
+  assert.equal(keys[keys.indexOf('skipRepeats') + 1], 'linkedRecall')
+  const field = SETTING_KEYS['advanced.linkedRecall']
+  assert.equal(field.kind, 'boolean')
+  assert.equal(field.default, true)
+  assert.equal(field.label.en, 'Recall linked memories')
+  assert.equal(field.label.zh, '顺带想起相连的记忆')
+  for (const language of ['en', 'zh']) {
+    assert.match(field.help[language], /advanced\.recallLimit/)
+    assert.match(field.help[language], /retrieval\.hybrid/)
+    assert.match(field.help[language], /keyword/)
+  }
+  assert.equal(readConfig({}).advanced.linkedRecall, true)
+  assert.equal(readConfig({ advanced: { linkedRecall: false } }).advanced.linkedRecall, false)
+  for (const bad of ['no', 0, null, 'false']) assert.equal(readConfig({ advanced: { linkedRecall: bad } }).advanced.linkedRecall, true, String(bad))
+  assert.deepEqual(parseSetting(field, 'off'), { ok: true, value: false })
+  assert.deepEqual(parseSetting(field, '关'), { ok: true, value: false })
+  assert.deepEqual(parseSetting(field, 'on'), { ok: true, value: true })
+  assert.equal(parseSetting(field, 'maybe').ok, false)
+  const schema = buildConfigSchema(recordingSchema())
+  assert.ok(schema.dict.advanced.dict.linkedRecall, 'the host schema has the field')
 })
 
 test('retrieval.hybrid: a boolean, off by default, right after the tier, with help in both languages', () => {

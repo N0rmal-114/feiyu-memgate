@@ -458,6 +458,19 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
           }
         },
         {
+          "key": "linkedRecall",
+          "kind": "boolean",
+          "default": true,
+          "label": {
+            "en": "Recall linked memories",
+            "zh": "顺带想起相连的记忆"
+          },
+          "help": {
+            "en": "With vector retrieval (the endpoint and local tiers, with or without retrieval.hybrid), after the usual lookup the gateway follows the first two memories it found to the memories closest to them and adds at most two, never beyond advanced.recallLimit. Under keyword retrieval it does nothing.",
+            "zh": "用向量检索时（endpoint 和 local 两档，开不开 retrieval.hybrid 都一样），网关在平常的查找之后，顺着找到的前两条记忆去找和它们最接近的记忆，最多再加两条，总数不超过 advanced.recallLimit。用 keyword 检索时什么都不做。"
+          }
+        },
+        {
           "key": "showAge",
           "kind": "boolean",
           "default": true,

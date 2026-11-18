@@ -102,6 +102,28 @@ test('/memgate set persists through the Settings service of this entry and appli
   assert.equal(host.tools.has('memgate_search'), true)
 })
 
+test('switching advanced.linkedRecall restarts the managed gateway, and the same value does not', async () => {
+  const { host, config, managers, plugin } = setup({ services: ['commands', 'settings'], entryId: 'memory-row' })
+  await plugin.settled()
+  assert.equal(managers.created.length, 1)
+  assert.equal(managers.created[0].options.settings.advanced.linkedRecall, true)
+  config.advanced.set({ ...config.advanced.get(), linkedRecall: false })
+  host.emit('loader/volatile-update', [['advanced', 'linkedRecall']])
+  await plugin.settled()
+  assert.equal(managers.created.length, 2)
+  assert.equal(managers.created[0].stopped, 1)
+  assert.equal(managers.created[1].options.settings.advanced.linkedRecall, false)
+  host.emit('loader/volatile-update', [['advanced', 'linkedRecall']])
+  await plugin.settled()
+  assert.equal(managers.created.length, 2, 'the same value does nothing')
+  const reply = await run(host, 'set advanced.linkedRecall on')
+  assert.equal(reply.kind, 'success')
+  assert.deepEqual(host.mutations, [{ ns: 'memory-row', ops: [{ op: 'set', path: ['advanced', 'linkedRecall'], value: true }] }])
+  await plugin.settled()
+  assert.equal(managers.created.length, 3, 'set through the command restarts it too')
+  assert.equal(managers.created[2].options.settings.advanced.linkedRecall, true)
+})
+
 test('the entry id falls back to the row id, and a host without Settings is told plainly', async () => {
   const host = createFakeHost()
   host.ctx.fiber = undefined

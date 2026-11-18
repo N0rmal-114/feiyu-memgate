@@ -7,9 +7,10 @@ import datetime
 import math
 
 from ..errors import ConfigError
+from ..model import Candidate
 from ..registry import register
 from . import tidy
-from .recall import DEFER, DROP, KEEP, RecallStage
+from .recall import DEFER, DROP, KEEP, RecallStage, _hits
 
 PROBE_MARKER = "FEIYU-PROBE-"
 MAX_ITEM_CHARS = 64 * 1024
@@ -374,9 +375,119 @@ class NewerFirst(RecallStage):
         return out
 
 
+LINKED_TOP = 2
+LINKED_MAX_ADDED = 2
+LINKED_MINIMUM = 0.60
+LINKED_WAIT = 1.0  # seconds all the lookups of one request may take together at most
+
+
+def _whole(value, low, high):
+    return isinstance(value, int) and not isinstance(value, bool) and low <= value <= high
+
+
+@register("recall_stage", "linked")
+class Linked(RecallStage):
+    """Add the memories linked to the best ones: one step from what the lines let through.
+
+    A casual remark ("最近天气有点热") is close to one memory ("主人喜欢吃冰淇淋"), and a second one
+    ("上次冰淇淋掉在了地上") is close to that memory but not to the remark. After the score lines have
+    decided what is delivered, this stage takes the first `top` candidates (in the order the recall will
+    deliver them), asks their store for the memories most similar to each (the backend method
+    `neighbours`, docs/pieces.md) and appends at most `max_added` of those whose similarity is at least
+    `minimum`. It acts after the lines, so it never changes whether the gateway stays quiet: with no
+    candidate it does nothing.
+
+    Rules: only while the number of candidates is below the request's limit (the limit keeps meaning "at
+    most this many memories"); a memory that is a candidate already (same store and ref) is not added; a
+    memory found from two candidates counts once with its higher similarity; the best similarity first.
+    An appended candidate keeps the source and store of the memory it was found from, scores
+    `parent score x similarity` (never above the lowest first-hop score, so it stays behind every first-hop
+    candidate in the recall's score sort and keeps its own order), and has `meta["linked_from"]` = that
+    memory's ref. It then goes through the later stages like any other: texts are read by `fill_text`,
+    cleaned by `redact`, and counted by `dedupe` and `budget`. The HTTP answer does not change (no field is
+    added). A store without `neighbours`, a timeout or an error in it means nothing is added and one note
+    "linked-failed" for the access log (no note for a store that simply has no such method). The lookups go
+    through ctx.run like the reads of `fill_text`; together they wait at most 1 second and at most half of the
+    time left, so a store that hangs costs the request that much and not the answer it already has.
+
+    Put it after `min_score`, `relative_score` and `newer_first` (misplaced() reports the opposite order)
+    and before `fill_text`. Options: top (default 2, 1..5), max_added (default 2, 0..5; 0 switches the
+    stage off), minimum (default 0.60, 0..1; on the store's own 0..1 score scale: 0.60 was measured with
+    bge-m3 on the embedding backend, other models use it unmeasured).
+    """
+
+    after = ("min_score", "relative_score", "newer_first")
+
+    def __init__(self, top=LINKED_TOP, max_added=LINKED_MAX_ADDED, minimum=LINKED_MINIMUM):
+        if not _whole(top, 1, 5):
+            raise ConfigError("linked: top must be a whole number from 1 to 5")
+        if not _whole(max_added, 0, 5):
+            raise ConfigError("linked: max_added must be a whole number from 0 to 5")
+        if not _fraction(minimum):
+            raise ConfigError("linked: minimum must be a number between 0 and 1")
+        self.top = top
+        self.max_added = max_added
+        self.minimum = float(minimum)
+
+    def prepare(self, candidates, ctx):
+        room = min(self.max_added, ctx.limit - len(candidates))
+        if room <= 0 or not candidates:
+            return candidates
+        try:
+            added = self._added(candidates, room, ctx)
+        except Exception as error:  # noqa: BLE001 - this stage never fails a recall
+            ctx.fault("linked-failed", "stage=linked where=prepare error=%s" % type(error).__name__)
+            return candidates
+        return list(candidates) + added
+
+    def _added(self, candidates, room, ctx):
+        # the order the recall delivers in: best score first, a tie keeps the list order (a stable sort)
+        first = sorted(candidates, key=lambda c: -c.score)[:self.top]
+        taken = {(id(c.store), c.ref) for c in candidates}
+        ask = room + len(candidates)  # enough that the memories already taken cannot crowd the others out
+        # All the lookups together wait at most this long, and never more than half of what is left: a store
+        # that hangs must not take the time the stages after this one (and the first-hop answer) need.
+        until = ctx.clock() + min(LINKED_WAIT, max(ctx.time_left(), 0.0) / 2)
+        found = {}  # (id of store, ref) -> [similarity, order met, parent, hit]
+        for parent in first:
+            if ctx.clock() >= until:
+                break
+            if not callable(getattr(parent.store, "neighbours", None)):
+                continue
+            store = parent.store
+            ok, result = ctx.run(
+                lambda ctl, s=store, p=parent: s.neighbours(p.ref, ask, max(until - ctx.clock(), 0.05), ctl),
+                store=store, until=until)
+            hits = _hits(result) if ok else None
+            if hits is None:
+                ctx.fault("linked-failed", "stage=linked where=neighbours error=%s" % (
+                    type(result).__name__ if isinstance(result, BaseException) else "no-result"))
+                continue
+            for hit in hits:
+                key = (id(store), hit.ref)
+                if key in taken or hit.ref == parent.ref or hit.score < self.minimum:
+                    continue
+                if key not in found:
+                    found[key] = [hit.score, len(found), parent, hit]
+                elif hit.score > found[key][0]:
+                    found[key][0], found[key][2], found[key][3] = hit.score, parent, hit
+        ranked = sorted(found.values(), key=lambda item: (-item[0], item[1]))[:room]
+        # Behind every first-hop candidate, and in the order chosen (a later one never scores above an earlier one).
+        ceiling = math.nextafter(min(c.score for c in candidates), 0.0)
+        out = []
+        for similarity, _, parent, hit in ranked:
+            ceiling = min(ceiling, parent.score * similarity)
+            meta = dict(hit.meta)
+            meta["similarity"] = ceiling
+            meta["linked_from"] = parent.ref
+            out.append(Candidate(score=ceiling, source=parent.source, store=parent.store, ref=hit.ref,
+                                 text=hit.text, date=hit.date, meta=meta))
+        return out
+
+
 def misplaced(stages):
     """Names of the stages in `stages` that stand before a stage they must come after. Works on
-    stage objects (the order of a built gateway); only newer_first declares such a rule, in `after`."""
+    stage objects (the order of a built gateway); newer_first and linked declare such a rule, in `after`."""
     problems = []
     for index, stage in enumerate(stages):
         rule = getattr(stage, "after", None)
@@ -393,6 +504,8 @@ def misplaced(stages):
 # a stage that changes scores (source_weight, freshness) goes between the two.
 # newer_first only reorders the candidates that passed both thresholds, so it comes after them; it does
 # nothing for memories without dates.
+# linked acts after the lines (it never changes whether the gateway stays quiet) and before fill_text, so what it
+# appends is read, redacted and counted like any other candidate; it does nothing for stores without `neighbours`.
 # (drop_marker is not a default: add it after fill_text when something writes such markers.)
-DEFAULT_STAGES = ("min_score", "relative_score", "newer_first", "fill_text", "drop_oversize", "redact", "dedupe",
-                  "budget")
+DEFAULT_STAGES = ("min_score", "relative_score", "newer_first", "linked", "fill_text", "drop_oversize", "redact",
+                  "dedupe", "budget")

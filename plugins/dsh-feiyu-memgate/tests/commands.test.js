@@ -235,6 +235,20 @@ test('retrieval.hybrid is set like any switch, by full or bare name', async () =
   assert.match((await run('set retrieval.hybrid maybe')).text, /retrieval\.hybrid takes on or off\./)
 })
 
+test('advanced.linkedRecall is listed, set by full or bare name and reset', async () => {
+  const { run, writes } = harness()
+  assert.ok((await run('config')).text.includes('advanced.linkedRecall = on  (on)'))
+  assert.equal((await run('set advanced.linkedRecall off')).text, 'Saved: advanced.linkedRecall = off (was on).')
+  assert.equal((await run('set linkedrecall on')).text, 'Saved: advanced.linkedRecall = on (was off).', 'a bare name is enough')
+  assert.match((await run('set advanced.linkedRecall maybe')).text, /advanced\.linkedRecall takes on or off\./)
+  assert.equal((await run('reset advanced.linkedRecall')).text, 'Reset: advanced.linkedRecall is back to its default (on).')
+  assert.deepEqual(writes.map((ops) => [ops[0].op, ops[0].path.join('.'), ops[0].value]), [
+    ['set', 'advanced.linkedRecall', false],
+    ['set', 'advanced.linkedRecall', true],
+    ['unset', 'advanced.linkedRecall', undefined],
+  ])
+})
+
 test('the chat settings are listed, set and reset like every other setting', async () => {
   const { run, writes } = harness()
   const config = await run('config')

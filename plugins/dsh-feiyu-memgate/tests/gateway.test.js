@@ -149,6 +149,10 @@ test('the gateway accepts every generated configuration', { skip }, async (t) =>
     [{ advanced: { profile: 'precise' } }],
     [{ advanced: { redaction: false, newerFirst: false, dailyWrites: 0 } }],
     [{ advanced: { forgetting: true } }],
+    // The linked stage: off, and on without newer_first before it.
+    [{ advanced: { linkedRecall: false } }],
+    [{ advanced: { newerFirst: false, linkedRecall: true } }],
+    [{ retrieval: { tier: 'endpoint', hybrid: true, url: 'http://127.0.0.1:9/v1', model: 'bge-m3' }, advanced: { newerFirst: false, forgetting: true } }],
     [{ retrieval: { tier: 'endpoint', url: 'http://127.0.0.1:9/v1', model: 'bge-m3' } }],
     [{ retrieval: { tier: 'endpoint', url: 'http://127.0.0.1:9/v1', model: 'bge-m3', apiKey: 'fake-embeddings-key' }, advanced: { forgetting: true } }],
     // Hybrid: the keyword index and the vector table side by side; the key still comes from the environment.
@@ -169,6 +173,7 @@ test('the gateway accepts every generated configuration', { skip }, async (t) =>
     const result = check(file, { [TOKEN_ENV]: token, ...env })
     assert.equal(result.status, 0, `variant ${index}:\n${result.stdout}\n${result.stderr}`)
     if (settings.advanced.forgetting) assert.match(text, /\[forgetting\]/)
+    assert.equal(/"linked"/.test(text), settings.advanced.linkedRecall, 'the linked stage follows the setting')
     if (settings.retrieval.apiKey) assert.equal(env[EMBEDDINGS_KEY_ENV], 'fake-embeddings-key')
     if (settings.retrieval.hybrid) {
       assert.equal(store.hybrid, true)
@@ -210,6 +215,21 @@ test('a hybrid store is written as a children array of inline tables, backslash 
   assert.equal(memories.children[0].path, keyword.path)
   assert.equal(memories.children[1].path, vector.path)
   assert.equal(memories.children[1].key_env, EMBEDDINGS_KEY_ENV)
+})
+
+test('the linked stage follows newer_first (relative_score when that is off) and comes before fill_text; off, the list is the old one', () => {
+  const stagesOf = (advanced) => {
+    const { text } = gatewayConfig({ port: 4321, dataDir: path.join(os.tmpdir(), 'dsh-memgate-stage-list'), settings: readConfig({ advanced }) })
+    const line = text.split('\n').find((l) => l.startsWith('stages = '))
+    return JSON.parse(line.slice('stages = '.length))
+  }
+  const tail = ['fill_text', 'drop_oversize', 'redact', 'dedupe', 'budget']
+  assert.deepEqual(stagesOf({}), ['min_score', 'relative_score', 'newer_first', 'linked', ...tail])
+  assert.deepEqual(stagesOf({ newerFirst: false }), ['min_score', 'relative_score', 'linked', ...tail])
+  assert.deepEqual(stagesOf({ forgetting: true }), ['min_score', 'freshness', 'relative_score', 'newer_first', 'linked', ...tail])
+  assert.deepEqual(stagesOf({ linkedRecall: false }), ['min_score', 'relative_score', 'newer_first', ...tail])
+  assert.deepEqual(stagesOf({ linkedRecall: false, newerFirst: false }), ['min_score', 'relative_score', ...tail])
+  assert.deepEqual(stagesOf({ redaction: false }), ['min_score', 'relative_score', 'newer_first', 'linked', 'fill_text', 'drop_oversize', 'dedupe', 'budget'])
 })
 
 // A gateway process that never answers its health check.

@@ -592,6 +592,44 @@ class EmbeddingBackend(MemoryBackend):
                 hits.append(_make_hit(ref, self._score(cosine), text, date, cosine))
         return hits
 
+    def neighbours(self, ref, limit, timeout=None, ctl=None):
+        """Up to `limit` memories most similar to the stored memory `ref`, best first, never `ref` itself.
+
+        Works on the stored vectors only (no embeddings request): the same cosine and the same score mapping
+        as find(), so a score here means what it means there; memories at or below `floor` cosine are left
+        out. [] for a ref that is not stored. BackendError when the budget runs out or `ctl` was cancelled
+        (never a partial ranking). Costs one pass over the stored vectors."""
+        total = self._timeout if timeout is None else max(0.0, float(timeout))
+        deadline = time.monotonic() + total
+        if not isinstance(ref, str) or limit < 1:
+            return []
+
+        def check():
+            if time.monotonic() >= deadline:
+                raise BackendError("deadline exceeded")
+            if getattr(ctl, "cancelled", False):
+                raise BackendError("cancelled")
+
+        check()
+        snapshot = self._snapshot()
+        own = next((vec for key, vec in snapshot if key == ref), None)
+        if own is None:
+            return []
+        scored = []
+        for start in range(0, len(snapshot), SCORE_CHECK_EVERY):
+            check()
+            for key, vec in snapshot[start:start + SCORE_CHECK_EVERY]:
+                if key != ref and len(vec) == len(own):
+                    scored.append((_sumprod(own, vec), key))
+        best = [(c, r) for c, r in heapq.nlargest(limit, scored) if self._score(c) > 0.0]
+        texts = self._texts([r for _, r in best])
+        hits = []
+        for cosine, key in best:
+            if key in texts:  # deleted by another connection between scan and fetch: skip
+                text, date = texts[key]
+                hits.append(_make_hit(key, self._score(cosine), text, date, cosine))
+        return hits
+
     def _texts(self, refs):
         out = {}
         with self._lock:

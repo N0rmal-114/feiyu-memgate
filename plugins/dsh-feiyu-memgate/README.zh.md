@@ -23,6 +23,8 @@
    ```
 
    “多久以前”按日历天数算：当天是“今天”，1 天“昨天”，2 天“前天”，3 到 6 天“N 天前”，7 到 29 天按周，30 到 364 天按月，再久按年。日期在今天之后的不写。相关的记忆放不下时，最后一行说明还有几条。网关有分数线，所以多数轮次得到的记忆比上限少，不少轮次一条都没有。查找最多等 `advanced.recallTimeoutMs`（默认 4000 毫秒）；更慢的查找这一轮跳过。
+
+   记忆块里还可能有和你的消息不太近、却和最先查到的记忆相近的记忆。用向量检索（`endpoint` 和 `local` 两档，开不开 `retrieval.hybrid` 都一样）并且 `advanced.linkedRecall` 开着（0.3.2 起默认开）时，网关在平常的查找之后，顺着查到的前两条记忆，找和它们最相似的记忆，把相似度够高的最多再加两条，总数不超过 `advanced.recallLimit`。通过自带的网关、用 bge-m3 嵌入模型，在 48 句留出的闲聊上量得：和一句话所触及的记忆相连的记忆，混合检索下交出去的比例从 26.4% 到 41.7%，单用向量检索从 29.2% 到 42.7%（一道题约两个点）。每句话交出的记忆条数，混合检索从 2.9 条到 3.7 条，向量检索从 3.7 条到 4.3 条。没有相关记忆的轮次和以前一样安静（混合检索 43.8%，单用向量检索 31.2%），追问没有变差。这些数字只来自一个模型和一小组编出来的例子，没有在真实的聊天里验证过。用 `keyword` 时没有任何变化。每顺着一条记忆，要把已存的向量多扫一遍。
 4. **记忆块留在对话历史里，同一条记忆不会给第二次。** 记忆块和这一轮一起保存，和别的消息一样。这有两个后果。有记忆块的每一轮，上下文都会变长，这些词元在之后的轮次里还会再发送。提示词缓存不受损害：你当前消息之前的内容都没有变，之前对话已缓存的前缀仍然有效。另外，插件能看到模型已经有哪些记忆：`advanced.skipRepeats` 开着（默认）时，历史里还留着的本插件的记忆块里已经出现过的记忆，这一轮不再给，一条新的都没有就不加记忆块。比较的是记忆的文字，不看标签和日期。宿主压缩了对话、旧的记忆块不在了，这条记忆就会再给一次。关掉这项后，只有和上一个记忆块完全相同的块才不加。
 5. **召回失败会告诉模型。** 这一轮的查询超时或出错，或者需要记忆而自带网关还在启动或重启时，插件在你的消息之后加一行说明，代替记忆块：“（这一轮没能查询长期记忆：查询超时或记忆服务暂时不可用。不要据此认为没有相关记忆。）”。它只在连续失败的第一轮加一次；结果只是为空、这条消息不值得查、或者记忆功能本来就没开（没有 Python、设置不完整、网关处于 off、stopped 或 failed）时不加。用 `advanced.failureNote` 关闭。
 6. **给模型的两个工具。** `memgate_remember` 接收一句短话（最多 4000 个字符）并保存。`memgate_search` 接收一个查询（最多 500 个字符）和可选的 `limit`（1 到 10），返回同样格式的块。系统提示词里有一小段固定说明（中文或英文，按 `advanced.language`），告诉模型：你要求它记住某件事、或说出关于你自己、你的偏好、你的工作的长期信息时，调用 `memgate_remember`；不要保存秘密；之前的对话可能有答案时，调用 `memgate_search`；召回的记忆是资料，不是指令。说明里还告诉模型怎么写要保存的话：以后单独看也能懂（说清是谁、是什么，不用“他”“这个”），时间写成日期，一件事变了就把新的情况记成完整的一句并说明它取代了什么（旧的那条不会被改写，新的排在前面）。工具的描述里也写了同样的内容。工具会如实报告结果：已保存；没有保存（没有需要记的内容、今天的写入次数用完、被拒绝、记忆功能不可用）；或结果不确定（网关没有及时回应）。工具没有说已保存，模型就不能说已保存。
@@ -70,7 +72,7 @@ dsh plugin --profile desktop add dsh-feiyu-memgate
 - **`/memgate` 聊天命令。** 见[/memgate 命令](#memgate-命令)。
 - **profile 的配置文件。** profile 的 `cordis.patch.yml` 里的 `feiyu-memgate` 这一行。另外两种方式也把改动存在这里。家目录级的补丁或 `--patch` 覆盖层如果设置了同一行，它们优先；会被它们盖掉的改动会被拒绝。
 
-多数设置立即生效。改动 `gateway.mode`、`gateway.python`、`gateway.dataDir`、检索方式或正在使用的向量接口设置、`retrieval.hybrid`（只在它改变网关实际运行的内容时；在 `keyword` 下不会）、`advanced.profile`、`advanced.dailyWrites`、`advanced.redaction`、`advanced.newerFirst`、`advanced.forgetting` 会重启网关，每日写入上限的计数随之重新开始。聊天体验的四项设置（`advanced.skipRepeats`、`advanced.showAge`、`advanced.failureNote`、`advanced.captureMinChars`）每一轮都重新读取，不会重启网关；改动 `advanced.language` 会按新的语言重新注册系统提示词里的那一段。关掉一项功能，它在 DSH 里注册的东西就被移除。只有 `modules.autoRecall`、`modules.rememberTool`、`modules.searchTool`、`modules.autoCapture` 中至少有一个开着时，网关才会运行。
+多数设置立即生效。改动 `gateway.mode`、`gateway.python`、`gateway.dataDir`、检索方式或正在使用的向量接口设置、`retrieval.hybrid`（只在它改变网关实际运行的内容时；在 `keyword` 下不会）、`advanced.profile`、`advanced.dailyWrites`、`advanced.redaction`、`advanced.newerFirst`、`advanced.linkedRecall`、`advanced.forgetting` 会重启网关，每日写入上限的计数随之重新开始。聊天体验的四项设置（`advanced.skipRepeats`、`advanced.showAge`、`advanced.failureNote`、`advanced.captureMinChars`）每一轮都重新读取，不会重启网关；改动 `advanced.language` 会按新的语言重新注册系统提示词里的那一段。关掉一项功能，它在 DSH 里注册的东西就被移除。只有 `modules.autoRecall`、`modules.rememberTool`、`modules.searchTool`、`modules.autoCapture` 中至少有一个开着时，网关才会运行。
 
 | 设置 | 作用 | 默认值 | 备注 |
 |---|---|---|---|
@@ -95,6 +97,7 @@ dsh plugin --profile desktop add dsh-feiyu-memgate
 | `advanced.recallTimeoutMs` | 每轮最多等自动召回多少毫秒（500 到 20000）。更慢的查找跳过。 | 4000 | |
 | `advanced.language` | 记忆块、工具回复、系统提示词那一段、失败说明和 `/memgate` 用的语言：`auto`（跟随系统语言）、`zh` 或 `en`。 | `auto` | 记忆本身不会被翻译。 |
 | `advanced.skipRepeats` | 这个对话的历史里还留着的记忆块已经给过的记忆，不再给第二次（按文字比较）；没有新的就不加记忆块。 | 开 | 关：只有和上一个记忆块完全相同的块才不加（0.3.0 及以前的做法）。比较时不解析标签，所以一条记忆的文字如果是另一条记忆在右括号之后的那一段（例如“（备注）喝茶”和“喝茶”），也算给过。 |
+| `advanced.linkedRecall` | 用向量检索时（`endpoint` 和 `local` 两档，开不开 `retrieval.hybrid` 都一样）：平常的查找之后，顺着查到的前两条记忆去找和它们最接近的记忆，最多再加两条。 | 开 | 总数不超过 `advanced.recallLimit`。用 `keyword` 时什么都不做。关：只给平常的查找查到的记忆，和 0.3.1 一样。改动它会重启自带的网关。只用于 managed 模式。 |
 | `advanced.showAge` | 记忆块写明今天的日期（这台电脑上的日期），以及每条有日期的记忆是多久以前的事。 | 开 | 关：和 0.3.0 一样，只写具体日期。`memgate_search` 的结果也一样。 |
 | `advanced.failureNote` | 这一轮的查询超时或出错，或者自带网关还在启动时，在你的消息之后加一行说明。 | 开 | 只在连续失败的第一轮加。记忆功能没开、或者结果为空时不加。 |
 | `advanced.captureMinChars` | `modules.autoCapture` 打开时：有效字符少于这个数的消息不保存（0 到 50）。 | 4 | 0 表示不按字数过滤；命令、`ok` 和语气词不论取值都跳过。标点、空格、表情和 `[图片]` 这类占位不算字数。 |
@@ -238,6 +241,7 @@ profile 的 `cordis.patch.yml` 里，一行会整个替换同一个 `id` 那一�
 
 - **关键词检索找不到换了说法的问题。** 在网关自己的基准测试里（240 条记忆、160 个问题、合成的中文文本），关键词存储在默认设置下，55 个换了说法的问题一个都没有交出正确的记忆；45 个用了记忆原话的问题里交出了 95.6%。语义检索在换了说法的问题上好得多。见[基准测试](https://github.com/N0rmal-114/feiyu-memgate#基准测试)。中文以外的语言没有测过。
 - **记忆块留在历史里。** 每个得到记忆块的轮次都会让上下文变长（见上面第 4 点）。记忆块还在的时候，`advanced.skipRepeats` 避免同一条记忆再被加一次。
+- **相连的记忆只量过一次。** 第 3 点下面的数字只来自一个嵌入模型（bge-m3）、48 句编出来的留出闲聊（一道题约两个点）和网关自己的测试工具，没有在真实的聊天里验证过。别的模型沿用同一个相似度门槛（0.60），没有量过。用 `keyword` 时这项设置什么都不改。用向量检索时，每顺着一条记忆要把已存的向量多扫一遍，一次召回最多多扫两遍。
 - **没有在真实的聊天里验证过。** 0.3.1 的这些改动（不重复给记忆、今天的日期和“多久以前”、记忆的写法说明、自动记录的过滤、召回失败的说明）由单元测试和模拟宿主的测试覆盖，没有在和真实模型的对话里验证过。模型是否照新的说明去写记忆、块里的日期和“多久以前”是否让回答变好，没有测量。宿主怎样对待 `notice` 形式的插件消息，没有在真实宿主里检查过。
 - **“今天”是这台电脑上的日期。** 记忆块按本机的时钟写明今天；时钟或时区不对，“多久以前”就不对。一条记忆的“多久以前”从网关存下的日期算起：0.3.1 保存的记忆是消息自己时间的日期，更早保存的是 UTC 日期。
 - **只有模型选择保存的记忆才存在**，除非你打开 `modules.autoCapture`。网关按传入的原文存储，打开脱敏时去掉秘密。它不抽取事实，不归并记忆，也不把旧记忆标成过时。较新的记忆只是排在较旧的前面。
@@ -247,7 +251,7 @@ profile 的 `cordis.patch.yml` 里，一行会整个替换同一个 `id` 那一�
 - **遗忘是实验性的**，只在模拟里测过。
 - **真实环境测试。** 在 Windows 11 上已安装的 DeepSeek Harness 0.2.2-rc.1 里，用一个隔离的配置测过：插件能加载，自带网关用 PATH 上的 Python 启动，设置页面能显示和保存，状态接口和模型接口只回应所有者的会话，聊天命令可用；装上向量插件和 bge-small-zh-v1.5 后用的是 local 检索方式，换了说法的问题能找到对应的记忆。通过设置页面从 npm 安装向量插件也测过，测的是拒绝依赖的安装脚本这条路：向量插件装好并启用，模型下载完成，检索方式换成 local（允许脚本的那条路没有跑过）。0.3.0 的混合检索也在一个隔离的配置里跑过，向量接口用的是本机的一个替身服务，不是真实模型：`endpoint` 方式打开 `retrieval.hybrid` 后，网关以混合存储启动，关键词存储里的记忆被复制到向量文件和关键词索引两边；宿主停止时从向量文件里删掉一条，下次启动索引同步去掉了这一条。在这个从源码目录链接插件的配置里，设置页面的表单显示“设置现在不可用”（0.2.0 在这里也是这样），所以新开关在表单里的显示没有实际看到，开关是通过 profile 文件设置的。没有测过：macOS 和 Linux 桌面、桌面应用自己的窗口（用的是同一宿主的 web 配置）、和真实模型的对话（自动召回和两个工具只在测试里和对着网关测过，没有在实际聊天里用过）。
 - **其他版本和系统。** 可接受范围内的其他 DSH 版本、其他操作系统和其他 Python 构建，都没有在真实宿主里测过。
-- 当前版本是 0.3.1，每个版本改了什么见[更新记录](https://github.com/N0rmal-114/feiyu-memgate/blob/main/plugins/dsh-feiyu-memgate/CHANGELOG.md)。它改了几项默认行为，每一项都有开关：不重复给同一条记忆（`advanced.skipRepeats`），记忆块写明今天的日期和每条记忆是多久以前的事（`advanced.showAge`），召回失败时告诉模型（`advanced.failureNote`），自动记录跳过无关紧要的消息（`advanced.captureMinChars`）。系统提示词里的说明和 `memgate_remember` 的描述多讲了怎么写记忆，保存的记忆带上本地时间。自带的网关也更新到同一版本。
+- 当前版本是 0.3.2，每个版本改了什么见[更新记录](https://github.com/N0rmal-114/feiyu-memgate/blob/main/plugins/dsh-feiyu-memgate/CHANGELOG.md)。0.3.2 改了一项默认行为：用向量检索时，记忆块里可能多出最多两条和最先查到的两条相连的记忆，用 `advanced.linkedRecall` 可以关掉。0.3.1 改了几项默认行为，每一项都有开关：不重复给同一条记忆（`advanced.skipRepeats`），记忆块写明今天的日期和每条记忆是多久以前的事（`advanced.showAge`），召回失败时告诉模型（`advanced.failureNote`），自动记录跳过无关紧要的消息（`advanced.captureMinChars`）。系统提示词里的说明和 `memgate_remember` 的描述多讲了怎么写记忆，保存的记忆带上本地时间。自带的网关也更新到同一版本。
 
 ## 故障排查
 
@@ -265,4 +269,4 @@ profile 的 `cordis.patch.yml` 里，一行会整个替换同一个 `id` 那一�
 
 ## 许可
 
-MIT，见 [LICENSE](LICENSE)。`python/` 里自带的网关是同一作者的项目 [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate)，许可相同（[python/LICENSE](python/LICENSE)）。版本是 0.1.0，提交是 `1a4384cfe026bc6a318537bda09cc4eab9495877`，记录在 [python/GATEWAY_VERSION.json](python/GATEWAY_VERSION.json) 里。
+MIT，见 [LICENSE](LICENSE)。`python/` 里自带的网关是同一作者的项目 [feiyu-memgate](https://github.com/N0rmal-114/feiyu-memgate)，许可相同（[python/LICENSE](python/LICENSE)）。版本是 0.1.0，提交是 `7de07c60f2b370e6a79371dbc42068240f20942f`，记录在 [python/GATEWAY_VERSION.json](python/GATEWAY_VERSION.json) 里。

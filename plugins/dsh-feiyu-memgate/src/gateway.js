@@ -214,6 +214,8 @@ export function gatewayConfig({ port, dataDir, settings, facts = {}, utcOffsetHo
   if (policy.forgetting) stages.push('freshness')
   stages.push('relative_score')
   if (policy.newerFirst) stages.push('newer_first')
+  // linked comes after the score lines and newer_first, before fill_text (DEFAULT_STAGES in core/stages.py).
+  if (policy.linkedRecall) stages.push('linked')
   stages.push('fill_text', 'drop_oversize')
   if (policy.redaction) stages.push('redact')
   stages.push('dedupe', 'budget')
