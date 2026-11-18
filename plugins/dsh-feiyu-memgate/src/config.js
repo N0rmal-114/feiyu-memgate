@@ -177,6 +177,21 @@ const GROUPS = [
       { key: 'captureMinChars', kind: 'integer', default: 4, min: 0, max: 50,
         label: { en: 'Automatic capture: shortest message', zh: '自动记录：最短的消息' },
         help: { en: 'With automatic capture on, a message is not saved when it is a command, only filler, or has fewer meaningful characters than this (0 to 50; punctuation, spaces and emoji do not count). 0 turns the length check off.', zh: '自动记录打开时，命令、只有语气词的消息，以及有意义的字数少于这个数的消息不保存（0 到 50；标点、空格和表情不算字数）。0 表示不按字数过滤。' } },
+      // Prototypes, off by default (docs/design/2026-11-18-recall-with-a-model.md): measured offline only.
+      bool('afterthought', false, { en: 'Recall again after replying', zh: '回复之后再想一想' }, {
+        en: "Experimental. After each reply, look memories up once more in the background with the reply as the query, and give the ones this conversation has not had yet on the next turn, in a second block after the memory block. Costs one more lookup per turn; the added block makes the context longer, and it may hold memories unrelated to the new message. Under keyword retrieval the second lookup matches words of the reply. Needs modules.autoRecall.",
+        zh: '实验功能。每次回复之后，在后台拿这条回复再查一次记忆，把这个对话里还没给过的记忆在下一轮放进记忆块之后的第二个块里。每轮多一次查询；多出来的块会让上下文变长，里面可能有和新消息无关的记忆。用 keyword 检索时，第二次查询匹配的是回复里的词。需要 modules.autoRecall。',
+      }),
+      { key: 'afterthoughtMax', kind: 'integer', default: 2, min: 1, max: 5,
+        label: { en: 'Memories a second lookup may add', zh: '再想一想最多加几条' },
+        help: { en: 'With advanced.afterthought on: the most memories one second lookup keeps for the next turn (1 to 5).', zh: '回复之后再想一想打开时：一次再查最多留几条给下一轮（1 到 5）。' } },
+      bool('conversationPool', false, { en: 'Conversation pool', zh: '对话池' }, {
+        en: 'Experimental. Remember in memory what this conversation was given. When the host has compacted the history and those memory blocks are gone, give the few that were still in play once more, in a second block after the memory block. The block makes the context longer and may hold memories unrelated to the new message. Nothing is written to disk. Needs modules.autoRecall.',
+        zh: '实验功能。在内存里记住这个对话给过哪些记忆。宿主压缩了历史、那些记忆块不在了的时候，把仍在谈论中的几条再给一次，放在记忆块之后的第二个块里。多出来的块会让上下文变长，里面可能有和新消息无关的记忆。不写入磁盘。需要 modules.autoRecall。',
+      }),
+      { key: 'poolSize', kind: 'integer', default: 3, min: 1, max: 5,
+        label: { en: 'Memories the pool brings back', zh: '对话池一次带回几条' },
+        help: { en: 'With advanced.conversationPool on: the most memories the pool brings back in one turn (1 to 5).', zh: '对话池打开时：一轮最多带回几条（1 到 5）。' } },
       // broad is the default since 0.2.0, like the gateway's own default: in a chat a topic usually touches
       // several memories. The block stays in the history, so precise is there for those who want less context.
       { key: 'profile', kind: 'choice', default: 'broad',

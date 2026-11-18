@@ -134,6 +134,22 @@ test('the page script carries the four chat settings with their kinds, defaults 
   }
 })
 
+test('the page script carries the four prototype settings, off by default, with both languages', () => {
+  const advanced = plain(load().internals.FIELDS).find((g) => g.group === 'advanced').fields
+  const row = (key) => advanced.find((f) => f.key === key)
+  for (const key of ['afterthought', 'conversationPool']) assert.deepEqual([row(key).kind, row(key).default], ['boolean', false], key)
+  for (const key of ['afterthoughtMax', 'poolSize']) assert.deepEqual([row(key).kind, row(key).min, row(key).max], ['integer', 1, 5], key)
+  assert.equal(row('afterthoughtMax').default, 2)
+  assert.equal(row('poolSize').default, 3)
+  const { en, zh } = plain(load().internals.dictionaries())
+  for (const key of ['afterthought', 'afterthoughtMax', 'conversationPool', 'poolSize']) {
+    assert.equal(en[`f.advanced.${key}`], row(key).label.en)
+    assert.equal(zh[`f.advanced.${key}`], row(key).label.zh)
+    assert.equal(en[`h.advanced.${key}`], row(key).help.en)
+    assert.equal(zh[`h.advanced.${key}`], row(key).help.zh)
+  }
+})
+
 test('apply registers both dictionaries and the page under <package name>#<row id>', () => {
   const { exports, internals } = load()
   const calls = { effects: [], locale: [], slots: [] }

@@ -277,6 +277,30 @@ test('the chat settings are listed, set and reset like every other setting', asy
   assert.match(zh.text, /^已保存：advanced\.failureNote = /)
 })
 
+test('the prototype settings are listed, set by full or bare name and reset', async () => {
+  const { run, writes } = harness()
+  const config = await run('config')
+  assert.ok(config.text.includes('advanced.afterthought = off  (off)'), config.text)
+  assert.ok(config.text.includes('advanced.afterthoughtMax = 2  (2)'))
+  assert.ok(config.text.includes('advanced.conversationPool = off  (off)'))
+  assert.ok(config.text.includes('advanced.poolSize = 3  (3)'))
+  assert.equal((await run('set advanced.afterthought on')).text, 'Saved: advanced.afterthought = on (was off).')
+  assert.equal((await run('set afterthoughtmax 4')).text, 'Saved: advanced.afterthoughtMax = 4 (was 2).', 'a bare name is enough, and afterthought does not swallow afterthoughtMax')
+  assert.equal((await run('set conversationpool on')).text, 'Saved: advanced.conversationPool = on (was off).')
+  assert.equal((await run('set poolSize 5')).text, 'Saved: advanced.poolSize = 5 (was 3).')
+  assert.match((await run('set advanced.poolSize 6')).text, /takes a whole number from 1 to 5/)
+  assert.match((await run('set advanced.afterthoughtMax 0')).text, /takes a whole number from 1 to 5/)
+  assert.match((await run('set advanced.conversationPool maybe')).text, /advanced\.conversationPool takes on or off\./)
+  assert.equal((await run('reset advanced.poolSize')).text, 'Reset: advanced.poolSize is back to its default (3).')
+  assert.deepEqual(writes.map((ops) => [ops[0].op, ops[0].path.join('.'), ops[0].value]), [
+    ['set', 'advanced.afterthought', true],
+    ['set', 'advanced.afterthoughtMax', 4],
+    ['set', 'advanced.conversationPool', true],
+    ['set', 'advanced.poolSize', 5],
+    ['unset', 'advanced.poolSize', undefined],
+  ])
+})
+
 test('use chooses a tier and says when it cannot run yet', async () => {
   const { run, writes } = harness()
   const local = await run('use local')

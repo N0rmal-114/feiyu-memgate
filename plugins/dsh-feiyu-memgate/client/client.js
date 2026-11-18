@@ -512,6 +512,62 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
           }
         },
         {
+          "key": "afterthought",
+          "kind": "boolean",
+          "default": false,
+          "label": {
+            "en": "Recall again after replying",
+            "zh": "回复之后再想一想"
+          },
+          "help": {
+            "en": "Experimental. After each reply, look memories up once more in the background with the reply as the query, and give the ones this conversation has not had yet on the next turn, in a second block after the memory block. Costs one more lookup per turn; the added block makes the context longer, and it may hold memories unrelated to the new message. Under keyword retrieval the second lookup matches words of the reply. Needs modules.autoRecall.",
+            "zh": "实验功能。每次回复之后，在后台拿这条回复再查一次记忆，把这个对话里还没给过的记忆在下一轮放进记忆块之后的第二个块里。每轮多一次查询；多出来的块会让上下文变长，里面可能有和新消息无关的记忆。用 keyword 检索时，第二次查询匹配的是回复里的词。需要 modules.autoRecall。"
+          }
+        },
+        {
+          "key": "afterthoughtMax",
+          "kind": "integer",
+          "default": 2,
+          "min": 1,
+          "max": 5,
+          "label": {
+            "en": "Memories a second lookup may add",
+            "zh": "再想一想最多加几条"
+          },
+          "help": {
+            "en": "With advanced.afterthought on: the most memories one second lookup keeps for the next turn (1 to 5).",
+            "zh": "回复之后再想一想打开时：一次再查最多留几条给下一轮（1 到 5）。"
+          }
+        },
+        {
+          "key": "conversationPool",
+          "kind": "boolean",
+          "default": false,
+          "label": {
+            "en": "Conversation pool",
+            "zh": "对话池"
+          },
+          "help": {
+            "en": "Experimental. Remember in memory what this conversation was given. When the host has compacted the history and those memory blocks are gone, give the few that were still in play once more, in a second block after the memory block. The block makes the context longer and may hold memories unrelated to the new message. Nothing is written to disk. Needs modules.autoRecall.",
+            "zh": "实验功能。在内存里记住这个对话给过哪些记忆。宿主压缩了历史、那些记忆块不在了的时候，把仍在谈论中的几条再给一次，放在记忆块之后的第二个块里。多出来的块会让上下文变长，里面可能有和新消息无关的记忆。不写入磁盘。需要 modules.autoRecall。"
+          }
+        },
+        {
+          "key": "poolSize",
+          "kind": "integer",
+          "default": 3,
+          "min": 1,
+          "max": 5,
+          "label": {
+            "en": "Memories the pool brings back",
+            "zh": "对话池一次带回几条"
+          },
+          "help": {
+            "en": "With advanced.conversationPool on: the most memories the pool brings back in one turn (1 to 5).",
+            "zh": "对话池打开时：一轮最多带回几条（1 到 5）。"
+          }
+        },
+        {
           "key": "profile",
           "kind": "choice",
           "default": "broad",
