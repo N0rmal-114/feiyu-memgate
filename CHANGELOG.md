@@ -8,6 +8,7 @@
 
 - 分数线的默认档位从 `precise` 改成 `broad`：`min_score` 和 `relative_score` 不写 `profile` 时用每个存储的 `broad_*` 分数线。用向量存储时每个问题平均交约 2.5 条记忆（以前约 1 条），漏答更少，交出去的杂项更多，对没有答案的问题更少保持安静。原因：项目用在聊天陪伴上，一个话题通常牵到好几条记忆，每轮 1 条太少。两档的数值没有改。要回到以前的行为，在配置里写 `[recall] profile = "precise"`（或只在某一步上写 `profile = "precise"`）。`default_min_score` 等属性名不变，它们是 `precise` 档的分数线（`default_` 是历史命名）；没有声明 `broad_*` 的存储两档都用 `default_*`。每题交得更多，记忆块也更长：记忆块会留在对话历史里的聊天程序，上下文会涨得更快。
 - 默认召回步骤多了一步 `newer_first`（在 `relative_score` 后面）：通过分数线的候选里，分数不低于最高分 85% 的几条按日期新的在前。它不改变交付哪些记忆，只改顺序；记忆没有日期时不起作用。不想要它，在 `stages` 里自己列一套不含它的。
+- 默认召回步骤又多了一步 `linked`（在 `newer_first` 后面、`fill_text` 前面）：用 `embedding` 或带 `embedding` 子后端的 `hybrid` 存储时，一次召回可能多返回最多两条和最前面两条记忆连着的记忆（总数仍不超过 `limit`；候选数已经够 `limit` 条，或者一条候选都没有时什么都不加）。接上的记忆和别的记忆一样过 `fill_text`、`redact`、`dedupe`、`budget`，HTTP 回答的字段不变。只用关键词存储（`sqlite`、`inmemory`）或 `openviking` 时没有变化。每跟着一条候选，`embedding` 要把已存的向量扫一遍，所以一次召回最多多两遍扫描。要回到以前的行为：在 `[recall]` 里写一个不含 `linked` 的 `stages` 列表，或者把它的 `max_added` 设成 0（`{ type = "linked", max_added = 0 }`）。写了自己的 `stages` 的配置不变。
 - `embedding` 后端按模型名选用预设（`floor`、`ceil`、默认分数线、查询前缀）。`bge-m3` 的行为不变；配置里用的是 bge-small-zh-v1.5、bge-base-zh-v1.5、embeddinggemma、qwen3-embedding 的，默认分数线会变成各自的预设；其他模型沿用 bge-m3 的数值并在启动时给一行警告。手写过 `floor`、`ceil` 或分数线的不受影响。向量库现在还记着建库时的文档前缀，不一致会拒绝打开。
 - 配置里的普通令牌不能以 `fmg1.` 开头（这个前缀留给租户绑定令牌），否则启动报错。
 - 客户端配置里的 `token_env` 变成可选：不写表示这个客户端没有令牌，不能通过 HTTP 认证，只能在进程内使用。
@@ -42,6 +43,7 @@
 
 ### 新增
 
+- 关联召回：后端有了可选的能力 `neighbours(ref, limit, timeout=None, ctl=None)`（和已存的某一条最相似的最多 `limit` 条记忆，分数用后端自己的 0..1 相关度，不含它自己；`embedding` 用已存的向量，不请求 embeddings 接口，`hybrid` 问有这个方法的子后端再合并；`sqlite`、`inmemory`、`openviking` 没有），和召回步骤 `linked`（选项 `top` 默认 2、`max_added` 默认 2、`minimum` 默认 0.60；放在 `newer_first` 之后，`feiyu-memgate check` 会提醒顺序放反）。它在分数线之后，取最前面 `top` 条候选，把和它们最相似、相似度不低于 `minimum` 的记忆最多接上 `max_added` 条，总数不超过 `limit`，所以不改变“什么时候保持安静”。聊天测试题 `bench/chat`（bge-m3、`embedding` 后端、`broad` 档）的留出集上：连着的记忆被交出去的比例 29.2% → 42.7%，直接相关的那条 54.2% → 56.2%，每道闲聊交出的条数 3.73 → 4.27，交出去的条目里相关的占比 34.9% → 36.7%，追问命中和安静的比例没有变。这些数字只对 bge-m3 而言；别的模型沿用同一个 0.60，没有量过。每个划分只有 48 道闲聊，一道题约 2 个点。`RecallContext.run` 多了可选的 `until`（让等待比总时限早结束）。`bench/chat/run.py` 多了 `--linked on|off`（默认 `on`，是网关的默认步骤；`off` 是不含 `linked` 的默认步骤），用来在真实网关上量前后。设计和试过的其他做法见 docs/design/2026-11-18-linked-recall.md。
 - 文档：`docs/api.md`（API 参考：HTTP 接口、Python 客户端、扩展接口、命令行、DSH 插件的接口，逐项按代码核对）。HTTP 接口和“写死的上限”两节从 `configuration.md` 移到了这里，原处留有指向新位置的说明。`docs/development.md`（开发指南）、`docs/extending.md`（二次开发指引）。
 - 示例：`examples/custom-backend`（一个文件写成的存储后端）、`examples/chat-loop`（一轮对话从查询到写入的完整流程）。
 - 自动检查：每次推送和每个 pull request 在 Linux 和 Windows 上运行网关和两个插件的测试（`.github/workflows/ci.yml`）。

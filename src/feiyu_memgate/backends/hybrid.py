@@ -281,6 +281,38 @@ class HybridBackend(MemoryBackend):
             raise BackendError("cannot read the memory")
         raise KeyError(ref)
 
+    def neighbours(self, ref, limit, timeout=None, ctl=None):
+        """The memories most similar to the stored memory `ref`: every child that has `neighbours` is asked,
+        the answers are merged by ref (the higher score wins) and cut to `limit`, best first. A child that
+        fails is skipped; with no child that has the method (or none that answers) the answer is []."""
+        total = self._timeout if timeout is None else max(0.0, float(timeout))
+        end = time.monotonic() + total
+        capable = [child for child in self.children if callable(getattr(child, "neighbours", None))]
+        # ref -> [highest score, its hit, first text found, first date found]
+        best = {}
+        for index, child in enumerate(capable):
+            left = max(0.0, end - time.monotonic()) / (len(capable) - index)
+            try:
+                hits = child.neighbours(ref, limit, **_extras(child.neighbours, left, ctl))
+                rows = [(h.ref, min(1.0, max(0.0, float(h.score))), h) for h in hits]
+            except Exception:  # noqa: BLE001 - one failing child must not silence the others
+                continue
+            for hit_ref, score, hit in rows:
+                if hit_ref == ref:
+                    continue
+                entry = best.setdefault(hit_ref, [score, hit, "", None])
+                if score > entry[0]:
+                    entry[0], entry[1] = score, hit
+                entry[2] = entry[2] or hit.text
+                entry[3] = entry[3] or hit.date
+        out = []
+        for hit_ref, (score, hit, text, date) in best.items():
+            meta = dict(getattr(hit, "meta", None) or {})
+            out.append(Hit(ref=hit_ref, score=score, text=text, date=date, meta=meta) if _HAS_META
+                       else Hit(ref=hit_ref, score=score, text=text, date=date))
+        out.sort(key=lambda h: (-h.score, h.ref))
+        return out[:max(0, int(limit))]
+
     def _first(self, name):
         for child in self.children:
             if hasattr(child, name):

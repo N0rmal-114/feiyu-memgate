@@ -226,10 +226,12 @@ def replay_gateway(cand, queries):
 # ------------------------------------------------------------------ stages
 
 def stage_list(stages_arg, min_score=None, ratio=None, gap=None):
-    """The stage specs to run: DEFAULT_STAGES, or the --stages list (JSON, or comma-separated names);
+    """The stage specs to run: DEFAULT_STAGES without `linked`, or the --stages list (JSON, or comma-separated
+    names). `linked` adds memories after the score lines have decided; the lines were chosen, and the results
+    under bench/results/dev recorded, without it, so it is left out unless --stages names it;
     min_score / relative_score entries are given the values asked for."""
     if stages_arg is None:
-        names = list(stages_module.DEFAULT_STAGES)
+        names = [name for name in stages_module.DEFAULT_STAGES if name != "linked"]
     elif stages_arg.lstrip().startswith("["):
         names = json.loads(stages_arg)
     else:

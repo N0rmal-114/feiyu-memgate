@@ -69,6 +69,15 @@ class MemoryBackend(abc.ABC):
                                            replaces). Needs writable=True.
         receipt_refs(receipt)           -> list of the refs the write `receipt` produced,
                                            or None when not known (yet) or not supported.
+        neighbours(ref, limit, timeout=None, ctl=None)
+                                        -> the `limit` memories most similar to the stored memory
+                                           `ref`, best first, as Hit objects whose `score` is on the
+                                           backend's own 0..1 relevance scale (the scale find() uses),
+                                           never including `ref` itself; [] when `ref` is unknown.
+                                           It takes the same `timeout` and `ctl` as find() and raises
+                                           (BackendError) rather than answer partly. The `linked` recall
+                                           stage uses it to bring back the memories connected with the
+                                           best ones; a backend without it is simply left out of that.
     """
 
     # False makes remember() refuse; the gateway also checks it before writing.

@@ -422,8 +422,50 @@ class RunnerTest(unittest.TestCase):
                                [run.merged_settings({})], verbose=True)[0]
         self.assertIn(self.world["memories"]["m001"]["text"], result["cases"][0]["texts"].values())
 
+    def test_linked_on_is_the_default_and_off_drops_only_that_stage(self):
+        from feiyu_memgate.core import stages as stages_module
+        self.assertEqual(run.DEFAULTS["linked"], "on")
+        self.assertEqual(run.merged_settings({})["linked"], "on")
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as directory:
+            session = run.Session(self.world, "sqlite", run.DEFAULT_URL, run.DEFAULT_MODEL, directory)
+            try:
+                on = session.client("broad", 5, "on")
+                off = session.client("broad", 5, "off")
+                self.assertIsNot(on, off)
+                self.assertIs(session.client("broad", 5), on)  # "on" is the default argument too
+                self.assertEqual([s.name for s in on.gateway.stages], list(stages_module.DEFAULT_STAGES))
+                self.assertEqual([s.name for s in off.gateway.stages],
+                                 [n for n in stages_module.DEFAULT_STAGES if n != "linked"])
+                self.assertEqual([s.profile for s in off.gateway.stages if hasattr(s, "profile")], ["broad", "broad"])
+            finally:
+                session.close()
+
+    def test_a_keyword_store_gives_the_same_answers_with_linked_on_and_off(self):
+        on, off = self.by_case(self.go(linked="on")), self.by_case(self.go(linked="off"))
+        for case_id in on:
+            self.assertEqual(on[case_id]["delivered"], off[case_id]["delivered"])
+        self.assertEqual(self.go(linked="off")["settings"]["linked"], "off")
+
+    def test_the_links_flags_still_add_on_top_with_either_setting(self):
+        for linked in ("on", "off"):
+            result = self.go(linked=linked, links="kw", link_min_kw=0.1)
+            self.assertTrue(any(record["added"] for record in result["cases"]), linked)
+
+    def test_the_command_line_takes_linked(self):
+        for flag in ("on", "off"):
+            with tempfile.TemporaryDirectory() as folder:
+                out = os.path.join(folder, "out.json")
+                with contextlib.redirect_stdout(io.StringIO()):
+                    code = run.main(["--split", FIXTURES, "--backend", "sqlite", "--linked", flag, "--out", out])
+                with open(out, encoding="utf-8") as handle:
+                    self.assertEqual(json.load(handle)["settings"]["linked"], flag)
+            self.assertEqual(code, 0)
+        with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
+            run.main(["--split", FIXTURES, "--backend", "sqlite", "--linked", "maybe"])
+
     def test_bad_settings_stop_the_run(self):
-        for bad in ({"query": "v9"}, {"links": "x"}, {"limit": 0}, {"profile": "x"}):
+        for bad in ({"query": "v9"}, {"links": "x"}, {"limit": 0}, {"profile": "x"}, {"linked": "maybe"},
+                    {"linked": True}):
             with self.assertRaises(SystemExit):
                 self.go(**bad)
         with self.assertRaises(SystemExit):
@@ -471,6 +513,36 @@ class RunnerWithEmbeddingsTest(unittest.TestCase):
         for links in ("none", "kw", "vec", "either"):
             self.check(self.go("embedding", links=links, link_min_kw=0.05, link_min_vec=0.0, ranks=True, query="v3"))
         self.assertTrue(self.server.requests)
+
+    def test_linked_on_adds_to_what_off_delivers_through_the_gateway(self):
+        for backend in ("embedding", "hybrid"):
+            with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as directory:
+                with open(os.path.join(FIXTURES, "fixture-world.json"), encoding="utf-8") as handle:
+                    world = json.load(handle)
+                cases = world["cases"]
+                session = run.Session(world, backend, self.server.url, "fake-model", directory)
+                # the fake vectors are weak: a narrow cosine range maps them to scores that the lines let through
+                vector = session.spec if backend == "embedding" else session.spec["children"][1]
+                vector.update(floor=0.1, ceil=0.5)
+                session.client("broad", 5)
+                self.addCleanup(session.close)
+                grew = quiet = 0
+                for case in cases:
+                    off = run.run_case(session, case, run.merged_settings({"linked": "off"}))
+                    on = run.run_case(session, case, run.merged_settings({"linked": "on"}))
+                    kept = [d["id"] for d in off["delivered"]]
+                    got = [d["id"] for d in on["delivered"]]
+                    self.assertEqual(got[:len(kept)], kept, (backend, case["id"]))  # the first hop is as it was
+                    self.assertLessEqual(len(got) - len(kept), 2)
+                    self.assertLessEqual(len(got), 5)
+                    if not kept:
+                        self.assertEqual(got, [])  # a quiet turn stays quiet
+                        quiet += 1
+                    self.assertEqual(on["final"], got)
+                    grew += len(got) > len(kept)
+                self.assertGreater(grew, 0, backend)
+                if backend == "embedding":  # the keyword child of a hybrid always finds something here
+                    self.assertGreater(quiet, 0, backend)
 
     def test_vector_and_either_expansion_on_a_delivered_memory(self):
         # the fake vectors are too weak for the real recall stages to deliver anything, so the expansion is

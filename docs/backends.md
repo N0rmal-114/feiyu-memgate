@@ -108,6 +108,18 @@
 两档在这份数据上的方向和开发集一致：宽松档交付命中更高，精确率和安静率更低，每题多交条数。`sqlite` 和 `openviking` 的变化最小。
 `-precise` 九个结果和 2026-11-16 以前的默认结果逐项相同，没有重选任何数值（`bench/README.md` 的“运行记录”）。
 
+## 哪些后端有 `neighbours`（给 `linked` 召回步骤用）
+
+可选方法 `neighbours(ref, limit, timeout=None, ctl=None)`：和已存的某一条最相似的最多 `limit` 条记忆，最好的在前，分数用这个后端自己的 0..1 相关度，不含它自己，`ref` 不存在时返回 `[]`（接口见 [pieces.md](pieces.md)）。默认召回步骤里的 `linked` 靠它把和最相关的几条连着的记忆一起带回来（见 [configuration.md](configuration.md)）。
+
+| 后端 | 有没有 | 怎么做 |
+|---|---|---|
+| `embedding` | 有 | 用已存的向量（它本来就缓存在内存里），余弦和分数换算都和 `find` 一样；不请求 embeddings 接口 |
+| `hybrid` | 有 | 问每一个有这个方法的子后端，按 ref 合并，同一条取较高的分数；某个子后端出错就跳过它；一个有这个方法的子后端都没有就返回 `[]` |
+| `sqlite`、`inmemory`、`openviking` | 没有 | `linked` 对它们什么都不做 |
+
+**代价**：每找一次邻居，`embedding` 要把全部已存的向量扫一遍（和一次搜索的扫描一样，约 1 万条 0.14 秒、5 万条 0.9 秒，见下面 `embedding` 一节），但不需要取查询向量。`linked` 默认跟着最前面 2 条候选去找，所以一次召回最多多 2 遍扫描，只有候选数还没到 `limit` 时才做；没有候选（保持安静的那一轮）一遍也不扫。记忆很多时这笔开销要算进召回的总时限里：`linked` 最多等 1 秒、不超过剩余时间的一半，超过就当作没找到。
+
 ## 写入时记忆的日期
 
 `sqlite`、`embedding`、`hybrid`、`inmemory` 的 `remember()` 用消息自己的 `time` 定这条记忆的日期：`time` 是字符串，开头十个字符是真实存在的 `YYYY-MM-DD` 日期，第十一个字符（有的话）是 `T` 或空格（`2026-11-17`、`2026-11-17T08:30:00+08:00`、`2026-11-17 08:30` 都行；`2026-11-171`、`2026-02-30`、`2026/11/17` 不行），日期就取这十个字符，不做时区换算。没有 `time` 或不合格时和以前一样：`sqlite`、`embedding`、`hybrid` 用当天的 UTC 日期，`inmemory` 不记日期。`put()` 不变，还是用传入的 `date`。`time` 和 `speaker` 本身仍然不存。
@@ -203,7 +215,7 @@ qwen3-embedding 上更好，所以只有这两行带前缀（embeddinggemma 官�
 - 对数字、专有名词、很短的词不如关键词稳。
 
 另有可选能力：`put` / `put_many`（批量取向量，导入大量数据用）/ `delete` / `refs` / `receipt_refs` /
-`count` / `items`。`health` 只检查库能不能读，不会请求 embeddings 接口。
+`count` / `items`，还有 `neighbours`（和某一条已存记忆最相似的几条，只用已存的向量，不请求 embeddings 接口，一次扫描一遍；给 `linked` 召回步骤用，见上面“哪些后端有 `neighbours`”）。`health` 只检查库能不能读，不会请求 embeddings 接口。
 
 ## hybrid：关键词与向量融合
 
@@ -273,6 +285,7 @@ E 的 Hit@5 少了 6 题，其余的 `balanced` 都比 A 低。所以默认值�
 - 融合假设各子后端的分数含义相近（都是相关度）。`sqlite` 的分数是“问题里的字（按稀有程度加权）有多少出现在记忆里”，
   `embedding` 是换算后的余弦；接别的后端时请先看它们的分数分布。
 - 搜索要依次问每个子后端，延迟是它们之和；`refs`、`count`、`items` 取第一个子后端的。
+- `neighbours` 只问有这个方法的子后端（内置的是 `embedding`），按 ref 合并、同一条取较高分数、出错的子后端跳过；没有这样的子后端时返回 `[]`，所以只配关键词子后端的 `hybrid` 不会因 `linked` 多出任何东西。
 
 示例配置见 `examples/hybrid/gateway.toml`。
 

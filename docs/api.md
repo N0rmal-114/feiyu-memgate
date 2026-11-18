@@ -148,6 +148,7 @@ Authorization: Bearer <令牌>
 
 - 要搜的存储一个都没查成时不回空结果，而是 503：全都是忙为 `busy`，否则为 `unavailable`。“什么都没找到”和“没能去找”要分得开。Python 客户端的 `recall` 在这两种情况下都得 `[]`；要分开，用 `recall_detail`：503 时它得 `None`，没找到时是空的 `results`。
 - 这个客户端的策略是 `recall = []`（能问、什么都不搜）时，回 200 和空的 `results`。
+- 默认的召回步骤里有 `linked`：用向量存储时，结果里可能多出最多两条和最前面两条连着的记忆（总数仍不超过 `limit`）。它们和别的结果没有区别：回答里没有标出哪一条是接上的字段，HTTP 回答的形状不变（接上的候选在网关内部的 `meta["linked_from"]` 不会交给客户端）。见 [configuration.md](configuration.md)。
 
 这个接口可能回的状态：
 
@@ -750,6 +751,8 @@ class MemoryBackend(abc.ABC):
 `timeout` 是这次调用的总秒数，`None` 是后端自己的默认。`ctl` 是取消句柄：`attach(sock)`、`detach()`、`on_cancel(fn)`、`cancelled`；不开连接的后端可以不管它，自己直接调用后端时传 `NULL_CTL`。出错抛异常（推荐 `BackendError`），错误信息里不要带记忆内容和密钥。
 
 可选的能力（基类没有定义，没有就不能被遗忘管理）：`refs()` 返回所有记忆的 `(ref, date 或 None)`；`delete(ref)` 返回 `True` 表示这条存在、现在没了；`put(text, ref=None, date=None)` 返回 `ref`；`receipt_refs(receipt)` 返回这次写入产生的 `ref` 列表，不知道时返回 `None`。`put` 也是 `feiyu-memgate eval` 灌数据时用的。
+
+另一个可选的能力，和遗忘无关：`neighbours(ref, limit, timeout=None, ctl=None)` 返回和已存的这一条（`ref`）最相似的最多 `limit` 条记忆，最好的在前，是 `Hit`，`score` 在这个后端自己的 0 到 1 的相关度尺度上（和 `find` 同一个），不含 `ref` 自己；`ref` 不存在返回 `[]`；时限和 `ctl` 的意思同 `find`，出错抛异常。召回步骤 `linked`（默认的一套里在 `newer_first` 后面、`fill_text` 前面，选项 `top`、`max_added`、`minimum`，见 [configuration.md](configuration.md)）用它把和最相关的几条连着的记忆一起带回来；内置后端里 `embedding` 和 `hybrid` 有，`sqlite`、`inmemory`、`openviking` 没有，没有它的存储这一步什么都不做。召回步骤的 `RecallContext.run(fn, store=None, until=None)` 多了可选的 `until`：让等待比总时限早结束，给后面的步骤留时间，不会延长总时限。
 
 `Hit` 是 `find` 返回的数据（`feiyu_memgate.pieces.Hit`）：
 

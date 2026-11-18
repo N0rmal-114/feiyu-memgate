@@ -396,5 +396,81 @@ class HybridGatewayTest(HybridCase):
         self.assertEqual(len(reply.body["results"]), 1)
 
 
+class NeighbourChild(ScriptedChild):
+    """A child with the optional `neighbours` capability: it answers what the test scripted."""
+
+    def __init__(self, answers=None, fail=False):
+        super().__init__()
+        self.answers = dict(answers or {})
+        self.fail = fail
+        self.calls = []
+
+    def neighbours(self, ref, limit, timeout=None, ctl=None):
+        self.calls.append((ref, limit, timeout, ctl))
+        if self.fail:
+            raise RuntimeError("boom")
+        return list(self.answers.get(ref, []))[:limit]
+
+
+class HybridNeighboursTest(unittest.TestCase):
+    def test_answers_of_capable_children_are_merged_by_ref_keeping_the_higher_score(self):
+        a = NeighbourChild({"m": [Hit("x", 0.6, "text x", "2025-01-01"), Hit("y", 0.7, "", None)]})
+        b = NeighbourChild({"m": [Hit("x", 0.8, "", None), Hit("z", 0.5, "text z")]})
+        hits = hybrid_of(a, b).neighbours("m", 10)
+        self.assertEqual([(h.ref, h.score) for h in hits], [("x", 0.8), ("y", 0.7), ("z", 0.5)])
+        by = {h.ref: h for h in hits}
+        self.assertEqual((by["x"].text, by["x"].date), ("text x", "2025-01-01"))  # filled from the other child
+
+    def test_limit_applies_after_the_merge_and_the_memory_itself_never_comes_back(self):
+        a = NeighbourChild({"m": [Hit("m", 1.0), Hit("x", 0.6)]})
+        b = NeighbourChild({"m": [Hit("y", 0.9), Hit("z", 0.8)]})
+        be = hybrid_of(a, b)
+        self.assertEqual([h.ref for h in be.neighbours("m", 2)], ["y", "z"])
+        self.assertEqual([h.ref for h in be.neighbours("m", 10)], ["y", "z", "x"])
+        self.assertEqual(be.neighbours("m", 0), [])
+
+    def test_a_child_without_the_method_is_not_asked_and_one_that_fails_is_skipped(self):
+        plain = ScriptedChild()
+        broken = NeighbourChild(fail=True)
+        good = NeighbourChild({"m": [Hit("x", 0.7)]})
+        self.assertEqual([h.ref for h in hybrid_of(plain, broken, good).neighbours("m", 5)], ["x"])
+        self.assertEqual(len(broken.calls), 1)
+
+    def test_no_capable_child_gives_nothing(self):
+        be = hybrid_of(ScriptedChild(), ScriptedChild())
+        self.assertEqual(be.neighbours("m", 5), [])
+        self.assertEqual(hybrid_of(NeighbourChild(fail=True)).neighbours("m", 5), [])
+
+    def test_an_unknown_ref_gives_nothing_and_scores_stay_in_range(self):
+        child = NeighbourChild({"m": [Hit("x", 1.7), Hit("y", -0.2)]})
+        be = hybrid_of(child)
+        self.assertEqual(be.neighbours("other", 5), [])
+        self.assertEqual([(h.ref, h.score) for h in be.neighbours("m", 5)], [("x", 1.0), ("y", 0.0)])
+
+    def test_timeout_and_ctl_reach_the_children_that_take_them(self):
+        child = NeighbourChild({"m": [Hit("x", 0.7)]})
+        ctl = FakeCtl()
+        hybrid_of(child).neighbours("m", 3, timeout=2.0, ctl=ctl)
+        ref, limit, timeout, got = child.calls[0]
+        self.assertEqual((ref, limit), ("m", 3))
+        self.assertLessEqual(timeout, 2.0)
+        self.assertIs(got, ctl)
+
+
+class HybridRealNeighboursTest(HybridCase):
+    def test_the_embedding_child_answers_and_the_keyword_child_is_left_out(self):
+        be = self.make()
+        embedding = be.children[1]
+        embedding.floor, embedding.ceil = -1.0, 1.0
+        be.put("我喜欢喝绿茶和红茶", ref="tea")
+        be.put("我喜欢喝绿茶还有乌龙茶", ref="tea2")
+        be.put("周末去游泳馆游泳", ref="swim")
+        hits = be.neighbours("tea", 5)
+        self.assertEqual(hits[0].ref, "tea2")
+        self.assertNotIn("tea", [h.ref for h in hits])
+        self.assertEqual(be.neighbours("nothing", 5), [])
+        self.assertFalse(hasattr(be.children[0], "neighbours"))
+
+
 if __name__ == "__main__":
     unittest.main()

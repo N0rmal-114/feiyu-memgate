@@ -104,11 +104,12 @@ stages = [
 - `min_score` 放最前，分数线只看相似度；改分数的步骤（`source_weight`、`freshness`、上面的 `Recency`）放它后面。
 - `relative_score` 放在所有改分数的步骤后面（默认的一套里没有改分数的步骤，所以它紧跟 `min_score`）。
 - `newer_first` 放在 `min_score` 和 `relative_score` 后面：分数线只看相似度，它换过的分数不能再被阈值看到。
+- `linked` 放在 `min_score`、`relative_score` 和 `newer_first` 后面（它要在分数线定了交哪些之后才看最前面几条），`fill_text` 前面（接上的记忆没带全文时要补读，之后还要脱敏、去重、算字数）；有 `freshness` 时也放在它后面。
 - `fill_text` 要在所有读文字的步骤前面（有的后端搜索结果不带全文，要补读）。`drop_marker` 放在它后面，只出现在全文里的标记才看得到。
 - `redact` 要在 `dedupe` 和 `budget` 前面，这样去重和字数算的是真正返回的文字。
 - `budget` 放最后。
 
-不写 `stages` 时用的默认一套（`DEFAULT_STAGES`）是：`min_score`、`relative_score`、`newer_first`、`fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`。
+不写 `stages` 时用的默认一套（`DEFAULT_STAGES`）是：`min_score`、`relative_score`、`newer_first`、`linked`、`fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`。
 
 内置步骤一览：
 
@@ -117,6 +118,7 @@ stages = [
 | `min_score` | 丢掉相似度低于分数线的 | `value`（不写时按 `profile` 用存储声明的分数线，存储也没有就是 0.5）、`per_store`（按存储分别设）、`profile`（`"broad"` 默认：用存储的 `broad_min_score`；或 `"precise"`：用存储的 `default_min_score`；存储没声明 `broad_min_score` 时两档都用 `default_min_score`；`value` / `per_store` 优先） |
 | `relative_score` | 丢掉分数远低于本次请求里最高分的：低于 `ratio` × 最高分（可选再低于最高分 − `gap`）的不要。最高分是走到这一步的候选里最高的，放在 `min_score` 后面时就是过了分数线的最高分 | `ratio`（0..1，不写时按 `profile` 用存储声明的比例，存储也没有就是 0.6）、`gap`（默认不用）、`profile`（同 `min_score`，`"broad"` 默认用存储的 `broad_relative_ratio`，`"precise"` 用 `default_relative_ratio`；`ratio` 优先） |
 | `newer_first` | 同一次请求里，分数不低于最高分 × `band` 的候选中，带日期的按“新的在前”交换分数；分数的多重集合不变，不丢任何候选。没有日期的记忆不受影响 | `band`（默认 0.85）、`related`（0..1，默认 0 = 不用：大于 0 时，两条记忆的文字字符二元组重叠不低于它才交换）、`min_days`（默认 1，日期相差不到这么多天算同一时间） |
+| `linked` | 分数线之后，看最前面 `top` 条候选，向它们的存储要最相似的记忆（后端的可选方法 `neighbours`），把相似度不低于 `minimum` 的、还不是候选的最多 `max_added` 条接在最后，且只在候选数低于本次请求的 `limit` 时；没有 `neighbours` 的存储什么都不加。它在分数线之后才起作用，一条候选都没有就什么也不加（该安静时仍然安静） | `top`（默认 2，1 到 5）、`max_added`（默认 2，0 到 5，0 就是关掉）、`minimum`（默认 0.60，0 到 1） |
 | `source_weight` | 分数乘上来源权重，让一种来源排在另一种前面 | `weights`、`default` |
 | `drop_marker` | 丢掉带标记串的记忆（比如写入自检留下的）。不在默认的一套里 | `markers` |
 | `fill_text` | 搜索结果没带全文的，去存储里读（每次请求最多读几条，超时不读） | `max_reads`（默认 3） |
@@ -167,6 +169,18 @@ stages = [
 但字符二元组重叠对短句里换了几个词的新旧事实很低（开发集里 12 对新旧记忆只有 0.02 到 0.14），取值要自己在数据上量，
 `related` 默认不用。`newer_first` 在默认的一套里（它不改变交付哪些记忆，只改顺序）；不想要就自己写 `stages` 不列它。默认 `band` 0.85 是在开发集上选的（只有 12 道更新题，数字见 `bench/experiments/newer_first/README.md`），是取向而不是定论。
 
+**`linked`：和最相关的几条连着的记忆一起带回来。** 一句闲聊（“最近天气有点热”）常常只和一条记忆很近（“主人喜欢吃冰淇淋”），和连着它的另一条（“上次冰淇淋掉在了地上”）没有相同的词。它在 `prepare` 里工作，在分数线之后：
+
+1. 按分数从高到低（召回随后就按这个顺序交），取最前面的 `top` 条候选；
+2. 对每一条，向**它自己的存储**调用 `neighbours(ref, 数量, 时限, ctl)`（只问有这个方法的存储），通过召回上下文的 `ctx.run` 去做，和 `fill_text` 补读全文是同一个机制：占用线程池的名额、受每个存储的并发上限管、时限一到就切断；这一步所有查询合起来最多等 1 秒、不超过剩余时间的一半，所以卡住的存储不会拖掉已经查到的第一轮结果；
+3. 留下相似度不低于 `minimum`、还不是候选（同一个存储、同一个 ref）的邻居；同一条被两条候选找到只算一次，取较高的相似度，所有来源一起按相似度从高到低排；
+4. 最多接 `max_added` 条，而且接完以后候选总数不超过请求的 `limit`（候选已经够 `limit` 条时，什么都不问）；
+5. 接上的候选带着它是从哪条记忆找来的那条的 `source` 和 `store`；分数是“那条记忆的分数 × 邻居的相似度”，并且不高于第一轮里最低的分数，所以召回随后按分数排序时它们仍然在所有第一轮候选后面，彼此之间保持挑出来的顺序；`meta["linked_from"]` 是它是从哪条记忆找来的（`meta` 不会交给客户端，HTTP 回答没有新字段）。
+
+出错、超时、没有这个方法都是“什么也没加”，不会让召回失败；出错和超时记一次 `linked-failed`。它从不增加“能不能开口”：没有候选就没有邻居可找。它同样接受 `feiyu-memgate check` 的顺序提醒（`Linked.after`，由 `stages.misplaced()` 检查）。
+
+和 `freshness` 的关系：接上的记忆在 `freshness` 之后才产生，所以没有乘新鲜度，也没有 `meta["retention"]`；交付以后它按 `credit` 规则同样算“交付”（`meta["similarity"]` 是它排在后面的那个分数，`"top"` 下通常达不到最高者的 `credit_ratio` 倍，`"all"` 会记）。账本里记的 ref 和来源就是它自己的，和别的记忆没有区别。
+
 ## 做一块 backend（存储）
 
 继承 `MemoryBackend`，最少只要实现 `find`：
@@ -206,6 +220,7 @@ class MyBackend(MemoryBackend):
 - **出错就抛异常**（推荐 `BackendError`）。召回时网关把这个存储记为“这次没查成”，继续用别的存储；写入时回 502。错误信息里不要带记忆内容和密钥，日志里网关也只记错误类型。
 - **`ctl`**：如果你的后端会开网络连接，连上以后调用 `ctl.attach(sock)`，结束时 `ctl.detach()`。这样召回超时的时候，网关能直接切断连接，不会被慢的上游拖住线程。不是套接字的阻塞操作，用 `ctl.on_cancel(fn)` 登记一个取消函数（超时时调用，已经超时就立刻调用），或者在循环里看 `ctl.cancelled`，是 `True` 就尽快返回。不开连接的后端不用管它。自己直接调用后端、没有 `ctl` 可给时，传 `NULL_CTL`（什么都不做的那个）。
 - 想让评测工具（`feiyu-memgate eval`）能往你的后端里灌测试数据，再提供一个 `put(text, ref=None, date=None)`。
+- 想让 `linked` 步骤能从最相关的几条出发找到和它们连着的记忆，提供一个可选的 `neighbours(ref, limit, timeout=None, ctl=None)`：返回和已存的这一条（`ref`）最相似的最多 `limit` 条记忆，最好的在前，是 `Hit`，`score` 用这个后端自己的 0 到 1 的相关度（和 `find` 同一个尺度），**不含这一条自己**；`ref` 不存在返回 `[]`。时限和 `ctl` 的意思和 `find` 一样；出错就抛异常，不要只返回一部分。没有这个方法的后端，这一步就不碰它。内置的 `embedding` 和 `hybrid` 有，`sqlite`、`inmemory`、`openviking` 没有。
 
 最小的完整例子是 [backends/inmemory.py](../src/feiyu_memgate/backends/inmemory.py)。
 

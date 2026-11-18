@@ -58,11 +58,11 @@ class BuildGatewayTests(ConfigTestCase):
     def test_defaults_are_the_built_in_stages_and_guards(self):
         gw = self.build(base_config())
         self.assertEqual([type(s) for s in gw.stages],
-                         [stages.MinScore, stages.RelativeScore, stages.NewerFirst, stages.FillText,
+                         [stages.MinScore, stages.RelativeScore, stages.NewerFirst, stages.Linked, stages.FillText,
                           stages.DropOversize, stages.Redact, stages.Dedupe, stages.Budget])
         self.assertEqual([s.name for s in gw.stages],
-                         ["min_score", "relative_score", "newer_first", "fill_text", "drop_oversize", "redact",
-                          "dedupe", "budget"])
+                         ["min_score", "relative_score", "newer_first", "linked", "fill_text", "drop_oversize",
+                          "redact", "dedupe", "budget"])
         self.assertEqual([type(g) for g in gw.guards], [write.RedactGuard, write.DailyCapGuard])
 
     def test_the_gateway_works_end_to_end(self):

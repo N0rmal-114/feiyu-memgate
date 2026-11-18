@@ -27,7 +27,7 @@ feiyu-memgate 是放在“聊天程序”和“记忆存储”中间的一层网
 | 插槽 | 管什么 | 内置的 | 接口 |
 |---|---|---|---|
 | `backend` | 记忆存在哪、怎么搜 | `openviking`（向量检索 + 大模型抽取）、`sqlite`（关键词，不用模型）、`embedding`、`hybrid`、`inmemory`（测试和演示） | `MemoryBackend` |
-| `recall_stage` | 搜到的候选怎么筛、怎么排、放多少 | `min_score`、`relative_score`、`newer_first`、`source_weight`、`drop_marker`、`fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget` 等 | `RecallStage` |
+| `recall_stage` | 搜到的候选怎么筛、怎么排、放多少 | `min_score`、`relative_score`、`newer_first`、`linked`、`source_weight`、`drop_marker`、`fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget` 等 | `RecallStage` |
 | `write_guard` | 一次写入在落库前要过哪些关 | `redact`、`daily_cap` | `WriteGuard` |
 | `redactor` | 文字怎么清洗 | `secrets`、`public`、`none` | 一个 `str -> str` 的函数 |
 | `tenants` | 怎么给每个租户（群、频道、用户）一份独立的存储 | `keyfile`（每个租户一把密钥）、`directory`（每个租户一个 SQLite 文件） | `TenantProvider` |
@@ -48,6 +48,7 @@ feiyu-memgate 是放在“聊天程序”和“记忆存储”中间的一层网
    - 每个步骤先对全部候选做一次 `prepare`（便宜的事：按分数线丢、改分数、按来源加权）。`prepare` 出错，这次召回回 503，不返回没检查过的东西。
      - 默认的分数线来自各存储自己的声明：`min_score` 和 `relative_score` 默认用 `broad` 档，取存储的 `broad_min_score`、`broad_relative_ratio`；向量和关键词后端的分数不在同一个尺度上，所以数值不同。两步的 `profile` 选项（或 `[recall] profile = "precise"`）可以换成存储的 `default_min_score`、`default_relative_ratio`（`default_` 是历史命名，指 `precise` 档，不是默认档位）；存储没有声明 `broad_*` 时两档都用 `default_*`。档位的来历和取舍见 [backends.md](backends.md)。
      - 默认列表里 `newer_first` 紧跟在 `relative_score` 之后：在通过分数线的候选中，分数不低于最高分一定比例（`band`，默认 0.85）且日期有效的几条，把它们的分数在彼此之间重新分配，让日期新的排在前面。它不丢任何候选，只调整顺序，所以交付哪些只取决于后面的条数和字数限制；没有日期的候选保持原样。
+     - 默认列表里 `linked` 在 `newer_first` 之后、`fill_text` 之前：分数线定了交哪些之后，它看最前面 2 条候选，向它们的存储要最相似的几条记忆（后端的可选方法 `neighbours`，`embedding` 和 `hybrid` 有），把相似度不低于 0.60 的、还不是候选的最多 2 条接在最后，而且只在候选数还没到请求的 `limit` 时。接上的候选排在所有第一轮候选后面，之后和别的候选一样过 `fill_text`、`redact`、`dedupe`、`budget`；没有候选时什么都不做（该安静时仍然安静），没有 `neighbours` 的存储不受影响，出错或超时就当作没找到。HTTP 回答的字段不变。见 [configuration.md](configuration.md)。
    - 按分数从高到低，逐条让每个步骤 `admit`：留下（KEEP）、丢掉（DROP），或者“是好的但放不下”（DEFER，计入 `more`）。慢的事（补读全文）放在这里，只对快要被返回的候选做。某个步骤对某一条出错，只丢这一条。
    - 条数够了就停。剩下的候选只让 `cheap` 的步骤（去重、丢超长、丢标记）再看一遍，过得去的计入 `more`；时限到了也停，剩下的都计入 `more`。所以 `more` 是“最多还有几条”。
    - 最后每个步骤的 `finish` 做记账（比如遗忘曲线记下哪些记忆被用到了），出错不影响结果。

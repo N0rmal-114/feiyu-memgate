@@ -9,6 +9,7 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest import mock
 
 from feiyu_memgate import registry
 from feiyu_memgate.backends import embedding as embedding_module
@@ -580,6 +581,120 @@ class PresetAndPrefixTest(EmbeddingTestBase):
         for bad in ({"query_prefix": 5}, {"document_prefix": None.__class__}, {"query_prefix": "x" * 513}):
             with self.assertRaises(ValueError, msg=str(bad)):
                 self.open(":memory:", model="m", **bad)
+
+
+class NeighboursTest(EmbeddingTestBase):
+    """neighbours(ref, limit): the stored memories most similar to a stored memory, from the stored vectors."""
+
+    TEXTS = {
+        "tea": "我喜欢喝绿茶和红茶",
+        "tea2": "我喜欢喝绿茶还有乌龙茶",
+        "swim": "周末去游泳馆游泳",
+        "swim2": "周末去游泳馆游泳放松",
+        "code": "写代码调试程序",
+    }
+
+    def filled(self, **options):
+        options.setdefault("floor", -1.0)  # the fake vectors are far apart: map the whole cosine range
+        options.setdefault("ceil", 1.0)
+        be = self.open(**options)
+        for ref, text in self.TEXTS.items():
+            be.put(text, ref=ref, date="2025-01-0%d" % (len(ref) % 9 + 1))
+        return be
+
+    def test_best_first_without_the_memory_itself_and_with_text_and_date(self):
+        be = self.filled()
+        hits = be.neighbours("tea", 10)
+        self.assertEqual(hits[0].ref, "tea2")
+        self.assertEqual({h.ref for h in hits}, set(self.TEXTS) - {"tea"})
+        self.assertEqual([h.score for h in hits], sorted((h.score for h in hits), reverse=True))
+        self.assertEqual(hits[0].text, self.TEXTS["tea2"])
+        self.assertTrue(hits[0].date)
+        self.assertTrue(all(isinstance(h, Hit) and 0.0 <= h.score <= 1.0 for h in hits))
+        self.assertEqual(be.neighbours("swim", 1)[0].ref, "swim2")
+
+    def test_scores_are_the_scores_find_gives_for_the_memorys_own_text(self):
+        be = self.filled(floor=0.0, ceil=1.0)  # a model without prefixes: the stored vector is the query vector
+        for ref in ("tea", "swim"):
+            found = {h.ref: h.score for h in be.find(self.TEXTS[ref], 10)}
+            for hit in be.neighbours(ref, 10):
+                self.assertAlmostEqual(hit.score, found[hit.ref], places=6)
+        if "meta" in Hit.__dataclass_fields__:
+            for hit in be.neighbours("tea", 3):
+                self.assertAlmostEqual(hit.score, min(1.0, max(0.0, hit.meta["cosine"])), places=6)
+
+    def test_no_embeddings_request_is_made(self):
+        be = self.filled()
+        before = len(self.server.requests)
+        be.neighbours("tea", 3)
+        self.server.set("error")  # the endpoint is down: neighbours does not need it
+        self.assertEqual(len(be.neighbours("tea", 3)), 3)
+        self.assertEqual(len(self.server.requests), before)
+
+    def test_limit_and_unknown_ref(self):
+        be = self.filled()
+        self.assertEqual(len(be.neighbours("tea", 2)), 2)
+        self.assertEqual(len(be.neighbours("tea", 100)), len(self.TEXTS) - 1)
+        self.assertEqual(be.neighbours("tea", 0), [])
+        self.assertEqual(be.neighbours("tea", -1), [])
+        self.assertEqual(be.neighbours("no-such-ref", 5), [])
+        self.assertEqual(self.open(":memory:").neighbours("tea", 5), [])  # an empty store
+
+    def test_a_memory_at_or_below_the_floor_is_left_out_like_find_does(self):
+        be = self.filled(floor=0.9, ceil=1.0)
+        refs = [h.ref for h in be.neighbours("tea", 10)]
+        self.assertNotIn("code", refs)
+        self.assertTrue(all(h.score > 0.0 for h in be.neighbours("tea", 10)))
+
+    def test_a_deleted_or_replaced_memory_is_seen(self):
+        be = self.filled()
+        self.assertTrue(be.delete("tea2"))
+        self.assertNotIn("tea2", [h.ref for h in be.neighbours("tea", 10)])
+        self.assertEqual(be.neighbours("tea2", 10), [])
+        be.put("我喜欢喝绿茶和红茶还有花茶", ref="tea3")
+        self.assertEqual(be.neighbours("tea", 1)[0].ref, "tea3")
+
+    def test_a_read_only_store_answers(self):
+        self.filled().close()
+        be = self.open(writable=False, floor=-1.0, ceil=1.0)
+        self.assertFalse(be.writable)
+        self.assertEqual(be.neighbours("tea", 1)[0].ref, "tea2")
+
+    def test_what_another_connection_wrote_is_seen(self):
+        be = self.filled()
+        be.neighbours("tea", 1)  # loads the cache
+        other = self.open(floor=-1.0, ceil=1.0)
+        other.put("我喜欢喝绿茶和红茶和黑茶", ref="tea9")
+        self.assertIn("tea9", [h.ref for h in be.neighbours("tea", 10)])
+
+    def test_the_deadline_stops_the_scan(self):
+        be = self.filled()
+        with self.assertRaises(BackendError):
+            be.neighbours("tea", 3, timeout=0)
+        be.neighbours("tea", 3, timeout=5.0)
+        with mock.patch.object(embedding_module, "SCORE_CHECK_EVERY", 1),                 mock.patch.object(embedding_module.time, "monotonic", side_effect=self.ticks(3)):
+            with self.assertRaises(BackendError):
+                be.neighbours("tea", 3, timeout=1.0)
+
+    @staticmethod
+    def ticks(first_calls):
+        """A clock that moves 10 s forward after `first_calls` readings."""
+        state = {"n": 0}
+
+        def clock():
+            state["n"] += 1
+            return 0.0 if state["n"] <= first_calls else 10.0
+        return clock
+
+    def test_a_cancelled_call_stops(self):
+        class Cancelled:
+            cancelled = True
+
+        be = self.filled()
+        with self.assertRaises(BackendError):
+            be.neighbours("tea", 3, ctl=Cancelled())
+        self.assertEqual(len(be.neighbours("tea", 3, ctl=object())), 3)  # a ctl without the flag is tolerated
+        self.assertEqual(len(be.neighbours("tea", 3, ctl=None)), 3)
 
 
 if __name__ == "__main__":

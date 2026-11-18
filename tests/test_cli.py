@@ -327,6 +327,19 @@ stages = [%s]
         code, text = self.check(GOOD + self.STAGES % '"min_score", "newer_first", "relative_score"')
         self.assertIn("  提醒：newer_first 要放在 min_score 和 relative_score 后面", text.splitlines())
 
+    def test_linked_before_the_score_lines_is_named(self):
+        line = "  提醒：linked 要放在 min_score 和 relative_score 和 newer_first 后面"
+        code, text = self.check(GOOD + self.STAGES % '"linked", "min_score", "relative_score", "budget"')
+        self.assertEqual(code, 0)
+        self.assertIn(line, text.splitlines())
+        code, text = self.check(GOOD + self.STAGES % '"min_score", "linked", "relative_score", "newer_first"')
+        self.assertIn(line, text.splitlines())
+        code, text = self.check(GOOD + self.STAGES % '"min_score", "relative_score", "newer_first", "linked", "budget"')
+        self.assertNotIn("要放在", text)
+        self.assertIn("linked", text)  # shown in the stage list, and part of the default one
+        code, text = self.check(GOOD)
+        self.assertIn("newer_first -> linked -> fill_text", text)
+
     def test_the_default_order_needs_no_reminder(self):
         code, text = self.check(GOOD)
         self.assertEqual(code, 0)

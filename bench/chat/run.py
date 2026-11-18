@@ -3,6 +3,7 @@
     python -B bench/chat/run.py --split bench/chat/dev --backend sqlite --table
     python -B bench/chat/run.py --split bench/chat/dev --backend hybrid --model bge-m3 --query v2 --out out.json
     python -B bench/chat/run.py --split bench/chat/dev --backend hybrid --links either --link-min-kw 0.2 --table
+    python -B bench/chat/run.py --split bench/chat/dev --backend embedding --linked off --table
 
 For every world file in the split folder: a fresh temporary store, the 60 memories written through the
 real gateway in process (LocalClient.from_config, remember_messages, `time` = the memory's date, at most
@@ -11,6 +12,12 @@ stages. No threshold is re-implemented here: --profile picks the gateway's "broa
 and --remark-profile precise sends the messages that are not questions (methods.is_question) to a second
 client over the same store files with profile "precise". The delivered texts are mapped back to memory ids
 through the refs the store gave them.
+
+--linked on|off picks the gateway's recall stages: on (the default) is the gateway's own default list, which
+holds the `linked` stage (it adds, for a store that has `neighbours`, the memories linked to the first two
+delivered ones); off is the same list without `linked`, so before and after the stage are measured through
+the real gateway. The --links flags below are another thing: an experiment that adds neighbours on top of
+whatever was delivered, after the fact, outside the gateway.
 
 Query variants, the question test and link expansion live in methods.py. Link expansion (--links) asks for
 the neighbours of the first --link-top delivered memories and adds up to --link-max of them to what was
@@ -95,6 +102,7 @@ methods = _sibling("methods")
 from feiyu_memgate.backends.embedding import EmbeddingBackend  # noqa: E402
 from feiyu_memgate.backends.sqlite import SQLiteBackend  # noqa: E402
 from feiyu_memgate.client import LocalClient  # noqa: E402
+from feiyu_memgate.core import stages as stages_module  # noqa: E402
 
 BACKENDS = ("sqlite", "embedding", "hybrid")
 TYPES = ("remark-assoc", "remark-named", "follow-up", "quiet")
@@ -103,11 +111,11 @@ DEFAULT_MODEL = "bge-m3"
 EMBED_TIMEOUT = 60.0
 WARMUP_QUERY = "这是一个用来热身的问题"
 WRITE_BATCH = 20  # the gateway's limit of messages per remember call
-SETTING_NAMES = ("profile", "limit", "query", "short", "context_chars", "remark_profile", "links", "link_top",
-                 "link_max", "link_min_kw", "link_min_vec", "ranks")
+SETTING_NAMES = ("profile", "limit", "query", "short", "context_chars", "remark_profile", "linked", "links",
+                 "link_top", "link_max", "link_min_kw", "link_min_vec", "ranks")
 DEFAULTS = {
     "profile": "broad", "limit": 5, "query": "v0", "short": methods.SHORT, "context_chars": methods.CONTEXT_CHARS,
-    "remark_profile": "none", "links": "none", "link_top": 3, "link_max": 2, "link_min_kw": 0.15,
+    "remark_profile": "none", "linked": "on", "links": "none", "link_top": 3, "link_max": 2, "link_min_kw": 0.15,
     "link_min_vec": 0.5, "ranks": False,
 }
 
@@ -135,7 +143,8 @@ def check_settings(settings, backend):
     if backend not in BACKENDS:
         raise SystemExit("backend must be one of %s" % ", ".join(BACKENDS))
     for key, allowed in (("profile", ("broad", "precise")), ("query", methods.VARIANTS),
-                         ("remark_profile", ("none", "precise")), ("links", ("none", "kw", "vec", "either"))):
+                         ("remark_profile", ("none", "precise")), ("linked", ("on", "off")),
+                         ("links", ("none", "kw", "vec", "either"))):
         if settings[key] not in allowed:
             raise SystemExit("%s must be one of %s, not %r" % (key, ", ".join(allowed), settings[key]))
     for key in ("limit", "short", "context_chars", "link_top", "link_max"):
@@ -160,6 +169,8 @@ def add_setting_arguments(parser):
     parser.add_argument("--context-chars", type=int, help="v1-v3: characters of context (default 120)")
     parser.add_argument("--remark-profile", choices=("none", "precise"),
                         help="precise: a message that is not a question is looked up with the precise profile")
+    parser.add_argument("--linked", choices=("on", "off"),
+                        help="on: the gateway's default stages, with `linked` (default); off: the same without it")
     parser.add_argument("--links", choices=("none", "kw", "vec", "either"), help="link expansion (default none)")
     parser.add_argument("--link-top", type=int, help="delivered memories followed (default 3)")
     parser.add_argument("--link-max", type=int, help="memories added at most (default 2)")
@@ -259,14 +270,17 @@ class Session:
 
     # ---- gateways
 
-    def client(self, profile, limit):
-        key = (profile, limit)
+    def client(self, profile, limit, linked="on"):
+        key = (profile, limit, linked)
         if key not in self._clients:
+            recall = {"profile": profile}
+            if linked == "off":  # the gateway's default list without the `linked` stage
+                recall["stages"] = [name for name in stages_module.DEFAULT_STAGES if name != "linked"]
             config = {
                 "stores": {"private": self.spec},
                 # no rate limit that could stop a long run; no daily cap is set either
                 "clients": {"owner": {"recall": ["private"], "write": "private", "rate_limit": 1000000}},
-                "recall": {"profile": profile},
+                "recall": recall,
             }
             client = LocalClient.from_config(config, client="owner", env={}, log=lambda line: None,
                                              logger=self.warnings, recall_limit=limit)
@@ -415,7 +429,7 @@ def run_case(session, case, settings, verbose=False):
     profile = settings["profile"]
     if settings["remark_profile"] == "precise" and not methods.is_question(message):
         profile = "precise"
-    client = session.client(profile, settings["limit"])
+    client = session.client(profile, settings["limit"], settings["linked"])
     delivered = session.lookup(client, queries, settings["limit"], case["id"]) if queries else []
     delivered_ids = list(dict.fromkeys(mid for mid, _ in delivered))
     added = expansion(session, settings, delivered_ids)

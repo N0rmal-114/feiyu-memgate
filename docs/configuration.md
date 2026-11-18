@@ -195,7 +195,30 @@ stages = [
 ]
 ```
 
-不写 `stages` 时用默认的一套：`min_score`、`relative_score`、`newer_first`、`fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`。`drop_marker`（丢掉写入自检留下的标记）不在默认里，要用就加在 `fill_text` 后面。要用遗忘曲线的 `freshness`（选项 `floor` 默认 0.7、`credit` 默认 `"top"`、`credit_ratio` 默认 0.9，见 [forgetting.md](forgetting.md)），放在 `min_score` 后面、`relative_score` 前面（它们都改分数或按分数比较，顺序见 [pieces.md](pieces.md)）。每个步骤的选项见 [pieces.md](pieces.md)。
+不写 `stages` 时用默认的一套：`min_score`、`relative_score`、`newer_first`、`linked`、`fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`。`drop_marker`（丢掉写入自检留下的标记）不在默认里，要用就加在 `fill_text` 后面。要用遗忘曲线的 `freshness`（选项 `floor` 默认 0.7、`credit` 默认 `"top"`、`credit_ratio` 默认 0.9，见 [forgetting.md](forgetting.md)），放在 `min_score` 后面、`relative_score` 前面（它们都改分数或按分数比较，顺序见 [pieces.md](pieces.md)）。每个步骤的选项见 [pieces.md](pieces.md)。
+
+**`linked`：把和最相关的几条连着的记忆一起带回来。** 默认在 `newer_first` 后面、`fill_text` 前面。分数线决定了交哪些之后，它看排在最前面的 `top` 条候选，向它们所在的存储要“和这一条最像的记忆”（后端的可选方法 `neighbours`，见 [pieces.md](pieces.md)），把相似度不低于 `minimum` 的、还不在候选里的最多 `max_added` 条接在后面，而且只在候选数还没到这次请求的 `limit` 时才接：`limit` 仍然是“最多这么多条”。接上的候选和别的候选一样走后面的 `fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`，所以脱敏和字数上限照常管着它们；它们的分数排在所有第一轮候选后面；HTTP 回答的字段不变（回答里看不出哪条是接上的）。它在分数线之后才起作用，所以不改变“什么时候保持安静”：一条候选都没有就什么也不加。
+
+| 选项 | 默认 | 意思 |
+|---|---|---|
+| `top` | `2` | 跟着最前面的几条候选去找，1 到 5 |
+| `max_added` | `2` | 最多接几条，0 到 5；`0` 就是关掉 |
+| `minimum` | `0.60` | 相似度不低于它才接，0 到 1，是存储自己的 0..1 分数（`embedding` 里是 `floor`/`ceil` 换算后的相关度） |
+
+只有存储有 `neighbours` 才起作用：`embedding` 和 `hybrid`（里面有 `embedding` 子后端时）有，`sqlite`、`inmemory`、`openviking` 没有，只用关键词存储时什么都不变。每跟着一条候选，`embedding` 要把全部已存的向量过一遍（不请求 embeddings 接口），所以一次召回最多多 `top` 遍，见 [backends.md](backends.md)。出错、超时、存储没有这个方法都当作“什么也没加”，出错和超时在访问日志里记一次 `linked-failed`（不带内容）；这一步最多等 1 秒、不超过剩余时间的一半，卡住的存储不会拖掉已经查到的结果。`0.60` 是在 bge-m3 上量出来的，别的模型沿用它没有量过；数字和取舍见 [design/2026-11-18-linked-recall.md](design/2026-11-18-linked-recall.md)。
+
+不想要它：`max_added = 0`，或者自己写一套不含 `linked` 的 `stages`（写了自己的 `stages` 的配置不会因此多出这一步）：
+
+```toml
+[recall]
+stages = [
+    "min_score", "relative_score", "newer_first",
+    { type = "linked", top = 2, max_added = 2, minimum = 0.6 },   # 不要就去掉这一行，或把 max_added 写成 0
+    "fill_text", "drop_oversize", "redact", "dedupe", "budget",
+]
+```
+
+用遗忘曲线时，接上的记忆交出去了，就和别的记忆一样算“交付”：`freshness` 的 `credit` 规则照常对它们起作用（`"all"` 记一次“用到”，`"none"` 不记，`"top"` 只记相似度不低于最高者 `credit_ratio` 倍的；接上的记忆的相似度是它排在后面的那个分数，所以 `"top"` 下通常不记），见 [forgetting.md](forgetting.md)。`linked` 要放在 `freshness` 后面。
 
 `min_score` 不写 `value` 时，每条候选的分数线依次看：`per_store` 里这个存储的值，`value`，存储按分数线档位声明的分数线：默认档位 `broad` 用 `broad_min_score`（`sqlite`、`inmemory` 是 0.25，`embedding` 按模型预设（bge-m3 是 0.30，其余见 [backends.md](backends.md)），`hybrid` 是 0.40，`openviking` 是 0.55），`precise` 档用 `default_min_score`（`sqlite`、`inmemory` 是 0.30，bge-m3 是 0.50，`hybrid` 是 0.70，`openviking` 是 0.55；每个数是怎么来的见 [backends.md](backends.md)）；存储没有声明某一档就用它的 `default_min_score`，都没有就是 0.5。`relative_score` 不写 `ratio` 时同理：`broad` 档用 `broad_relative_ratio`（`sqlite`、`inmemory` 是 0.70，bge-m3 是 0.60，`hybrid` 是 0.65，`openviking` 是 0.90），`precise` 档用 `default_relative_ratio`（`sqlite`、`inmemory` 是 0.75，bge-m3 是 0.85，`hybrid` 是 0.85，`openviking` 是 0.95），都没有就是 0.6。`default_` 前缀是历史命名，指的是 `precise` 这一档，不是默认档位。所以一般不用手写分数线；要调，最好用 `feiyu-memgate eval` 或 `bench/dev_eval.py` 在自己的数据上量一下再定：
 

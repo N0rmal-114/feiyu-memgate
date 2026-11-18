@@ -95,7 +95,11 @@ class OptionsTest(unittest.TestCase):
 
     def test_stage_list_defaults_and_overrides(self):
         default = dev.stage_list(None)
-        self.assertEqual([s["type"] for s in default], list(dev.stages_module.DEFAULT_STAGES))
+        # The lines were chosen without `linked` (it acts after them), so the tool leaves it out by default.
+        self.assertEqual([s["type"] for s in default],
+                         [name for name in dev.stages_module.DEFAULT_STAGES if name != "linked"])
+        self.assertIn("linked", dev.stages_module.DEFAULT_STAGES)
+        self.assertIn("linked", [s["type"] for s in dev.stage_list("min_score,linked,budget")])
         tuned = dev.stage_list(None, min_score=0.3, ratio=0.7, gap=0.1)
         by_type = {s["type"]: s for s in tuned}
         self.assertEqual(by_type["min_score"]["value"], 0.3)
@@ -107,7 +111,7 @@ class OptionsTest(unittest.TestCase):
         as_json = dev.stage_list('["min_score", {"type": "relative_score", "ratio": 0.9}]')
         self.assertEqual(as_json[1]["ratio"], 0.9)
         self.assertEqual([s["type"] for s in dev.without_relative(default)],
-                         [n for n in dev.stages_module.DEFAULT_STAGES if n != "relative_score"])
+                         [n for n in dev.stages_module.DEFAULT_STAGES if n not in ("relative_score", "linked")])
 
 
 class DevSetRunTest(unittest.TestCase):

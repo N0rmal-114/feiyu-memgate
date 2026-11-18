@@ -59,7 +59,7 @@ This project was extracted from the memory module of a long-running private comp
 </p>
 
 - **Trust boundary**. The dashed box is the gateway process, and only it holds the store keys. The chat program gets a gateway token. A leaked token can do no more than that client's policy allows.
-- **Recall path**. After authentication, rate limiting and permission checks, every store the client can read is queried in parallel. Candidates pass through the recall stages in order (by default `min_score` → `relative_score` → `newer_first` → `fill_text` → `drop_oversize` → `redact` → `dedupe` → `budget`) and come back with score, date and source.
+- **Recall path**. After authentication, rate limiting and permission checks, every store the client can read is queried in parallel. Candidates pass through the recall stages in order (by default `min_score` → `relative_score` → `newer_first` → `linked` → `fill_text` → `drop_oversize` → `redact` → `dedupe` → `budget`) and come back with score, date and source.
 - **Write path**. Length and format are validated, then the write guards run (by default `redact` and `daily_cap`), and the item lands in a shared store or in the current tenant's own store.
 - **Forgetting path** (optional). The ledger records only the address, time and use count, never the text. The sweeper archives memories whose retention has run out, then deletes them.
 - **Interface surface**. Four routes only: `GET /healthz`, `POST /v1/recall`, `POST /v1/remember`, `POST /v1/used`. There is no network endpoint for deleting, listing or exporting. Those operations are available only through the command line on the local machine.
@@ -81,7 +81,7 @@ Each stage of the system is a slot with a fixed contract. A registry resolves it
 | Slot | Contract | Built-in implementations |
 |---|---|---|
 | `backend` | Where memory is stored and how it is retrieved | `sqlite` (keyword, needs no service), `embedding` (vector), `hybrid` (multi-route fusion), `openviking`, `inmemory` |
-| `recall_stage` | How candidates are filtered, ranked and limited | `min_score`, `relative_score`, `newer_first`, `source_weight`, `freshness`, `fill_text`, `drop_marker`, `drop_oversize`, `redact`, `dedupe`, `budget` |
+| `recall_stage` | How candidates are filtered, ranked and limited | `min_score`, `relative_score`, `newer_first`, `linked`, `source_weight`, `freshness`, `fill_text`, `drop_marker`, `drop_oversize`, `redact`, `dedupe`, `budget` |
 | `write_guard` | Checks before a write reaches the store | `redact`, `daily_cap` |
 | `redactor` | How text is cleaned | `secrets`, `public`, `none` |
 | `tenants` | Where each tenant's own store comes from | `directory`, `keyfile` |
@@ -414,6 +414,7 @@ Keep this in mind when reading the numbers: for a system with these capabilities
 - "Incorrect" is judged against the annotated expected memory. An item that is related but not annotated also counts as noise.
 - In dsh-fish-memory and dsh-prime-memory the product's write path lets a model decide what to store and how to organize it (through the remember tool in the first, by distilling conversation in the second). Here every memory is written verbatim and that step was not measured. In dsh-soul-md each memory is written as one topic here, while a product topic usually merges several entries; its persona cards are not memory and were not measured.
 - Hindsight's plugin injects a model-written reflect text by default, which is not a list of memories and was not measured; what was measured is the server's recall, with the same request body as the plugin's recall-only option. That recall is limited only by the 2000-token budget, with no item limit and no score threshold, so it delivers 84 – 94 items per question. The embedding model was replaced by bge-m3 (the server's default is an English model), and the database is PostgreSQL 17 with pgvector inside the container. The observations delivered by the two model configurations have no source id of their own; the adapter uses the id of the earliest memory among their source facts, and the rule and its counts are in the `notes` of the result files (`bench/results/raw/hindsight-llm-*.json`).
+- This project's numbers were measured before the `linked` stage was added. The stage is now on by default: with a vector or hybrid backend a recall may deliver up to two more memories, linked to the first two, within the limit, so the default delivery of those configurations is now a little larger than in the tables. The keyword backend is not affected. The tables were not re-measured for this. What the stage does on casual remarks is in [docs/design/2026-11-18-linked-recall.md](docs/design/2026-11-18-linked-recall.md) (Chinese).
 - The version of each project is the version at the time of testing. It may have changed since.
 
 ### Public datasets: PerLTQA and LoCoMo

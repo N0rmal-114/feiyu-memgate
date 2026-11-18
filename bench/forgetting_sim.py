@@ -12,7 +12,8 @@ Method
 ------
 One in-process gateway per arm with a fake wall clock (config.build_gateway(..., wall=clock)); the store is
 `sqlite` (keyword search only) or `hybrid` (sqlite + an embedding child, as in examples/hybrid/gateway.toml).
-Recall stages: the gateway's default list (core.stages.DEFAULT_STAGES: min_score, relative_score, newer_first, fill_text,
+Recall stages: the gateway's default list without `linked`, the stage that was added after these runs were
+recorded (so: min_score, relative_score, newer_first, fill_text,
 drop_oversize, redact, dedupe, budget) with freshness inserted right after min_score, so the relative cut-off
 sees freshness-adjusted scores; no hand-set thresholds: each backend's own lines of the "precise" profile apply (pinned, see PROFILE; the baseline has no [forgetting] section and
 therefore no freshness stage). The 240 memories are loaded with their own dates; 540 days are simulated
@@ -57,6 +58,10 @@ from feiyu_memgate import config  # noqa: E402
 from feiyu_memgate.core.recall import RecallContext, recall  # noqa: E402
 from feiyu_memgate.core.stages import DEFAULT_STAGES  # noqa: E402
 from feiyu_memgate.forgetting.engine import date_to_epoch  # noqa: E402
+
+# The stage list the recorded results were measured with: today's defaults without `linked`, which was added
+# later and would give the hybrid arm extra memories.
+STAGES = [name for name in DEFAULT_STAGES if name != "linked"]
 
 DATA_DIR = os.path.join(ROOT, "bench", "data")
 OUT_DIR = os.path.join(HERE, "results", "forgetting")
@@ -179,7 +184,7 @@ class Arm:
         self.held_now = 0        # memories due but left for later by the rate limit at the latest sweep
         self.held_sweeps = 0     # sweeps that held something back
         self.pinned = 0
-        stages = list(DEFAULT_STAGES)
+        stages = list(STAGES)
         if spec is not None:
             stages.insert(stages.index("min_score") + 1, "freshness")
         cfg = {
@@ -407,7 +412,7 @@ def write_run(out_dir, backend, result, memories, seconds, days=DAYS):
     schedule = scenario["schedule"]
     summary = {
         "backend": backend, "seed": SEED, "days": days, "check_every_days": CHECK_EVERY, "limit": LIMIT,
-        "stages": list(DEFAULT_STAGES), "max_questions_per_day": MAX_PER_DAY, "hot_share": HOT_SHARE,
+        "stages": list(STAGES), "max_questions_per_day": MAX_PER_DAY, "hot_share": HOT_SHARE,
         "start_date": _date(start_epoch(memories)), "memories": len(memories),
         "arms": {name: ARMS.get(name) for name in dict.fromkeys(r["arm"] for r in result["timeline"])},
         "embedding": EMBED_MODEL if backend == "hybrid" else None,

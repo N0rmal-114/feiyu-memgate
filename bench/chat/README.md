@@ -61,6 +61,17 @@ bench/chat/
 python -B bench/chat/validate.py bench/chat/dev
 ```
 
+## 怎么量
+
+`run.py` 通过真实的网关（进程内）把一个划分跑一遍，按题型给出：闲聊里直接相关的那条有没有交出来（`direct`）、相连的记忆交出来多少（`chain`）、交出去的条目里相关的占多少、每句话交几条、追问命中、该安静的时候是不是安静。指标的定义在它的文档字符串里。
+
+```bash
+python -B bench/chat/run.py --split bench/chat/dev --backend sqlite --table
+python -B bench/chat/run.py --split bench/chat/dev --backend hybrid --url <embeddings 接口> --model bge-m3 --linked off --table
+```
+
+`--linked off` 是去掉 `linked` 步骤的默认管线，用来和现在的默认（`on`）比。`methods.py`、`sweep.py`、`vector_lab.py` 是实验用的：把一种改法做成可以对比的变体，在开发集上扫参数。它们不是产品代码。已经量过的做法和结果见 [docs/design/2026-11-18-linked-recall.md](../../docs/design/2026-11-18-linked-recall.md)。
+
 ## 规则
 
 和 `bench/dev`、`bench/data` 一样：规则和参数只在开发集上选，选定之后才在测试集上跑一次，跑完不再改。数据全部虚构。

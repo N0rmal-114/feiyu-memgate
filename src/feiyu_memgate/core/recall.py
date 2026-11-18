@@ -133,14 +133,17 @@ class RecallContext:
         """How long a call may wait for a free worker: briefly, never most of the time left."""
         return min(MAX_WAIT, max(self.time_left(), 0.0) / 4)
 
-    def run(self, fn, store=None):
+    def run(self, fn, store=None, until=None):
         """Run fn(ctl) on the pool and wait until the deadline. Returns (ok, result).
 
         When the time runs out the call is cancelled (its socket is shut down, its cancel
         hooks run) and we return at once. Name the `store` the call is for, so the
-        per-store cap applies. No free worker counts as not ok.
+        per-store cap applies. No free worker counts as not ok. `until` (a time on the
+        context's clock) ends the wait earlier than the deadline, for a step that must
+        leave time to the stages after it; it never extends the deadline.
         """
-        outcome, result = call(self.pool, fn, self.clock, self.deadline, wait=self.wait_budget(),
+        end = self.deadline if until is None else min(until, self.deadline)
+        outcome, result = call(self.pool, fn, self.clock, end, wait=self.wait_budget(),
                                keep=self.keep, slots=self.slots, store=store)
         return outcome == OK, result
 
