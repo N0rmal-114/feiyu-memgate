@@ -38,11 +38,49 @@
 
 最早的四个世界没有 `kind`。后来的世界还有两处不同：每个世界至少五道联想题和目标那条事实没有相同的字词，只靠常识连得上；每三个簇里有一个簇的事实不是这个簇里最早的一条（真实的记忆库里，事实不一定最先写下）。
 
+## 多轮会话
+
+单句题量不出一件事：话一路聊下去，晚了一轮才找到的记忆还有没有用，话题一换，带上的无关记忆有多少，第二天开一场新对话，能不能接上昨天的话题。所以世界可以另带一个可选的列表 `sessions`（没有这个键的世界照样合格）。一个世界有三场会话，每场 6 到 9 轮：
+
+```json
+{"id": "s01", "turns": [
+  {"kind": "open", "user": "最近天气有点热", "assistant": "是啊，这几天热得人没精神。", "cluster": "c01", "direct": ["m001"], "also_ok": []},
+  {"kind": "continue", "user": "上回那次真是可惜", "assistant": "哪一次呀？", "cluster": "c01", "direct": ["m002"], "also_ok": []},
+  {"kind": "idle", "user": "楼下又在修路了", "assistant": "修路是挺吵的。", "cluster": null, "direct": [], "also_ok": []},
+  {"kind": "named", "user": "年糕今天又挠沙发了", "assistant": "它又调皮了。", "cluster": "c02", "direct": ["m003"], "also_ok": []},
+  {"kind": "return", "user": "对了，刚才说到吃的那个，我想好了", "assistant": "想好什么了？", "cluster": "c01", "direct": ["m001"], "also_ok": []},
+  {"kind": "nextday", "new_conversation": true, "gap_days": 1, "user": "昨天说的那个还是没买成", "cluster": "c01", "direct": ["m001"], "also_ok": []}
+]}
+```
+
+一轮的字段：`kind` 是下面六种之一；`user` 是主人说的话（1 到 30 个字）；`assistant` 是这一轮里陪伴者的回话，后面几轮的历史里就用它（1 到 50 个字），除了一场会话的最后一轮可以不写，其余每轮都要有。它只是一句中性的回应或一个问题，测试不看它的内容，只查下面的规则；`cluster` 是这一轮在聊的簇，没有就是 `null`；`direct` 是这一轮该摆到模型面前的记忆，`also_ok` 是交出来也说得过去的别的记忆，这个簇的其余记忆打分时都算相关，不用列。`new_conversation: true` 加整数 `gap_days`（至少 1）表示这一轮是隔了这么多天之后的一场新对话，之前的历史没有了。
+
+| `kind` | 主人这句话 | 要求 |
+|---|---|---|
+| `open` | 靠联想开起一个话题，像 `remark-assoc` | `direct` 恰好是这个簇的事实；这句话不出现簇的名字 |
+| `named` | 点名开起或换到一个话题 | `direct` 不空，且全属于这个簇；这句话出现簇的某个名字 |
+| `continue` | 接着上一轮的话题往下说，不点名 | 上一轮就是同一个簇（中间不能隔着闲聊）；`direct` 是这个簇的 1 到 2 条；不出现簇的名字 |
+| `idle` | 和任何记忆都无关的闲聊 | `cluster` 为 `null`，`direct` 和 `also_ok` 都空 |
+| `return` | 回到同一场对话里早先离开过的话题，不点名 | 这个簇在本场对话里出现过，而且紧挨着的上一轮不是它；`direct` 1 到 2 条；不出现簇的名字 |
+| `nextday` | 新对话的第一句，不点名地提起前一场对话里的话题 | 必须带 `new_conversation` 和 `gap_days`；这个簇在前一场对话里出现过；`direct` 1 到 2 条；不出现簇的名字 |
+
+一场会话的规则，用大白话说：第一轮是 `open` 或 `named`；`open`、`continue`、`idle`、`return` 各至少一轮，`nextday` 恰好一轮；至少涉及两个不同的簇；只有 `nextday` 那一轮开新对话，也只有它能开；`nextday` 之后最多再有两轮，只能是 `continue`、`idle`、`named` 或 `open`；会话 id 写成 `s01`、`s02`……，在世界里不重复；记忆 id 都要存在，同一条记忆不能同时在 `direct` 和 `also_ok` 里。陪伴者的回话不能含有它这一轮的簇、或之后任何一轮的簇的名字：写好的回话不能把话题的名字递给后面的检索。一个世界有三场会话，同一个簇不能出现在两场会话里。
+
+怎么量：每一轮单独算。看的是这一轮的 `direct` 记忆有没有在模型面前，不管是这一轮才交出来的，还是之前几轮交过、现在还留在这场对话的历史里（新对话里历史清空，只算这一轮自己交的）；另外数这一轮新交出来的记忆里有多少和这一轮无关。这样“晚一轮才找到”和“换话题后带了多少旧东西”都能从数字里看出来。
+
+写会话用 `sessions_tool.py`：`show` 把一个世界的人设、每个簇（键、名字、别名、各条记忆）和零散记忆打印出来，不打印这个世界的题目，也不打印已有的会话，免得照抄；`set` 把一个含三场会话的 JSON 列表写进世界文件的 `sessions`（已有的会被换掉，键放在最后，文件格式不变），然后跑一遍检查，有问题就打印并以 1 退出（文件照样写好，改完再跑一次即可）。
+
+```bash
+python -B bench/chat/sessions_tool.py show bench/chat/dev/dev-teacher.json
+python -B bench/chat/sessions_tool.py set bench/chat/dev/dev-teacher.json sessions.json
+```
+
 ## 文件
 
 ```text
 bench/chat/
   validate.py          检查一个世界文件是否符合上面的规则
+  sessions_tool.py     写多轮会话用的小工具：show 看世界，set 写入并检查
   dev/<世界>.json      开发集：选规则、调参数只看这里
   test/                测试集：冻结，不看着它调任何东西；不在仓库里
 ```
@@ -85,7 +123,7 @@ python -B bench/chat/run.py --split bench/chat/dev --backend sqlite --table
 python -B bench/chat/run.py --split bench/chat/dev --backend hybrid --url <embeddings 接口> --model bge-m3 --linked off --table
 ```
 
-`--linked off` 是去掉 `linked` 步骤的默认管线，用来和现在的默认（`on`）比。`methods.py`、`sweep.py`、`vector_lab.py`、`model_lab.py` 是实验用的：把一种改法做成可以对比的变体，在开发集上扫参数。它们不是产品代码。`model_lab.py` 比的是要靠语言模型的做法，模型写的文字作为文件交给它，它自己不调用模型。已经量过的做法和结果见 [docs/design/2026-11-18-linked-recall.md](../../docs/design/2026-11-18-linked-recall.md) 和 [docs/design/2026-11-18-recall-with-a-model.md](../../docs/design/2026-11-18-recall-with-a-model.md)。
+`--linked off` 是去掉 `linked` 步骤的默认管线，用来和现在的默认（`on`）比。`methods.py`、`sweep.py`、`vector_lab.py`、`model_lab.py`、`session_lab.py` 是实验用的：把一种改法做成可以对比的变体，在开发集上扫参数。它们不是产品代码。`model_lab.py` 比的是要靠语言模型的做法，模型写的文字作为文件交给它，它自己不调用模型。`session_lab.py` 按轮回放 `sessions`，量的是一段对话里的事：晚一轮才到的记忆、历史被压缩、隔天新开对话。已经量过的做法和结果见 [docs/design/2026-11-18-linked-recall.md](../../docs/design/2026-11-18-linked-recall.md) 、[docs/design/2026-11-18-recall-with-a-model.md](../../docs/design/2026-11-18-recall-with-a-model.md) 和 [docs/design/2026-11-18-sessions.md](../../docs/design/2026-11-18-sessions.md)。
 
 ## 规则
 

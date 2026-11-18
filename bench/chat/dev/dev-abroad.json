@@ -953,5 +953,283 @@
    "chain": [],
    "also_ok": []
   }
+ ],
+ "sessions": [
+  {
+   "id": "s01",
+   "turns": [
+    {
+     "kind": "open",
+     "user": "又在等队友把东西发过来了",
+     "assistant": "等人的滋味真不好受。",
+     "cluster": "c01",
+     "direct": [
+      "m001"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上回也是这样，我都快气笑了",
+     "assistant": "听着就累，后来怎么办的？",
+     "cluster": "c01",
+     "direct": [
+      "m013"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "idle",
+     "user": "刚才看到天上有架飞机飞过去",
+     "assistant": "飞得还挺低的吧。",
+     "cluster": null,
+     "direct": [],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "忽然好想喝点甜的",
+     "assistant": "来一杯确实解馋。",
+     "cluster": "c09",
+     "direct": [
+      "m031"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "说起来上回真的差一点就喝到了",
+     "assistant": "差一点最让人惦记了。",
+     "cluster": "c09",
+     "direct": [
+      "m017"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "return",
+     "user": "对了，刚才说的那个人，这次居然提前弄好了",
+     "assistant": "那可真难得，是不是转性了？",
+     "cluster": "c01",
+     "direct": [
+      "m001",
+      "m013"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "nextday",
+     "new_conversation": true,
+     "gap_days": 1,
+     "user": "昨天说想喝的那个，今天终于买到了",
+     "assistant": "终于如愿了，味道怎么样？",
+     "cluster": "c09",
+     "direct": [
+      "m031",
+      "m017"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "店员说我攒够了，这杯不用付钱",
+     "cluster": "c09",
+     "direct": [
+      "m050"
+     ],
+     "also_ok": []
+    }
+   ]
+  },
+  {
+   "id": "s02",
+   "turns": [
+    {
+     "kind": "open",
+     "user": "昨晚又没睡好，墙那边闹腾得厉害",
+     "assistant": "没睡好一整天都没精神。",
+     "cluster": "c02",
+     "direct": [
+      "m002"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "不过他也不是一直这样，上次分我的那顿真香",
+     "assistant": "听起来他也有可爱的一面。",
+     "cluster": "c02",
+     "direct": [
+      "m040"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "idle",
+     "user": "窗外下起了小雨，又停了",
+     "assistant": "下雨天总让人犯懒。",
+     "cluster": null,
+     "direct": [],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "这周又得去交代进度了，有点怵",
+     "assistant": "进度这种事总让人紧张。",
+     "cluster": "c06",
+     "direct": [
+      "m025"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上回被他批得好惨，改了好多天",
+     "assistant": "改了那么多天，真不容易。",
+     "cluster": "c06",
+     "direct": [
+      "m010"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "最近一出门就鼻子痒，眼睛也难受",
+     "assistant": "这个季节确实容易这样。",
+     "cluster": "c12",
+     "direct": [
+      "m041"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "return",
+     "user": "对了，前面说的那位，这周可别又让我白等",
+     "assistant": "提前确认一下比较稳妥。",
+     "cluster": "c06",
+     "direct": [
+      "m046",
+      "m025"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "nextday",
+     "new_conversation": true,
+     "gap_days": 1,
+     "user": "昨天说的出门难受的事，今天又犯了",
+     "assistant": "今天比昨天更厉害吗？",
+     "cluster": "c12",
+     "direct": [
+      "m041"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "还好上回在教室里那样应付过去了",
+     "cluster": "c12",
+     "direct": [
+      "m055"
+     ],
+     "also_ok": []
+    }
+   ]
+  },
+  {
+   "id": "s03",
+   "turns": [
+    {
+     "kind": "open",
+     "user": "这周末又得去打工，一站就是一天",
+     "assistant": "站一整天一定很累吧。",
+     "cluster": "c05",
+     "direct": [
+      "m008"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上回他给我多塞了点，我好开心",
+     "assistant": "意外的惊喜最开心了。",
+     "cluster": "c05",
+     "direct": [
+      "m022"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "后院有个角落堆满了旧东西，我都不敢走近",
+     "assistant": "那种角落是挺让人发怵的。",
+     "cluster": "c11",
+     "direct": [
+      "m023"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上回被它堵在里面，耗了好久才敢出来",
+     "assistant": "换谁都会吓一跳的。",
+     "cluster": "c11",
+     "direct": [
+      "m035"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "idle",
+     "user": "今天的云长得特别像一只大象",
+     "assistant": "拍下来了吗？",
+     "cluster": null,
+     "direct": [],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "今晚有点想家",
+     "assistant": "想家的时候就会特别安静。",
+     "cluster": "c08",
+     "direct": [
+      "m014"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "return",
+     "user": "对了，开头说的那个，前两天我出了个糗",
+     "assistant": "出糗了呀，后来怎么收场的？",
+     "cluster": "c05",
+     "direct": [
+      "m044"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "nextday",
+     "new_conversation": true,
+     "gap_days": 2,
+     "user": "前两天说的那个让我起鸡皮疙瘩的东西，今天又碰上一只",
+     "assistant": "天哪，这次是在哪里？",
+     "cluster": "c11",
+     "direct": [
+      "m023",
+      "m035"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "当场腿都软了，东西也拿不稳",
+     "cluster": "c11",
+     "direct": [
+      "m054"
+     ],
+     "also_ok": []
+    }
+   ]
+  }
  ]
 }
