@@ -26,6 +26,7 @@ from feiyu_memgate.gateway import server as http_server
 from feiyu_memgate.model import ClientPolicy
 from feiyu_memgate.tenants import keyfile
 from feiyu_memgate.tenants.keyfile import KeyFileTenants
+from tests.waiting import wait_until
 
 class OpenVikingBackend(_OpenVikingBackend):
     """The real backend, with the thresholds these fixtures' scores were written for (min_score 0.5, ratio 0.6);
@@ -365,7 +366,7 @@ class TenantRecallTests(TenantTestCase):
 
     def test_access_log_names_the_client(self):
         self.recall(GROUP_A)
-        self.assertTrue(any("/v1/recall 200 client=group" in line for line in self.logs), self.logs)
+        self.assertTrue(wait_until(lambda: any("/v1/recall 200 client=group" in line for line in self.logs)), self.logs)
 
 
 class TenantRememberTests(TenantTestCase):

@@ -14,6 +14,7 @@ from feiyu_memgate.client import MemoryClient
 
 from .test_forgetting_engine import DAY, FakeStore, date_of
 from .test_forgetting_gateway import TOKEN, FakeTenants, GatewayCase
+from tests.waiting import wait_until
 
 OWNER = ClientPolicy("owner", recall=("private",), write="private")
 TENANT_CLIENT = ClientPolicy("group", recall=("@tenant",), write="@tenant", tenants="group")
@@ -275,7 +276,7 @@ class UsedHttpTests(unittest.TestCase):
         status, body = self.post("/v1/used", {"used": [item("private", "a")]})
         self.assertEqual((status, body), (200, {"status": "ok", "recorded": 1}))
         self.assertEqual(self.engine.ledger.get_many("private", ["a"])["a"].uses, 1)
-        self.assertTrue(any(line.startswith("POST /v1/used 200 client=owner") for line in self.logs))
+        self.assertTrue(wait_until(lambda: any(line.startswith("POST /v1/used 200 client=owner") for line in self.logs)))
         self.assertFalse(any('"a"' in line or "alpha" in line for line in self.logs))
 
     def test_it_needs_a_token(self):
