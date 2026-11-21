@@ -561,6 +561,60 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
           }
         },
         {
+          "key": "relevanceCheck",
+          "kind": "boolean",
+          "default": false,
+          "label": {
+            "en": "Let a model pick the related memories first",
+            "zh": "回复前让模型先挑一遍"
+          },
+          "help": {
+            "en": "Before the memory block of a turn is given, a model looks at the message and the candidate memories and picks the ones a friend would think of; only those go into the block. Costs one more model call before the reply on every turn that has candidates: slower, and billed like any other use of that model. The message and the candidate memories are sent to the provider of that model. If the call fails or is too slow, the block is given as if this were off. The second block is not checked, and neither is memgate_search. Needs modules.autoRecall.",
+            "zh": "这一轮的记忆块给出之前，让一个模型看一遍用户的消息和候选记忆，挑出“一个了解主人的朋友会想到”的几条，只有这几条进记忆块。每一轮只要有候选记忆，回复之前就多一次模型调用：更慢，也和这个模型的其他用法一样计费。消息和候选记忆会发给这个模型的提供方。调用失败或太慢时，照没打开这项那样给出记忆块。第二个块不检查，memgate_search 也不检查。需要 modules.autoRecall。"
+          }
+        },
+        {
+          "key": "relevanceProvider",
+          "kind": "string",
+          "default": "",
+          "label": {
+            "en": "Provider of the model that picks",
+            "zh": "挑选用的模型的提供方"
+          },
+          "help": {
+            "en": "Together with the model setting: names another provider and model for the check, for example a cheaper one. Both empty means the model of the conversation. Only one of the two set counts as both empty.",
+            "zh": "和“挑选用的模型”一起填：为这一步指定另一个提供方和模型，比如便宜一点的。两项都空表示用对话本身的模型。只填其中一项等于两项都空。"
+          }
+        },
+        {
+          "key": "relevanceModel",
+          "kind": "string",
+          "default": "",
+          "label": {
+            "en": "Model that picks",
+            "zh": "挑选用的模型"
+          },
+          "help": {
+            "en": "Together with the provider setting. Both empty means the model of the conversation.",
+            "zh": "和“挑选用的模型的提供方”一起填。两项都空表示用对话本身的模型。"
+          }
+        },
+        {
+          "key": "relevanceTimeoutMs",
+          "kind": "integer",
+          "default": 3000,
+          "min": 500,
+          "max": 10000,
+          "label": {
+            "en": "Time limit of the check (ms)",
+            "zh": "挑选的时限（毫秒）"
+          },
+          "help": {
+            "en": "With the check on: how long the pick may take (500 to 10000 ms). A slower one is given up and the block is given as if the check were off.",
+            "zh": "打开挑选之后：这一步最多等多久（500 到 10000 毫秒）。超时就放弃，照没打开挑选那样给出记忆块。"
+          }
+        },
+        {
           "key": "afterthought",
           "kind": "boolean",
           "default": false,
@@ -789,6 +843,9 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
       countUnknown: 'count unavailable',
       progress: '{copied} of {total} copied',
       refusedCount: '{count} refused by the embedding model',
+      relevance: 'Relevance check',
+      relevanceRow: '{calls} calls · {kept} kept · {rejected} left out',
+      relevanceSkipped: '{count} skipped ({kinds})',
       approximate: 'scores not calibrated',
       save: 'Save', saving: 'Saving…', saved: 'Saved.',
       saveFailed: 'The host did not accept the change; nothing was saved.',
@@ -861,6 +918,9 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
       countUnknown: '条数未知',
       progress: '已复制 {copied} / {total}',
       refusedCount: '向量模型拒收 {count} 条',
+      relevance: '回复前的挑选',
+      relevanceRow: '调用 {calls} 次 · 留下 {kept} 条 · 去掉 {rejected} 条',
+      relevanceSkipped: '跳过 {count} 次（{kinds}）',
       approximate: '分数未校准',
       save: '保存', saving: '正在保存…', saved: '已保存。',
       saveFailed: '宿主没有接受这次修改，什么都没有保存。',
@@ -1041,6 +1101,13 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
       const state = m.state === 'running' ? 'running-copy' : m.state
       const refused = m.refused > 0 ? ' · ' + t('refusedCount', { count: m.refused }) : ''
       rows.push([t('migration'), stateText(t, state) + ' · ' + t('progress', { copied: m.copied || 0, total: m.total || 0 }) + refused])
+    }
+    const r = data.relevance
+    if (r && r.enabled) {
+      const kinds = Object.keys(r.skipped || {})
+      const skipped = kinds.reduce((sum, kind) => sum + (r.skipped[kind] || 0), 0)
+      rows.push([t('relevance'), t('relevanceRow', { calls: r.calls || 0, kept: r.kept || 0, rejected: r.rejected || 0 })
+        + (skipped > 0 ? ' · ' + t('relevanceSkipped', { count: skipped, kinds: kinds.map((kind) => kind + ' ' + r.skipped[kind]).join(', ') }) : '')])
     }
     return rows
   }

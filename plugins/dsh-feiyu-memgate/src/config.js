@@ -193,6 +193,20 @@ const GROUPS = [
           en: 'From the second turn of a conversation on, the memory block carries at most this many memories (0 to 5; 0 means no limit), the first ones the gateway returned after those already shown are left out. The "more" line counts the ones left out. The first turn and the second block are not limited.',
           zh: '一个对话从第二轮起，记忆块最多带这么多条记忆（0 到 5；0 表示不限），取网关返回的顺序里，去掉已经给过的之后最前面的几条。“还有几条”那一行会算上被去掉的。第一轮和第二个块不受限制。',
         } },
+      // The relevance check (docs/design/2026-11-21-noise.md): measured offline only, off by default.
+      bool('relevanceCheck', false, { en: 'Let a model pick the related memories first', zh: '回复前让模型先挑一遍' }, {
+        en: 'Before the memory block of a turn is given, a model looks at the message and the candidate memories and picks the ones a friend would think of; only those go into the block. Costs one more model call before the reply on every turn that has candidates: slower, and billed like any other use of that model. The message and the candidate memories are sent to the provider of that model. If the call fails or is too slow, the block is given as if this were off. The second block is not checked, and neither is memgate_search. Needs modules.autoRecall.',
+        zh: '这一轮的记忆块给出之前，让一个模型看一遍用户的消息和候选记忆，挑出“一个了解主人的朋友会想到”的几条，只有这几条进记忆块。每一轮只要有候选记忆，回复之前就多一次模型调用：更慢，也和这个模型的其他用法一样计费。消息和候选记忆会发给这个模型的提供方。调用失败或太慢时，照没打开这项那样给出记忆块。第二个块不检查，memgate_search 也不检查。需要 modules.autoRecall。',
+      }),
+      { key: 'relevanceProvider', kind: 'string', default: '',
+        label: { en: 'Provider of the model that picks', zh: '挑选用的模型的提供方' },
+        help: { en: 'Together with the model setting: names another provider and model for the check, for example a cheaper one. Both empty means the model of the conversation. Only one of the two set counts as both empty.', zh: '和“挑选用的模型”一起填：为这一步指定另一个提供方和模型，比如便宜一点的。两项都空表示用对话本身的模型。只填其中一项等于两项都空。' } },
+      { key: 'relevanceModel', kind: 'string', default: '',
+        label: { en: 'Model that picks', zh: '挑选用的模型' },
+        help: { en: 'Together with the provider setting. Both empty means the model of the conversation.', zh: '和“挑选用的模型的提供方”一起填。两项都空表示用对话本身的模型。' } },
+      { key: 'relevanceTimeoutMs', kind: 'integer', default: 3000, min: 500, max: 10000,
+        label: { en: 'Time limit of the check (ms)', zh: '挑选的时限（毫秒）' },
+        help: { en: 'With the check on: how long the pick may take (500 to 10000 ms). A slower one is given up and the block is given as if the check were off.', zh: '打开挑选之后：这一步最多等多久（500 到 10000 毫秒）。超时就放弃，照没打开挑选那样给出记忆块。' } },
       // Prototypes, off by default (docs/design/2026-11-18-recall-with-a-model.md): measured offline only.
       bool('afterthought', false, { en: 'Recall again after replying', zh: '回复之后再想一想' }, {
         en: "Experimental. After each reply, look memories up once more in the background with the reply as the query, and give the ones this conversation has not had yet on the next turn, in a second block after the memory block. Costs one more lookup per turn; the added block makes the context longer, and it may hold memories unrelated to the new message. Under keyword retrieval the second lookup matches words of the reply. Needs modules.autoRecall.",

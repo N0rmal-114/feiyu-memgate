@@ -363,6 +363,22 @@ test('the block wording and the cap are listed, set by bare name and reset', asy
   ])
 })
 
+test('the relevance check settings are listed, set by bare name and reset', async () => {
+  const { run, writes } = harness()
+  const config = await run('config')
+  assert.ok(config.text.includes('advanced.relevanceCheck = off'), config.text)
+  assert.ok(config.text.includes('advanced.relevanceTimeoutMs = 3000'))
+  assert.equal((await run('set relevancecheck on')).text, 'Saved: advanced.relevanceCheck = on (was off).')
+  assert.equal((await run('set relevancemodel small-model')).text, 'Saved: advanced.relevanceModel = small-model (was (empty)).')
+  assert.match((await run('set advanced.relevanceTimeoutMs 100')).text, /takes a whole number from 500 to 10000/)
+  assert.equal((await run('set relevancetimeoutms 5000')).text, 'Saved: advanced.relevanceTimeoutMs = 5000 (was 3000).')
+  assert.deepEqual(writes.map((ops) => [ops[0].op, ops[0].path.join('.'), ops[0].value]), [
+    ['set', 'advanced.relevanceCheck', true],
+    ['set', 'advanced.relevanceModel', 'small-model'],
+    ['set', 'advanced.relevanceTimeoutMs', 5000],
+  ])
+})
+
 test('use chooses a tier and says when it cannot run yet', async () => {
   const { run, writes } = harness()
   const local = await run('use local')

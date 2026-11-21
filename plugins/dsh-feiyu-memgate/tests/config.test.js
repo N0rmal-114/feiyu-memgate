@@ -14,7 +14,7 @@ test('defaults', () => {
     gateway: { mode: 'managed', python: '', dataDir: '' },
     external: { url: '', token: '' },
     advanced: {
-      recallLimit: 5, recallTimeoutMs: 4000, language: 'auto', skipRepeats: true, linkedRecall: true, showAge: true, failureNote: true, captureMinChars: 4, blockTone: 'normal', maxNewPerTurn: 0,
+      recallLimit: 5, recallTimeoutMs: 4000, language: 'auto', skipRepeats: true, linkedRecall: true, showAge: true, failureNote: true, captureMinChars: 4, blockTone: 'normal', maxNewPerTurn: 0, relevanceCheck: false, relevanceProvider: '', relevanceModel: '', relevanceTimeoutMs: 3000,
       afterthought: false, afterthoughtMax: 2, conversationPool: false, poolSize: 3, recentPool: false, recentSize: 3, recentDays: 7,
       profile: 'broad', dailyWrites: 50, redaction: true, newerFirst: true, forgetting: false,
     },
@@ -156,7 +156,7 @@ test('the field table lists every setting once, labelled and explained in both l
 test('the chat settings: three switches that are on and a character count of 4, each with help in both languages', () => {
   const group = FIELDS.find((g) => g.group === 'advanced')
   assert.deepEqual(group.fields.map((f) => f.key), [
-    'recallLimit', 'recallTimeoutMs', 'language', 'skipRepeats', 'linkedRecall', 'showAge', 'failureNote', 'captureMinChars', 'blockTone', 'maxNewPerTurn',
+    'recallLimit', 'recallTimeoutMs', 'language', 'skipRepeats', 'linkedRecall', 'showAge', 'failureNote', 'captureMinChars', 'blockTone', 'maxNewPerTurn', 'relevanceCheck', 'relevanceProvider', 'relevanceModel', 'relevanceTimeoutMs',
     'afterthought', 'afterthoughtMax', 'conversationPool', 'poolSize', 'recentPool', 'recentSize', 'recentDays',
     'profile', 'dailyWrites', 'redaction', 'newerFirst', 'forgetting',
   ])
@@ -309,4 +309,30 @@ test('the block wording and the cap on new memories: a choice that is normal and
   for (const bad of ['6', '-1', '1.5', 'two', '']) assert.equal(parseSetting(cap, bad).ok, false, bad)
   const dict = buildConfigSchema(recordingSchema()).dict.advanced.dict
   assert.deepEqual([dict.maxNewPerTurn.meta.min, dict.maxNewPerTurn.meta.max], [0, 5])
+})
+
+test('the relevance check: a switch that is off, a provider and a model that are empty and a time limit from 500 to 10000, with help in both languages', () => {
+  const on = SETTING_KEYS['advanced.relevanceCheck']
+  assert.deepEqual([on.kind, on.default, on.label.zh, on.label.en], ['boolean', false, '回复前让模型先挑一遍', 'Let a model pick the related memories first'])
+  for (const key of ['relevanceCheck', 'relevanceProvider', 'relevanceModel', 'relevanceTimeoutMs']) {
+    const field = SETTING_KEYS[`advanced.${key}`]
+    assert.ok(field.label.en && field.label.zh && field.help.en && field.help.zh, key)
+  }
+  assert.match(SETTING_KEYS['advanced.relevanceCheck'].help.en, /one more model call/)
+  assert.match(SETTING_KEYS['advanced.relevanceCheck'].help.en, /sent to the provider/)
+  assert.deepEqual(['relevanceProvider', 'relevanceModel'].map((key) => [SETTING_KEYS[`advanced.${key}`].kind, SETTING_KEYS[`advanced.${key}`].default]), [['string', ''], ['string', '']])
+  const ms = SETTING_KEYS['advanced.relevanceTimeoutMs']
+  assert.deepEqual([ms.kind, ms.default, ms.min, ms.max], ['integer', 3000, 500, 10000])
+  assert.equal(readConfig({ advanced: { relevanceCheck: true } }).advanced.relevanceCheck, true)
+  assert.equal(readConfig({ advanced: { relevanceTimeoutMs: 499 } }).advanced.relevanceTimeoutMs, 3000)
+  assert.equal(readConfig({ advanced: { relevanceTimeoutMs: 10001 } }).advanced.relevanceTimeoutMs, 3000)
+  assert.equal(readConfig({ advanced: { relevanceTimeoutMs: 500 } }).advanced.relevanceTimeoutMs, 500)
+  assert.equal(readConfig({ advanced: { relevanceProvider: 'p', relevanceModel: 'm' } }).advanced.relevanceModel, 'm')
+  assert.equal(readConfig({ advanced: { relevanceModel: 7 } }).advanced.relevanceModel, '')
+  assert.deepEqual(parseSetting(on, 'on'), { ok: true, value: true })
+  assert.deepEqual(parseSetting(SETTING_KEYS['advanced.relevanceModel'], 'small-model'), { ok: true, value: 'small-model' })
+  for (const bad of ['499', '10001', 'fast', '']) assert.equal(parseSetting(ms, bad).ok, false, bad)
+  assert.deepEqual(parseSetting(ms, '10000'), { ok: true, value: 10000 })
+  const dict = buildConfigSchema(recordingSchema()).dict.advanced.dict
+  assert.deepEqual([dict.relevanceTimeoutMs.meta.min, dict.relevanceTimeoutMs.meta.max], [500, 10000])
 })

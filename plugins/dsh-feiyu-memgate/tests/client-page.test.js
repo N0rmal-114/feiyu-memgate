@@ -293,6 +293,32 @@ test('the page script carries the block wording as a choice and the cap as a cou
   assert.equal(zh['o.advanced.blockTone.strict'], row('blockTone').options[1].label.zh)
 })
 
+test('the page script carries the four relevance check settings with both languages', () => {
+  const advanced = plain(load().internals.FIELDS).find((g) => g.group === 'advanced').fields
+  const row = (key) => advanced.find((f) => f.key === key)
+  assert.deepEqual([row('relevanceCheck').kind, row('relevanceCheck').default], ['boolean', false])
+  assert.deepEqual([row('relevanceProvider').kind, row('relevanceProvider').default, row('relevanceModel').kind, row('relevanceModel').default], ['string', '', 'string', ''])
+  assert.deepEqual([row('relevanceTimeoutMs').kind, row('relevanceTimeoutMs').default, row('relevanceTimeoutMs').min, row('relevanceTimeoutMs').max], ['integer', 3000, 500, 10000])
+  const { en, zh } = plain(load().internals.dictionaries())
+  for (const key of ['relevanceCheck', 'relevanceProvider', 'relevanceModel', 'relevanceTimeoutMs']) {
+    assert.equal(en[`f.advanced.${key}`], row(key).label.en)
+    assert.equal(zh[`f.advanced.${key}`], row(key).label.zh)
+    assert.equal(zh[`h.advanced.${key}`], row(key).help.zh)
+  }
+})
+
+test('status rows: the relevance check appears only while it is on, with its counts and the skipped kinds', () => {
+  const { internals } = load()
+  const dicts = plain(internals.dictionaries())
+  const base = { gateway: { mode: 'external', state: 'configured', url: 'http://127.0.0.1:8080' }, embed: null }
+  const rows = (data, lang) => plain(internals.statusRows({ ...base, ...data }, translator(dicts[lang])))
+  assert.ok(!rows({}, 'en').some(([label]) => label === 'Relevance check'))
+  assert.ok(!rows({ relevance: { enabled: false, calls: 3, kept: 1, rejected: 2, skipped: {} } }, 'en').some(([label]) => label === 'Relevance check'))
+  assert.deepEqual(rows({ relevance: { enabled: true, calls: 5, kept: 7, rejected: 9, skipped: {} } }, 'en').at(-1), ['Relevance check', '5 calls · 7 kept · 9 left out'])
+  assert.deepEqual(rows({ relevance: { enabled: true, calls: 5, kept: 7, rejected: 9, skipped: { timeout: 2, unusable: 1 } } }, 'en').at(-1), ['Relevance check', '5 calls · 7 kept · 9 left out · 3 skipped (timeout 2, unusable 1)'])
+  assert.deepEqual(rows({ relevance: { enabled: true, calls: 1, kept: 0, rejected: 2, skipped: {} } }, 'zh').at(-1), ['回复前的挑选', '调用 1 次 · 留下 0 条 · 去掉 2 条'])
+})
+
 test('apply registers both dictionaries and the page under <package name>#<row id>', () => {
   const { exports, internals } = load()
   const calls = { effects: [], locale: [], slots: [] }

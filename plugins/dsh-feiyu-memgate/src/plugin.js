@@ -17,7 +17,7 @@
 //   ctx.logger(name).warn                   vendor/cordis/src/context.ts:27, src/logger.ts
 //   'agent/pre-step' waterfall              packages/core/agent/src/runtime-types.ts:351, decision at :139-146;
 //                                           dispatched at packages/core/agent-loop/src/agent.ts:302-312
-//                                           (rc.1 dsh-agent-loop/lib/index.js:691, without modelSelection)
+//                                           (the installed rc.1: dsh-agent-loop/lib/index.js:689-695, with modelSelection too)
 //   agent.session.header.origin / delegationDepth   packages/core/session/src/types.ts:107-128
 //   session.deriveMessages()                packages/core/session/src/index.ts:1079 (rc.1 dsh-session/lib/index.js:1683)
 //   'session/event', 'session/disposed'     packages/core/session/src/index.ts:79, :65
@@ -36,6 +36,22 @@
 //                                           the same shapes: dsh-agent-loop lib/index.js:825, dsh-session
 //                                           lib/index.js:1587-1603 (commit) and :1683 (deriveMessages).
 //                                           An observer must not append to the session (index.ts:960-962).
+//   ctx.get('llm') (advanced.relevanceCheck)  the LlmRuntime, packages/llm/llm/src/index.ts:369;
+//                                           prepareCall(config, signal, configure) :975 and the call's own
+//                                           stream(options) (:1185 is the same call without the prepared
+//                                           handle); the chunks are packages/llm/llm/src/types.ts:496-508 and
+//                                           a failed call ends in a 'finish' chunk of kind 'error' or
+//                                           'aborted' (types.ts:493-495). The route of the conversation is
+//                                           payload.modelSelection (agent-loop/src/agent.ts:289-303; the
+//                                           installed 0.2.2-rc.1 passes it as well, dsh-agent-loop
+//                                           lib/index.js:689-695). A request is a RequestUserInput without id
+//                                           or source (types.ts:531-536). The title provider's pair of
+//                                           provider and model, validated together:
+//                                           session-title-llm/src/index.ts:105-110, :175-185.
+//                                           `purpose` is declared per package through LlmRequestPurposeMap
+//                                           (types.ts:555) and only adapters read it (llm-deepseek/src/adapter.ts
+//                                           :125, :152); that nothing rejects an undeclared one at runtime was
+//                                           not established, so none is passed.
 //   ctx.tools.register(definition)          packages/core/tools/src/index.ts:128-153, contracts.ts:27-70
 //   ctx.systemPrompt.section(section)       packages/core/system-prompt/src/index.ts:485-494, :53-76
 //   createUserMessage (optional peer)       packages/llm/llm/src/message.ts:245
@@ -56,6 +72,7 @@
 //   settings.mutate(ns, ops)                packages/settings/settings/src/index.ts:368 (ns = the profile entry
 //                                           id, ctx.fiber.entry.options.id, vendor/loader/src/index.ts:53, :129-131)
 import { randomUUID } from 'node:crypto'
+import { buildPrompt, collect, MAX_ANSWER_TOKENS, parseAnswer } from './relevance.js'
 import fs from 'node:fs'
 import path from 'node:path'
 import { createFormatter } from './block.js'
@@ -368,6 +385,9 @@ export function createPlugin(ctx, config, deps = {}) {
   let lastEmbed = null
   let migration = null // { manager, runner, timer, best }: the copy for the running gateway
   let migrationStatus = null
+  // The relevance check since the plugin started: counts only, never a memory, a query or an answer.
+  const relevanceStats = { calls: 0, kept: 0, rejected: 0, skipped: {} }
+  const relevanceWarned = new Set()
   let disposed = false
   let promptLanguage = null // the language of the registered prompt section
 
@@ -655,7 +675,7 @@ export function createPlugin(ctx, config, deps = {}) {
     }
     const query = buildQuery(current, previous)
     if (!query) return null
-    return { query, lastBlock, blocks, noticeLast, current }
+    return { query, lastBlock, blocks, noticeLast, current, route: payload.modelSelection }
   }
 
   // Whether memory is wanted and the managed gateway is on its way up: the lookup could not be made yet.
@@ -694,6 +714,16 @@ export function createPlugin(ctx, config, deps = {}) {
         results = results.filter((r) => !shown(r?.text))
         if (!results.length) return null
       }
+      // advanced.relevanceCheck: a model keeps the memories a friend would think of; nothing kept, no block.
+      // Before the cap below, so the cap counts memories that passed. Any failure keeps every result.
+      if (s.modules.autoRecall && s.advanced.relevanceCheck) {
+        const kept = await relevanceFilter(s, plan, results, signal)
+        if (signal?.aborted) return null
+        if (kept) {
+          results = kept
+          if (!results.length) return null
+        }
+      }
       // advanced.maxNewPerTurn: from the second turn on (the history already holds a block of this plugin)
       // only the first n results, in the order the gateway gave them; the "more" count grows by the rest.
       const cap = s.advanced.maxNewPerTurn
@@ -709,6 +739,78 @@ export function createPlugin(ctx, config, deps = {}) {
     } catch (error) {
       log.warn(`feiyu-memgate: recall skipped (${kindOf(error)})`)
       return signal?.aborted ? null : FAILED
+    }
+  }
+
+  // The relevance check. Returns the kept results (in the lookup's order, possibly none), or null when the
+  // check was not made or did not give a usable answer: the caller then goes on with every result.
+  async function relevanceFilter(s, plan, results, signal) {
+    if (!results.length || signal?.aborted) return null
+    const skip = (kind) => {
+      relevanceStats.skipped[kind] = (relevanceStats.skipped[kind] ?? 0) + 1
+      log.warn(`feiyu-memgate: relevance check skipped (${kind})`)
+      return null
+    }
+    const ms = s.advanced.relevanceTimeoutMs
+    const control = new AbortController()
+    let timer = null
+    let timedOut = false
+    const onAbort = () => control.abort()
+    try {
+      const llm = service('llm')
+      if (!llm || typeof llm.prepareCall !== 'function') return skip('no-service')
+      // The pair names another model; one of the two alone counts as both empty (once in the log).
+      const provider = s.advanced.relevanceProvider.trim()
+      const model = s.advanced.relevanceModel.trim()
+      let route = plan.route
+      if (provider && model) route = { provider, model }
+      else if ((provider || model) && !relevanceWarned.has('pair')) {
+        relevanceWarned.add('pair')
+        log.warn('feiyu-memgate: relevance model setting ignored (pair)')
+      }
+      if (typeof route?.provider !== 'string' || !route.provider || typeof route?.model !== 'string' || !route.model) {
+        return skip('no-route')
+      }
+      const prompt = buildPrompt(language(), plan.query, results)
+      relevanceStats.calls++
+      signal?.addEventListener?.('abort', onAbort, { once: true })
+      timer = setTimeout(() => {
+        timedOut = true
+        control.abort()
+      }, ms)
+      const stopped = new Promise((resolve) => control.signal.addEventListener('abort', () => resolve(null), { once: true }))
+      const work = (async () => {
+        // The least reasoning effort the route offers (as the title provider does): a reasoning pass
+        // would spend the few tokens of the answer.
+        const call = await llm.prepareCall({ provider: route.provider, model: route.model, maxTokens: MAX_ANSWER_TOKENS }, control.signal,
+          (controls, info) => {
+            const effort = info?.reasoning?.efforts?.[0]?.id
+            return effort === undefined ? controls : { ...controls, reasoningEffort: effort }
+          })
+        return collect(call.stream({
+          ...call.config,
+          system: prompt.system,
+          messages: [{ role: 'user', content: [{ type: 'text', text: prompt.user }] }],
+          signal: control.signal,
+        }))
+      })()
+      work.catch(() => {}) // a call that ends after the race was decided is not an unhandled rejection
+      const answer = await Promise.race([work, stopped])
+      if (answer === null) return timedOut ? skip('timeout') : null // else the turn ended: nobody waits
+      if (answer.finish === 'error' || answer.finish === 'aborted') return skip('finish-error')
+      if (answer.finish !== 'stop' && answer.finish !== 'max-tokens') return skip('unusable')
+      const picked = parseAnswer(answer.text, results.length)
+      if (!picked) return skip('unusable')
+      relevanceStats.kept += picked.keep.length
+      relevanceStats.rejected += results.length - picked.keep.length
+      return picked.keep.map((i) => results[i])
+    } catch (error) {
+      if (signal?.aborted) return null
+      return skip(timedOut ? 'timeout' : kindOf(error))
+    } finally {
+      if (timer) clearTimeout(timer)
+      signal?.removeEventListener?.('abort', onAbort)
+      control.abort() // ends a call that outlived the check
     }
   }
 
@@ -1254,6 +1356,14 @@ export function createPlugin(ctx, config, deps = {}) {
       },
       migration: migrationStatus,
       setup: setup.summary(),
+      // Counts since the plugin started; no memory, query or answer.
+      relevance: {
+        enabled: s.modules.autoRecall && s.advanced.relevanceCheck,
+        calls: relevanceStats.calls,
+        kept: relevanceStats.kept,
+        rejected: relevanceStats.rejected,
+        skipped: { ...relevanceStats.skipped },
+      },
     }
     if (!managed) return out
     let python = m?.python?.() ?? null
