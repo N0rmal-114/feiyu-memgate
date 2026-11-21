@@ -41,45 +41,33 @@ file keeps working on bigrams alone.
 """
 import contextlib
 import json
-import os
 import sqlite3
 import threading
 import time
-import uuid
-from datetime import datetime, timezone
 
 from ..core.tidy import PreparedQuery, gram_weights, index_grams, normalize
 from ..errors import BackendError
 from ..model import Hit
 from ..registry import register
-from .base import MemoryBackend, message_date
+from . import _sqlfile
+from ._sqlfile import SCAN_BATCH
+from .base import (DEFAULT_BUDGET, MemoryBackend, as_roles, message_date, new_receipt, new_ref, receipt_ref,
+                   require_writable)
+from .base import today as _today
 
-DEFAULT_BUDGET = 10.0  # seconds for one find() when the caller gives none
 MAX_QUERY_GRAMS = 600  # distinct query grams looked at (their document frequency is probed)
 DF_PROBE = 500  # document frequency is counted up to this many postings per gram
-SCAN_BATCH = 500
 SCORE_BATCH = 200  # memories fetched per step while scoring (the deadline is checked between steps)
 PROGRESS_OPS = 20000  # SQLite virtual-machine steps between two looks at the deadline
 
-_SCHEMA = """
-CREATE TABLE IF NOT EXISTS memories (
-    ref TEXT PRIMARY KEY,
-    text TEXT NOT NULL,
-    created_at INTEGER NOT NULL,
-    date TEXT
-);
-CREATE TABLE IF NOT EXISTS grams (
+_SCHEMA = _sqlfile.memories_table() + """CREATE TABLE IF NOT EXISTS grams (
     gram TEXT NOT NULL,
     ref TEXT NOT NULL,
     PRIMARY KEY (gram, ref)
 ) WITHOUT ROWID;
 CREATE INDEX IF NOT EXISTS grams_by_ref ON grams (ref);
 CREATE INDEX IF NOT EXISTS memories_by_created ON memories (created_at);
-CREATE TABLE IF NOT EXISTS info (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL
-);
-"""
+""" + _sqlfile.INFO_TABLE
 # What the grams table holds: "1" bigrams only (stores of older versions), "2" bigrams and CJK unigrams.
 GRAM_SCHEME = "2"
 
@@ -87,10 +75,6 @@ GRAM_SCHEME = "2"
 # Why the rows come back as one JSON value: the sqlite3 module lets go of the GIL at every row it steps,
 # and with several threads searching at once each of those hand-overs can wait a whole GIL switch
 # interval. One row per statement keeps parallel searches parallel.
-
-
-def _today():
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
 
 class _Readers:
@@ -195,8 +179,7 @@ class SQLiteBackend(MemoryBackend):
 
     def __init__(self, path, writable=True, roles=("user",), max_candidates=2000, max_postings=20000,
                  max_readers=16):
-        if isinstance(roles, str):
-            roles = (roles,)
+        roles = as_roles(roles)
         self.writable = bool(writable)
         self.roles = tuple(roles)
         self.max_candidates = max(1, int(max_candidates))
@@ -205,15 +188,8 @@ class SQLiteBackend(MemoryBackend):
         self._shared = self._path == ":memory:"  # one connection for everything
         self._lock = threading.Lock()  # the writer (and, for ":memory:", every reader)
         self._closed = False
-        if not self._shared:
-            parent = os.path.dirname(os.path.abspath(self._path))
-            os.makedirs(parent, exist_ok=True)
-        self._db = sqlite3.connect(self._path, check_same_thread=False, timeout=10.0)
+        self._db = _sqlfile.open_store(self._path, _SCHEMA)
         try:
-            if not self._shared:
-                self._db.execute("PRAGMA journal_mode=WAL")
-            self._db.executescript(_SCHEMA)
-            self._db.commit()
             self._unigrams = self._open_scheme()
         except Exception:
             self._db.close()
@@ -279,9 +255,8 @@ class SQLiteBackend(MemoryBackend):
     def put(self, text, ref=None, date=None):
         """Store one memory text as it is and return its ref. An existing ref is replaced
         together with its index rows."""
-        if not self.writable:
-            raise PermissionError("this backend is read-only")
-        ref = ref or "mem-" + uuid.uuid4().hex
+        require_writable(self)
+        ref = ref or new_ref()
         grams = [(g, ref) for g in index_grams(normalize(text), self._unigrams)]
         with self._lock:
             with self._db:  # one transaction: a memory and its index rows go together
@@ -295,8 +270,7 @@ class SQLiteBackend(MemoryBackend):
 
     def delete(self, ref):
         """Remove one memory and its index rows. True when it existed."""
-        if not self.writable:
-            raise PermissionError("this backend is read-only")
+        require_writable(self)
         with self._lock:
             with self._db:
                 self._db.execute("DELETE FROM grams WHERE ref = ?", (ref,))
@@ -306,60 +280,36 @@ class SQLiteBackend(MemoryBackend):
     def remember(self, messages, timeout=None, ctl=None):
         """Keep the messages whose role is in `roles`; returns the receipt id, or None when
         no message qualified (nothing was kept, so there is no receipt for it)."""
-        if not self.writable:
-            raise PermissionError("this backend is read-only")
-        receipt = "w-" + uuid.uuid4().hex
+        require_writable(self)
+        receipt = new_receipt()
         today = _today()
         kept = 0
         for index, message in enumerate(messages):
             if message["role"] in self.roles:
-                self.put(message["content"], ref="%s-%d" % (receipt, index), date=message_date(message, today))
+                self.put(message["content"], ref=receipt_ref(receipt, index), date=message_date(message, today))
                 kept += 1
         return receipt if kept else None
 
     # ------------------------------------------------------------ reading
 
     def count(self):
-        with self._read() as db:
-            return db.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
+        return _sqlfile.count(self._read)
 
     def items(self):
         """Iterate (ref, text, date) over everything stored, oldest first."""
-        with self._read() as db:
-            rows = db.execute("SELECT ref, text, date FROM memories ORDER BY created_at, ref").fetchall()
-        return iter(rows)
+        return _sqlfile.items(self._read)
 
     def refs(self):
         """Iterate (ref, date or None) over every memory, ordered by ref, without texts.
 
         Read in batches by key, the connection is released between them, so a big store is never
         held in memory and deleting while iterating is safe."""
-        last = None
-        while True:
-            with self._read() as db:
-                if last is None:
-                    rows = db.execute("SELECT ref, date FROM memories ORDER BY ref LIMIT ?", (SCAN_BATCH,)).fetchall()
-                else:
-                    rows = db.execute(
-                        "SELECT ref, date FROM memories WHERE ref > ? ORDER BY ref LIMIT ?", (last, SCAN_BATCH)
-                    ).fetchall()
-            for row in rows:
-                yield row[0], row[1]
-            if len(rows) < SCAN_BATCH:
-                return
-            last = rows[-1][0]
+        yield from _sqlfile.iter_refs(self._read, SCAN_BATCH)
 
     def receipt_refs(self, receipt):
         """The refs remember() stored for `receipt` (it names them "<receipt>-<index>").
         Only the messages it kept have one; a memory deleted since is absent."""
-        if not isinstance(receipt, str) or not receipt:
-            return None
-        prefix = receipt + "-"
-        with self._read() as db:
-            rows = db.execute(
-                "SELECT ref FROM memories WHERE substr(ref, 1, ?) = ? ORDER BY ref", (len(prefix), prefix)
-            ).fetchall()
-        return [r[0] for r in rows]
+        return _sqlfile.receipt_refs(self._read, receipt)
 
     def read(self, ref, timeout=None, ctl=None):
         with self._read() as db:

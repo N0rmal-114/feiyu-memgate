@@ -8,6 +8,13 @@ Standard library only.
 """
 import abc
 import datetime
+import uuid
+
+from ..model import Hit
+
+DEFAULT_BUDGET = 10.0  # seconds for one find() when the caller gives none (the backends that use it)
+
+HAS_META = "meta" in getattr(Hit, "__dataclass_fields__", {})
 
 
 def message_date(message, default=None):
@@ -30,6 +37,75 @@ def message_date(message, default=None):
     except ValueError:
         return default
     return head
+
+
+def today():
+    """Today's date in UTC as "YYYY-MM-DD"."""
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+
+
+def make_hit(ref, score, text, date, meta):
+    """A Hit, with `meta` (a dict) when this version of Hit has a meta field."""
+    if HAS_META:
+        try:
+            return Hit(ref=ref, score=score, text=text, date=date, meta=meta)
+        except TypeError:  # pragma: no cover - a Hit whose meta has another shape
+            pass
+    return Hit(ref=ref, score=score, text=text, date=date)
+
+
+def require_writable(backend):
+    """PermissionError unless `backend.writable` is true."""
+    if not backend.writable:
+        raise PermissionError("this backend is read-only")
+
+
+def as_roles(roles):
+    """`roles` as given, except that one role name (a string) becomes a one-element tuple."""
+    if isinstance(roles, str):
+        roles = (roles,)
+    return roles
+
+
+def clamp01(value):
+    """`value` held to the range 0..1."""
+    return min(1.0, max(0.0, value))
+
+
+def new_ref():
+    """A fresh ref for a memory stored without one."""
+    return "mem-" + uuid.uuid4().hex
+
+
+def new_receipt():
+    """A fresh receipt id for one write."""
+    return "w-" + uuid.uuid4().hex
+
+
+def receipt_ref(receipt, index):
+    """The ref of message number `index` of the write `receipt`."""
+    return "%s-%d" % (receipt, index)
+
+
+def kept_messages(messages, roles, today):
+    """[(index, content, date)] of the messages whose role is in `roles`; a message without a date of
+    its own is dated `today`."""
+    return [(i, m["content"], message_date(m, today)) for i, m in enumerate(messages) if m["role"] in roles]
+
+
+def parse_item(item):
+    """(text, ref, date) of one item given to put_many(): a text, a (text, ref, date) tuple (ref and
+    date optional) or a dict with "text" and optionally "ref" and "date". The ref is made when missing.
+    ValueError when the text is not a non-empty string."""
+    if isinstance(item, str):
+        item = (item,)
+    if isinstance(item, dict):
+        text, ref, date = item.get("text"), item.get("ref"), item.get("date")
+    else:
+        text, ref, date = (tuple(item) + (None, None))[:3]
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError("a memory text must be a non-empty string")
+    return text, ref or new_ref(), date
 
 
 class MemoryBackend(abc.ABC):

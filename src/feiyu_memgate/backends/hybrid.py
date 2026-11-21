@@ -33,23 +33,15 @@ environment, the same way.
 import inspect
 import os
 import time
-import uuid
-from datetime import datetime, timezone
 
 from .. import registry
 from ..errors import BackendError, ConfigError
-from ..model import Hit
 from ..registry import register
-from .base import MemoryBackend, message_date
+from .base import (DEFAULT_BUDGET, MemoryBackend, as_roles, clamp01, kept_messages, make_hit, new_receipt,
+                   parse_item, receipt_ref, require_writable)
+from .base import today as _today
 
-DEFAULT_BUDGET = 10.0
 OVERFETCH = 3  # each child is asked for limit * 3 hits so that fusion has material to rank
-
-_HAS_META = "meta" in getattr(Hit, "__dataclass_fields__", {})
-
-
-def _today():
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
 
 def _resolve_env(spec, where):
@@ -103,15 +95,14 @@ class HybridBackend(MemoryBackend):
     broad_relative_ratio = 0.65
 
     def __init__(self, children, weights=None, writable=True, roles=("user",), timeout=DEFAULT_BUDGET):
-        if isinstance(roles, str):
-            roles = (roles,)
+        roles = as_roles(roles)
         if not isinstance(children, (list, tuple)) or not children:
             raise ValueError("children must be a non-empty list of backend specs")
         if weights is None:
             weights = [1.0] * len(children)
         if not isinstance(weights, (list, tuple)) or len(weights) != len(children):
             raise ValueError("weights needs one number per child")
-        self.weights = [min(1.0, max(0.0, float(w))) for w in weights]
+        self.weights = [clamp01(float(w)) for w in weights]
         self.writable = bool(writable)
         self.roles = tuple(roles)
         self._timeout = float(timeout)
@@ -131,10 +122,6 @@ class HybridBackend(MemoryBackend):
 
     # ------------------------------------------------------------ writing
 
-    def _require_writable(self):
-        if not self.writable:
-            raise PermissionError("this backend is read-only")
-
     def _rollback(self, refs):
         """Best effort: take `refs` out of every child again."""
         for child in self.children:
@@ -150,18 +137,8 @@ class HybridBackend(MemoryBackend):
 
     def put_many(self, items, timeout=None, ctl=None):
         """Store several memories in every child (batched where the child can) and return the refs."""
-        self._require_writable()
-        rows = []
-        for item in items:
-            if isinstance(item, str):
-                item = (item,)
-            if isinstance(item, dict):
-                text, ref, date = item.get("text"), item.get("ref"), item.get("date")
-            else:
-                text, ref, date = (tuple(item) + (None, None))[:3]
-            if not isinstance(text, str) or not text.strip():
-                raise ValueError("a memory text must be a non-empty string")
-            rows.append((text, ref or "mem-" + uuid.uuid4().hex, date))
+        require_writable(self)
+        rows = [parse_item(item) for item in items]
         if not rows:
             return []
         refs = [r[1] for r in rows]
@@ -184,7 +161,7 @@ class HybridBackend(MemoryBackend):
     def delete(self, ref):
         """Remove a memory from every child. True when any child had it; a failing child
         makes the call fail after the others were tried."""
-        self._require_writable()
+        require_writable(self)
         found, failed = False, False
         for child in self.children:
             try:
@@ -200,13 +177,14 @@ class HybridBackend(MemoryBackend):
     def remember(self, messages, timeout=None, ctl=None):
         """Put every message whose role is in `roles` into every child. Returns a receipt id,
         or None when nothing was kept."""
-        self._require_writable()
+        require_writable(self)
         today = _today()
-        kept = [(i, m["content"], message_date(m, today)) for i, m in enumerate(messages) if m["role"] in self.roles]
+        kept = kept_messages(messages, self.roles, today)
         if not kept:
             return None
-        receipt = "w-" + uuid.uuid4().hex
-        self.put_many([(content, "%s-%d" % (receipt, i), date) for i, content, date in kept], timeout=timeout, ctl=ctl)
+        receipt = new_receipt()
+        self.put_many([(content, receipt_ref(receipt, i), date) for i, content, date in kept],
+                      timeout=timeout, ctl=ctl)
         return receipt
 
     def receipt_refs(self, receipt):
@@ -239,7 +217,7 @@ class HybridBackend(MemoryBackend):
             for hit in hits:
                 entry = merged.setdefault(hit.ref, {"text": "", "date": None, "scores": [None] * len(self.children),
                                                     "cosine": None})
-                entry["scores"][index] = min(1.0, max(0.0, float(hit.score)))
+                entry["scores"][index] = clamp01(float(hit.score))
                 entry["text"] = entry["text"] or hit.text
                 entry["date"] = entry["date"] or hit.date
                 cosine = (getattr(hit, "meta", None) or {}).get("cosine")
@@ -251,21 +229,12 @@ class HybridBackend(MemoryBackend):
             for weight, score in zip(self.weights, entry["scores"]):
                 if score is not None:
                     miss *= 1.0 - weight * score
-            fused.append(self._hit(ref, 1.0 - miss, entry))
-        fused.sort(key=lambda h: (-h.score, h.ref))
-        return fused
-
-    @staticmethod
-    def _hit(ref, score, entry):
-        if _HAS_META:
             meta = {"child_scores": entry["scores"]}
             if entry["cosine"] is not None:
                 meta["cosine"] = entry["cosine"]
-            try:
-                return Hit(ref=ref, score=score, text=entry["text"], date=entry["date"], meta=meta)
-            except TypeError:  # pragma: no cover
-                pass
-        return Hit(ref=ref, score=score, text=entry["text"], date=entry["date"])
+            fused.append(make_hit(ref, 1.0 - miss, entry["text"], entry["date"], meta))
+        fused.sort(key=lambda h: (-h.score, h.ref))
+        return fused
 
     def read(self, ref, timeout=None, ctl=None):
         """The text from the first child that has it. KeyError when none does."""
@@ -294,7 +263,7 @@ class HybridBackend(MemoryBackend):
             left = max(0.0, end - time.monotonic()) / (len(capable) - index)
             try:
                 hits = child.neighbours(ref, limit, **_extras(child.neighbours, left, ctl))
-                rows = [(h.ref, min(1.0, max(0.0, float(h.score))), h) for h in hits]
+                rows = [(h.ref, clamp01(float(h.score)), h) for h in hits]
             except Exception:  # noqa: BLE001 - one failing child must not silence the others
                 continue
             for hit_ref, score, hit in rows:
@@ -308,8 +277,7 @@ class HybridBackend(MemoryBackend):
         out = []
         for hit_ref, (score, hit, text, date) in best.items():
             meta = dict(getattr(hit, "meta", None) or {})
-            out.append(Hit(ref=hit_ref, score=score, text=text, date=date, meta=meta) if _HAS_META
-                       else Hit(ref=hit_ref, score=score, text=text, date=date))
+            out.append(make_hit(hit_ref, score, text, date, meta))
         out.sort(key=lambda h: (-h.score, h.ref))
         return out[:max(0, int(limit))]
 
