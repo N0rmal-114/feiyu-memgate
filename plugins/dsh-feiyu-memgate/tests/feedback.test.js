@@ -270,7 +270,7 @@ const primary = (tree) => withClass(tree, 'fmg-button--primary')[0]
 const buttonNamed = (tree, text) => findAll(tree, (n) => n.type === 'button' && textOf(n) === text)[0]
 
 test('a new draft is an idea with nothing written and the environment attached', () => {
-  assert.deepEqual(plain(shared.internals.emptyFeedback()), { kind: 'idea', text: '', contact: '', environment: true })
+  assert.deepEqual(plain(shared.internals.emptyFeedback()), { kind: 'idea', text: '', environment: true })
   assert.notEqual(shared.internals.emptyFeedback(), shared.internals.emptyFeedback(), 'a fresh object each time')
 })
 
@@ -286,8 +286,10 @@ test('FeedbackTab: the kind, the text, the environment with every line that is a
     assert.equal(area.props.id, 'feiyu-memgate-feedback-text')
     assert.equal(area.props.value, '')
     assert.equal(area.props.maxLength, 4000)
-    assert.equal(findAll(tree, (n) => n.type === 'label' && n.props.htmlFor === area.props.id).length, 1)
-    assert.equal(textOf(findAll(tree, (n) => n.props.id === area.props['aria-describedby'])), t('feedback.hint.idea'))
+    assert.equal(findAll(tree, (n) => n.type === 'label' && n.props.htmlFor === area.props.id).length, 0, 'no visible label')
+    assert.equal(area.props['aria-label'], t('feedback.text'))
+    assert.equal(area.props.placeholder, t('feedback.hint.idea'))
+    assert.equal(area.props['aria-describedby'], undefined)
     const [toggle] = withRole(tree, 'switch')
     assert.equal(toggle.props['aria-checked'], 'true')
     assert.equal(toggle.props.disabled, undefined)
@@ -327,7 +329,7 @@ test('FeedbackTab: once something is written the primary control is a link to th
   assert.equal(link.props.onClick, undefined, 'a report that fits needs no clipboard')
   assert.ok(link.props.className.split(' ').includes('fmg-button'))
   assert.equal(buttonNamed(tree, t('feedback.copy')).props.disabled, undefined)
-  assert.equal(textOf(findAll(tree, (n) => n.props.id === 'feiyu-memgate-feedback-text-help')), t('feedback.hint.problem'), 'the hint follows the kind')
+  assert.equal(findAll(tree, (n) => n.type === 'textarea')[0].props.placeholder, t('feedback.hint.problem'), 'the hint follows the kind')
   for (const a of findAll(tree, (n) => n.type === 'a')) {
     assert.equal(new URL(a.props.href).origin, 'https://github.com')
     assert.equal(a.props.target, '_blank')
@@ -449,15 +451,14 @@ test('usableEndpoint(): an https address or one on this computer, and nothing el
   }
 })
 
-test('payload(): the report as it is posted, with the contact on one line and capped', () => {
-  assert.deepEqual(feedback.payload({ kind: 'problem', text: ' a\r\nb ', contact: ' me@example.invalid\n second line ', environment: true }, ENVIRONMENT), {
-    v: 1, kind: 'problem', text: 'a\nb', contact: 'me@example.invalid second line', environment: ENVIRONMENT,
+test('payload(): the report as it is posted, as it is posted', () => {
+  assert.deepEqual(feedback.payload({ kind: 'problem', text: ' a\r\nb ', environment: true }, ENVIRONMENT), {
+    v: 1, kind: 'problem', text: 'a\nb', environment: ENVIRONMENT,
   })
-  assert.deepEqual(feedback.payload({ kind: 'idea', text: 'x' }, []), { v: 1, kind: 'idea', text: 'x', contact: '', environment: [] })
-  assert.equal(feedback.MAX_CONTACT, 200)
-  assert.equal(Array.from(feedback.cleanContact('😀'.repeat(250))).length, 200)
-  assert.equal(feedback.cleanContact(null), '')
-  assert.equal(feedback.cleanContact('a\uD83Db'), 'a�b')
+  assert.deepEqual(feedback.payload({ kind: 'idea', text: 'x' }, []), { v: 1, kind: 'idea', text: 'x', environment: [] })
+  assert.equal(feedback.MAX_CONTACT, undefined)
+  assert.equal(feedback.cleanContact, undefined)
+  assert.equal('contact' in feedback.payload({ kind: 'idea', text: 'x', contact: 'me' }, []), false, 'a contact line is not part of the report')
 })
 
 test('sendFeedback(): one POST without cookie, credential or referrer; a refusal, an unreachable receiver and a timeout each have a code', async (t) => {
@@ -493,7 +494,7 @@ test('sendFeedback(): one POST without cookie, credential or referrer; a refusal
   t.mock.timers.reset()
 })
 
-test('FeedbackTab without a receiver: no Send, no contact line, and the way to GitHub is the main action', () => {
+test('FeedbackTab without a receiver: no Send, and the way to GitHub is the main action', () => {
   for (const endpoint of ['', 'http://receiver.example/', 'javascript:alert(1)']) {
     const { tree, t } = renderTab({ draft: { text: 'hello' }, endpoint })
     assert.equal(buttonNamed(tree, t('feedback.send')), undefined)
@@ -501,17 +502,17 @@ test('FeedbackTab without a receiver: no Send, no contact line, and the way to G
     assert.equal(primary(tree).type, 'a')
     const text = textOf(tree)
     assert.ok(text.includes(t('feedback.how')) && text.includes(t('feedback.public')))
-    assert.ok(!text.includes(t('feedback.howDirect')) && !text.includes(t('feedback.contact')))
+    assert.ok(!text.includes(t('feedback.howDirect')))
   }
   // What ships: the tab of the page as the package has it follows the constant.
   const { FEEDBACK_ENDPOINT } = require('../client/src/constants.cjs')
-  const shipped = expand(shared.internals.FeedbackTab({ t: translatorFor('en'), status: { data: status() }, draft: { kind: 'idea', text: 'hello', contact: '', environment: true }, onChange() {} }))
+  const shipped = expand(shared.internals.FeedbackTab({ t: translatorFor('en'), status: { data: status() }, draft: { kind: 'idea', text: 'hello', environment: true }, onChange() {} }))
   assert.equal(Boolean(buttonNamed(shipped, 'Send')), FEEDBACK_ENDPOINT !== '', 'Send is offered exactly when the package names a receiver')
 })
 
-test('FeedbackTab with a receiver: write, then Send; nothing else to choose from, and a contact line appears', () => {
+test('FeedbackTab with a receiver: write, then Send; nothing else to choose from', () => {
   for (const lang of ['en', 'zh']) {
-    const { tree, t } = renderTab({ lang, draft: { text: 'hello', contact: 'me@example.invalid' }, endpoint: ENDPOINT })
+    const { tree, t } = renderTab({ lang, draft: { text: 'hello' }, endpoint: ENDPOINT })
     const main = primary(tree)
     assert.equal(main.type, 'button')
     assert.equal(textOf(main), t('feedback.send'))
@@ -521,13 +522,9 @@ test('FeedbackTab with a receiver: write, then Send; nothing else to choose from
     assert.equal(findAll(tree, (n) => n.type === 'a').length, 0, 'no link leads away from the page')
     assert.equal(buttonNamed(tree, t('feedback.copy')), undefined)
     assert.ok(!textOf(tree).includes(t('feedback.submit')) && !textOf(tree).includes(t('feedback.others')))
-    const [contact] = findAll(tree, (n) => n.type === 'input')
-    assert.equal(contact.props.id, 'feiyu-memgate-feedback-contact')
-    assert.equal(contact.props.value, 'me@example.invalid')
-    assert.equal(contact.props.maxLength, 200)
-    assert.equal(findAll(tree, (n) => n.type === 'label' && n.props.htmlFor === contact.props.id).length, 1)
+    assert.equal(findAll(tree, (n) => n.type === 'input').length, 0, 'the tab has no text line besides the text box')
     const text = textOf(tree)
-    for (const key of ['feedback.contact.help', 'feedback.howDirect']) assert.ok(text.includes(t(key)), `${lang}: ${key}`)
+    assert.ok(text.includes(t('feedback.howDirect')), lang)
     assert.ok(!text.includes(t('feedback.how')) && !text.includes(t('feedback.public')), 'the text about GitHub is not shown')
   }
   const empty = renderTab({ endpoint: ENDPOINT })
@@ -541,7 +538,7 @@ test('FeedbackTab with a receiver: write, then Send; nothing else to choose from
 test('FeedbackTab: Send posts the report to the receiver once, and clears the text when it was taken', async () => {
   const taken = receiver()
   const patches = []
-  const draft = { kind: 'problem', text: ' Recall is slow\r\nsince 0.3.2 ', contact: ' me@example.invalid ' }
+  const draft = { kind: 'problem', text: ' Recall is slow\r\nsince 0.3.2 ' }
   const { tree } = renderTab({ draft, endpoint: ENDPOINT, send: taken.send, onChange: (patch) => patches.push(plain(patch)) })
   primary(tree).props.onClick()
   primary(tree).props.onClick() // an impatient second click while the first is on its way
@@ -551,9 +548,9 @@ test('FeedbackTab: Send posts the report to the receiver once, and clears the te
   assert.equal(taken.calls[0].url, ENDPOINT)
   assert.equal(taken.calls[0].init.credentials, 'omit')
   assert.deepEqual(JSON.parse(taken.calls[0].init.body), {
-    v: 1, kind: 'problem', text: 'Recall is slow\nsince 0.3.2', contact: 'me@example.invalid', environment: ENVIRONMENT,
+    v: 1, kind: 'problem', text: 'Recall is slow\nsince 0.3.2', environment: ENVIRONMENT,
   })
-  assert.deepEqual(patches, [{ text: '' }], 'the kind, the contact and the switch stay as they are')
+  assert.deepEqual(patches, [{ text: '' }], 'the kind and the switch stay as they are')
 
   const without = receiver()
   const off = renderTab({ draft: { text: 'x', environment: false }, endpoint: ENDPOINT, send: without.send })
@@ -582,7 +579,7 @@ test('FeedbackTab: what became of a Send is said: on its way, taken, refused, to
   assert.equal(textOf(primary(sending.tree)), sending.t('feedback.sending'))
   assert.equal(primary(sending.tree).props.disabled, true)
   assert.equal(findAll(sending.tree, (n) => n.type === 'textarea')[0].props.disabled, true)
-  assert.equal(findAll(sending.tree, (n) => n.type === 'input')[0].props.disabled, true)
+  assert.equal(findAll(sending.tree, (n) => n.type === 'input').length, 0, 'there is no line input on the tab')
   assert.ok(withRole(sending.tree, 'radio').every((radio) => radio.props.disabled === true))
 
   for (const lang of ['en', 'zh']) {
@@ -591,7 +588,7 @@ test('FeedbackTab: what became of a Send is said: on its way, taken, refused, to
     const again = draw({ phase: 'sent', code: null }, { text: 'a second thought' }, lang)
     assert.ok(!textOf(again.tree).includes(again.t('feedback.sent')), 'the thanks go when the person writes again')
 
-    const failed = draw({ phase: 'failed', code: 'HTTP 502' }, { text: 'hello', contact: 'me@example.invalid' }, lang)
+    const failed = draw({ phase: 'failed', code: 'HTTP 502' }, { text: 'hello' }, lang)
     const [alert] = withRole(failed.tree, 'alert')
     assert.ok(textOf(alert).startsWith(failed.t('feedback.failed', { code: 'HTTP 502' })))
     assert.ok(alert.props.className.includes('fmg-notice--warn'))
@@ -601,7 +598,6 @@ test('FeedbackTab: what became of a Send is said: on its way, taken, refused, to
     assert.equal(github.props.className, 'fmg-button')
     assert.equal(textOf(github), failed.t('feedback.submit'))
     assert.equal(filled(github.props.href).title, '[idea] hello')
-    assert.ok(!decodeURIComponent(github.props.href).includes('example.invalid'), 'the contact line is not put into the public address')
     assert.equal(buttonNamed(alert, failed.t('feedback.copy')).props.disabled, undefined)
     assert.equal(findAll(failed.tree, (n) => n.type === 'a').length, 1, 'and only there')
     assert.ok(textOf(withRole(draw({ phase: 'failed', code: 'HTTP 429' }, { text: 'hello' }, lang).tree, 'alert')).startsWith(failed.t('feedback.failedBusy')))
@@ -613,16 +609,16 @@ test('FeedbackTab: what became of a Send is said: on its way, taken, refused, to
   assert.equal(withClass(long.tree, 'fmg-notice--warn').length, 2)
 })
 
-test('FeedbackTab: after a failed Send, Copy takes the report without the contact line', async () => {
+test('FeedbackTab: after a failed Send, Copy takes the report', async () => {
   const copied = []
   const { tree, t } = renderTab({
-    draft: { text: 'hello', contact: 'me@example.invalid' }, endpoint: ENDPOINT, sendState: { phase: 'failed', code: 'network' },
+    draft: { text: 'hello' }, endpoint: ENDPOINT, sendState: { phase: 'failed', code: 'network' },
     copy: async (text) => { copied.push(text); return true },
   })
   buttonNamed(withRole(tree, 'alert')[0], t('feedback.copy')).props.onClick()
   await tick()
   assert.equal(copied.length, 1)
-  assert.ok(copied[0].startsWith('[idea] hello') && !copied[0].includes('example.invalid'))
+  assert.ok(copied[0].startsWith('[idea] hello'))
 })
 
 test('the page hands its feedback options to the tab: a receiver, its fetch and the clipboard', async () => {

@@ -76,8 +76,9 @@ function TextInput(props) {
 
 /**
  * Several lines of text; the person can drag it taller. `onChange` gets the text, not the event.
+ * `label` names it for a screen reader when no visible label points at it.
  * @param {{ id: string, value: string, rows?: number, maxLength?: number, placeholder?: string,
- *   describedBy?: string, disabled?: boolean, onChange: (text: string) => void }} props
+ *   label?: string, describedBy?: string, disabled?: boolean, onChange: (text: string) => void }} props
  */
 function TextArea(props) {
   return h('textarea', {
@@ -89,6 +90,7 @@ function TextArea(props) {
     placeholder: props.placeholder,
     autoComplete: 'off',
     disabled: props.disabled || undefined,
+    'aria-label': props.label,
     'aria-describedby': props.describedBy,
     onChange: (event) => props.onChange(event.target.value),
   })

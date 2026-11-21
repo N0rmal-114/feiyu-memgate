@@ -15,17 +15,16 @@
 //
 // What is attached besides the person's own words is shown in full before anything leaves: the
 // environment lines are listed under the switch that attaches them, and they are the same lines that
-// go into the report. The contact line travels with Send only: it is never part of the public
-// address or of the copied text.
+// go into the report.
 //
-// The draft (kind, text, contact, whether to attach the environment) is kept by the page
+// The draft (kind, text, whether to attach the environment) is kept by the page
 // (view/page.cjs), so that looking something up on another tab does not lose what was written.
 
 const { h } = require('../react.cjs')
 const { FEEDBACK_ENDPOINT, ID_PREFIX, LINKS } = require('../constants.cjs')
 const { useCopy, useSend } = require('../hooks.cjs')
-const { KINDS, MAX_CONTACT, MAX_TEXT, compose, environment, payload, reportText, usableEndpoint } = require('../model/feedback.cjs')
-const { Button, Choices, Switch, TextArea, TextInput } = require('../kit/controls.cjs')
+const { KINDS, MAX_TEXT, compose, environment, payload, reportText, usableEndpoint } = require('../model/feedback.cjs')
+const { Button, Choices, Switch, TextArea } = require('../kit/controls.cjs')
 const { Icon } = require('../kit/icons.cjs')
 const { Facts, Group, Notice, Reveal } = require('../kit/layout.cjs')
 
@@ -34,12 +33,12 @@ const COUNT_FROM = 0.8
 
 /** The draft a page starts with: an idea, nothing written, the environment attached. */
 function emptyFeedback() {
-  return { kind: KINDS[0], text: '', contact: '', environment: true }
+  return { kind: KINDS[0], text: '', environment: true }
 }
 
 /**
  * @param {{ t: Function, status: { data: object | null },
- *   draft: { kind: string, text: string, contact: string, environment: boolean },
+ *   draft: { kind: string, text: string, environment: boolean },
  *   onChange: (patch: object) => void, endpoint?: string, send?: Function,
  *   copy?: (text: string) => Promise<boolean> }} props
  *   `onChange` merges a patch into the draft. `endpoint` replaces the receiver's address (tests and
@@ -60,7 +59,6 @@ function FeedbackTab(props) {
 
   const kindId = ID_PREFIX + '-feedback-kind'
   const textId = ID_PREFIX + '-feedback-text'
-  const contactId = ID_PREFIX + '-feedback-contact'
   const envId = ID_PREFIX + '-feedback-environment'
   const title = t('feedback.title')
 
@@ -119,22 +117,11 @@ function FeedbackTab(props) {
             onChange: (kind) => onChange({ kind }),
           }))),
       h('div', { className: 'fmg-row fmg-row--stack' },
-        h('div', { className: 'fmg-row__text' },
-          h('div', { className: 'fmg-row__label' }, h('label', { htmlFor: textId }, t('feedback.text'))),
-          h('p', { className: 'fmg-row__help', id: textId + '-help' }, t('feedback.hint.' + draft.kind))),
         h('div', { className: 'fmg-row__control fmg-row__control--stack' },
-          h(TextArea, { id: textId, value: draft.text, rows: 7, maxLength: MAX_TEXT, disabled: sending, describedBy: textId + '-help', onChange: (text) => onChange({ text }) }),
+          h(TextArea, { id: textId, value: draft.text, rows: 7, maxLength: MAX_TEXT, disabled: sending, label: t('feedback.text'), placeholder: t('feedback.hint.' + draft.kind), onChange: (text) => onChange({ text }) }),
           length >= MAX_TEXT * COUNT_FROM
             ? h('span', { className: 'fmg-quiet', role: 'status' }, t('feedback.count', { count: length, max: MAX_TEXT }))
             : null)),
-      // The contact line has a use only where an answer cannot reach the person otherwise.
-      endpoint ? h('div', { className: 'fmg-row fmg-row--stack' },
-        h('div', { className: 'fmg-row__text' },
-          h('div', { className: 'fmg-row__label' }, h('label', { htmlFor: contactId }, t('feedback.contact'))),
-          h('p', { className: 'fmg-row__help', id: contactId + '-help' }, t('feedback.contact.help'))),
-        h('div', { className: 'fmg-row__control' },
-          h('div', { className: 'fmg-input-line' },
-            h(TextInput, { id: contactId, value: draft.contact || '', maxLength: MAX_CONTACT, disabled: sending, describedBy: contactId + '-help', onChange: (contact) => onChange({ contact }) })))) : null,
       h('div', { className: 'fmg-row' },
         h('div', { className: 'fmg-row__text' },
           h('div', { className: 'fmg-row__label' }, h('label', { htmlFor: envId }, t('feedback.env'))),

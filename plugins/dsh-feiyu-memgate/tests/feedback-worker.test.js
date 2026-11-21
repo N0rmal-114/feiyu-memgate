@@ -6,7 +6,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { createRequire } from 'node:module'
-import worker, { handle, issueOf, LIMITS, validate, VERSION } from '../feedback-worker/worker.js'
+import worker, { handle, issueOf, LIMITS, repositoryOf, validate, VERSION } from '../feedback-worker/worker.js'
 
 const require = createRequire(import.meta.url)
 const feedback = require('../client/src/model/feedback.cjs')
@@ -17,7 +17,7 @@ const ENV = { GITHUB_TOKEN: TOKEN, FEEDBACK_REPO: 'someone/feedback-inbox' }
 const ADDRESS = 'https://receiver.example/'
 const NOW = new Date('2026-11-21T08:00:00.000Z')
 const ROWS = [['plugin', 'dsh-feiyu-memgate 0.3.2'], ['gateway', 'managed, running'], ['retrieval', 'auto -> local + keyword']]
-const report = (overrides = {}) => ({ v: 1, kind: 'problem', text: 'Recall is slow\nsince 0.3.2', contact: 'me@example.invalid', environment: ROWS, ...overrides })
+const report = (overrides = {}) => ({ v: 1, kind: 'problem', text: 'Recall is slow\nsince 0.3.2', environment: ROWS, ...overrides })
 
 // GitHub, recorded: every call with its address and options, answered with `status`.
 function github(status = 201) {
@@ -63,7 +63,6 @@ test('a report is filed as one issue in the configured repository, with the toke
     body: [
       'Recall is slow\nsince 0.3.2',
       '---',
-      'Contact: me@example.invalid',
       'Environment\n- plugin: dsh-feiyu-memgate 0.3.2\n- gateway: managed, running\n- retrieval: auto -> local + keyword',
       'Received 2026-11-21T08:00:00.000Z by the feedback receiver, from the settings page.',
     ].join('\n\n'),
@@ -73,20 +72,20 @@ test('a report is filed as one issue in the configured repository, with the toke
 test('the answer never repeats the report, the token, the repository or where the issue is', async () => {
   for (const hub of [github(201), github(401), github(new Error('offline: ' + TOKEN))]) {
     const { text, response } = await send(report({ text: 'a secret sentence nobody else may see' }), { hub })
-    for (const word of ['secret sentence', 'example.invalid', TOKEN, 'feedback-inbox', 'someone', 'github.invalid']) assert.ok(!text.includes(word), word)
+    for (const word of ['secret sentence', TOKEN, 'feedback-inbox', 'someone', 'github.invalid']) assert.ok(!text.includes(word), word)
     for (const [, value] of response.headers) assert.ok(!value.includes(TOKEN) && !value.includes('feedback-inbox'))
   }
 })
 
 test('issueOf(): the tag of the kind, the first line shortened to 60 characters, and what is missing said plainly', () => {
-  const base = { kind: 'idea', text: '长'.repeat(61) + '\nmore', contact: '', environment: [] }
+  const base = { kind: 'idea', text: '长'.repeat(61) + '\nmore', environment: [] }
   const issue = issueOf(base, NOW)
   assert.equal(issue.title, '[idea] ' + '长'.repeat(60) + '\u2026')
-  assert.equal(issue.body, ['长'.repeat(61) + '\nmore', '---', 'Contact: (none given)', 'Received 2026-11-21T08:00:00.000Z by the feedback receiver, from the settings page.'].join('\n\n'))
+  assert.equal(issue.body, ['长'.repeat(61) + '\nmore', '---', 'Received 2026-11-21T08:00:00.000Z by the feedback receiver, from the settings page.'].join('\n\n'))
   assert.equal(issueOf({ ...base, kind: 'other', text: '\n  hello  \nworld' }, NOW).title, '[feedback] hello')
   // The same titles as the link to GitHub makes, so the two inboxes read alike.
   for (const [kind, text] of [['idea', 'Recall by date'], ['problem', '😀'.repeat(70)], ['other', 'x\ny']]) {
-    assert.equal(issueOf({ kind, text, contact: '', environment: [] }, NOW).title, feedback.titleOf(kind, text))
+    assert.equal(issueOf({ kind, text, environment: [] }, NOW).title, feedback.titleOf(kind, text))
   }
 })
 
@@ -101,18 +100,17 @@ test('what the settings page posts is what the receiver takes: payload() and env
   }
   for (const data of [status, { ...status, embed: null, python: { found: false } }, { ...status, version: 'C:\\x', gateway: { mode: 'external', state: 'configured' } }, null]) {
     for (const kind of feedback.KINDS) {
-      const posted = feedback.payload({ kind, text: '  第一行\r\n第二行 ', contact: ' me@example.invalid \n' }, feedback.environment(data))
+      const posted = feedback.payload({ kind, text: '  第一行\r\n第二行 ' }, feedback.environment(data))
       const checked = validate(JSON.parse(JSON.stringify(posted)))
       assert.equal(checked.ok, true, JSON.stringify(checked))
-      assert.deepEqual(checked.report, { kind, text: '第一行\n第二行', contact: 'me@example.invalid', environment: feedback.environment(data) })
+      assert.deepEqual(checked.report, { kind, text: '第一行\n第二行', environment: feedback.environment(data) })
     }
   }
   assert.equal(feedback.payload({ kind: 'nonsense', text: 'x' }, []).kind, 'other')
   assert.equal(feedback.payload({}, undefined).v, VERSION)
   assert.equal(LIMITS.text, feedback.MAX_TEXT, 'both sides cap the text at the same length')
-  assert.equal(LIMITS.contact, feedback.MAX_CONTACT)
   assert.equal(LIMITS.title, feedback.MAX_TITLE)
-  const longest = feedback.payload({ kind: 'idea', text: '😀'.repeat(5000), contact: '字'.repeat(300) }, feedback.environment(status))
+  const longest = feedback.payload({ kind: 'idea', text: '😀'.repeat(5000) }, feedback.environment(status))
   assert.equal(validate(longest).ok, true, 'the longest report the page can make')
   assert.ok(Buffer.byteLength(JSON.stringify(longest)) < LIMITS.bodyBytes, 'and it fits into one request')
 })
@@ -122,7 +120,7 @@ test('what the settings page posts is what the receiver takes: payload() and env
 test('validate(): only the one shape, every field checked', () => {
   const field = (input) => { const checked = validate(input); return checked.ok ? null : checked.field }
   assert.equal(field(report()), null)
-  assert.equal(field(report({ contact: undefined, environment: undefined })), null, 'contact and environment are optional')
+  assert.equal(field(report({ environment: undefined })), null, 'the environment is optional')
   for (const body of [null, 'text', 5, [], [report()]]) assert.equal(field(body), 'body')
   assert.equal(field({ ...report(), admin: true }), 'admin', 'an unknown field')
   assert.equal(field(report({ v: 2 })), 'v')
@@ -130,7 +128,7 @@ test('validate(): only the one shape, every field checked', () => {
   for (const kind of ['bug', 'toString', '__proto__', 5, null]) assert.equal(field(report({ kind })), 'kind')
   for (const text of ['', ' \n\t ', '\u0000\u0007', 5, null, ['x'], 'x'.repeat(LIMITS.text + 1)]) assert.equal(field(report({ text })), 'text')
   assert.equal(field(report({ text: '😀'.repeat(LIMITS.text) })), null, 'counted in characters')
-  for (const contact of [5, null, ['x'], 'x'.repeat(LIMITS.contact + 1)]) assert.equal(field(report({ contact })), 'contact')
+  for (const contact of ['x', '', null, 5]) assert.equal(field(report({ contact })), 'contact', 'the contact line is gone: it is an unknown field')
   for (const environment of [
     'plugin: x', {}, [['plugin']], [['plugin', 'a', 'b']], [['plugin', 5]], [[5, 'x']], [null],
     [['Plugin', 'x']], [['plugin name', 'x']], [['plugin', '']], [['plugin', 'a\nb']],
@@ -139,10 +137,9 @@ test('validate(): only the one shape, every field checked', () => {
   ]) assert.equal(field(report({ environment })), 'environment', JSON.stringify(environment).slice(0, 60))
 })
 
-test('validate(): the text is tidied (line breaks, control characters, half character pairs), the contact is one line', () => {
-  const { report: tidy } = validate(report({ text: ' a\r\nb\rc\u0007\uD83D ', contact: ' one\n two\t three ' }))
+test('validate(): the text is tidied (line breaks, control characters, half character pairs)', () => {
+  const { report: tidy } = validate(report({ text: ' a\r\nb\rc\u0007\uD83D ', }))
   assert.equal(tidy.text, 'a\nb\nc\uFFFD')
-  assert.equal(tidy.contact, 'one two three')
 })
 
 test('a request that is not one small JSON report is refused before anything is filed', async () => {
@@ -190,6 +187,19 @@ test('GitHub refusing or being out of reach is an upstream failure, and only its
     console.error = original
   }
   assert.deepEqual(logged, ['feedback: GitHub answered 401', 'feedback: GitHub answered 404', 'feedback: GitHub answered 422', 'feedback: GitHub answered 200', 'feedback: GitHub could not be reached'])
+})
+
+test('the repository may be given as owner/name or as its address on github.com, and the token may carry stray spaces', async () => {
+  for (const given of ['someone/feedback-inbox', '  someone/feedback-inbox\n', 'https://github.com/someone/feedback-inbox', 'https://github.com/someone/feedback-inbox/', 'https://GitHub.com/someone/feedback-inbox.git']) {
+    assert.equal(repositoryOf(given), 'someone/feedback-inbox', given)
+    const { status, hub } = await send(report(), { env: { GITHUB_TOKEN: ' ' + TOKEN + '\n', FEEDBACK_REPO: given } })
+    assert.equal(status, 200, given)
+    assert.equal(hub.calls[0].url, 'https://api.github.com/repos/someone/feedback-inbox/issues')
+    assert.equal(hub.calls[0].init.headers.authorization, 'Bearer ' + TOKEN)
+  }
+  for (const given of ['', 'feedback-inbox', 'https://example.invalid/someone/feedback-inbox', 'http://github.com/someone/feedback-inbox', 'someone/feedback-inbox/issues', 'a/..', null, undefined, 5]) {
+    assert.equal(repositoryOf(given), '', String(given))
+  }
 })
 
 // ------------------------------------------------------------------ rate limits
@@ -241,7 +251,12 @@ test('every answer may be read from any origin, the preflight is answered, and G
   }
   const up = await handle(new Request(ADDRESS), ENV)
   assert.deepEqual(await up.json(), { ok: true, service: 'feiyu-memgate-feedback', v: 1, configured: true })
-  assert.deepEqual(await (await handle(new Request(ADDRESS), {})).json(), { ok: true, service: 'feiyu-memgate-feedback', v: 1, configured: false })
+  assert.deepEqual(await (await handle(new Request(ADDRESS), {})).json(), { ok: true, service: 'feiyu-memgate-feedback', v: 1, configured: false, missing: ['GITHUB_TOKEN', 'FEEDBACK_REPO'] })
+  // Which setting is the matter is said by name; a value is never shown.
+  const half = await (await handle(new Request(ADDRESS), { GITHUB_TOKEN: TOKEN, FEEDBACK_REPO: 'not a repository' })).text()
+  assert.deepEqual(JSON.parse(half).missing, ['FEEDBACK_REPO'])
+  assert.ok(!half.includes(TOKEN) && !half.includes('not a repository'))
+  assert.deepEqual((await (await handle(new Request(ADDRESS), { GITHUB_TOKEN: '  ', FEEDBACK_REPO: 'someone/feedback-inbox' })).json()).missing, ['GITHUB_TOKEN'])
   assert.equal(await (await handle(new Request(ADDRESS, { method: 'HEAD' }), ENV)).text(), '')
 })
 

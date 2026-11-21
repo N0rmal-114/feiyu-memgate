@@ -22,8 +22,6 @@ const KINDS = ['idea', 'problem', 'other']
 const TITLE_TAGS = { idea: '[idea]', problem: '[bug]', other: '[feedback]' }
 /** The longest text the page accepts, in characters. */
 const MAX_TEXT = 4000
-/** The longest contact line, in characters. */
-const MAX_CONTACT = 200
 // The title is the first line of the text, up to this many characters.
 const MAX_TITLE = 60
 // The longest address that is handed to a browser. GitHub answers 414 somewhere above 8,000
@@ -139,18 +137,11 @@ function reportText(composed) {
   return composed.title + '\n\n' + composed.body
 }
 
-/** The contact line as it is sent: one line, trimmed, at most MAX_CONTACT characters. */
-function cleanContact(text) {
-  const line = String(text === null || text === undefined ? '' : text).replace(LONE_SURROGATE, '\uFFFD').replace(/\s+/g, ' ').trim()
-  const points = Array.from(line)
-  return points.length > MAX_CONTACT ? points.slice(0, MAX_CONTACT).join('').trim() : line
-}
-
 /**
  * What is posted to the feedback receiver (feedback-worker/worker.js reads exactly this shape).
- * @param {{ kind?: string, text?: string, contact?: string }} draft
+ * @param {{ kind?: string, text?: string }} draft
  * @param {[string, string][]} rows environment(), or an empty list when it is not to be attached
- * @returns {{ v: 1, kind: string, text: string, contact: string, environment: [string, string][] }}
+ * @returns {{ v: 1, kind: string, text: string, environment: [string, string][] }}
  */
 function payload(draft, rows) {
   const input = draft || {}
@@ -158,7 +149,6 @@ function payload(draft, rows) {
     v: 1,
     kind: KINDS.includes(input.kind) ? input.kind : 'other',
     text: cleanText(input.text),
-    contact: cleanContact(input.contact),
     environment: Array.isArray(rows) ? rows : [],
   }
 }
@@ -173,6 +163,6 @@ function usableEndpoint(value) {
 }
 
 module.exports = {
-  KINDS, TITLE_TAGS, MAX_TEXT, MAX_CONTACT, MAX_TITLE, MAX_URL,
-  safe, environment, cleanText, titleOf, bodyOf, compose, reportText, cleanContact, payload, usableEndpoint,
+  KINDS, TITLE_TAGS, MAX_TEXT, MAX_TITLE, MAX_URL,
+  safe, environment, cleanText, titleOf, bodyOf, compose, reportText, payload, usableEndpoint,
 }

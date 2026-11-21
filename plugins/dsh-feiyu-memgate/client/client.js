@@ -1383,9 +1383,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         'feedback.sent': 'Received. Thank you.',
         'feedback.failed': 'It was not sent ({code}). What you wrote is still in the box. Try again, or take it another way:',
         'feedback.failedBusy': 'Too many reports in a short time. Try again in a minute, or take it another way:',
-        'feedback.contact': 'How to reach you (optional)',
-        'feedback.contact.help': 'An e-mail address or anything else, if you would like an answer. Only the maintainers see it.',
-        'feedback.howDirect': 'Send hands what you wrote, the contact line if you gave one, and the environment lines listed above to the project’s feedback receiver. Only the maintainers can read it; it is not published. Leave out keys and tokens.',
+        'feedback.howDirect': 'Send hands what you wrote and the environment lines listed above to the project’s feedback receiver. Only the maintainers can read it; it is not published. Leave out keys and tokens.',
         changedCount: '{count} changed',
         modelsTitle: 'Local embedding models',
         modelsIntro: 'Optional. With a local model, memory is recalled by meaning rather than by shared words, on this computer. Nothing is downloaded or installed until you press a button.',
@@ -1549,9 +1547,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         'feedback.sent': '收到了，谢谢你。',
         'feedback.failed': '没有发出去（{code}）。你写的内容还在输入框里。可以再试一次，或者换一种方式：',
         'feedback.failedBusy': '提交得太频繁了。过一分钟再试，或者换一种方式：',
-        'feedback.contact': '联系方式（可选）',
-        'feedback.contact.help': '想收到回复的话，留一个邮箱或别的联系方式。只有维护者能看到。',
-        'feedback.howDirect': '“提交”会把你写的内容、联系方式（如果填了）和上面列出的运行环境发给项目的反馈接收服务，只有维护者能看到，不会公开。不要写密钥和令牌。',
+        'feedback.howDirect': '“提交”会把你写的内容和上面列出的运行环境发给项目的反馈接收服务，只有维护者能看到，不会公开。不要写密钥和令牌。',
         changedCount: '已改 {count} 项',
         modelsTitle: '本地向量模型',
         modelsIntro: '可选。有了本地模型，记忆按意思而不是按字面找回，全部在这台电脑上完成。按下按钮之前不会下载或安装任何东西。',
@@ -1760,8 +1756,9 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
 
     /**
      * Several lines of text; the person can drag it taller. `onChange` gets the text, not the event.
+     * `label` names it for a screen reader when no visible label points at it.
      * @param {{ id: string, value: string, rows?: number, maxLength?: number, placeholder?: string,
-     *   describedBy?: string, disabled?: boolean, onChange: (text: string) => void }} props
+     *   label?: string, describedBy?: string, disabled?: boolean, onChange: (text: string) => void }} props
      */
     function TextArea(props) {
       return h('textarea', {
@@ -1773,6 +1770,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         placeholder: props.placeholder,
         autoComplete: 'off',
         disabled: props.disabled || undefined,
+        'aria-label': props.label,
         'aria-describedby': props.describedBy,
         onChange: (event) => props.onChange(event.target.value),
       })
@@ -2241,8 +2239,6 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     const TITLE_TAGS = { idea: '[idea]', problem: '[bug]', other: '[feedback]' }
     /** The longest text the page accepts, in characters. */
     const MAX_TEXT = 4000
-    /** The longest contact line, in characters. */
-    const MAX_CONTACT = 200
     // The title is the first line of the text, up to this many characters.
     const MAX_TITLE = 60
     // The longest address that is handed to a browser. GitHub answers 414 somewhere above 8,000
@@ -2358,18 +2354,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
       return composed.title + '\n\n' + composed.body
     }
 
-    /** The contact line as it is sent: one line, trimmed, at most MAX_CONTACT characters. */
-    function cleanContact(text) {
-      const line = String(text === null || text === undefined ? '' : text).replace(LONE_SURROGATE, '\uFFFD').replace(/\s+/g, ' ').trim()
-      const points = Array.from(line)
-      return points.length > MAX_CONTACT ? points.slice(0, MAX_CONTACT).join('').trim() : line
-    }
-
     /**
      * What is posted to the feedback receiver (feedback-worker/worker.js reads exactly this shape).
-     * @param {{ kind?: string, text?: string, contact?: string }} draft
+     * @param {{ kind?: string, text?: string }} draft
      * @param {[string, string][]} rows environment(), or an empty list when it is not to be attached
-     * @returns {{ v: 1, kind: string, text: string, contact: string, environment: [string, string][] }}
+     * @returns {{ v: 1, kind: string, text: string, environment: [string, string][] }}
      */
     function payload(draft, rows) {
       const input = draft || {}
@@ -2377,7 +2366,6 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         v: 1,
         kind: KINDS.includes(input.kind) ? input.kind : 'other',
         text: cleanText(input.text),
-        contact: cleanContact(input.contact),
         environment: Array.isArray(rows) ? rows : [],
       }
     }
@@ -2392,8 +2380,8 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     }
 
     module.exports = {
-      KINDS, TITLE_TAGS, MAX_TEXT, MAX_CONTACT, MAX_TITLE, MAX_URL,
-      safe, environment, cleanText, titleOf, bodyOf, compose, reportText, cleanContact, payload, usableEndpoint,
+      KINDS, TITLE_TAGS, MAX_TEXT, MAX_TITLE, MAX_URL,
+      safe, environment, cleanText, titleOf, bodyOf, compose, reportText, payload, usableEndpoint,
     }
   })
 
@@ -3045,17 +3033,16 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     //
     // What is attached besides the person's own words is shown in full before anything leaves: the
     // environment lines are listed under the switch that attaches them, and they are the same lines that
-    // go into the report. The contact line travels with Send only: it is never part of the public
-    // address or of the copied text.
+    // go into the report.
     //
-    // The draft (kind, text, contact, whether to attach the environment) is kept by the page
+    // The draft (kind, text, whether to attach the environment) is kept by the page
     // (view/page.cjs), so that looking something up on another tab does not lose what was written.
 
     const { h } = require('../react.cjs')
     const { FEEDBACK_ENDPOINT, ID_PREFIX, LINKS } = require('../constants.cjs')
     const { useCopy, useSend } = require('../hooks.cjs')
-    const { KINDS, MAX_CONTACT, MAX_TEXT, compose, environment, payload, reportText, usableEndpoint } = require('../model/feedback.cjs')
-    const { Button, Choices, Switch, TextArea, TextInput } = require('../kit/controls.cjs')
+    const { KINDS, MAX_TEXT, compose, environment, payload, reportText, usableEndpoint } = require('../model/feedback.cjs')
+    const { Button, Choices, Switch, TextArea } = require('../kit/controls.cjs')
     const { Icon } = require('../kit/icons.cjs')
     const { Facts, Group, Notice, Reveal } = require('../kit/layout.cjs')
 
@@ -3064,12 +3051,12 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
 
     /** The draft a page starts with: an idea, nothing written, the environment attached. */
     function emptyFeedback() {
-      return { kind: KINDS[0], text: '', contact: '', environment: true }
+      return { kind: KINDS[0], text: '', environment: true }
     }
 
     /**
      * @param {{ t: Function, status: { data: object | null },
-     *   draft: { kind: string, text: string, contact: string, environment: boolean },
+     *   draft: { kind: string, text: string, environment: boolean },
      *   onChange: (patch: object) => void, endpoint?: string, send?: Function,
      *   copy?: (text: string) => Promise<boolean> }} props
      *   `onChange` merges a patch into the draft. `endpoint` replaces the receiver's address (tests and
@@ -3090,7 +3077,6 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
 
       const kindId = ID_PREFIX + '-feedback-kind'
       const textId = ID_PREFIX + '-feedback-text'
-      const contactId = ID_PREFIX + '-feedback-contact'
       const envId = ID_PREFIX + '-feedback-environment'
       const title = t('feedback.title')
 
@@ -3149,22 +3135,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
                 onChange: (kind) => onChange({ kind }),
               }))),
           h('div', { className: 'fmg-row fmg-row--stack' },
-            h('div', { className: 'fmg-row__text' },
-              h('div', { className: 'fmg-row__label' }, h('label', { htmlFor: textId }, t('feedback.text'))),
-              h('p', { className: 'fmg-row__help', id: textId + '-help' }, t('feedback.hint.' + draft.kind))),
             h('div', { className: 'fmg-row__control fmg-row__control--stack' },
-              h(TextArea, { id: textId, value: draft.text, rows: 7, maxLength: MAX_TEXT, disabled: sending, describedBy: textId + '-help', onChange: (text) => onChange({ text }) }),
+              h(TextArea, { id: textId, value: draft.text, rows: 7, maxLength: MAX_TEXT, disabled: sending, label: t('feedback.text'), placeholder: t('feedback.hint.' + draft.kind), onChange: (text) => onChange({ text }) }),
               length >= MAX_TEXT * COUNT_FROM
                 ? h('span', { className: 'fmg-quiet', role: 'status' }, t('feedback.count', { count: length, max: MAX_TEXT }))
                 : null)),
-          // The contact line has a use only where an answer cannot reach the person otherwise.
-          endpoint ? h('div', { className: 'fmg-row fmg-row--stack' },
-            h('div', { className: 'fmg-row__text' },
-              h('div', { className: 'fmg-row__label' }, h('label', { htmlFor: contactId }, t('feedback.contact'))),
-              h('p', { className: 'fmg-row__help', id: contactId + '-help' }, t('feedback.contact.help'))),
-            h('div', { className: 'fmg-row__control' },
-              h('div', { className: 'fmg-input-line' },
-                h(TextInput, { id: contactId, value: draft.contact || '', maxLength: MAX_CONTACT, disabled: sending, describedBy: contactId + '-help', onChange: (contact) => onChange({ contact }) })))) : null,
           h('div', { className: 'fmg-row' },
             h('div', { className: 'fmg-row__text' },
               h('div', { className: 'fmg-row__label' }, h('label', { htmlFor: envId }, t('feedback.env'))),

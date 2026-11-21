@@ -61,7 +61,7 @@ Ids are paths relative to `client/src`.
 | `model/status.cjs` | the status block as text rows: `stateText`, `statusRows` |
 | `model/models.cjs` | the local model list as data: `pickText`, `formatSize`, `memoryText`, `modelActions`, `chainLine`, `sameProblem` |
 | `model/changelog.cjs` | the changelog answer as a list of releases: `entryDate`, `releases` |
-| `model/feedback.cjs` | a feedback report and the address that hands it to GitHub: `KINDS`, `environment`, `safe`, `titleOf`, `bodyOf`, `compose`, `reportText`, with the limits `MAX_TEXT` and `MAX_URL`; and for the receiver `payload`, `cleanContact`, `usableEndpoint`. Also loaded by the host half (see below) |
+| `model/feedback.cjs` | a feedback report and the address that hands it to GitHub: `KINDS`, `environment`, `safe`, `titleOf`, `bodyOf`, `compose`, `reportText`, with the limits `MAX_TEXT` and `MAX_URL`; and for the receiver `payload`, `usableEndpoint`. Also loaded by the host half (see below) |
 
 **Hooks**
 
@@ -93,7 +93,7 @@ Ids are paths relative to `client/src`.
 | `view/settings-tab.cjs` | `SettingsTab`: the sections of one settings tab, sub-rows inside a `Reveal`, folding groups in the Advanced tab |
 | `view/field-row.cjs` | `FieldRow`: one setting as one row, with the control that fits its kind; `fieldId` |
 | `view/tabs.cjs` | `OverviewTab` and `ChangelogTab`, two of the tabs without settings |
-| `view/feedback.cjs` | `FeedbackTab`, the third: what it is about, the text, the contact line, the environment lines, Send, the link out to GitHub and the copy button; `emptyFeedback` |
+| `view/feedback.cjs` | `FeedbackTab`, the third: what it is about, the text, the environment lines, Send, the link out to GitHub and the copy button; `emptyFeedback` |
 | `view/models.cjs` | `ModelsPanel` and `ModelRow`: the local embedding models and their one button |
 | `view/markdown.cjs` | the changelog Markdown subset, text in and React elements out: `inlineMarkdown`, `joinLines`, `renderMarkdown` |
 
@@ -138,13 +138,12 @@ a file name cannot get in whatever a later status holds. The same lines are list
 switch that attaches them. An address is kept under `MAX_URL` characters: a longer report is cut in the
 address only, the cut is marked, and the link copies the whole report to the clipboard on the way out.
 Where the package names a receiver (`FEEDBACK_ENDPOINT`, checked by `usableEndpoint`: https, or this
-computer for the preview), the tab is "write, then Send": one Send button and a contact line, and the link
+computer for the preview), the tab is "write, then Send": one Send button, and the link
 to GitHub and the copy button are shown only inside the notice of a Send that failed. Send is the only call of the
 page that leaves the host: `net.cjs` `sendFeedback` posts `payload()` with `credentials: 'omit'` and no
 referrer, waits `FEEDBACK_TIMEOUT_MS`, and turns every failure into a code the tab shows. The receiver is
 `feedback-worker/worker.js` (a Cloudflare Worker the maintainers run, not shipped in the package); its
-`validate()` and this module's `payload()` describe the same shape and are tested against each other. The
-contact line goes into `payload()` only, never into the address for GitHub or the copied text.
+`validate()` and this module's `payload()` describe the same shape and are tested against each other.
 The host half loads the same module for `/memgate feedback` (`src/commands.js` imports
 `client/src/model/feedback.cjs`), which is why that module and `constants.cjs` must stay plain CommonJS
 that runs in Node without a browser.

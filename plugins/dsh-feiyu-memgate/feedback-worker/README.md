@@ -20,7 +20,7 @@ button and the page calls nothing outside the host.
 `POST <address>` with a JSON body:
 
 ```json
-{ "v": 1, "kind": "idea", "text": "…", "contact": "…", "environment": [["plugin", "dsh-feiyu-memgate 0.3.2"]] }
+{ "v": 1, "kind": "idea", "text": "…", "environment": [["plugin", "dsh-feiyu-memgate 0.3.2"]] }
 ```
 
 | field | rule |
@@ -28,12 +28,11 @@ button and the page calls nothing outside the host.
 | `v` | `1` |
 | `kind` | `idea`, `problem` or `other` |
 | `text` | 1 to 4000 characters after tidying (line breaks unified, control characters removed) |
-| `contact` | optional; one line, at most 200 characters |
 | `environment` | optional; at most 12 pairs of a lowercase name and a value made of letters, digits, spaces and `. _ + , > ? -` |
 
 Any other field, shape or content type is refused, as is a body over 32 KB. A report that passes becomes one
 issue: the title is `[idea]`, `[bug]` or `[feedback]` followed by the first line of the text; the body is
-the text, the contact line, the environment lines and the time it was received.
+the text, the environment lines and the time it was received.
 
 | answer | meaning |
 |---|---|
@@ -45,7 +44,9 @@ the text, the contact line, the environment lines and the time it was received.
 | `503 not-configured` | the token or the repository name is missing |
 
 `GET <address>` answers `{ "ok": true, "service": "feiyu-memgate-feedback", "v": 1, "configured": true }`: a
-way to see that the Worker is up and has its two settings without sending anything.
+way to see that the Worker is up and has its two settings without sending anything. While a setting is
+absent or unusable the answer is `"configured": false` with `"missing"` naming it (`GITHUB_TOKEN`,
+`FEEDBACK_REPO`). It cannot tell whether GitHub accepts the token; only a report shows that.
 
 The answer never repeats what was sent and never says where it was filed. The Worker keeps nothing itself.
 The sender's address is the key of the rate limit and is neither stored nor logged; the log holds only
@@ -69,10 +70,14 @@ You need a Cloudflare account, Node.js, and a GitHub account that owns the priva
    npx wrangler secret put FEEDBACK_REPO
    ```
 
-   Each `secret put` asks for the value: the token, then `owner/name` of the inbox. The rate limits of
+   Each `secret put` asks for the value: the token, then `owner/name` of the inbox (its address on
+   github.com is understood as well). The rate limits of
    `wrangler.toml` need wrangler 4.36.0 or later. `deploy` prints the Worker's address.
 4. **Check.** Open the address in a browser. It must say `"configured": true`. Then send one report by hand
-   and look for the issue in the inbox:
+   and look for the issue in the inbox. If the answer is `502 upstream`, run `npx wrangler tail`, send again
+   and read the line `feedback: GitHub answered <status>`: 401 means GitHub does not know the token (copy it
+   again), 403 that the token may not write issues, 404 that the repository name is wrong or the token has
+   no access to it.
 
    ```sh
    curl -X POST <address> -H "content-type: application/json" --data "{\"v\":1,\"kind\":\"other\",\"text\":\"first test\"}"
