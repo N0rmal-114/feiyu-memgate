@@ -920,6 +920,65 @@
   gap: 8px;
 }
 
+/* The head of the Feedback tab: title and intro at the left, the small drawing at the right. The drawing
+   is decoration (clicks go through it); its bubble sits over the empty upper-right of the picture, with
+   the small corner at the bottom left, toward the mascot's mouth. */
+.fmg-feedback__head {
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.fmg-feedback__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-bottom: 4px;
+}
+
+.fmg-nag {
+  position: relative;
+  flex: none;
+  width: 132px;
+  /* Room at the right for the part of the bubble that reaches past the drawing. */
+  margin: -6px 24px -6px 0;
+  pointer-events: none;
+}
+
+.fmg-nag img {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  /* A thin rim that follows the theme, so that the black cat stays readable on a dark background. */
+  filter: drop-shadow(0 0 1px color-mix(in srgb, var(--fmg-ink) 45%, transparent));
+}
+
+.fmg-nag img[data-shown='true'] {
+  opacity: 1;
+}
+
+.fmg-nag__bubble {
+  position: absolute;
+  /* Over the empty upper right of the drawing; it starts beside her head and grows to the right. */
+  top: 4%;
+  left: 56%;
+  padding: 3px 9px;
+  border: var(--fmg-hair) solid var(--fmg-line-strong);
+  border-radius: 12px 12px 12px 3px;
+  background: var(--fmg-raised);
+  color: var(--fmg-ink);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  box-shadow: var(--fmg-shadow);
+  animation: fmg-up 0.22s ease;
+}
+
 /* The last thing of a line of actions, pushed to the far end (a link aside from the buttons). */
 .fmg-actions__end {
   margin-left: auto;
@@ -1102,6 +1161,16 @@
 /* ------------------------------------------------------------------ narrow columns and calm motion */
 
 @container (max-width: 520px) {
+  .fmg-nag {
+    width: 104px;
+    margin-right: 36px;
+  }
+
+  .fmg-nag__bubble {
+    font-size: 11px;
+    padding: 2px 7px;
+  }
+
   .fmg-hero {
     padding: 16px 4px 16px 16px;
     gap: 8px;

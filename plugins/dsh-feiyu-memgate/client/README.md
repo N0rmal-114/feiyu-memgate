@@ -93,7 +93,7 @@ Ids are paths relative to `client/src`.
 | `view/settings-tab.cjs` | `SettingsTab`: the sections of one settings tab, sub-rows inside a `Reveal`, folding groups in the Advanced tab |
 | `view/field-row.cjs` | `FieldRow`: one setting as one row, with the control that fits its kind; `fieldId` |
 | `view/tabs.cjs` | `OverviewTab` and `ChangelogTab`, two of the tabs without settings |
-| `view/feedback.cjs` | `FeedbackTab`, the third: what it is about, the text, the environment lines, Send, the link out to GitHub and the copy button; `emptyFeedback` |
+| `view/feedback.cjs` | `FeedbackTab`, the third, and `Nag` (the fifth drawing, `mascot-nag.webp`, with its speech bubble, beside the title; none if it cannot be loaded): what it is about, the text, the environment lines, Send, the link out to GitHub and the copy button; `emptyFeedback` |
 | `view/models.cjs` | `ModelsPanel` and `ModelRow`: the local embedding models and their one button |
 | `view/markdown.cjs` | the changelog Markdown subset, text in and React elements out: `inlineMarkdown`, `joinLines`, `renderMarkdown` |
 
@@ -148,9 +148,12 @@ The host half loads the same module for `/memgate feedback` (`src/commands.js` i
 `client/src/model/feedback.cjs`), which is why that module and `constants.cjs` must stay plain CommonJS
 that runs in Node without a browser.
 
-The mascot. The four drawings are the files of `client/art/` (`mascot-<mood>.webp`). The host half serves
-them from its art route (`GET feiyu-memgate/art/<file>`, `src/plugin.js`); the page loads the one that fits
-the mood and has no drawing if it cannot be loaded. Nothing a person needs is only in the picture.
+The mascot. The drawings are the files of `client/art/`: four moods (`mascot-<mood>.webp`) and a fifth,
+`mascot-nag.webp`, for the Feedback tab. The host half serves them from its art route
+(`GET feiyu-memgate/art/<file>`, `src/plugin.js`); the summary loads the one that fits the mood, the
+Feedback tab shows the fifth beside its title with a speech bubble over it (the bubble is text of the page,
+so it follows the language), and like the others the tab simply has no drawing, and no bubble, if it cannot
+be loaded. Nothing a person needs is only in the picture.
 
 The host half never depends on this page: without it every setting still works, through `/memgate` and
 the profile's patch file.

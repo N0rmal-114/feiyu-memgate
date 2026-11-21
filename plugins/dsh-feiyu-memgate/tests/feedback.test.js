@@ -632,3 +632,47 @@ test('the page hands its feedback options to the tab: a receiver, its fetch and 
   assert.equal(taken.calls.length, 1)
   assert.equal(JSON.parse(taken.calls[0].init.body).text, 'from the page')
 })
+
+// ------------------------------------------------------------------ the drawing at the head of the tab
+
+test('FeedbackTab: the head holds the drawing of the mascot and the cat, with its bubble once the picture has loaded', () => {
+  // Nag keeps one object { loaded, failed }; the other hooks of the tab hold other values.
+  const isArt = (init) => init && typeof init === 'object' && 'loaded' in init && 'failed' in init
+  const draw = (lang, art) => {
+    const loaded = load({ states: (init) => (isArt(init) && art ? { ...init, ...art } : init) })
+    const t = translatorFor(lang, loaded)
+    const tree = expand(loaded.internals.FeedbackTab({ t, status: { data: status() }, draft: { ...plain(loaded.internals.emptyFeedback()) }, onChange: () => {}, endpoint: '' }))
+    return { tree, t }
+  }
+  for (const lang of ['en', 'zh']) {
+    const before = draw(lang)
+    const [head] = withClass(before.tree, 'fmg-feedback__head')
+    assert.ok(head.props.className.split(' ').includes('fmg-section__head'))
+    assert.equal(withClass(head, 'fmg-feedback__intro').length, 1, 'title and intro stay together')
+    const [img] = findAll(before.tree, (n) => n.type === 'img')
+    assert.equal(img.props.src, 'feiyu-memgate/art/mascot-nag.webp', 'document-relative, no leading slash')
+    assert.equal(img.props.alt, before.t('mascot.nag'))
+    assert.equal(img.props.width, 360)
+    assert.equal(img.props.height, 378)
+    assert.equal(img.props.draggable, false)
+    assert.equal(img.props['data-shown'], 'false')
+    assert.equal(withClass(before.tree, 'fmg-nag__bubble').length, 0, 'no bubble over a picture that is not there yet')
+
+    const after = draw(lang, { loaded: true })
+    assert.equal(findAll(after.tree, (n) => n.type === 'img')[0].props['data-shown'], 'true')
+    const [bubble] = withClass(after.tree, 'fmg-nag__bubble')
+    assert.equal(textOf(bubble), after.t('feedback.nag'))
+    assert.equal(bubble.props['aria-hidden'], 'true', 'the alt text already says it')
+  }
+  assert.equal(textOf(withClass(draw('zh', { loaded: true }).tree, 'fmg-nag__bubble')[0]), '快更新！')
+
+  // A picture that failed: no drawing, no bubble, and the rest of the tab is untouched.
+  const failed = draw('en', { failed: true })
+  assert.equal(withClass(failed.tree, 'fmg-nag').length, 0)
+  assert.equal(findAll(failed.tree, (n) => n.type === 'img').length, 0)
+  assert.equal(withClass(failed.tree, 'fmg-nag__bubble').length, 0)
+  const text = textOf(failed.tree)
+  assert.ok(text.includes(failed.t('feedback.title')))
+  assert.equal(findAll(failed.tree, (n) => n.type === 'textarea').length, 1)
+  assert.ok(findAll(failed.tree, (n) => n.type === 'button' || n.type === 'a').some((n) => textOf(n).includes(failed.t('feedback.submit'))), 'the way to send is still there')
+})

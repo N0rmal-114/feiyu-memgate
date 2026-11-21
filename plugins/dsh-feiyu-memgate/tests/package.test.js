@@ -249,7 +249,7 @@ test('the settings page sources, the assembled script and the scripts that make 
   assert.ok(clientSources().includes('client/src/index.cjs'), 'the entry module the assembly loads')
 })
 
-test('the mascot drawings ship in client/art: four small WebP files, the ones the art routes and the page name', async () => {
+test('the mascot drawings ship in client/art: five small WebP files, the four moods and the one of the Feedback tab', async () => {
   const { ART_FILES, ART_PATH } = await import('../src/plugin.js')
   const { createRequire } = await import('node:module')
   const constants = createRequire(import.meta.url)('../client/src/constants.cjs')
@@ -257,7 +257,7 @@ test('the mascot drawings ship in client/art: four small WebP files, the ones th
   assert.equal('/' + constants.ART_ROUTE, ART_PATH)
   const files = fs.readdirSync(path.join(ROOT, 'client', 'art')).sort()
   assert.deepEqual(files, [...ART_FILES].sort())
-  assert.deepEqual(files, ['asleep', 'busy', 'ready', 'trouble'].map((mood) => `mascot-${mood}.webp`), 'one drawing per mood of the page')
+  assert.deepEqual(files, ['asleep', 'busy', 'nag', 'ready', 'trouble'].map((name) => `mascot-${name}.webp`), 'one drawing per mood of the page, and the one of the Feedback tab')
   for (const name of files) {
     const bytes = fs.readFileSync(path.join(ROOT, 'client', 'art', name))
     assert.equal(bytes.subarray(0, 4).toString('latin1') + bytes.subarray(8, 12).toString('latin1'), 'RIFFWEBP', name)

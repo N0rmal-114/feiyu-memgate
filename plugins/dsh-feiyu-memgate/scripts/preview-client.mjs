@@ -32,7 +32,7 @@ const argument = (name, fallback) => {
 
 const PORT = Number(argument('port', '47931'))
 const REACT_DIR = argument('react', '')
-const ART = /^\/feiyu-memgate\/art\/(mascot-(?:ready|busy|asleep|trouble)\.webp)$/
+const ART = /^\/feiyu-memgate\/art\/(mascot-(?:ready|busy|asleep|trouble|nag)\.webp)$/
 
 function reactFile(pkg, file) {
   if (!REACT_DIR) throw new Error('start the preview with --react <a node_modules folder with react and react-dom 18>')

@@ -101,11 +101,11 @@ export const MODELS_PATH = '/feiyu-memgate/models'
 // The released sections of the package's own CHANGELOG.md, for the settings page (src/changelog.js). Owner only too.
 export const CHANGELOG_PATH = '/feiyu-memgate/changelog'
 const CHANGELOG_FILE = new URL('../CHANGELOG.md', import.meta.url)
-// The mascot's drawings on the settings page: GET <ART_PATH><name>, one exact route per file of client/art.
+// The mascot's drawings on the settings page (the four moods of the summary and the one of the Feedback tab): GET <ART_PATH><name>, one exact route per file of client/art.
 // Owner only like the other routes of the page: nothing here is secret, but the plugin serves nothing
 // to anyone the host has not admitted.
 export const ART_PATH = '/feiyu-memgate/art/'
-export const ART_FILES = Object.freeze(['mascot-ready.webp', 'mascot-busy.webp', 'mascot-asleep.webp', 'mascot-trouble.webp'])
+export const ART_FILES = Object.freeze(['mascot-ready.webp', 'mascot-busy.webp', 'mascot-asleep.webp', 'mascot-trouble.webp', 'mascot-nag.webp'])
 const ART_DIR = new URL('../client/art/', import.meta.url)
 // A drawing is about 30 KB; a file far beyond that is not one of ours and is not served.
 const MAX_ART_BYTES = 512 * 1024

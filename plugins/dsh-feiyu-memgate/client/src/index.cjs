@@ -19,7 +19,7 @@ const { splitOption, isMet, sectionView, pageView, savable } = require('./model/
 const { statusRows } = require('./model/status.cjs')
 const { STYLE_ID, installStyles } = require('./theme/styles.cjs')
 const { stepText } = require('./kit/controls.cjs')
-const { emptyFeedback, FeedbackTab } = require('./view/feedback.cjs')
+const { emptyFeedback, FeedbackTab, Nag } = require('./view/feedback.cjs')
 const { FieldRow, fieldId } = require('./view/field-row.cjs')
 const { Hero, artUrl } = require('./view/hero.cjs')
 const { inlineMarkdown, renderMarkdown } = require('./view/markdown.cjs')
@@ -62,6 +62,6 @@ module.exports = {
     feedback, emptyFeedback, copyText,
     // view
     installStyles, inlineMarkdown, renderMarkdown,
-    Hero, FieldRow, SettingsTab, OverviewTab, ChangelogTab, FeedbackTab, ModelRow, ModelsPanel, SaveBar, Footer, SettingsBody, SettingsPage,
+    Hero, FieldRow, SettingsTab, OverviewTab, ChangelogTab, FeedbackTab, Nag, ModelRow, ModelsPanel, SaveBar, Footer, SettingsBody, SettingsPage,
   },
 }

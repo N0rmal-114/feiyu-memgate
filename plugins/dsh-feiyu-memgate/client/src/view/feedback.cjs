@@ -17,11 +17,13 @@
 // environment lines are listed under the switch that attaches them, and they are the same lines that
 // go into the report.
 //
+// Beside the title sits a small drawing with a speech bubble (Nag, below).
+//
 // The draft (kind, text, whether to attach the environment) is kept by the page
 // (view/page.cjs), so that looking something up on another tab does not lose what was written.
 
-const { h } = require('../react.cjs')
-const { FEEDBACK_ENDPOINT, ID_PREFIX, LINKS } = require('../constants.cjs')
+const { h, useState } = require('../react.cjs')
+const { ART_ROUTE, FEEDBACK_ENDPOINT, ID_PREFIX, LINKS } = require('../constants.cjs')
 const { useCopy, useSend } = require('../hooks.cjs')
 const { KINDS, MAX_TEXT, compose, environment, payload, reportText, usableEndpoint } = require('../model/feedback.cjs')
 const { Button, Choices, Switch, TextArea } = require('../kit/controls.cjs')
@@ -34,6 +36,33 @@ const COUNT_FROM = 0.8
 /** The draft a page starts with: an idea, nothing written, the environment attached. */
 function emptyFeedback() {
   return { kind: KINDS[0], text: '', environment: true }
+}
+
+/**
+ * The small drawing at the head of the tab: the mascot points at a black cat asleep on the floor (the
+ * cat stands for the developers) and a speech bubble, which is text of the page and so follows the
+ * language, tells it to hurry up with the update. Decoration like the hero's drawing: it fades in when
+ * it has arrived, the bubble appears with it, and when the drawing cannot be loaded nothing is drawn.
+ * @param {{ t: Function }} props
+ */
+function Nag(props) {
+  const { t } = props
+  // One object, so that the state of this component can be told from the other hooks' in tests.
+  const [art, setArt] = useState({ loaded: false, failed: false })
+  if (art.failed) return null
+  return h('div', { className: 'fmg-nag' },
+    h('img', {
+      src: ART_ROUTE + 'mascot-nag.webp',
+      alt: t('mascot.nag'),
+      draggable: false,
+      width: 360,
+      height: 378,
+      'data-shown': art.loaded ? 'true' : 'false',
+      onLoad: () => setArt({ loaded: true, failed: false }),
+      onError: () => setArt({ loaded: false, failed: true }),
+    }),
+    // The alt text of the drawing already says it, so the bubble is not read out a second time.
+    art.loaded ? h('span', { className: 'fmg-nag__bubble', 'aria-hidden': 'true' }, t('feedback.nag')) : null)
 }
 
 /**
@@ -101,9 +130,11 @@ function FeedbackTab(props) {
   }
 
   return h('section', { className: 'fmg-section', 'aria-label': title },
-    h('div', { className: 'fmg-section__head' },
-      h('h4', { className: 'fmg-section__title' }, title),
-      h('p', { className: 'fmg-note' }, t('feedback.intro'))),
+    h('div', { className: 'fmg-section__head fmg-feedback__head' },
+      h('div', { className: 'fmg-feedback__intro' },
+        h('h4', { className: 'fmg-section__title' }, title),
+        h('p', { className: 'fmg-note' }, t('feedback.intro'))),
+      h(Nag, { t })),
     h(Group, null,
       h('div', { className: 'fmg-row fmg-row--stack' },
         h('div', { className: 'fmg-row__text' },
@@ -146,4 +177,4 @@ function FeedbackTab(props) {
         h('a', { className: 'fmg-link fmg-actions__end', href: LINKS.issues, target: '_blank', rel: 'noreferrer noopener' }, t('feedback.others'))))
 }
 
-module.exports = { emptyFeedback, FeedbackTab }
+module.exports = { emptyFeedback, FeedbackTab, Nag }
