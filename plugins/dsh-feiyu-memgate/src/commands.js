@@ -8,6 +8,12 @@
 //
 // Replies never contain a secret: secret settings show as "set" or "not set", and a value typed for
 // one is never repeated. Words a person typed are repeated only when they look like a name.
+//
+// `/memgate feedback` answers with the address of GitHub's new-issue page, with the plugin's version
+// numbers and state names filled in. The address is built by the settings page's own module
+// (client/src/model/feedback.cjs, plain CommonJS with no dependency on a browser), so the command and
+// the page's Feedback tab cannot drift apart. The command sends nothing; it only prints the link.
+import feedback from '../client/src/model/feedback.cjs'
 import { FIELDS, parseSetting, SETTING_KEYS } from './config.js'
 import { ADDON_CONFIRM, describeFailure } from './setup.js'
 import { TIER_CHOICES, TIERS } from './tiers.js'
@@ -39,11 +45,18 @@ const TEXT = {
       '  remove <model>      delete a downloaded model that is not in use',
       '  cancel              stop the running add-on installation or model download',
       '  changelog           what the newest released version changed (the text is in Chinese)',
+      '  feedback            where to tell the project an idea or a problem (a link, nothing is sent)',
     ].join('\n'),
     oneLine: 'The command takes one line.',
     unknownSub: (w) => `Unknown subcommand${w ? ` ${w}` : ''}.`,
     noArgs: (sub) => `/memgate ${sub} takes no arguments.`,
     noChangelog: 'The changelog could not be shown.',
+    feedback: (url) => [
+      'Ideas and problems go to the project\u2019s issues on GitHub. They are public, and you need a GitHub account.',
+      'This link opens a new issue with the plugin\u2019s version numbers and state names filled in, and nothing else. You write the rest there and decide whether to submit it; the plugin sends nothing.',
+      url,
+      'The settings page has a Feedback tab that does the same with a text box.',
+    ].join('\n'),
     needKeyValue: 'Usage: /memgate set <key> <value>',
     needKey: (sub) => `Usage: /memgate ${sub} <key>`,
     needModule: (sub) => `Usage: /memgate ${sub} <feature>. Features: ${MODULE_KEYS.join(', ')}.`,
@@ -115,11 +128,18 @@ const TEXT = {
       '  remove <模型>       删除一个没在使用的已下载模型',
       '  cancel              停止正在进行的插件安装或模型下载',
       '  changelog           最新发布的版本改了什么',
+      '  feedback            到哪里给项目提建议或报告问题（只给出链接，不发送任何内容）',
     ].join('\n'),
     oneLine: '命令只能写一行。',
     unknownSub: (w) => `没有这个子命令${w ? ` ${w}` : ''}。`,
     noArgs: (sub) => `/memgate ${sub} 不带参数。`,
     noChangelog: '更新日志现在无法显示。',
+    feedback: (url) => [
+      '建议和问题提到项目在 GitHub 上的 issue 里。issue 是公开的，需要一个 GitHub 账号。',
+      '下面的链接会打开新建 issue 的页面，里面已经填好插件的版本号和状态，没有别的内容。其余的由你在那里写，提不提交由你决定；插件不发送任何内容。',
+      url,
+      '设置页面的“反馈”标签页做的是同一件事，带一个输入框。',
+    ].join('\n'),
     needKeyValue: '用法：/memgate set <键> <值>',
     needKey: (sub) => `用法：/memgate ${sub} <键>`,
     needModule: (sub) => `用法：/memgate ${sub} <功能>。功能有：${MODULE_KEYS.join('、')}。`,
@@ -509,6 +529,12 @@ export function createMemgateCommand({ settings, language, status, write, models
           const entry = found?.entries?.[0]
           return ok(entry ? formatChangelog(entry, lang) : t.noChangelog)
         }
+        case 'feedback': {
+          // No text is taken here: whatever a person typed would come back inside the address.
+          if (words.length) return fail(t.noArgs(sub))
+          const report = feedback.compose({ kind: 'other', text: '', environment: feedback.environment(await status()) })
+          return ok(t.feedback(report.url))
+        }
         case 'tiers':
           if (words.length) return fail(t.noArgs(sub))
           return ok(formatTiers(await status(), lang))
@@ -573,7 +599,7 @@ export function createMemgateCommand({ settings, language, status, write, models
   return {
     name: COMMAND_NAME,
     description: 'Long-term memory: status, settings, retrieval tiers and local models (feiyu-memgate)',
-    input: { hint: 'status | config | set <key> <value> | reset <key> | on|off <feature> | tiers | use <tier|model> | models | install <model> [--confirm] | builds allow|deny | remove <model> | cancel | changelog' },
+    input: { hint: 'status | config | set <key> <value> | reset <key> | on|off <feature> | tiers | use <tier|model> | models | install <model> [--confirm] | builds allow|deny | remove <model> | cancel | changelog | feedback' },
     // The input may hold a secret (`set external.token ...`): keep it out of the session log; the
     // reply says what changed without repeating it (commands/src/index.ts:70-75, :376).
     recordInput: false,

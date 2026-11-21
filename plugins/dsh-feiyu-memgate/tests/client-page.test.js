@@ -25,6 +25,8 @@ const LANGS = ['en', 'zh']
 const MOODS = ['ready', 'busy', 'asleep', 'trouble']
 const ALL_FIELDS = FIELDS.flatMap((group) => group.fields.map((field) => ({ ...field, group: group.group, k: `${group.group}.${field.key}` })))
 const SETTINGS_TABS = ['features', 'retrieval', 'advanced']
+// Every tab of the page, in the order of the tab bar.
+const PAGE_TABS = ['overview', 'features', 'retrieval', 'advanced', 'changelog', 'feedback']
 const ALL_OPEN = Object.fromEntries(I.TABS.flatMap((tab) => tab.sections.map((section) => [section.id, true])))
 
 const formState = (overrides = {}) => ({
@@ -442,11 +444,11 @@ test('the summary view is the one-line text, in the page language', () => {
   assert.equal(I.SettingsPage({ view: 'summary', t: tr('en') }), DICT.en.summary, 'the slot may pass t or translate')
 })
 
-test('the page view is the root div.fmg-root with the hero, five tabs in order, one tabpanel and the footer, and no save bar while nothing is staged', () => {
-  const expectedIds = ['overview', 'features', 'retrieval', 'advanced', 'changelog']
+test('the page view is the root div.fmg-root with the hero, six tabs in order, one tabpanel and the footer, and no save bar while nothing is staged', () => {
+  const expectedIds = PAGE_TABS
   const labels = {
-    en: ['Overview', 'Features', 'Retrieval', 'Advanced', 'Changelog'],
-    zh: ['概览', '功能', '检索', '高级', '更新日志'],
+    en: ['Overview', 'Features', 'Retrieval', 'Advanced', 'Changelog', 'Feedback'],
+    zh: ['概览', '功能', '检索', '高级', '更新日志', '反馈'],
   }
   for (const lang of LANGS) {
     const { tree } = renderBody({ lang })
@@ -459,13 +461,13 @@ test('the page view is the root div.fmg-root with the hero, five tabs in order, 
     const tabs = withRole(tablist, 'tab')
     assert.deepEqual(tabs.map((tab) => tab.props.id), expectedIds.map((id) => `feiyu-memgate-tab-${id}`))
     assert.deepEqual(tabs.map((tab) => textOf(tab)), labels[lang])
-    assert.deepEqual(tabs.map((tab) => tab.props['aria-selected']), ['true', 'false', 'false', 'false', 'false'])
-    assert.deepEqual(tabs.map((tab) => tab.props.tabIndex), [0, -1, -1, -1, -1], 'roving focus')
+    assert.deepEqual(tabs.map((tab) => tab.props['aria-selected']), ['true', 'false', 'false', 'false', 'false', 'false'])
+    assert.deepEqual(tabs.map((tab) => tab.props.tabIndex), [0, -1, -1, -1, -1, -1], 'roving focus')
     const panels = withRole(tree, 'tabpanel')
     assert.equal(panels.length, 1)
     assert.equal(panels[0].props['aria-labelledby'], 'feiyu-memgate-tab-overview')
     assert.equal(tabs[0].props['aria-controls'], panels[0].props.id)
-    assert.deepEqual(tabs.slice(1).map((tab) => tab.props['aria-controls']), [undefined, undefined, undefined, undefined], 'a tab whose panel is not in the document points at nothing')
+    assert.deepEqual(tabs.slice(1).map((tab) => tab.props['aria-controls']), [undefined, undefined, undefined, undefined, undefined], 'a tab whose panel is not in the document points at nothing')
     assert.equal(withClass(tree, 'fmg-savebar').length, 0)
   }
 })
@@ -474,7 +476,7 @@ test('the tab bar moves with the arrow keys, Home and End, and selects at once',
   const picked = []
   const loaded = load()
   const t = tr('en')
-  const tabs = ['overview', 'features', 'retrieval', 'advanced', 'changelog'].map((id) => ({ id, label: id }))
+  const tabs = PAGE_TABS.map((id) => ({ id, label: id }))
   const bar = (value) => expand({ type: (p) => loaded.internals.SettingsPage && p, props: {} }) && null
   void bar
   // The key handler is the Tabs component's: take it from a rendered page, whose current tab is 'overview'.
@@ -491,16 +493,17 @@ test('the tab bar moves with the arrow keys, Home and End, and selects at once',
   assert.equal(press('End').prevented, true)
   assert.equal(press('Home').prevented, true)
   assert.equal(press('x').prevented, undefined)
-  assert.deepEqual(focused, [1, 4, 4, 0])
+  assert.deepEqual(focused, [1, 5, 5, 0])
   assert.ok(t('tabsLabel'))
   assert.deepEqual(picked, [])
 })
 
-test('the footer links are https only, open in a new tab and carry noopener and noreferrer', () => {
+test('the footer links are https only, open in a new tab and carry noopener and noreferrer; feedback is a button that stays on the page', () => {
   const { tree } = renderBody({ statusData: status() })
   const [footer] = findAll(tree, (n) => n.type === 'footer')
   const links = findAll(footer, (n) => n.type === 'a')
-  assert.deepEqual(links.map(textOf), ['Documentation', 'Source', 'Report a problem'])
+  assert.deepEqual(links.map(textOf), ['Documentation', 'Source'])
+  assert.deepEqual(findAll(footer, (n) => n.type === 'button').map(textOf), ['Give feedback'])
   for (const link of links) {
     assert.equal(new URL(link.props.href).protocol, 'https:')
     assert.equal(link.props.target, '_blank')
@@ -513,7 +516,7 @@ test('the footer links are https only, open in a new tab and carry noopener and 
 
 test('every element id the page makes starts with feiyu-memgate- and is unique within the tree, on every tab with every group open', () => {
   for (const lang of LANGS) {
-    for (const tab of ['overview', 'features', 'retrieval', 'advanced', 'changelog']) {
+    for (const tab of PAGE_TABS) {
       const { tree } = renderBody({ tab, lang, openAll: true, statusData: status(), changelog: { version: '0.3.2', entries: [{ version: '0.3.2', body: 'a' }, { version: '0.3.1', body: 'b' }] } })
       const ids = findAll(tree, (n) => n.props.id !== undefined).map((n) => n.props.id)
       assert.ok(ids.length > 5, tab)
@@ -526,7 +529,7 @@ test('every element id the page makes starts with feiyu-memgate- and is unique w
 })
 
 test('htmlFor, aria-labelledby, aria-describedby and aria-controls point at ids that exist in the tree', () => {
-  for (const tab of ['overview', 'features', 'retrieval', 'advanced', 'changelog']) {
+  for (const tab of PAGE_TABS) {
     const { tree } = renderBody({ tab, openAll: true, statusData: status(), changelog: { version: '0.3.2', entries: [{ version: '0.3.2', body: 'a' }] } })
     const ids = new Set(findAll(tree, (n) => n.props.id !== undefined).map((n) => n.props.id))
     walk(tree, (n) => {
@@ -545,10 +548,10 @@ test('without a usable settings form the page still draws the hero, tabs and foo
     ['unavailable', { state: { status: 'unavailable' } }, 'unavailable'],
     ['loading', { state: { status: 'loading' } }, 'loading'],
   ]) {
-    for (const tab of ['overview', 'features', 'retrieval', 'advanced', 'changelog']) {
+    for (const tab of PAGE_TABS) {
       const { tree, t } = renderBody({ tab, form })
       assert.equal(withClass(tree, 'fmg-hero').length, 1, `${name} ${tab}`)
-      assert.equal(withRole(tree, 'tab').length, 5)
+      assert.equal(withRole(tree, 'tab').length, PAGE_TABS.length)
       assert.equal(findAll(tree, (n) => n.type === 'footer').length, 1)
       assert.equal(withClass(tree, 'fmg-savebar').length, 0)
       const text = textOf(withRole(tree, 'tabpanel'))
@@ -967,9 +970,9 @@ test('the Retrieval tab places the model list after the rows of its section', ()
 test('the tab bar marks a tab that holds unsaved edits or one that cannot be saved, and names the mark for a screen reader', () => {
   const t = tr('en')
   const marks = (draft) => withRole(renderBody({ draft }).tree, 'tab').map((tab) => withRole(tab, 'img').map((m) => [m.props['aria-label'], m.props.className.includes('invalid')]))
-  assert.deepEqual(marks({}), [[], [], [], [], []])
-  assert.deepEqual(marks({ 'modules.autoRecall': { value: false } }), [[], [[t('tabEdited'), false]], [], [], []], 'only the Features tab')
-  assert.deepEqual(marks({ 'advanced.recallLimit': { value: '99' }, 'modules.autoRecall': { value: false } }), [[], [[t('tabEdited'), false]], [], [[t('fixFirst'), true]], []])
+  assert.deepEqual(marks({}), [[], [], [], [], [], []])
+  assert.deepEqual(marks({ 'modules.autoRecall': { value: false } }), [[], [[t('tabEdited'), false]], [], [], [], []], 'only the Features tab')
+  assert.deepEqual(marks({ 'advanced.recallLimit': { value: '99' }, 'modules.autoRecall': { value: false } }), [[], [[t('tabEdited'), false]], [], [[t('fixFirst'), true]], [], []])
 })
 
 // ------------------------------------------------------------------ the save bar
@@ -1584,7 +1587,7 @@ function sampleTrees() {
   const draft = { 'advanced.recallLimit': { value: '99' }, 'modules.autoCapture': { value: true }, 'retrieval.apiKey': { value: 'x' } }
   const modelStates = ['absent', 'downloading', 'installed', 'active', 'loading', 'paused']
   for (const lang of LANGS) {
-    for (const tab of ['overview', 'features', 'retrieval', 'advanced', 'changelog']) {
+    for (const tab of PAGE_TABS) {
       trees.push([`${lang} page ${tab}`, renderBody({
         tab, lang, draft, openAll: true, statusData: status({ embed: { state: 'error' }, migration: { state: 'done', copied: 1, total: 1, refused: 2 } }),
         form: { state, mutate: async () => true },
@@ -1618,7 +1621,7 @@ test('accessibility: every input has an id that a label[htmlFor] points at, or a
   let inputs = 0
   for (const [name, tree] of sampleTrees()) {
     const labelled = new Set(findAll(tree, (n) => n.type === 'label').map((n) => n.props.htmlFor))
-    for (const input of findAll(tree, (n) => n.type === 'input')) {
+    for (const input of findAll(tree, (n) => n.type === 'input' || n.type === 'textarea')) {
       inputs += 1
       assert.ok(input.props['aria-label'] || (input.props.id && labelled.has(input.props.id)), `${name}: input ${input.props.id}`)
     }

@@ -31,6 +31,62 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     return (spec) => (spec.startsWith('./') || spec.startsWith('../') ? load(resolve(from, spec)) : hostRequire(spec))
   }
 
+  // clipboard.cjs
+  define("clipboard.cjs", function (require, module, exports) {
+    'use strict'
+    // Puts a text on the clipboard: the one place of the page that touches it. The page copies only on a
+    // click, and only the report the person has in front of them (view/feedback.cjs).
+    //
+    // The browser's clipboard interface needs a secure context (https or localhost), which a DSH page
+    // is. Where it is missing or refuses, the older way is tried: a text area outside the visible page,
+    // selected and copied. Whether the text arrived is reported, never assumed.
+
+    // The older way. Returns whether the browser said it copied.
+    function copyThroughSelection(text, doc) {
+      if (!doc || !doc.body || typeof doc.createElement !== 'function' || typeof doc.execCommand !== 'function') return false
+      const area = doc.createElement('textarea')
+      area.value = text
+      area.setAttribute('readonly', '')
+      area.setAttribute('aria-hidden', 'true')
+      area.style.position = 'fixed'
+      area.style.top = '-1000px'
+      area.style.opacity = '0'
+      doc.body.appendChild(area)
+      let copied = false
+      try {
+        area.select()
+        copied = doc.execCommand('copy') === true
+      } catch {
+        copied = false
+      }
+      doc.body.removeChild(area)
+      return copied
+    }
+
+    /**
+     * @param {string} text
+     * @param {{ navigator?: object, document?: object }} [env] the browser's objects; tests pass their own
+     * @returns {Promise<boolean>} whether the text is on the clipboard now
+     */
+    function copyText(text, env) {
+      const given = env || {}
+      const nav = 'navigator' in given ? given.navigator : typeof navigator !== 'undefined' ? navigator : undefined
+      const doc = 'document' in given ? given.document : typeof document !== 'undefined' ? document : undefined
+      if (nav && nav.clipboard && typeof nav.clipboard.writeText === 'function') {
+        let attempt
+        try {
+          attempt = nav.clipboard.writeText(text)
+        } catch {
+          attempt = Promise.reject(new Error('refused'))
+        }
+        return Promise.resolve(attempt).then(() => true, () => copyThroughSelection(text, doc))
+      }
+      return Promise.resolve(copyThroughSelection(text, doc))
+    }
+
+    module.exports = { copyText }
+  })
+
   // constants.cjs
   define("constants.cjs", function (require, module, exports) {
     'use strict'
@@ -50,7 +106,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     const MODELS_BUSY_POLL_MS = 1500
     // The mascot's drawings: GET <ART_ROUTE><mood>.webp (src/plugin.js serves the files of client/art).
     const ART_ROUTE = 'feiyu-memgate/art/'
-    // How long the "Saved" confirmation stays before the bar goes away.
+    // How long a confirmation ("Saved", "Copied") stays before it goes away.
     const SAVED_NOTE_MS = 2600
     // The prefix of every element id the page makes, so that none can meet an id of the host's page.
     const ID_PREFIX = 'feiyu-memgate'
@@ -58,6 +114,8 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
       docs: 'https://github.com/N0rmal-114/feiyu-memgate/tree/main/plugins/dsh-feiyu-memgate#readme',
       source: 'https://github.com/N0rmal-114/feiyu-memgate',
       issues: 'https://github.com/N0rmal-114/feiyu-memgate/issues',
+      // GitHub's page for a new issue; model/feedback.cjs adds the title and the text to it.
+      newIssue: 'https://github.com/N0rmal-114/feiyu-memgate/issues/new',
     }
 
     module.exports = {
@@ -1002,11 +1060,12 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     'use strict'
 
     // The React hooks that talk to the host half: useStatus (polled), useChangelog (read once) and
-    // useModels (polled, plus the clicks of the model list). They own the timers and the "still mounted"
-    // flag; they know nothing about how the data is drawn.
+    // useModels (polled, plus the clicks of the model list); and useCopy, which talks to the clipboard.
+    // They own the timers and the "still mounted" flag; they know nothing about how the data is drawn.
 
     const { useEffect, useRef, useState } = require('./react.cjs')
-    const { STATUS_POLL_MS, MODELS_POLL_MS, MODELS_BUSY_POLL_MS } = require('./constants.cjs')
+    const { STATUS_POLL_MS, MODELS_POLL_MS, MODELS_BUSY_POLL_MS, SAVED_NOTE_MS } = require('./constants.cjs')
+    const { copyText } = require('./clipboard.cjs')
     const { fetchStatus, fetchChangelog, fetchModels, postModels } = require('./net.cjs')
 
     /** The changelog, read once when the page mounts: { loading, data }; data stays null when the read failed. */
@@ -1104,7 +1163,38 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
       return { view: state.view, error: state.error, pending, refusal, reload: () => load.current(), send }
     }
 
-    module.exports = { useChangelog, useStatus, useModels }
+    /**
+     * Copying to the clipboard, with what became of the last copy: { state, copy }.
+     *   state  null | 'copied' | 'failed'; goes back to null by itself after SAVED_NOTE_MS
+     *   copy   put a text on the clipboard; returns the promise of whether it arrived
+     * @param {(text: string) => Promise<boolean>} [copyImpl] replaces the clipboard in tests
+     */
+    function useCopy(copyImpl) {
+      const [state, setState] = useState(null)
+      const alive = useRef(true)
+      useEffect(() => {
+        alive.current = true
+        return () => { alive.current = false }
+      }, [])
+      useEffect(() => {
+        if (state === null) return undefined
+        const timer = setTimeout(() => setState(null), SAVED_NOTE_MS)
+        return () => clearTimeout(timer)
+      }, [state])
+      const copy = (text) => Promise.resolve((copyImpl || copyText)(text)).then(
+        (copied) => {
+          if (alive.current) setState(copied ? 'copied' : 'failed')
+          return Boolean(copied)
+        },
+        () => {
+          if (alive.current) setState('failed')
+          return false
+        },
+      )
+      return { state, copy }
+    }
+
+    module.exports = { useChangelog, useStatus, useModels, useCopy }
   })
 
   // i18n.cjs
@@ -1160,7 +1250,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         secretSet: 'Set', secretUnset: 'Not set', secretHint: 'Leave empty to keep the stored value.',
         secretClear: 'Clear', secretClearing: 'Cleared when you save.',
         lang: 'en',
-        // the redesigned page: tabs, the summary at the top, rows, the save bar, the footer
+        // the page: tabs, the summary at the top, rows, the save bar, the footer, the feedback tab
         'tab.overview': 'Overview',
         'tab.changelog': 'Changelog',
         tabsLabel: 'Sections of the settings',
@@ -1216,7 +1306,34 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         changelogInstalled: 'Installed',
         footDocs: 'Documentation',
         footSource: 'Source',
-        footIssue: 'Report a problem',
+        footFeedback: 'Give feedback',
+        'tab.feedback': 'Feedback',
+        'feedback.title': 'Tell us what you think',
+        'feedback.intro': 'A feature you miss, something that broke, a part that feels clumsy: all of it helps.',
+        'feedback.kind': 'What it is about',
+        'feedback.kind.idea': 'An idea',
+        'feedback.kind.idea.note': 'A feature you miss, or something that could be better',
+        'feedback.kind.problem': 'A problem',
+        'feedback.kind.problem.note': 'Something broke, or does not do what the text says',
+        'feedback.kind.other': 'Something else',
+        'feedback.kind.other.note': 'A question, an impression, anything',
+        'feedback.text': 'Your words',
+        'feedback.hint.idea': 'What are you trying to do, and how do you get by today?',
+        'feedback.hint.problem': 'What happened, what did you expect, and how can it be met again?',
+        'feedback.hint.other': 'Whatever is on your mind.',
+        'feedback.count': '{count} of {max} characters',
+        'feedback.env': 'Attach the environment',
+        'feedback.env.help': 'Version numbers and state names, so that a problem can be found faster. The lines below are everything that is attached: no memory, path, address or key.',
+        'feedback.env.none': 'The status is out of reach right now, so there is nothing to attach.',
+        'feedback.how': 'The button opens GitHub’s new-issue page in your browser with the title and the text filled in. Nothing is sent until you submit it there, and you can change all of it first. The plugin itself sends nothing anywhere.',
+        'feedback.public': 'Issues are public, and you need a GitHub account. Leave out keys, tokens and anything private.',
+        'feedback.submit': 'Continue on GitHub',
+        'feedback.copy': 'Copy the text',
+        'feedback.copied': 'Copied.',
+        'feedback.copyFailed': 'Could not copy. Select the text and copy it by hand.',
+        'feedback.clipped': 'This is too long for a link, so the link carries only the beginning. Pressing the button also copies the whole text: paste it into the issue on GitHub.',
+        'feedback.cutNote': '(Cut here: the text was too long for a link. The whole text is on your clipboard; paste it over this.)',
+        'feedback.others': 'See what others have reported',
         changedCount: '{count} changed',
         modelsTitle: 'Local embedding models',
         modelsIntro: 'Optional. With a local model, memory is recalled by meaning rather than by shared words, on this computer. Nothing is downloaded or installed until you press a button.',
@@ -1291,7 +1408,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         secretSet: '已设置', secretUnset: '未设置', secretHint: '留空则保留已保存的值。',
         secretClear: '清空', secretClearing: '保存时清空。',
         lang: 'zh',
-        // the redesigned page: tabs, the summary at the top, rows, the save bar, the footer
+        // the page: tabs, the summary at the top, rows, the save bar, the footer, the feedback tab
         'tab.overview': '概览',
         'tab.changelog': '更新日志',
         tabsLabel: '设置的各个部分',
@@ -1347,7 +1464,34 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         changelogInstalled: '当前安装',
         footDocs: '文档',
         footSource: '源代码',
-        footIssue: '反馈问题',
+        footFeedback: '提意见',
+        'tab.feedback': '反馈',
+        'feedback.title': '说说你的想法',
+        'feedback.intro': '想要的功能、遇到的问题、用着别扭的地方，都可以说。',
+        'feedback.kind': '关于什么',
+        'feedback.kind.idea': '建议',
+        'feedback.kind.idea.note': '想要的功能，或者哪里可以更好',
+        'feedback.kind.problem': '问题',
+        'feedback.kind.problem.note': '出错了，或者和说明写的不一样',
+        'feedback.kind.other': '其他',
+        'feedback.kind.other.note': '疑问、感想，什么都行',
+        'feedback.text': '想说的话',
+        'feedback.hint.idea': '你想做到什么？现在是怎么凑合的？',
+        'feedback.hint.problem': '发生了什么？你本来以为会怎样？怎样能再遇到它？',
+        'feedback.hint.other': '想到什么写什么。',
+        'feedback.count': '{count} / {max} 字',
+        'feedback.env': '附上运行环境',
+        'feedback.env.help': '版本号和状态，方便更快找到原因。下面列出的就是附上的全部内容，不含记忆、路径、地址和密钥。',
+        'feedback.env.none': '现在读不到状态，没有可附的内容。',
+        'feedback.how': '按钮会在浏览器里打开 GitHub 的新建 issue 页面，标题和正文已经填好。你在那里点提交之后才会发出，发出前可以随意修改。插件自己不向任何地方发送内容。',
+        'feedback.public': 'Issue 是公开的，需要一个 GitHub 账号。不要写密钥、令牌和私人信息。',
+        'feedback.submit': '去 GitHub 提交',
+        'feedback.copy': '复制全文',
+        'feedback.copied': '已复制。',
+        'feedback.copyFailed': '复制没有成功，请手动选中文字复制。',
+        'feedback.clipped': '内容比较长，链接里只放得下开头。点提交时会同时复制全文，到 GitHub 后粘贴到正文里即可。',
+        'feedback.cutNote': '（链接里放不下，这里截断了。全文已复制到剪贴板，请粘贴替换这一段。）',
+        'feedback.others': '看看别人提过什么',
         changedCount: '已改 {count} 项',
         modelsTitle: '本地向量模型',
         modelsIntro: '可选。有了本地模型，记忆按意思而不是按字面找回，全部在这台电脑上完成。按下按钮之前不会下载或安装任何东西。',
@@ -1418,7 +1562,9 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     const { dictionaries } = require('./i18n.cjs')
     const { TABS, placedKeys } = require('./layout.cjs')
     const { fetchChangelog, fetchStatus, fetchModels, postModels } = require('./net.cjs')
+    const { copyText } = require('./clipboard.cjs')
     const { entryDate, releases } = require('./model/changelog.cjs')
+    const feedback = require('./model/feedback.cjs')
     const { fieldView, buildOps, saveDraft, checkText } = require('./model/form.cjs')
     const { pickText, formatSize, memoryText, modelActions, chainLine, sameProblem } = require('./model/models.cjs')
     const { formatCount, summarise } = require('./model/overview.cjs')
@@ -1426,11 +1572,12 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     const { statusRows } = require('./model/status.cjs')
     const { STYLE_ID, installStyles } = require('./theme/styles.cjs')
     const { stepText } = require('./kit/controls.cjs')
+    const { emptyFeedback, FeedbackTab } = require('./view/feedback.cjs')
     const { FieldRow, fieldId } = require('./view/field-row.cjs')
     const { Hero, artUrl } = require('./view/hero.cjs')
     const { inlineMarkdown, renderMarkdown } = require('./view/markdown.cjs')
     const { ModelRow, ModelsPanel } = require('./view/models.cjs')
-    const { SaveBar, SettingsBody, SettingsPage } = require('./view/page.cjs')
+    const { Footer, SaveBar, SettingsBody, SettingsPage } = require('./view/page.cjs')
     const { SettingsTab } = require('./view/settings-tab.cjs')
     const { ChangelogTab, OverviewTab } = require('./view/tabs.cjs')
 
@@ -1465,9 +1612,10 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         fieldView, buildOps, saveDraft, checkText, splitOption, isMet, sectionView, pageView, savable,
         statusRows, summarise, formatCount, entryDate, releases,
         pickText, formatSize, memoryText, modelActions, chainLine, sameProblem, stepText, fieldId, artUrl,
+        feedback, emptyFeedback, copyText,
         // view
         installStyles, inlineMarkdown, renderMarkdown,
-        Hero, FieldRow, SettingsTab, OverviewTab, ChangelogTab, ModelRow, ModelsPanel, SaveBar, SettingsBody, SettingsPage,
+        Hero, FieldRow, SettingsTab, OverviewTab, ChangelogTab, FeedbackTab, ModelRow, ModelsPanel, SaveBar, Footer, SettingsBody, SettingsPage,
       },
     }
   })
@@ -1475,7 +1623,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
   // kit/controls.cjs
   define("kit/controls.cjs", function (require, module, exports) {
     'use strict'
-    // The controls of the page: button, tag, switch, text input, number stepper, list of choices.
+    // The controls of the page: button, tag, switch, text input, text area, number stepper, list of choices.
     //
     // They are the page's own (not the host's primitives) so that the page looks the same on every host
     // version it supports and can be drawn outside a host (scripts/preview-client.mjs). Their sizes
@@ -1544,6 +1692,26 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         spellCheck: false,
         disabled: props.disabled || undefined,
         'aria-invalid': props.invalid ? 'true' : undefined,
+        'aria-describedby': props.describedBy,
+        onChange: (event) => props.onChange(event.target.value),
+      })
+    }
+
+    /**
+     * Several lines of text; the person can drag it taller. `onChange` gets the text, not the event.
+     * @param {{ id: string, value: string, rows?: number, maxLength?: number, placeholder?: string,
+     *   describedBy?: string, disabled?: boolean, onChange: (text: string) => void }} props
+     */
+    function TextArea(props) {
+      return h('textarea', {
+        id: props.id,
+        className: 'fmg-input fmg-input--area',
+        value: props.value,
+        rows: props.rows || 6,
+        maxLength: props.maxLength,
+        placeholder: props.placeholder,
+        autoComplete: 'off',
+        disabled: props.disabled || undefined,
         'aria-describedby': props.describedBy,
         onChange: (event) => props.onChange(event.target.value),
       })
@@ -1637,7 +1805,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
       }))
     }
 
-    module.exports = { Button, Tag, Switch, TextInput, stepText, Stepper, Choices }
+    module.exports = { Button, Tag, Switch, TextInput, TextArea, stepText, Stepper, Choices }
   })
 
   // kit/icons.cjs
@@ -1828,7 +1996,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     //   - a setting with `needs` sits in the same section as the setting it depends on, after it
     //     (the page draws it as a sub-row that appears while the other setting has a fitting value).
     //
-    // Two tabs hold no settings and are not listed here: the overview (status) and the changelog.
+    // Three tabs hold no settings and are not listed here: the overview (status), the changelog and feedback.
     // `panel` names a part of the page that is not a settings row and is drawn after the section's rows.
 
     const TABS = [
@@ -1984,6 +2152,147 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     }
 
     module.exports = { entryDate, releases }
+  })
+
+  // model/feedback.cjs
+  define("model/feedback.cjs", function (require, module, exports) {
+    'use strict'
+    // Feedback: what a person wrote, turned into the address of GitHub's "new issue" page with the title
+    // and the text filled in. The plugin sends nothing anywhere. The person's own browser opens the
+    // address, shows what is filled in, and the report exists only once they press GitHub's own button.
+    //
+    // Pure, and the one module of the page that the host half loads as well (src/commands.js, for
+    // /memgate feedback), so that both build the same address. It requires the constants and nothing else.
+    //
+    // What may go into a report besides the person's own words is decided here and nowhere else:
+    // environment() takes version numbers and state names from the status, and every value has to look
+    // like one (SAFE) or is replaced by a question mark. So a path, an address, a file name, a count of
+    // memories or a secret cannot get in, whatever a later version of the status holds.
+
+    const { LINKS } = require('../constants.cjs')
+
+    /** What a report is about, in the order the page offers them. */
+    const KINDS = ['idea', 'problem', 'other']
+    // The start of the issue title, so that the list of issues can be read at a glance.
+    const TITLE_TAGS = { idea: '[idea]', problem: '[bug]', other: '[feedback]' }
+    /** The longest text the page accepts, in characters. */
+    const MAX_TEXT = 4000
+    // The title is the first line of the text, up to this many characters.
+    const MAX_TITLE = 60
+    // The longest address that is handed to a browser. GitHub answers 414 somewhere above 8,000
+    // characters; a Chinese character takes nine once it is percent-encoded.
+    const MAX_URL = 6000
+    // A version number, a state name, a model id: letters, digits, dots, dashes, at most 40 characters.
+    const SAFE = /^[A-Za-z0-9][A-Za-z0-9 ._+-]{0,39}$/
+    // A half of a surrogate pair without its other half: encodeURIComponent throws on one.
+    const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g
+    const ENV_HEADING = 'Environment (added by dsh-feiyu-memgate)'
+    const CUT_NOTE = '(Cut here: the text was too long for a link. Paste the whole text over this.)'
+
+    /** A value of the status as it may appear in a report: itself when it looks like a name or a number, else '?'. */
+    function safe(value) {
+      const text = typeof value === 'number' ? String(value) : value
+      return typeof text === 'string' && SAFE.test(text) ? text : '?'
+    }
+
+    /**
+     * The environment lines of a report, from the answer of the status route.
+     * @param {object | null | undefined} status
+     * @returns {[string, string][]} name and value pairs; empty when there is no status to take them from
+     */
+    function environment(status) {
+      if (!status || typeof status !== 'object') return []
+      const rows = [['plugin', 'dsh-feiyu-memgate ' + safe(status.version)]]
+      const embed = status.embed
+      rows.push(['add-on', embed
+        ? ['dsh-feiyu-memgate-embed ' + safe(embed.version), safe(embed.state)].concat(embed.model ? [safe(embed.model)] : []).join(', ')
+        : 'not installed'])
+      const gateway = status.gateway || {}
+      rows.push(['gateway', safe(gateway.mode) + ', ' + safe(gateway.state)])
+      if (gateway.mode !== 'external') {
+        const retrieval = status.retrieval || {}
+        rows.push(['retrieval', safe(retrieval.setting)
+          + (retrieval.active ? ' -> ' + safe(retrieval.active) : '')
+          + (retrieval.hybrid && retrieval.hybrid.active ? ' + keyword' : '')])
+        const python = status.python
+        rows.push(['python', !python ? 'not checked' : python.found ? safe(python.version) : 'not found'])
+      }
+      const runtime = status.runtime
+      if (runtime) rows.push(['system', safe(runtime.platform) + ' ' + safe(runtime.arch) + ', Node ' + safe(runtime.node)])
+      rows.push(['language', safe(status.language)])
+      return rows
+    }
+
+    /** The text as it is used: one kind of line break, no stray half characters, trimmed, at most MAX_TEXT characters. */
+    function cleanText(text) {
+      const tidy = String(text === null || text === undefined ? '' : text).replace(/\r\n?/g, '\n').replace(LONE_SURROGATE, '�').trim()
+      const points = Array.from(tidy)
+      return points.length > MAX_TEXT ? points.slice(0, MAX_TEXT).join('').trim() : tidy
+    }
+
+    /** The issue title: the tag of the kind, then the first line of the text, shortened. */
+    function titleOf(kind, text) {
+      const tag = TITLE_TAGS[kind] || TITLE_TAGS.other
+      const first = cleanText(text).split('\n').map((line) => line.trim()).find(Boolean) || ''
+      const points = Array.from(first)
+      const line = points.length > MAX_TITLE ? points.slice(0, MAX_TITLE).join('').trim() + '…' : first
+      return line ? tag + ' ' + line : tag
+    }
+
+    /** The issue text: the person's words, then the environment lines under a rule when there are any. */
+    function bodyOf(text, rows) {
+      const parts = []
+      if (text) parts.push(text)
+      if (rows && rows.length) parts.push('---\n' + ENV_HEADING + '\n' + rows.map((row) => '- ' + row[0] + ': ' + row[1]).join('\n'))
+      return parts.join('\n\n')
+    }
+
+    /** The address of GitHub's new-issue page with a title and a text filled in. */
+    function addressOf(title, body) {
+      return LINKS.newIssue + '?title=' + encodeURIComponent(title) + '&body=' + encodeURIComponent(body)
+    }
+
+    /**
+     * A report, ready to hand over.
+     * @param {{ kind?: string, text?: string, environment?: [string, string][], cutNote?: string }} draft
+     *   `environment` is environment() or an empty list when the person does not want it attached;
+     *   `cutNote` is the line that marks a cut, in the person's language.
+     * @returns {{ ready: boolean, title: string, body: string, url: string, clipped: boolean }}
+     *   `ready`: there is something written. `title` and `body` are the whole report. `url` opens the
+     *   new-issue page with them filled in; when they do not fit into an address (`clipped`), the text in
+     *   the address is cut and ends with the note, and the whole report has to travel by the clipboard.
+     */
+    function compose(draft) {
+      const input = draft || {}
+      const text = cleanText(input.text)
+      const rows = Array.isArray(input.environment) ? input.environment : []
+      const title = titleOf(input.kind, text)
+      const body = bodyOf(text, rows)
+      let url = addressOf(title, body)
+      const clipped = url.length > MAX_URL
+      if (clipped) {
+        // The longest beginning of the text that still fits with the note and the environment lines.
+        const note = '\n\n' + (input.cutNote || CUT_NOTE)
+        const points = Array.from(text)
+        const fits = (count) => addressOf(title, bodyOf(points.slice(0, count).join('') + note, rows)).length <= MAX_URL
+        let low = 0
+        let high = points.length
+        while (low < high) {
+          const middle = Math.ceil((low + high) / 2)
+          if (fits(middle)) low = middle
+          else high = middle - 1
+        }
+        url = addressOf(title, bodyOf(points.slice(0, low).join('').trim() + note, rows))
+      }
+      return { ready: text.length > 0, title, body, url, clipped }
+    }
+
+    /** The whole report as one text, for the clipboard. */
+    function reportText(composed) {
+      return composed.title + '\n\n' + composed.body
+    }
+
+    module.exports = { KINDS, TITLE_TAGS, MAX_TEXT, MAX_TITLE, MAX_URL, safe, environment, cleanText, titleOf, bodyOf, compose, reportText }
   })
 
   // model/form.cjs
@@ -2522,7 +2831,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
 
   // theme/page.css
   define("theme/page.css", function (require, module) {
-    module.exports = "/*\n * The stylesheet of the settings page. Assembled into client/client.js as a string module and applied\n * once by theme/styles.cjs.\n *\n * How it is organised:\n *   1. Tokens. `.fmg-root` maps the host's style variables to the page's own (`--fmg-*`) and defines\n *      the few colours the page brings itself. Every rule below uses `--fmg-*` only, so this block is\n *      the single place that knows the host's names, and each mapping has a fallback for a host that\n *      does not define it.\n *   2. Parts, in the order they appear on the page: hero, tabs, sections and rows, controls, panels,\n *      save bar, changelog, footer.\n *\n * Conventions:\n *   - Every class starts with `fmg-`; modifiers are `--name`; state is carried by ARIA or data\n *     attributes the components set anyway (`aria-selected`, `aria-checked`, `data-open`), not by\n *     extra classes.\n *   - No rule reaches outside `.fmg-root`, so nothing leaks into the host's page.\n *   - Dark and light: there is no theme branch. The host's variables switch by themselves and the\n *     page's own colours are mixed from them (`color-mix`), so a third-party theme carries through.\n *   - Lines are hairlines (`--fmg-hair`, the host's device-pixel-aware width), like the host's own.\n *   - The host draws every corner as a superellipse; shapes that must be true circles or pills say\n *     `corner-shape: round`.\n *   - Hover rules sit under `@media (hover: hover)`, so a touch screen shows no stuck hover.\n *   - Spacing steps are 4, 8, 12, 16, 24, 32; text sizes are 12, 13, 14 and 18, on the host's line\n *     heights (18, 20, 20, 26).\n *   - Width: the root is a size container; the narrow rules are container queries, because the page\n *     sits in a column of the host whose width has little to do with the window's.\n */\n\n/* ------------------------------------------------------------------ 1. tokens */\n\n.fmg-root {\n  /* host → page. The host switches these between light and dark by itself (and a third-party theme\n     may override them), so nothing below has a theme branch. */\n  --fmg-ink: var(--dsw-alias-label-primary, #0f1115);\n  --fmg-ink-2: var(--dsw-alias-label-secondary, #61666b);\n  --fmg-ink-3: var(--dsw-alias-label-tertiary, #81858c);\n  --fmg-base: var(--dsw-alias-bg-base, #ffffff);\n  --fmg-surface: var(--dsw-alias-settings-card-fill, #ffffff);\n  --fmg-raised: var(--dsw-alias-bg-layer-3, #ffffff);\n  --fmg-sunk: var(--dsw-alias-bg-module-platform, #f5f6f7);\n  --fmg-hover: var(--dsw-alias-interactive-bg-hover, rgba(38, 49, 72, 0.06));\n  --fmg-line: var(--dsw-alias-border-l2, rgba(0, 0, 0, 0.1));\n  --fmg-line-strong: var(--dsw-alias-border-l4, rgba(0, 0, 0, 0.16));\n  --fmg-hair: var(--dsh-hairline-width, 1px);\n  --fmg-danger: var(--dsw-alias-state-error-primary, #ec1313);\n  --fmg-thumb: var(--dsw-alias-switch-thumb, #ffffff);\n  --fmg-radius-s: var(--dsw-radius-sm, 8px);    /* small buttons */\n  --fmg-radius-m: var(--dsw-radius-md, 12px);   /* inputs, choices, notices */\n  --fmg-radius-l: var(--dsw-radius-lg, 16px);   /* groups of rows */\n  --fmg-radius-xl: var(--dsw-radius-xl, 20px);  /* the hero */\n  --fmg-mono: var(--dsh-font-family-code-default, 'SF Mono', 'JetBrains Mono', Consolas, Menlo, monospace);\n  --fmg-ease: var(--ds-ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));\n\n  /* The page's own colour is the sea the mascot lives in. It is the host's blue accent, so it already\n     has a light and a dark value; everything else is mixed from it and from the host's neutrals. */\n  --fmg-sea: var(--dsw-alias-state-business-primary, #4176e6);   /* switches that are on, the primary button, the selected tab */\n  --fmg-sea-ink: var(--dsw-alias-link, #4176e6);                 /* the same blue as text */\n  --fmg-on-sea: var(--dsw-alias-label-primary-foreground, #ffffff);\n  --fmg-sea-wash: color-mix(in srgb, var(--fmg-sea) 10%, transparent);\n  --fmg-sea-edge: color-mix(in srgb, var(--fmg-sea) 38%, transparent);\n  /* Her cheeks: the one warm colour, kept for \"experimental\". Mixed with the text colour so that it\n     is dark on a light page and light on a dark one. */\n  --fmg-blush: color-mix(in srgb, #e0528d 72%, var(--fmg-ink));\n  --fmg-blush-wash: color-mix(in srgb, #e0528d 12%, transparent);\n  /* Status colours as text: the host's are picked for dots and fills, too light to read on white. */\n  --fmg-ok-fill: var(--dsw-alias-state-success-primary, #22c55e);\n  --fmg-ok: color-mix(in srgb, var(--fmg-ok-fill) 68%, var(--fmg-ink));\n  --fmg-wait-fill: var(--dsw-alias-state-warn-primary, #f59e0b);\n  --fmg-wait: color-mix(in srgb, var(--dsw-alias-state-warn-label, #dd8629) 78%, var(--fmg-ink));\n  --fmg-warn-wash: color-mix(in srgb, var(--fmg-wait-fill) 14%, transparent);\n  --fmg-hero-a: color-mix(in srgb, var(--fmg-sea) 20%, var(--fmg-base));\n  --fmg-hero-b: color-mix(in srgb, var(--fmg-sea) 5%, var(--fmg-base));\n  --fmg-hero-edge: color-mix(in srgb, var(--fmg-sea) 24%, transparent);\n  --fmg-hero-chip: color-mix(in srgb, var(--fmg-base) 62%, transparent);\n  --fmg-bubble: color-mix(in srgb, var(--fmg-sea) 26%, transparent);\n  --fmg-shadow: var(--dsw-shadow-lv2, 0 6px 24px rgba(15, 17, 21, 0.14), 0 1px 3px rgba(15, 17, 21, 0.1));\n\n  container-type: inline-size;\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n  min-width: 0;\n  color: var(--fmg-ink);\n  font-size: 13px;\n  line-height: 20px;\n  text-align: left;\n}\n\n/* The resets are written with :where(), which adds no weight: any rule of a part further down wins\n   over them without having to out-rank them. */\n:where(.fmg-root) *,\n:where(.fmg-root) *::before,\n:where(.fmg-root) *::after {\n  box-sizing: border-box;\n}\n\n:where(.fmg-root) :is(p, h4, h5, dl, dd, ul) {\n  margin: 0;\n  padding: 0;\n  font: inherit;\n}\n\n:where(.fmg-root) ul {\n  list-style: none;\n}\n\n/* One focus ring for everything that takes the keyboard. */\n.fmg-root :focus-visible {\n  outline: 2px solid var(--fmg-sea);\n  outline-offset: 2px;\n}\n\n.fmg-note {\n  color: var(--fmg-ink-2);\n  font-size: 12px;\n}\n\n.fmg-quiet {\n  color: var(--fmg-ink-3);\n  font-size: 12px;\n}\n\n.fmg-link {\n  color: var(--fmg-sea-ink);\n  text-decoration: none;\n}\n\n@media (hover: hover) {\n  .fmg-link:hover {\n    text-decoration: underline;\n  }\n}\n\n.fmg-code {\n  padding: 0 4px;\n  border-radius: 4px;\n  background: var(--fmg-sunk);\n  font-family: var(--fmg-mono);\n  font-size: 0.92em;\n}\n\n/* ------------------------------------------------------------------ 2. hero */\n\n/* The margin on top is the room the mascot's head needs: she stands on the card's lower edge and is\n   taller than the card. */\n.fmg-hero {\n  position: relative;\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) auto;\n  align-items: end;\n  gap: 16px;\n  margin-top: 28px;\n  padding: 20px 8px 20px 24px;\n  min-height: 132px;\n  border: var(--fmg-hair) solid var(--fmg-hero-edge);\n  border-radius: var(--fmg-radius-xl);\n  background: linear-gradient(120deg, var(--fmg-hero-a) 0%, var(--fmg-hero-b) 62%);\n  color: var(--fmg-ink);\n}\n\n.fmg-hero__text {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  align-self: center;\n  min-width: 0;\n}\n\n.fmg-hero__head {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  font-size: 18px;\n  font-weight: 600;\n  line-height: 26px;\n}\n\n.fmg-hero__line {\n  max-width: 520px;\n  color: var(--fmg-ink-2);\n  font-size: 13px;\n}\n\n.fmg-hero__facts {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 6px;\n  margin-top: 4px;\n}\n\n.fmg-fact {\n  padding: 2px 10px;\n  border: var(--fmg-hair) solid var(--fmg-hero-edge);\n  border-radius: 999px;\n  corner-shape: round;\n  background: var(--fmg-hero-chip);\n  color: var(--fmg-ink);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  white-space: nowrap;\n}\n\n.fmg-fact--warn {\n  border-color: transparent;\n  background: var(--fmg-warn-wash);\n  color: var(--fmg-wait);\n}\n\n/* The state at a glance, for those who do not read the drawing: a dot in front of the headline. */\n.fmg-dot {\n  flex: none;\n  width: 8px;\n  height: 8px;\n  border-radius: 50%;\n  corner-shape: round;\n  background: var(--fmg-ink-3);\n}\n\n.fmg-dot[data-mood='ready'] {\n  background: var(--fmg-ok);\n  box-shadow: 0 0 0 4px color-mix(in srgb, var(--fmg-ok) 18%, transparent);\n}\n\n.fmg-dot[data-mood='busy'] {\n  background: var(--fmg-wait);\n  animation: fmg-pulse 1.6s ease-in-out infinite;\n}\n\n.fmg-dot[data-mood='trouble'] {\n  background: var(--fmg-danger);\n  box-shadow: 0 0 0 4px color-mix(in srgb, var(--fmg-danger) 18%, transparent);\n}\n\n.fmg-hero__art {\n  position: relative;\n  align-self: end;\n  width: 123px;\n  height: 172px;\n  margin: -48px 0 -20px;\n  pointer-events: none;\n}\n\n.fmg-hero__art img {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: contain;\n  object-position: bottom;\n  opacity: 0;\n  transition: opacity 0.35s ease;\n}\n\n.fmg-hero__art img[data-shown='true'] {\n  opacity: 1;\n  animation: fmg-bob 5s ease-in-out infinite;\n}\n\n/* Three bubbles drift up behind the text; decoration only. */\n.fmg-hero__sea {\n  position: absolute;\n  inset: 0;\n  overflow: hidden;\n  border-radius: inherit;\n  pointer-events: none;\n}\n\n.fmg-hero__sea i {\n  position: absolute;\n  bottom: -24px;\n  border: var(--fmg-hair) solid var(--fmg-bubble);\n  border-radius: 50%;\n  corner-shape: round;\n  background: radial-gradient(circle at 32% 30%, transparent 55%, var(--fmg-bubble) 100%);\n  animation: fmg-rise 14s linear infinite;\n}\n\n.fmg-hero__sea i:nth-child(1) { left: 58%; width: 14px; height: 14px; animation-delay: -2s; }\n.fmg-hero__sea i:nth-child(2) { left: 67%; width: 22px; height: 22px; animation-duration: 19s; animation-delay: -9s; }\n.fmg-hero__sea i:nth-child(3) { left: 44%; width: 9px; height: 9px; animation-duration: 11s; animation-delay: -5s; }\n\n@keyframes fmg-rise {\n  from { transform: translateY(0); opacity: 0; }\n  12% { opacity: 1; }\n  85% { opacity: 1; }\n  to { transform: translateY(-190px); opacity: 0; }\n}\n\n@keyframes fmg-bob {\n  0%, 100% { transform: translateY(0); }\n  50% { transform: translateY(-3px); }\n}\n\n@keyframes fmg-pulse {\n  0%, 100% { opacity: 1; }\n  50% { opacity: 0.35; }\n}\n\n/* ------------------------------------------------------------------ 3. tabs */\n\n.fmg-tabs {\n  display: flex;\n  gap: 4px;\n  overflow-x: auto;\n  border-bottom: var(--fmg-hair) solid var(--fmg-line);\n  scrollbar-width: none;\n}\n\n.fmg-tabs::-webkit-scrollbar {\n  display: none;\n}\n\n.fmg-tab {\n  position: relative;\n  flex: none;\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n  padding: 8px 12px 10px;\n  border: 0;\n  background: none;\n  color: var(--fmg-ink-2);\n  font: inherit;\n  font-size: 13px;\n  cursor: pointer;\n  transition: color 0.15s ease;\n}\n\n@media (hover: hover) {\n  .fmg-tab:hover {\n    color: var(--fmg-ink);\n  }\n}\n\n.fmg-tab::after {\n  content: '';\n  position: absolute;\n  left: 12px;\n  right: 12px;\n  bottom: -1px;\n  height: 2px;\n  border-radius: 2px;\n  background: var(--fmg-sea);\n  transform: scaleX(0);\n  transition: transform 0.2s ease;\n}\n\n.fmg-tab[aria-selected='true'] {\n  color: var(--fmg-ink);\n  font-weight: 600;\n}\n\n.fmg-tab[aria-selected='true']::after {\n  transform: scaleX(1);\n}\n\n/* A tab that holds unsaved edits. */\n.fmg-mark {\n  width: 6px;\n  height: 6px;\n  border-radius: 50%;\n  corner-shape: round;\n  background: var(--fmg-sea);\n}\n\n.fmg-mark--invalid {\n  background: var(--fmg-danger);\n}\n\n.fmg-panel {\n  display: flex;\n  flex-direction: column;\n  gap: 24px;\n  padding-top: 4px;\n}\n\n/* ------------------------------------------------------------------ 4. sections and rows */\n\n.fmg-section {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.fmg-section__head {\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n  padding: 0 4px;\n}\n\n.fmg-section__title {\n  font-size: 14px;\n  font-weight: 600;\n  line-height: 1.5;\n}\n\n/* A group is the bordered list the rows of a section sit in. `fmg-rows` draws the lines between\n   rows, for a group and for the body of a folding group alike. */\n.fmg-group {\n  border: var(--fmg-hair) solid var(--fmg-line);\n  border-radius: var(--fmg-radius-l);\n  background: var(--fmg-surface);\n  overflow: hidden;\n}\n\n.fmg-rows > * + * {\n  border-top: var(--fmg-hair) solid var(--fmg-line);\n}\n\n/* A closed part takes no room, so it draws no line either. */\n.fmg-rows > .fmg-reveal:not([data-open='true']) {\n  border-top-width: 0;\n}\n\n.fmg-row {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) auto;\n  align-items: start;\n  column-gap: 24px;\n  row-gap: 10px;\n  padding: 14px 16px;\n}\n\n/* A row whose control needs the full width (text, choices) puts it under the text. */\n.fmg-row--stack {\n  grid-template-columns: minmax(0, 1fr);\n}\n\n.fmg-row__text {\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n  min-width: 0;\n}\n\n.fmg-row__label {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 4px 8px;\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.fmg-row__help {\n  max-width: 640px;\n  color: var(--fmg-ink-2);\n  font-size: 12px;\n}\n\n.fmg-row__error {\n  color: var(--fmg-danger);\n  font-size: 12px;\n}\n\n.fmg-row__control {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  min-height: 22px;\n}\n\n/* A setting that depends on the one above it: set in, with a rail down the left. */\n.fmg-row--sub {\n  padding-left: 32px;\n  background:\n    linear-gradient(var(--fmg-sea-edge), var(--fmg-sea-edge)) 16px 0 / 2px 100% no-repeat,\n    var(--fmg-sunk);\n}\n\n/* A part that opens and closes: the height animates through the grid row. While closed the content\n   is not visible, which also keeps the keyboard and a screen reader out of it; the switch to hidden\n   waits until the closing animation is over. */\n.fmg-reveal {\n  display: grid;\n  grid-template-rows: 0fr;\n  transition: grid-template-rows 0.22s var(--fmg-ease);\n}\n\n.fmg-reveal[data-open='true'] {\n  grid-template-rows: 1fr;\n}\n\n.fmg-reveal > div {\n  min-height: 0;\n  overflow: hidden;\n  visibility: hidden;\n  transition: visibility 0s linear 0.22s;\n}\n\n.fmg-reveal[data-open='true'] > div {\n  visibility: visible;\n  transition-delay: 0s;\n}\n\n/* ------------------------------------------------------------------ 5. controls */\n\n.fmg-tag {\n  display: inline-flex;\n  align-items: center;\n  padding: 0 7px;\n  border-radius: 999px;\n  corner-shape: round;\n  background: var(--fmg-sunk);\n  color: var(--fmg-ink-2);\n  font-size: 11px;\n  font-weight: 500;\n  line-height: 18px;\n  white-space: nowrap;\n}\n\n.fmg-tag--sea { background: var(--fmg-sea-wash); color: var(--fmg-sea-ink); }\n.fmg-tag--blush { background: var(--fmg-blush-wash); color: var(--fmg-blush); }\n.fmg-tag--warn { background: var(--fmg-warn-wash); color: var(--fmg-wait); }\n.fmg-tag--ok { background: color-mix(in srgb, var(--fmg-ok) 14%, transparent); color: var(--fmg-ok); }\n\n.fmg-button {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  height: 30px;\n  padding: 0 12px;\n  border: var(--fmg-hair) solid var(--fmg-line-strong);\n  border-radius: var(--fmg-radius-s);\n  background: var(--fmg-raised);\n  color: var(--fmg-ink);\n  font: inherit;\n  font-size: 13px;\n  white-space: nowrap;\n  cursor: pointer;\n  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;\n}\n\n@media (hover: hover) {\n  .fmg-button:hover:not(:disabled) {\n    background: color-mix(in srgb, var(--fmg-raised), var(--fmg-ink) 6%);\n  }\n}\n\n.fmg-button:disabled {\n  opacity: 0.5;\n  cursor: default;\n}\n\n.fmg-button--primary {\n  border-color: transparent;\n  background: var(--fmg-sea);\n  color: var(--fmg-on-sea);\n  font-weight: 500;\n}\n\n@media (hover: hover) {\n  .fmg-button--primary:hover:not(:disabled) {\n    background: color-mix(in srgb, var(--fmg-sea) 88%, #000);\n  }\n}\n\n/* A button that reads as text: \"Reset\", \"Clear\", \"Refresh\". */\n.fmg-button--text {\n  height: auto;\n  padding: 0;\n  border: 0;\n  background: none;\n  color: var(--fmg-sea-ink);\n  font-size: 12px;\n}\n\n@media (hover: hover) {\n  .fmg-button--text:hover:not(:disabled) {\n    background: none;\n    text-decoration: underline;\n  }\n}\n\n.fmg-switch {\n  position: relative;\n  flex: none;\n  width: 36px;\n  height: 20px;\n  padding: 0;\n  border: 0;\n  border-radius: 999px;\n  corner-shape: round;\n  background: var(--fmg-line-strong);\n  cursor: pointer;\n  transition: background-color 0.18s ease;\n}\n\n.fmg-switch::after {\n  content: '';\n  position: absolute;\n  top: 2px;\n  left: 2px;\n  width: 16px;\n  height: 16px;\n  border-radius: 50%;\n  corner-shape: round;\n  background: var(--fmg-thumb);\n  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);\n  transition: transform 0.18s ease;\n}\n\n.fmg-switch[aria-checked='true'] {\n  background: var(--fmg-sea);\n}\n\n.fmg-switch[aria-checked='true']::after {\n  background: var(--fmg-on-sea);\n  transform: translateX(16px);\n}\n\n.fmg-switch:disabled {\n  opacity: 0.5;\n  cursor: default;\n}\n\n.fmg-input {\n  width: 100%;\n  height: 34px;\n  padding: 0 12px;\n  border: var(--fmg-hair) solid var(--fmg-line-strong);\n  border-radius: var(--fmg-radius-m);\n  background: var(--fmg-raised);\n  color: var(--fmg-ink);\n  font: inherit;\n  font-size: 13px;\n  transition: border-color 0.15s ease, box-shadow 0.15s ease;\n}\n\n.fmg-input::placeholder {\n  color: var(--fmg-ink-3);\n}\n\n@media (hover: hover) {\n  .fmg-input:hover:not(:disabled) {\n    border-color: var(--fmg-sea-edge);\n  }\n}\n\n.fmg-input:focus-visible {\n  outline: none;\n  border-color: var(--fmg-sea);\n  box-shadow: 0 0 0 3px var(--fmg-sea-wash);\n}\n\n.fmg-input[aria-invalid='true'] {\n  border-color: var(--fmg-danger);\n}\n\n.fmg-input:disabled {\n  opacity: 0.6;\n}\n\n.fmg-input-line {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  width: 100%;\n  max-width: 460px;\n}\n\n/* A number with a minus and a plus: one bordered box, the unit after it. */\n.fmg-stepper {\n  display: inline-flex;\n  align-items: stretch;\n  height: 30px;\n  border: var(--fmg-hair) solid var(--fmg-line-strong);\n  border-radius: var(--fmg-radius-m);\n  background: var(--fmg-raised);\n  overflow: hidden;\n  transition: border-color 0.15s ease, box-shadow 0.15s ease;\n}\n\n.fmg-stepper:focus-within {\n  border-color: var(--fmg-sea);\n  box-shadow: 0 0 0 3px var(--fmg-sea-wash);\n}\n\n.fmg-stepper[data-invalid='true'] {\n  border-color: var(--fmg-danger);\n}\n\n.fmg-stepper input {\n  width: 56px;\n  padding: 0 4px;\n  border: 0;\n  background: none;\n  color: var(--fmg-ink);\n  font: inherit;\n  font-size: 13px;\n  font-variant-numeric: tabular-nums;\n  text-align: center;\n}\n\n.fmg-stepper input:focus-visible {\n  outline: none;\n}\n\n.fmg-stepper button {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  width: 28px;\n  padding: 0;\n  border: 0;\n  background: none;\n  color: var(--fmg-ink-2);\n  cursor: pointer;\n}\n\n@media (hover: hover) {\n  .fmg-stepper button:hover:not(:disabled) {\n    background: var(--fmg-sunk);\n    color: var(--fmg-ink);\n  }\n}\n\n.fmg-stepper button:disabled {\n  opacity: 0.35;\n  cursor: default;\n}\n\n.fmg-stepper button:focus-visible {\n  outline-offset: -2px;\n}\n\n/* The options of a choice, each with what it means: a list of radio rows. */\n.fmg-choices {\n  width: 100%;\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n  gap: 8px;\n}\n\n/* Four options would wrap three and one: two by two reads better. */\n.fmg-choices[data-count='4'] {\n  grid-template-columns: repeat(2, minmax(0, 1fr));\n}\n\n.fmg-choice {\n  display: grid;\n  grid-template-columns: auto minmax(0, 1fr);\n  align-items: start;\n  column-gap: 10px;\n  padding: 10px 12px;\n  border: var(--fmg-hair) solid var(--fmg-line);\n  border-radius: var(--fmg-radius-m);\n  background: var(--fmg-raised);\n  color: inherit;\n  font: inherit;\n  text-align: left;\n  cursor: pointer;\n  transition: border-color 0.15s ease, background-color 0.15s ease;\n}\n\n@media (hover: hover) {\n  .fmg-choice:hover:not(:disabled) {\n    border-color: var(--fmg-sea-edge);\n  }\n}\n\n.fmg-choice[aria-checked='true'] {\n  border-color: var(--fmg-sea);\n  background: var(--fmg-sea-wash);\n}\n\n.fmg-choice:disabled {\n  opacity: 0.6;\n  cursor: default;\n}\n\n.fmg-choice__dot {\n  width: 14px;\n  height: 14px;\n  margin-top: 3px;\n  border: 1.5px solid var(--fmg-line-strong);\n  border-radius: 50%;\n  corner-shape: round;\n  background: var(--fmg-raised);\n}\n\n.fmg-choice[aria-checked='true'] .fmg-choice__dot {\n  border: 4px solid var(--fmg-sea);\n  background: var(--fmg-on-sea);\n}\n\n.fmg-choice__name {\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.fmg-choice__note {\n  display: block;\n  color: var(--fmg-ink-2);\n  font-size: 12px;\n  font-weight: 400;\n}\n\n/* ------------------------------------------------------------------ 6. disclosures, panels, notices */\n\n.fmg-fold {\n  border: var(--fmg-hair) solid var(--fmg-line);\n  border-radius: var(--fmg-radius-l);\n  background: var(--fmg-surface);\n  overflow: hidden;\n}\n\n.fmg-fold__head {\n  display: grid;\n  grid-template-columns: auto minmax(0, 1fr) auto;\n  align-items: center;\n  gap: 12px;\n  width: 100%;\n  padding: 14px 16px;\n  border: 0;\n  background: none;\n  color: inherit;\n  font: inherit;\n  text-align: left;\n  cursor: pointer;\n}\n\n@media (hover: hover) {\n  .fmg-fold__head:hover {\n    background: var(--fmg-hover);\n  }\n}\n\n.fmg-fold__head:focus-visible {\n  outline-offset: -2px;\n}\n\n.fmg-fold__chevron {\n  color: var(--fmg-ink-3);\n  transition: transform 0.2s ease;\n}\n\n.fmg-root [aria-expanded='true'] > .fmg-fold__chevron {\n  transform: rotate(90deg);\n}\n\n.fmg-fold__title {\n  display: block;\n  font-size: 14px;\n  font-weight: 600;\n}\n\n.fmg-fold__help {\n  display: block;\n  color: var(--fmg-ink-2);\n  font-size: 12px;\n}\n\n.fmg-fold__body {\n  border-top: var(--fmg-hair) solid var(--fmg-line);\n}\n\n/* Label and value pairs: the details of the overview, the facts of a model. */\n.fmg-facts {\n  display: grid;\n  grid-template-columns: max-content minmax(0, 1fr);\n  gap: 6px 16px;\n  padding: 14px 16px;\n  font-size: 12px;\n}\n\n.fmg-facts dt {\n  color: var(--fmg-ink-2);\n}\n\n.fmg-facts dd {\n  overflow-wrap: anywhere;\n  font-variant-numeric: tabular-nums;\n}\n\n.fmg-notice {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  padding: 10px 14px;\n  border-radius: var(--fmg-radius-m);\n  background: var(--fmg-sunk);\n  font-size: 12px;\n}\n\n.fmg-notice--warn {\n  background: var(--fmg-warn-wash);\n}\n\n.fmg-actions {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 8px;\n}\n\n.fmg-model {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) auto;\n  align-items: start;\n  gap: 8px 16px;\n  padding: 14px 16px;\n}\n\n.fmg-model__text {\n  display: flex;\n  flex-direction: column;\n  gap: 4px;\n  min-width: 0;\n}\n\n.fmg-model__name {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 4px 8px;\n  font-size: 13px;\n  font-weight: 600;\n  overflow-wrap: anywhere;\n}\n\n.fmg-model__facts {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 2px 16px;\n  color: var(--fmg-ink-2);\n  font-size: 12px;\n}\n\n.fmg-model__wide {\n  grid-column: 1 / -1;\n}\n\n.fmg-check {\n  display: flex;\n  align-items: baseline;\n  flex-wrap: wrap;\n  gap: 6px;\n  font-size: 12px;\n}\n\n.fmg-check input {\n  accent-color: var(--fmg-sea);\n}\n\n.fmg-progress {\n  height: 4px;\n  border-radius: 2px;\n  background: var(--fmg-sunk);\n  overflow: hidden;\n}\n\n.fmg-progress i {\n  display: block;\n  height: 100%;\n  border-radius: inherit;\n  background: var(--fmg-sea);\n  transition: width 0.4s ease;\n}\n\n/* ------------------------------------------------------------------ 7. save bar */\n\n/* Sticks to the lower edge of whatever scrolls the page; takes no room while nothing is staged. */\n.fmg-savebar {\n  position: sticky;\n  bottom: 12px;\n  z-index: 2;\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  justify-content: space-between;\n  gap: 8px 16px;\n  padding: 10px 12px 10px 16px;\n  border: var(--fmg-hair) solid var(--fmg-line);\n  border-radius: var(--fmg-radius-l);\n  background: var(--fmg-raised);\n  box-shadow: var(--fmg-shadow);\n  animation: fmg-up 0.22s ease;\n}\n\n.fmg-savebar__text {\n  display: flex;\n  flex-direction: column;\n  min-width: 0;\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.fmg-savebar__text .fmg-row__error {\n  font-weight: 400;\n}\n\n.fmg-savebar--done {\n  justify-content: flex-start;\n  color: var(--fmg-ok);\n}\n\n@keyframes fmg-up {\n  from { transform: translateY(8px); opacity: 0; }\n  to { transform: none; opacity: 1; }\n}\n\n/* ------------------------------------------------------------------ 8. changelog */\n\n.fmg-release {\n  padding: 14px 16px;\n}\n\n.fmg-release__head {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 4px 10px;\n  width: 100%;\n  padding: 0;\n  border: 0;\n  background: none;\n  color: inherit;\n  font: inherit;\n  text-align: left;\n  cursor: pointer;\n}\n\n.fmg-release__version {\n  font-size: 14px;\n  font-weight: 600;\n  font-variant-numeric: tabular-nums;\n}\n\n.fmg-release__date {\n  color: var(--fmg-ink-3);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n}\n\n.fmg-release__head .fmg-fold__chevron {\n  margin-left: auto;\n}\n\n.fmg-md {\n  padding-top: 10px;\n  color: var(--fmg-ink);\n  font-size: 12.5px;\n  line-height: 1.7;\n  overflow-wrap: anywhere;\n}\n\n.fmg-md p { margin: 0 0 6px; }\n.fmg-md h5 { margin: 12px 0 4px; font-size: 12.5px; font-weight: 600; }\n.fmg-md ul { margin: 0 0 6px; padding-left: 18px; list-style: disc; }\n.fmg-md li { margin: 2px 0; }\n.fmg-md li::marker { color: var(--fmg-ink-3); }\n\n/* ------------------------------------------------------------------ 9. footer */\n\n.fmg-foot {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 4px 16px;\n  padding: 0 4px 4px;\n  color: var(--fmg-ink-3);\n  font-size: 12px;\n}\n\n.fmg-foot .fmg-link {\n  color: var(--fmg-ink-2);\n}\n\n/* ------------------------------------------------------------------ narrow columns and calm motion */\n\n@container (max-width: 520px) {\n  .fmg-hero {\n    padding: 16px 4px 16px 16px;\n    gap: 8px;\n  }\n\n  .fmg-hero__head {\n    font-size: 17px;\n  }\n\n  .fmg-hero__art {\n    width: 92px;\n    height: 129px;\n    margin-top: -36px;\n    margin-bottom: -16px;\n  }\n\n  .fmg-row,\n  .fmg-model {\n    column-gap: 12px;\n    padding: 12px;\n  }\n\n  .fmg-choices[data-count='4'] {\n    grid-template-columns: minmax(0, 1fr);\n  }\n\n  .fmg-row--sub {\n    padding-left: 24px;\n    background-position: 10px 0, 0 0;\n  }\n\n  .fmg-model {\n    grid-template-columns: minmax(0, 1fr);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .fmg-root *,\n  .fmg-root *::before,\n  .fmg-root *::after {\n    animation: none !important;\n    transition: none !important;\n  }\n}\n"
+    module.exports = "/*\n * The stylesheet of the settings page. Assembled into client/client.js as a string module and applied\n * once by theme/styles.cjs.\n *\n * How it is organised:\n *   1. Tokens. `.fmg-root` maps the host's style variables to the page's own (`--fmg-*`) and defines\n *      the few colours the page brings itself. Every rule below uses `--fmg-*` only, so this block is\n *      the single place that knows the host's names, and each mapping has a fallback for a host that\n *      does not define it.\n *   2. Parts, in the order they appear on the page: hero, tabs, sections and rows, controls, panels,\n *      save bar, changelog, footer.\n *\n * Conventions:\n *   - Every class starts with `fmg-`; modifiers are `--name`; state is carried by ARIA or data\n *     attributes the components set anyway (`aria-selected`, `aria-checked`, `data-open`), not by\n *     extra classes.\n *   - No rule reaches outside `.fmg-root`, so nothing leaks into the host's page.\n *   - Dark and light: there is no theme branch. The host's variables switch by themselves and the\n *     page's own colours are mixed from them (`color-mix`), so a third-party theme carries through.\n *   - Lines are hairlines (`--fmg-hair`, the host's device-pixel-aware width), like the host's own.\n *   - The host draws every corner as a superellipse; shapes that must be true circles or pills say\n *     `corner-shape: round`.\n *   - Hover rules sit under `@media (hover: hover)`, so a touch screen shows no stuck hover.\n *   - Spacing steps are 4, 8, 12, 16, 24, 32; text sizes are 12, 13, 14 and 18, on the host's line\n *     heights (18, 20, 20, 26).\n *   - Width: the root is a size container; the narrow rules are container queries, because the page\n *     sits in a column of the host whose width has little to do with the window's.\n */\n\n/* ------------------------------------------------------------------ 1. tokens */\n\n.fmg-root {\n  /* host → page. The host switches these between light and dark by itself (and a third-party theme\n     may override them), so nothing below has a theme branch. */\n  --fmg-ink: var(--dsw-alias-label-primary, #0f1115);\n  --fmg-ink-2: var(--dsw-alias-label-secondary, #61666b);\n  --fmg-ink-3: var(--dsw-alias-label-tertiary, #81858c);\n  --fmg-base: var(--dsw-alias-bg-base, #ffffff);\n  --fmg-surface: var(--dsw-alias-settings-card-fill, #ffffff);\n  --fmg-raised: var(--dsw-alias-bg-layer-3, #ffffff);\n  --fmg-sunk: var(--dsw-alias-bg-module-platform, #f5f6f7);\n  --fmg-hover: var(--dsw-alias-interactive-bg-hover, rgba(38, 49, 72, 0.06));\n  --fmg-line: var(--dsw-alias-border-l2, rgba(0, 0, 0, 0.1));\n  --fmg-line-strong: var(--dsw-alias-border-l4, rgba(0, 0, 0, 0.16));\n  --fmg-hair: var(--dsh-hairline-width, 1px);\n  --fmg-danger: var(--dsw-alias-state-error-primary, #ec1313);\n  --fmg-thumb: var(--dsw-alias-switch-thumb, #ffffff);\n  --fmg-radius-s: var(--dsw-radius-sm, 8px);    /* small buttons */\n  --fmg-radius-m: var(--dsw-radius-md, 12px);   /* inputs, choices, notices */\n  --fmg-radius-l: var(--dsw-radius-lg, 16px);   /* groups of rows */\n  --fmg-radius-xl: var(--dsw-radius-xl, 20px);  /* the hero */\n  --fmg-mono: var(--dsh-font-family-code-default, 'SF Mono', 'JetBrains Mono', Consolas, Menlo, monospace);\n  --fmg-ease: var(--ds-ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));\n\n  /* The page's own colour is the sea the mascot lives in. It is the host's blue accent, so it already\n     has a light and a dark value; everything else is mixed from it and from the host's neutrals. */\n  --fmg-sea: var(--dsw-alias-state-business-primary, #4176e6);   /* switches that are on, the primary button, the selected tab */\n  --fmg-sea-ink: var(--dsw-alias-link, #4176e6);                 /* the same blue as text */\n  --fmg-on-sea: var(--dsw-alias-label-primary-foreground, #ffffff);\n  --fmg-sea-wash: color-mix(in srgb, var(--fmg-sea) 10%, transparent);\n  --fmg-sea-edge: color-mix(in srgb, var(--fmg-sea) 38%, transparent);\n  /* Her cheeks: the one warm colour, kept for \"experimental\". Mixed with the text colour so that it\n     is dark on a light page and light on a dark one. */\n  --fmg-blush: color-mix(in srgb, #e0528d 72%, var(--fmg-ink));\n  --fmg-blush-wash: color-mix(in srgb, #e0528d 12%, transparent);\n  /* Status colours as text: the host's are picked for dots and fills, too light to read on white. */\n  --fmg-ok-fill: var(--dsw-alias-state-success-primary, #22c55e);\n  --fmg-ok: color-mix(in srgb, var(--fmg-ok-fill) 68%, var(--fmg-ink));\n  --fmg-wait-fill: var(--dsw-alias-state-warn-primary, #f59e0b);\n  --fmg-wait: color-mix(in srgb, var(--dsw-alias-state-warn-label, #dd8629) 78%, var(--fmg-ink));\n  --fmg-warn-wash: color-mix(in srgb, var(--fmg-wait-fill) 14%, transparent);\n  --fmg-hero-a: color-mix(in srgb, var(--fmg-sea) 20%, var(--fmg-base));\n  --fmg-hero-b: color-mix(in srgb, var(--fmg-sea) 5%, var(--fmg-base));\n  --fmg-hero-edge: color-mix(in srgb, var(--fmg-sea) 24%, transparent);\n  --fmg-hero-chip: color-mix(in srgb, var(--fmg-base) 62%, transparent);\n  --fmg-bubble: color-mix(in srgb, var(--fmg-sea) 26%, transparent);\n  --fmg-shadow: var(--dsw-shadow-lv2, 0 6px 24px rgba(15, 17, 21, 0.14), 0 1px 3px rgba(15, 17, 21, 0.1));\n\n  container-type: inline-size;\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n  min-width: 0;\n  color: var(--fmg-ink);\n  font-size: 13px;\n  line-height: 20px;\n  text-align: left;\n}\n\n/* The resets are written with :where(), which adds no weight: any rule of a part further down wins\n   over them without having to out-rank them. */\n:where(.fmg-root) *,\n:where(.fmg-root) *::before,\n:where(.fmg-root) *::after {\n  box-sizing: border-box;\n}\n\n:where(.fmg-root) :is(p, h4, h5, dl, dd, ul) {\n  margin: 0;\n  padding: 0;\n  font: inherit;\n}\n\n:where(.fmg-root) ul {\n  list-style: none;\n}\n\n/* One focus ring for everything that takes the keyboard. */\n.fmg-root :focus-visible {\n  outline: 2px solid var(--fmg-sea);\n  outline-offset: 2px;\n}\n\n.fmg-note {\n  color: var(--fmg-ink-2);\n  font-size: 12px;\n}\n\n.fmg-quiet {\n  color: var(--fmg-ink-3);\n  font-size: 12px;\n}\n\n.fmg-link {\n  color: var(--fmg-sea-ink);\n  text-decoration: none;\n}\n\n@media (hover: hover) {\n  .fmg-link:hover {\n    text-decoration: underline;\n  }\n}\n\n.fmg-code {\n  padding: 0 4px;\n  border-radius: 4px;\n  background: var(--fmg-sunk);\n  font-family: var(--fmg-mono);\n  font-size: 0.92em;\n}\n\n/* ------------------------------------------------------------------ 2. hero */\n\n/* The margin on top is the room the mascot's head needs: she stands on the card's lower edge and is\n   taller than the card. */\n.fmg-hero {\n  position: relative;\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) auto;\n  align-items: end;\n  gap: 16px;\n  margin-top: 28px;\n  padding: 20px 8px 20px 24px;\n  min-height: 132px;\n  border: var(--fmg-hair) solid var(--fmg-hero-edge);\n  border-radius: var(--fmg-radius-xl);\n  background: linear-gradient(120deg, var(--fmg-hero-a) 0%, var(--fmg-hero-b) 62%);\n  color: var(--fmg-ink);\n}\n\n.fmg-hero__text {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  align-self: center;\n  min-width: 0;\n}\n\n.fmg-hero__head {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  font-size: 18px;\n  font-weight: 600;\n  line-height: 26px;\n}\n\n.fmg-hero__line {\n  max-width: 520px;\n  color: var(--fmg-ink-2);\n  font-size: 13px;\n}\n\n.fmg-hero__facts {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 6px;\n  margin-top: 4px;\n}\n\n.fmg-fact {\n  padding: 2px 10px;\n  border: var(--fmg-hair) solid var(--fmg-hero-edge);\n  border-radius: 999px;\n  corner-shape: round;\n  background: var(--fmg-hero-chip);\n  color: var(--fmg-ink);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  white-space: nowrap;\n}\n\n.fmg-fact--warn {\n  border-color: transparent;\n  background: var(--fmg-warn-wash);\n  color: var(--fmg-wait);\n}\n\n/* The state at a glance, for those who do not read the drawing: a dot in front of the headline. */\n.fmg-dot {\n  flex: none;\n  width: 8px;\n  height: 8px;\n  border-radius: 50%;\n  corner-shape: round;\n  background: var(--fmg-ink-3);\n}\n\n.fmg-dot[data-mood='ready'] {\n  background: var(--fmg-ok);\n  box-shadow: 0 0 0 4px color-mix(in srgb, var(--fmg-ok) 18%, transparent);\n}\n\n.fmg-dot[data-mood='busy'] {\n  background: var(--fmg-wait);\n  animation: fmg-pulse 1.6s ease-in-out infinite;\n}\n\n.fmg-dot[data-mood='trouble'] {\n  background: var(--fmg-danger);\n  box-shadow: 0 0 0 4px color-mix(in srgb, var(--fmg-danger) 18%, transparent);\n}\n\n.fmg-hero__art {\n  position: relative;\n  align-self: end;\n  width: 123px;\n  height: 172px;\n  margin: -48px 0 -20px;\n  pointer-events: none;\n}\n\n.fmg-hero__art img {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: contain;\n  object-position: bottom;\n  opacity: 0;\n  transition: opacity 0.35s ease;\n}\n\n.fmg-hero__art img[data-shown='true'] {\n  opacity: 1;\n  animation: fmg-bob 5s ease-in-out infinite;\n}\n\n/* Three bubbles drift up behind the text; decoration only. */\n.fmg-hero__sea {\n  position: absolute;\n  inset: 0;\n  overflow: hidden;\n  border-radius: inherit;\n  pointer-events: none;\n}\n\n.fmg-hero__sea i {\n  position: absolute;\n  bottom: -24px;\n  border: var(--fmg-hair) solid var(--fmg-bubble);\n  border-radius: 50%;\n  corner-shape: round;\n  background: radial-gradient(circle at 32% 30%, transparent 55%, var(--fmg-bubble) 100%);\n  animation: fmg-rise 14s linear infinite;\n}\n\n.fmg-hero__sea i:nth-child(1) { left: 58%; width: 14px; height: 14px; animation-delay: -2s; }\n.fmg-hero__sea i:nth-child(2) { left: 67%; width: 22px; height: 22px; animation-duration: 19s; animation-delay: -9s; }\n.fmg-hero__sea i:nth-child(3) { left: 44%; width: 9px; height: 9px; animation-duration: 11s; animation-delay: -5s; }\n\n@keyframes fmg-rise {\n  from { transform: translateY(0); opacity: 0; }\n  12% { opacity: 1; }\n  85% { opacity: 1; }\n  to { transform: translateY(-190px); opacity: 0; }\n}\n\n@keyframes fmg-bob {\n  0%, 100% { transform: translateY(0); }\n  50% { transform: translateY(-3px); }\n}\n\n@keyframes fmg-pulse {\n  0%, 100% { opacity: 1; }\n  50% { opacity: 0.35; }\n}\n\n/* ------------------------------------------------------------------ 3. tabs */\n\n.fmg-tabs {\n  display: flex;\n  gap: 4px;\n  overflow-x: auto;\n  border-bottom: var(--fmg-hair) solid var(--fmg-line);\n  scrollbar-width: none;\n}\n\n.fmg-tabs::-webkit-scrollbar {\n  display: none;\n}\n\n.fmg-tab {\n  position: relative;\n  flex: none;\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n  padding: 8px 12px 10px;\n  border: 0;\n  background: none;\n  color: var(--fmg-ink-2);\n  font: inherit;\n  font-size: 13px;\n  cursor: pointer;\n  transition: color 0.15s ease;\n}\n\n@media (hover: hover) {\n  .fmg-tab:hover {\n    color: var(--fmg-ink);\n  }\n}\n\n.fmg-tab::after {\n  content: '';\n  position: absolute;\n  left: 12px;\n  right: 12px;\n  bottom: -1px;\n  height: 2px;\n  border-radius: 2px;\n  background: var(--fmg-sea);\n  transform: scaleX(0);\n  transition: transform 0.2s ease;\n}\n\n.fmg-tab[aria-selected='true'] {\n  color: var(--fmg-ink);\n  font-weight: 600;\n}\n\n.fmg-tab[aria-selected='true']::after {\n  transform: scaleX(1);\n}\n\n/* A tab that holds unsaved edits. */\n.fmg-mark {\n  width: 6px;\n  height: 6px;\n  border-radius: 50%;\n  corner-shape: round;\n  background: var(--fmg-sea);\n}\n\n.fmg-mark--invalid {\n  background: var(--fmg-danger);\n}\n\n.fmg-panel {\n  display: flex;\n  flex-direction: column;\n  gap: 24px;\n  padding-top: 4px;\n}\n\n/* ------------------------------------------------------------------ 4. sections and rows */\n\n.fmg-section {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.fmg-section__head {\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n  padding: 0 4px;\n}\n\n.fmg-section__title {\n  font-size: 14px;\n  font-weight: 600;\n  line-height: 1.5;\n}\n\n/* A group is the bordered list the rows of a section sit in. `fmg-rows` draws the lines between\n   rows, for a group and for the body of a folding group alike. */\n.fmg-group {\n  border: var(--fmg-hair) solid var(--fmg-line);\n  border-radius: var(--fmg-radius-l);\n  background: var(--fmg-surface);\n  overflow: hidden;\n}\n\n.fmg-rows > * + * {\n  border-top: var(--fmg-hair) solid var(--fmg-line);\n}\n\n/* A closed part takes no room, so it draws no line either. */\n.fmg-rows > .fmg-reveal:not([data-open='true']) {\n  border-top-width: 0;\n}\n\n.fmg-row {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) auto;\n  align-items: start;\n  column-gap: 24px;\n  row-gap: 10px;\n  padding: 14px 16px;\n}\n\n/* A row whose control needs the full width (text, choices) puts it under the text. */\n.fmg-row--stack {\n  grid-template-columns: minmax(0, 1fr);\n}\n\n.fmg-row__text {\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n  min-width: 0;\n}\n\n.fmg-row__label {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 4px 8px;\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.fmg-row__help {\n  max-width: 640px;\n  color: var(--fmg-ink-2);\n  font-size: 12px;\n}\n\n.fmg-row__error {\n  color: var(--fmg-danger);\n  font-size: 12px;\n}\n\n.fmg-row__control {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  min-height: 22px;\n}\n\n/* A control with a line under it (the text area and its count). */\n.fmg-row__control--stack {\n  flex-direction: column;\n  align-items: stretch;\n  gap: 4px;\n}\n\n.fmg-row__control--stack > .fmg-quiet {\n  align-self: flex-end;\n}\n\n/* A setting that depends on the one above it: set in, with a rail down the left. */\n.fmg-row--sub {\n  padding-left: 32px;\n  background:\n    linear-gradient(var(--fmg-sea-edge), var(--fmg-sea-edge)) 16px 0 / 2px 100% no-repeat,\n    var(--fmg-sunk);\n}\n\n/* A part that opens and closes: the height animates through the grid row. While closed the content\n   is not visible, which also keeps the keyboard and a screen reader out of it; the switch to hidden\n   waits until the closing animation is over. */\n.fmg-reveal {\n  display: grid;\n  grid-template-rows: 0fr;\n  transition: grid-template-rows 0.22s var(--fmg-ease);\n}\n\n.fmg-reveal[data-open='true'] {\n  grid-template-rows: 1fr;\n}\n\n.fmg-reveal > div {\n  min-height: 0;\n  overflow: hidden;\n  visibility: hidden;\n  transition: visibility 0s linear 0.22s;\n}\n\n.fmg-reveal[data-open='true'] > div {\n  visibility: visible;\n  transition-delay: 0s;\n}\n\n/* ------------------------------------------------------------------ 5. controls */\n\n.fmg-tag {\n  display: inline-flex;\n  align-items: center;\n  padding: 0 7px;\n  border-radius: 999px;\n  corner-shape: round;\n  background: var(--fmg-sunk);\n  color: var(--fmg-ink-2);\n  font-size: 11px;\n  font-weight: 500;\n  line-height: 18px;\n  white-space: nowrap;\n}\n\n.fmg-tag--sea { background: var(--fmg-sea-wash); color: var(--fmg-sea-ink); }\n.fmg-tag--blush { background: var(--fmg-blush-wash); color: var(--fmg-blush); }\n.fmg-tag--warn { background: var(--fmg-warn-wash); color: var(--fmg-wait); }\n.fmg-tag--ok { background: color-mix(in srgb, var(--fmg-ok) 14%, transparent); color: var(--fmg-ok); }\n\n.fmg-button {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  height: 30px;\n  padding: 0 12px;\n  border: var(--fmg-hair) solid var(--fmg-line-strong);\n  border-radius: var(--fmg-radius-s);\n  background: var(--fmg-raised);\n  color: var(--fmg-ink);\n  font: inherit;\n  font-size: 13px;\n  /* A link may be drawn as a button (the way out to GitHub on the feedback tab). */\n  text-decoration: none;\n  white-space: nowrap;\n  cursor: pointer;\n  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;\n}\n\n@media (hover: hover) {\n  .fmg-button:hover:not(:disabled) {\n    background: color-mix(in srgb, var(--fmg-raised), var(--fmg-ink) 6%);\n  }\n}\n\n.fmg-button:disabled {\n  opacity: 0.5;\n  cursor: default;\n}\n\n.fmg-button--primary {\n  border-color: transparent;\n  background: var(--fmg-sea);\n  color: var(--fmg-on-sea);\n  font-weight: 500;\n}\n\n@media (hover: hover) {\n  .fmg-button--primary:hover:not(:disabled) {\n    background: color-mix(in srgb, var(--fmg-sea) 88%, #000);\n  }\n}\n\n/* A button that reads as text: \"Reset\", \"Clear\", \"Refresh\". */\n.fmg-button--text {\n  height: auto;\n  padding: 0;\n  border: 0;\n  background: none;\n  color: var(--fmg-sea-ink);\n  font-size: 12px;\n}\n\n@media (hover: hover) {\n  .fmg-button--text:hover:not(:disabled) {\n    background: none;\n    text-decoration: underline;\n  }\n}\n\n.fmg-switch {\n  position: relative;\n  flex: none;\n  width: 36px;\n  height: 20px;\n  padding: 0;\n  border: 0;\n  border-radius: 999px;\n  corner-shape: round;\n  background: var(--fmg-line-strong);\n  cursor: pointer;\n  transition: background-color 0.18s ease;\n}\n\n.fmg-switch::after {\n  content: '';\n  position: absolute;\n  top: 2px;\n  left: 2px;\n  width: 16px;\n  height: 16px;\n  border-radius: 50%;\n  corner-shape: round;\n  background: var(--fmg-thumb);\n  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);\n  transition: transform 0.18s ease;\n}\n\n.fmg-switch[aria-checked='true'] {\n  background: var(--fmg-sea);\n}\n\n.fmg-switch[aria-checked='true']::after {\n  background: var(--fmg-on-sea);\n  transform: translateX(16px);\n}\n\n.fmg-switch:disabled {\n  opacity: 0.5;\n  cursor: default;\n}\n\n.fmg-input {\n  width: 100%;\n  height: 34px;\n  padding: 0 12px;\n  border: var(--fmg-hair) solid var(--fmg-line-strong);\n  border-radius: var(--fmg-radius-m);\n  background: var(--fmg-raised);\n  color: var(--fmg-ink);\n  font: inherit;\n  font-size: 13px;\n  transition: border-color 0.15s ease, box-shadow 0.15s ease;\n}\n\n.fmg-input::placeholder {\n  color: var(--fmg-ink-3);\n}\n\n@media (hover: hover) {\n  .fmg-input:hover:not(:disabled) {\n    border-color: var(--fmg-sea-edge);\n  }\n}\n\n.fmg-input:focus-visible {\n  outline: none;\n  border-color: var(--fmg-sea);\n  box-shadow: 0 0 0 3px var(--fmg-sea-wash);\n}\n\n.fmg-input[aria-invalid='true'] {\n  border-color: var(--fmg-danger);\n}\n\n.fmg-input:disabled {\n  opacity: 0.6;\n}\n\n/* Several lines of text: the same box, as tall as its rows, and the person can drag it taller. */\n.fmg-input--area {\n  display: block;\n  height: auto;\n  min-height: 96px;\n  padding: 8px 12px;\n  line-height: 1.6;\n  resize: vertical;\n}\n\n.fmg-input-line {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  width: 100%;\n  max-width: 460px;\n}\n\n/* A number with a minus and a plus: one bordered box, the unit after it. */\n.fmg-stepper {\n  display: inline-flex;\n  align-items: stretch;\n  height: 30px;\n  border: var(--fmg-hair) solid var(--fmg-line-strong);\n  border-radius: var(--fmg-radius-m);\n  background: var(--fmg-raised);\n  overflow: hidden;\n  transition: border-color 0.15s ease, box-shadow 0.15s ease;\n}\n\n.fmg-stepper:focus-within {\n  border-color: var(--fmg-sea);\n  box-shadow: 0 0 0 3px var(--fmg-sea-wash);\n}\n\n.fmg-stepper[data-invalid='true'] {\n  border-color: var(--fmg-danger);\n}\n\n.fmg-stepper input {\n  width: 56px;\n  padding: 0 4px;\n  border: 0;\n  background: none;\n  color: var(--fmg-ink);\n  font: inherit;\n  font-size: 13px;\n  font-variant-numeric: tabular-nums;\n  text-align: center;\n}\n\n.fmg-stepper input:focus-visible {\n  outline: none;\n}\n\n.fmg-stepper button {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  width: 28px;\n  padding: 0;\n  border: 0;\n  background: none;\n  color: var(--fmg-ink-2);\n  cursor: pointer;\n}\n\n@media (hover: hover) {\n  .fmg-stepper button:hover:not(:disabled) {\n    background: var(--fmg-sunk);\n    color: var(--fmg-ink);\n  }\n}\n\n.fmg-stepper button:disabled {\n  opacity: 0.35;\n  cursor: default;\n}\n\n.fmg-stepper button:focus-visible {\n  outline-offset: -2px;\n}\n\n/* The options of a choice, each with what it means: a list of radio rows. */\n.fmg-choices {\n  width: 100%;\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n  gap: 8px;\n}\n\n/* Four options would wrap three and one: two by two reads better. */\n.fmg-choices[data-count='4'] {\n  grid-template-columns: repeat(2, minmax(0, 1fr));\n}\n\n.fmg-choice {\n  display: grid;\n  grid-template-columns: auto minmax(0, 1fr);\n  align-items: start;\n  column-gap: 10px;\n  padding: 10px 12px;\n  border: var(--fmg-hair) solid var(--fmg-line);\n  border-radius: var(--fmg-radius-m);\n  background: var(--fmg-raised);\n  color: inherit;\n  font: inherit;\n  text-align: left;\n  cursor: pointer;\n  transition: border-color 0.15s ease, background-color 0.15s ease;\n}\n\n@media (hover: hover) {\n  .fmg-choice:hover:not(:disabled) {\n    border-color: var(--fmg-sea-edge);\n  }\n}\n\n.fmg-choice[aria-checked='true'] {\n  border-color: var(--fmg-sea);\n  background: var(--fmg-sea-wash);\n}\n\n.fmg-choice:disabled {\n  opacity: 0.6;\n  cursor: default;\n}\n\n.fmg-choice__dot {\n  width: 14px;\n  height: 14px;\n  margin-top: 3px;\n  border: 1.5px solid var(--fmg-line-strong);\n  border-radius: 50%;\n  corner-shape: round;\n  background: var(--fmg-raised);\n}\n\n.fmg-choice[aria-checked='true'] .fmg-choice__dot {\n  border: 4px solid var(--fmg-sea);\n  background: var(--fmg-on-sea);\n}\n\n.fmg-choice__name {\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.fmg-choice__note {\n  display: block;\n  color: var(--fmg-ink-2);\n  font-size: 12px;\n  font-weight: 400;\n}\n\n/* ------------------------------------------------------------------ 6. disclosures, panels, notices */\n\n.fmg-fold {\n  border: var(--fmg-hair) solid var(--fmg-line);\n  border-radius: var(--fmg-radius-l);\n  background: var(--fmg-surface);\n  overflow: hidden;\n}\n\n.fmg-fold__head {\n  display: grid;\n  grid-template-columns: auto minmax(0, 1fr) auto;\n  align-items: center;\n  gap: 12px;\n  width: 100%;\n  padding: 14px 16px;\n  border: 0;\n  background: none;\n  color: inherit;\n  font: inherit;\n  text-align: left;\n  cursor: pointer;\n}\n\n@media (hover: hover) {\n  .fmg-fold__head:hover {\n    background: var(--fmg-hover);\n  }\n}\n\n.fmg-fold__head:focus-visible {\n  outline-offset: -2px;\n}\n\n.fmg-fold__chevron {\n  color: var(--fmg-ink-3);\n  transition: transform 0.2s ease;\n}\n\n.fmg-root [aria-expanded='true'] > .fmg-fold__chevron {\n  transform: rotate(90deg);\n}\n\n.fmg-fold__title {\n  display: block;\n  font-size: 14px;\n  font-weight: 600;\n}\n\n.fmg-fold__help {\n  display: block;\n  color: var(--fmg-ink-2);\n  font-size: 12px;\n}\n\n.fmg-fold__body {\n  border-top: var(--fmg-hair) solid var(--fmg-line);\n}\n\n/* Label and value pairs: the details of the overview, the facts of a model. */\n.fmg-facts {\n  display: grid;\n  grid-template-columns: max-content minmax(0, 1fr);\n  gap: 6px 16px;\n  padding: 14px 16px;\n  font-size: 12px;\n}\n\n.fmg-facts dt {\n  color: var(--fmg-ink-2);\n}\n\n.fmg-facts dd {\n  overflow-wrap: anywhere;\n  font-variant-numeric: tabular-nums;\n}\n\n.fmg-notice {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  padding: 10px 14px;\n  border-radius: var(--fmg-radius-m);\n  background: var(--fmg-sunk);\n  font-size: 12px;\n}\n\n.fmg-notice--warn {\n  background: var(--fmg-warn-wash);\n}\n\n.fmg-actions {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 8px;\n}\n\n/* The last thing of a line of actions, pushed to the far end (a link aside from the buttons). */\n.fmg-actions__end {\n  margin-left: auto;\n  font-size: 12px;\n}\n\n.fmg-model {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) auto;\n  align-items: start;\n  gap: 8px 16px;\n  padding: 14px 16px;\n}\n\n.fmg-model__text {\n  display: flex;\n  flex-direction: column;\n  gap: 4px;\n  min-width: 0;\n}\n\n.fmg-model__name {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 4px 8px;\n  font-size: 13px;\n  font-weight: 600;\n  overflow-wrap: anywhere;\n}\n\n.fmg-model__facts {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 2px 16px;\n  color: var(--fmg-ink-2);\n  font-size: 12px;\n}\n\n.fmg-model__wide {\n  grid-column: 1 / -1;\n}\n\n.fmg-check {\n  display: flex;\n  align-items: baseline;\n  flex-wrap: wrap;\n  gap: 6px;\n  font-size: 12px;\n}\n\n.fmg-check input {\n  accent-color: var(--fmg-sea);\n}\n\n.fmg-progress {\n  height: 4px;\n  border-radius: 2px;\n  background: var(--fmg-sunk);\n  overflow: hidden;\n}\n\n.fmg-progress i {\n  display: block;\n  height: 100%;\n  border-radius: inherit;\n  background: var(--fmg-sea);\n  transition: width 0.4s ease;\n}\n\n/* ------------------------------------------------------------------ 7. save bar */\n\n/* Sticks to the lower edge of whatever scrolls the page; takes no room while nothing is staged. */\n.fmg-savebar {\n  position: sticky;\n  bottom: 12px;\n  z-index: 2;\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  justify-content: space-between;\n  gap: 8px 16px;\n  padding: 10px 12px 10px 16px;\n  border: var(--fmg-hair) solid var(--fmg-line);\n  border-radius: var(--fmg-radius-l);\n  background: var(--fmg-raised);\n  box-shadow: var(--fmg-shadow);\n  animation: fmg-up 0.22s ease;\n}\n\n.fmg-savebar__text {\n  display: flex;\n  flex-direction: column;\n  min-width: 0;\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.fmg-savebar__text .fmg-row__error {\n  font-weight: 400;\n}\n\n.fmg-savebar--done {\n  justify-content: flex-start;\n  color: var(--fmg-ok);\n}\n\n@keyframes fmg-up {\n  from { transform: translateY(8px); opacity: 0; }\n  to { transform: none; opacity: 1; }\n}\n\n/* ------------------------------------------------------------------ 8. changelog */\n\n.fmg-release {\n  padding: 14px 16px;\n}\n\n.fmg-release__head {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 4px 10px;\n  width: 100%;\n  padding: 0;\n  border: 0;\n  background: none;\n  color: inherit;\n  font: inherit;\n  text-align: left;\n  cursor: pointer;\n}\n\n.fmg-release__version {\n  font-size: 14px;\n  font-weight: 600;\n  font-variant-numeric: tabular-nums;\n}\n\n.fmg-release__date {\n  color: var(--fmg-ink-3);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n}\n\n.fmg-release__head .fmg-fold__chevron {\n  margin-left: auto;\n}\n\n.fmg-md {\n  padding-top: 10px;\n  color: var(--fmg-ink);\n  font-size: 12.5px;\n  line-height: 1.7;\n  overflow-wrap: anywhere;\n}\n\n.fmg-md p { margin: 0 0 6px; }\n.fmg-md h5 { margin: 12px 0 4px; font-size: 12.5px; font-weight: 600; }\n.fmg-md ul { margin: 0 0 6px; padding-left: 18px; list-style: disc; }\n.fmg-md li { margin: 2px 0; }\n.fmg-md li::marker { color: var(--fmg-ink-3); }\n\n/* ------------------------------------------------------------------ 9. footer */\n\n.fmg-foot {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 4px 16px;\n  padding: 0 4px 4px;\n  color: var(--fmg-ink-3);\n  font-size: 12px;\n}\n\n.fmg-foot .fmg-link,\n.fmg-foot .fmg-button--text {\n  color: var(--fmg-ink-2);\n}\n\n/* ------------------------------------------------------------------ narrow columns and calm motion */\n\n@container (max-width: 520px) {\n  .fmg-hero {\n    padding: 16px 4px 16px 16px;\n    gap: 8px;\n  }\n\n  .fmg-hero__head {\n    font-size: 17px;\n  }\n\n  .fmg-hero__art {\n    width: 92px;\n    height: 129px;\n    margin-top: -36px;\n    margin-bottom: -16px;\n  }\n\n  .fmg-row,\n  .fmg-model {\n    column-gap: 12px;\n    padding: 12px;\n  }\n\n  .fmg-choices[data-count='4'] {\n    grid-template-columns: minmax(0, 1fr);\n  }\n\n  .fmg-row--sub {\n    padding-left: 24px;\n    background-position: 10px 0, 0 0;\n  }\n\n  .fmg-model {\n    grid-template-columns: minmax(0, 1fr);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .fmg-root *,\n  .fmg-root *::before,\n  .fmg-root *::after {\n    animation: none !important;\n    transition: none !important;\n  }\n}\n"
   })
 
   // theme/styles.cjs
@@ -2570,6 +2879,120 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     }
 
     module.exports = { STYLE_ID, installStyles, cx }
+  })
+
+  // view/feedback.cjs
+  define("view/feedback.cjs", function (require, module, exports) {
+    'use strict'
+    // The Feedback tab: a few words to the people who make the plugin.
+    //
+    // The tab writes a report and hands it to the person's browser; it sends nothing itself. The button
+    // is a plain link to GitHub's new-issue page with the title and the text filled in
+    // (model/feedback.cjs builds the address), so the person reads the report once more on GitHub and
+    // submits it there under their own account, or closes the page and nothing has happened.
+    //
+    // What is attached besides the person's own words is shown in full before anything leaves: the
+    // environment lines are listed under the switch that attaches them, and they are the same lines that
+    // go into the report.
+    //
+    // The draft (kind, text, whether to attach the environment) is kept by the page (view/page.cjs), so
+    // that looking something up on another tab does not lose what was written.
+
+    const { h } = require('../react.cjs')
+    const { ID_PREFIX, LINKS } = require('../constants.cjs')
+    const { useCopy } = require('../hooks.cjs')
+    const { KINDS, MAX_TEXT, compose, environment, reportText } = require('../model/feedback.cjs')
+    const { Button, Choices, Switch, TextArea } = require('../kit/controls.cjs')
+    const { Icon } = require('../kit/icons.cjs')
+    const { Facts, Group, Notice, Reveal } = require('../kit/layout.cjs')
+
+    // From this share of the limit on, the tab says how much room is left.
+    const COUNT_FROM = 0.8
+
+    /** The draft a page starts with: an idea, nothing written, the environment attached. */
+    function emptyFeedback() {
+      return { kind: KINDS[0], text: '', environment: true }
+    }
+
+    /**
+     * @param {{ t: Function, status: { data: object | null }, draft: { kind: string, text: string, environment: boolean },
+     *   onChange: (patch: object) => void, copy?: (text: string) => Promise<boolean> }} props
+     *   `onChange` merges a patch into the draft; `copy` replaces the clipboard in tests.
+     */
+    function FeedbackTab(props) {
+      const { t, status, draft, onChange } = props
+      const copier = useCopy(props.copy)
+      const rows = environment(status.data)
+      const attached = draft.environment && rows.length > 0
+      const report = compose({ kind: draft.kind, text: draft.text, environment: attached ? rows : [], cutNote: t('feedback.cutNote') })
+      const whole = reportText(report)
+      const length = Array.from(draft.text).length
+
+      const kindId = ID_PREFIX + '-feedback-kind'
+      const textId = ID_PREFIX + '-feedback-text'
+      const envId = ID_PREFIX + '-feedback-environment'
+      const title = t('feedback.title')
+
+      // A link when there is something to send, a disabled button until then (a link cannot be disabled).
+      const submitText = [t('feedback.submit'), h(Icon, { key: 'icon', name: 'external', size: 13 })]
+      const submit = report.ready
+        ? h('a', {
+          className: 'fmg-button fmg-button--primary',
+          href: report.url,
+          target: '_blank',
+          rel: 'noreferrer noopener',
+          // A report too long for an address travels by the clipboard: copy it on the way out.
+          onClick: report.clipped ? () => { copier.copy(whole) } : undefined,
+        }, submitText)
+        : h(Button, { variant: 'primary', disabled: true }, submitText)
+
+      return h('section', { className: 'fmg-section', 'aria-label': title },
+        h('div', { className: 'fmg-section__head' },
+          h('h4', { className: 'fmg-section__title' }, title),
+          h('p', { className: 'fmg-note' }, t('feedback.intro'))),
+        h(Group, null,
+          h('div', { className: 'fmg-row fmg-row--stack' },
+            h('div', { className: 'fmg-row__text' },
+              h('div', { className: 'fmg-row__label' }, h('span', { id: kindId + '-label' }, t('feedback.kind')))),
+            h('div', { className: 'fmg-row__control' },
+              h(Choices, {
+                labelledBy: kindId + '-label',
+                value: draft.kind,
+                options: KINDS.map((kind) => ({ value: kind, name: t('feedback.kind.' + kind), note: t('feedback.kind.' + kind + '.note') })),
+                onChange: (kind) => onChange({ kind }),
+              }))),
+          h('div', { className: 'fmg-row fmg-row--stack' },
+            h('div', { className: 'fmg-row__text' },
+              h('div', { className: 'fmg-row__label' }, h('label', { htmlFor: textId }, t('feedback.text'))),
+              h('p', { className: 'fmg-row__help', id: textId + '-help' }, t('feedback.hint.' + draft.kind))),
+            h('div', { className: 'fmg-row__control fmg-row__control--stack' },
+              h(TextArea, { id: textId, value: draft.text, rows: 7, maxLength: MAX_TEXT, describedBy: textId + '-help', onChange: (text) => onChange({ text }) }),
+              length >= MAX_TEXT * COUNT_FROM
+                ? h('span', { className: 'fmg-quiet', role: 'status' }, t('feedback.count', { count: length, max: MAX_TEXT }))
+                : null)),
+          h('div', { className: 'fmg-row' },
+            h('div', { className: 'fmg-row__text' },
+              h('div', { className: 'fmg-row__label' }, h('label', { htmlFor: envId }, t('feedback.env'))),
+              h('p', { className: 'fmg-row__help', id: envId + '-help' }, rows.length ? t('feedback.env.help') : t('feedback.env.none'))),
+            h('div', { className: 'fmg-row__control' },
+              h(Switch, {
+                id: envId, checked: attached, label: t('feedback.env'), describedBy: envId + '-help', disabled: rows.length === 0,
+                onChange: (next) => onChange({ environment: next }),
+              }))),
+          h(Reveal, { open: attached, id: envId + '-lines' }, h(Facts, { rows }))),
+        h(Notice, { role: 'note' },
+          h('p', null, t('feedback.how')),
+          h('p', null, t('feedback.public'))),
+        report.clipped ? h(Notice, { tone: 'warn', role: 'status' }, h('p', null, t('feedback.clipped'))) : null,
+        h('div', { className: 'fmg-actions' },
+          submit,
+          h(Button, { disabled: !report.ready, onClick: () => { copier.copy(whole) } }, t('feedback.copy')),
+          copier.state ? h('span', { className: copier.state === 'copied' ? 'fmg-quiet' : 'fmg-row__error', role: 'status' },
+            t(copier.state === 'copied' ? 'feedback.copied' : 'feedback.copyFailed')) : null,
+          h('a', { className: 'fmg-link fmg-actions__end', href: LINKS.issues, target: '_blank', rel: 'noreferrer noopener' }, t('feedback.others'))))
+    }
+
+    module.exports = { emptyFeedback, FeedbackTab }
   })
 
   // view/field-row.cjs
@@ -3000,11 +3423,12 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     //   draft   the staged edits (key → { value } | { unset: true }); nothing is written until Save
     //   phase   idle | saving | saved | failed, the life of one save
     //   open    which folding groups of the Advanced tab are open
+    //   report  the feedback a person is writing (view/feedback.cjs), kept while they look at other tabs
     //
     // The page keeps its shape whatever the settings form is doing. While the form is loading,
-    // unavailable (the host serves no settings for this row) or read-only, the summary, the model list
-    // and the changelog still work; the settings tabs then say what is the matter instead of showing
-    // rows nobody can use.
+    // unavailable (the host serves no settings for this row) or read-only, the summary, the model list,
+    // the changelog and the feedback tab still work; the settings tabs then say what is the matter
+    // instead of showing rows nobody can use.
 
     const { h, useEffect, useState } = require('../react.cjs')
     const { ID_PREFIX, LINKS, SAVED_NOTE_MS } = require('../constants.cjs')
@@ -3015,7 +3439,8 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     const { pageView, savable } = require('../model/page.cjs')
     const { Button } = require('../kit/controls.cjs')
     const { Icon } = require('../kit/icons.cjs')
-    const { Notice, Tabs, TabPanel } = require('../kit/layout.cjs')
+    const { Notice, Tabs, TabPanel, tabId } = require('../kit/layout.cjs')
+    const { emptyFeedback, FeedbackTab } = require('./feedback.cjs')
     const { Hero } = require('./hero.cjs')
     const { ModelsPanel } = require('./models.cjs')
     const { SettingsTab } = require('./settings-tab.cjs')
@@ -3043,7 +3468,10 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
           h(Button, { variant: 'primary', disabled: saving || invalid, onClick: props.onSave }, saving ? t('saving') : t('saveChanges'))))
     }
 
-    /** The line under the page: where to read more and where to report a problem. */
+    /**
+     * The line under the page: the installed version, where to read more, and the way to the Feedback tab.
+     * @param {{ t: Function, version?: string, onFeedback: () => void }} props
+     */
     function Footer(props) {
       const { t, version } = props
       const link = (href, text) => h('a', { className: 'fmg-link', href, target: '_blank', rel: 'noreferrer noopener' }, text)
@@ -3051,14 +3479,14 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         version ? h('span', null, 'dsh-feiyu-memgate ' + version) : null,
         link(LINKS.docs, t('footDocs')),
         link(LINKS.source, t('footSource')),
-        link(LINKS.issues, t('footIssue')))
+        h(Button, { variant: 'text', onClick: props.onFeedback }, t('footFeedback')))
     }
 
     /**
      * The page.
-     * @param {{ t: Function, form?: { state: object, mutate: Function }, fetch?: Function }} props
+     * @param {{ t: Function, form?: { state: object, mutate: Function }, fetch?: Function, copy?: Function }} props
      *   `form` is the host's settings form for the plugin's row (absent when the host serves none);
-     *   `fetch` replaces the browser's fetch in tests and in the preview.
+     *   `fetch` replaces the browser's fetch in tests and in the preview, `copy` the clipboard in tests.
      */
     function SettingsBody(props) {
       const { t, form } = props
@@ -3068,6 +3496,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
       const [draft, setDraft] = useState({})
       const [phase, setPhase] = useState('idle')
       const [open, setOpen] = useState({})
+      const [report, setReport] = useState(emptyFeedback)
       const status = useStatus(fetchImpl)
       const changelog = useChangelog(fetchImpl)
 
@@ -3119,12 +3548,24 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         tabs.push({ id: entry.id, label: entry.label[lang] || entry.label.en, mark, markLabel: mark ? t(mark === 'invalid' ? 'fixFirst' : 'tabEdited') : undefined })
       }
       tabs.push({ id: 'changelog', label: t('tab.changelog') })
+      tabs.push({ id: 'feedback', label: t('tab.feedback') })
+
+      // The footer's way to the Feedback tab: select it and move the keyboard there, which also brings
+      // the tab bar into view from the bottom of a long tab.
+      const openFeedback = () => {
+        setTab('feedback')
+        const button = typeof document === 'undefined' ? null : document.getElementById(tabId(ID_PREFIX, 'feedback'))
+        if (button) button.focus()
+      }
 
       // The model list does not depend on the settings form: it is built once and placed by the layout.
       const panels = { models: h(ModelsPanel, { t, lang, fetch: fetchImpl, onChange: status.refreshSoon }) }
       let content
       if (tab === 'overview') content = h(OverviewTab, { t, status })
       else if (tab === 'changelog') content = h(ChangelogTab, { t, state: changelog })
+      else if (tab === 'feedback') {
+        content = h(FeedbackTab, { t, status, draft: report, copy: props.copy, onChange: (patch) => setReport((previous) => Object.assign({}, previous, patch)) })
+      }
       else if (ready) {
         content = h(SettingsTab, {
           t, lang, disabled, readOnly: !writable, edit, reset, open, panels,
@@ -3147,14 +3588,14 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         h(Tabs, { idPrefix: ID_PREFIX, label: t('tabsLabel'), tabs, value: tab, onChange: setTab }),
         h(TabPanel, { idPrefix: ID_PREFIX, id: tab }, content),
         h(SaveBar, { t, count, invalid, phase, onSave: save, onDiscard: discard }),
-        h(Footer, { t, version: status.data && status.data.version }))
+        h(Footer, { t, version: status.data && status.data.version, onFeedback: openFeedback }))
     }
 
     /** The slot entry: the one-liner for `summary`, the page for `page`. */
     function SettingsPage(props) {
       const t = typeof props.t === 'function' ? props.t : typeof props.translate === 'function' ? props.translate : (key) => key
       if (props.view === 'summary') return t('summary')
-      return h(SettingsBody, { t, form: props.form, fetch: props.fetch })
+      return h(SettingsBody, { t, form: props.form, fetch: props.fetch, copy: props.copy })
     }
 
     module.exports = { SaveBar, Footer, SettingsBody, SettingsPage }
@@ -3245,8 +3686,8 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
   // view/tabs.cjs
   define("view/tabs.cjs", function (require, module, exports) {
     'use strict'
-    // The two tabs that hold no settings: the overview (what the plugin reports about itself) and the
-    // changelog (what each update changed).
+    // Two of the tabs that hold no settings: the overview (what the plugin reports about itself) and the
+    // changelog (what each update changed). The third, feedback, is view/feedback.cjs.
 
     const { h, useState } = require('../react.cjs')
     const { ID_PREFIX } = require('../constants.cjs')

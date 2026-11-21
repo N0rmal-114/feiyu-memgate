@@ -9,7 +9,9 @@ const { FIELDS, INDEX } = require('./fields.cjs')
 const { dictionaries } = require('./i18n.cjs')
 const { TABS, placedKeys } = require('./layout.cjs')
 const { fetchChangelog, fetchStatus, fetchModels, postModels } = require('./net.cjs')
+const { copyText } = require('./clipboard.cjs')
 const { entryDate, releases } = require('./model/changelog.cjs')
+const feedback = require('./model/feedback.cjs')
 const { fieldView, buildOps, saveDraft, checkText } = require('./model/form.cjs')
 const { pickText, formatSize, memoryText, modelActions, chainLine, sameProblem } = require('./model/models.cjs')
 const { formatCount, summarise } = require('./model/overview.cjs')
@@ -17,11 +19,12 @@ const { splitOption, isMet, sectionView, pageView, savable } = require('./model/
 const { statusRows } = require('./model/status.cjs')
 const { STYLE_ID, installStyles } = require('./theme/styles.cjs')
 const { stepText } = require('./kit/controls.cjs')
+const { emptyFeedback, FeedbackTab } = require('./view/feedback.cjs')
 const { FieldRow, fieldId } = require('./view/field-row.cjs')
 const { Hero, artUrl } = require('./view/hero.cjs')
 const { inlineMarkdown, renderMarkdown } = require('./view/markdown.cjs')
 const { ModelRow, ModelsPanel } = require('./view/models.cjs')
-const { SaveBar, SettingsBody, SettingsPage } = require('./view/page.cjs')
+const { Footer, SaveBar, SettingsBody, SettingsPage } = require('./view/page.cjs')
 const { SettingsTab } = require('./view/settings-tab.cjs')
 const { ChangelogTab, OverviewTab } = require('./view/tabs.cjs')
 
@@ -56,8 +59,9 @@ module.exports = {
     fieldView, buildOps, saveDraft, checkText, splitOption, isMet, sectionView, pageView, savable,
     statusRows, summarise, formatCount, entryDate, releases,
     pickText, formatSize, memoryText, modelActions, chainLine, sameProblem, stepText, fieldId, artUrl,
+    feedback, emptyFeedback, copyText,
     // view
     installStyles, inlineMarkdown, renderMarkdown,
-    Hero, FieldRow, SettingsTab, OverviewTab, ChangelogTab, ModelRow, ModelsPanel, SaveBar, SettingsBody, SettingsPage,
+    Hero, FieldRow, SettingsTab, OverviewTab, ChangelogTab, FeedbackTab, ModelRow, ModelsPanel, SaveBar, Footer, SettingsBody, SettingsPage,
   },
 }

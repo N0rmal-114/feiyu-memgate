@@ -1333,6 +1333,9 @@ export function createPlugin(ctx, config, deps = {}) {
     const out = {
       version: VERSION,
       language: language(),
+      // What the plugin runs on, for a report a person chooses to send (the Feedback tab and
+      // /memgate feedback): names and version numbers only.
+      runtime: { platform: process.platform, arch: process.arch, node: process.versions.node },
       modules: { ...s.modules },
       registered: [...active.keys()],
       gateway: managed

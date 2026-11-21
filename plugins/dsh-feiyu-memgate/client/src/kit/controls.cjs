@@ -1,5 +1,5 @@
 'use strict'
-// The controls of the page: button, tag, switch, text input, number stepper, list of choices.
+// The controls of the page: button, tag, switch, text input, text area, number stepper, list of choices.
 //
 // They are the page's own (not the host's primitives) so that the page looks the same on every host
 // version it supports and can be drawn outside a host (scripts/preview-client.mjs). Their sizes
@@ -68,6 +68,26 @@ function TextInput(props) {
     spellCheck: false,
     disabled: props.disabled || undefined,
     'aria-invalid': props.invalid ? 'true' : undefined,
+    'aria-describedby': props.describedBy,
+    onChange: (event) => props.onChange(event.target.value),
+  })
+}
+
+/**
+ * Several lines of text; the person can drag it taller. `onChange` gets the text, not the event.
+ * @param {{ id: string, value: string, rows?: number, maxLength?: number, placeholder?: string,
+ *   describedBy?: string, disabled?: boolean, onChange: (text: string) => void }} props
+ */
+function TextArea(props) {
+  return h('textarea', {
+    id: props.id,
+    className: 'fmg-input fmg-input--area',
+    value: props.value,
+    rows: props.rows || 6,
+    maxLength: props.maxLength,
+    placeholder: props.placeholder,
+    autoComplete: 'off',
+    disabled: props.disabled || undefined,
     'aria-describedby': props.describedBy,
     onChange: (event) => props.onChange(event.target.value),
   })
@@ -161,4 +181,4 @@ function Choices(props) {
   }))
 }
 
-module.exports = { Button, Tag, Switch, TextInput, stepText, Stepper, Choices }
+module.exports = { Button, Tag, Switch, TextInput, TextArea, stepText, Stepper, Choices }

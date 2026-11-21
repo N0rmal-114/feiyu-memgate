@@ -1,6 +1,6 @@
 'use strict'
-// The two tabs that hold no settings: the overview (what the plugin reports about itself) and the
-// changelog (what each update changed).
+// Two of the tabs that hold no settings: the overview (what the plugin reports about itself) and the
+// changelog (what each update changed). The third, feedback, is view/feedback.cjs.
 
 const { h, useState } = require('../react.cjs')
 const { ID_PREFIX } = require('../constants.cjs')

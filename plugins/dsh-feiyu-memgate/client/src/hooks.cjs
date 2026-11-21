@@ -1,11 +1,12 @@
 'use strict'
 
 // The React hooks that talk to the host half: useStatus (polled), useChangelog (read once) and
-// useModels (polled, plus the clicks of the model list). They own the timers and the "still mounted"
-// flag; they know nothing about how the data is drawn.
+// useModels (polled, plus the clicks of the model list); and useCopy, which talks to the clipboard.
+// They own the timers and the "still mounted" flag; they know nothing about how the data is drawn.
 
 const { useEffect, useRef, useState } = require('./react.cjs')
-const { STATUS_POLL_MS, MODELS_POLL_MS, MODELS_BUSY_POLL_MS } = require('./constants.cjs')
+const { STATUS_POLL_MS, MODELS_POLL_MS, MODELS_BUSY_POLL_MS, SAVED_NOTE_MS } = require('./constants.cjs')
+const { copyText } = require('./clipboard.cjs')
 const { fetchStatus, fetchChangelog, fetchModels, postModels } = require('./net.cjs')
 
 /** The changelog, read once when the page mounts: { loading, data }; data stays null when the read failed. */
@@ -103,4 +104,35 @@ function useModels(fetchImpl, onDone) {
   return { view: state.view, error: state.error, pending, refusal, reload: () => load.current(), send }
 }
 
-module.exports = { useChangelog, useStatus, useModels }
+/**
+ * Copying to the clipboard, with what became of the last copy: { state, copy }.
+ *   state  null | 'copied' | 'failed'; goes back to null by itself after SAVED_NOTE_MS
+ *   copy   put a text on the clipboard; returns the promise of whether it arrived
+ * @param {(text: string) => Promise<boolean>} [copyImpl] replaces the clipboard in tests
+ */
+function useCopy(copyImpl) {
+  const [state, setState] = useState(null)
+  const alive = useRef(true)
+  useEffect(() => {
+    alive.current = true
+    return () => { alive.current = false }
+  }, [])
+  useEffect(() => {
+    if (state === null) return undefined
+    const timer = setTimeout(() => setState(null), SAVED_NOTE_MS)
+    return () => clearTimeout(timer)
+  }, [state])
+  const copy = (text) => Promise.resolve((copyImpl || copyText)(text)).then(
+    (copied) => {
+      if (alive.current) setState(copied ? 'copied' : 'failed')
+      return Boolean(copied)
+    },
+    () => {
+      if (alive.current) setState('failed')
+      return false
+    },
+  )
+  return { state, copy }
+}
+
+module.exports = { useChangelog, useStatus, useModels, useCopy }

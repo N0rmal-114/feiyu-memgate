@@ -12,7 +12,7 @@
 //   - a setting with `needs` sits in the same section as the setting it depends on, after it
 //     (the page draws it as a sub-row that appears while the other setting has a fitting value).
 //
-// Two tabs hold no settings and are not listed here: the overview (status) and the changelog.
+// Three tabs hold no settings and are not listed here: the overview (status), the changelog and feedback.
 // `panel` names a part of the page that is not a settings row and is drawn after the section's rows.
 
 const TABS = [

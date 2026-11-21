@@ -44,11 +44,12 @@ Ids are paths relative to `client/src`.
 
 | module | holds |
 |---|---|
-| `constants.cjs` | the settings namespace, the slot key, the routes, the poll intervals, the element id prefix and the public links |
+| `constants.cjs` | the settings namespace, the slot key, the routes, the poll intervals, the element id prefix and the public links (among them GitHub's new-issue page) |
 | `fields.cjs` | **generated** by `npm run sync-client` from `src/config.js`: `FIELDS` and `INDEX` |
 | `layout.cjs` | where each setting sits: `TABS` → sections → setting keys, and `placedKeys()` |
 | `i18n.cjs` | the `UI` dictionary (en, zh) and `dictionaries()`, which adds the texts of the field table |
 | `net.cjs` | `fetchStatus`, `fetchChangelog`, `fetchModels`, `postModels`, over one `getJson` / `postJson` pair |
+| `clipboard.cjs` | `copyText`: the one place that touches the clipboard, and says whether the text arrived |
 
 **Logic, `model/`** (pure: no React, no DOM)
 
@@ -60,12 +61,13 @@ Ids are paths relative to `client/src`.
 | `model/status.cjs` | the status block as text rows: `stateText`, `statusRows` |
 | `model/models.cjs` | the local model list as data: `pickText`, `formatSize`, `memoryText`, `modelActions`, `chainLine`, `sameProblem` |
 | `model/changelog.cjs` | the changelog answer as a list of releases: `entryDate`, `releases` |
+| `model/feedback.cjs` | a feedback report and the address that hands it to GitHub: `KINDS`, `environment`, `safe`, `titleOf`, `bodyOf`, `compose`, `reportText`, with the limits `MAX_TEXT` and `MAX_URL`. Also loaded by the host half (see below) |
 
 **Hooks**
 
 | module | holds |
 |---|---|
-| `hooks.cjs` | `useStatus` (polled), `useChangelog` (read once), `useModels` (polled, and the clicks of the model list); they own the timers and the "still mounted" flag |
+| `hooks.cjs` | `useStatus` (polled), `useChangelog` (read once), `useModels` (polled, and the clicks of the model list), `useCopy` (the clipboard, and what became of the last copy); they own the timers and the "still mounted" flag |
 
 **Theme, `theme/`**
 
@@ -78,7 +80,7 @@ Ids are paths relative to `client/src`.
 
 | module | holds |
 |---|---|
-| `kit/controls.cjs` | `Button`, `Tag`, `Switch`, `TextInput`, `Stepper`, `Choices` and `stepText` |
+| `kit/controls.cjs` | `Button`, `Tag`, `Switch`, `TextInput`, `TextArea`, `Stepper`, `Choices` and `stepText` |
 | `kit/layout.cjs` | `Tabs`, `TabPanel`, `Reveal`, `Fold`, `Group`, `Facts`, `Notice`, `Progress` |
 | `kit/icons.cjs` | the few line icons: `Icon`, `ICON_NAMES` |
 
@@ -86,11 +88,12 @@ Ids are paths relative to `client/src`.
 
 | module | holds |
 |---|---|
-| `view/page.cjs` | `SettingsPage` (the slot entry), `SettingsBody` (summary, tabs, panel, save bar, footer; keeps the tab, the staged edits, the phase of a save and the open groups), `SaveBar`, `Footer` |
+| `view/page.cjs` | `SettingsPage` (the slot entry), `SettingsBody` (summary, tabs, panel, save bar, footer; keeps the tab, the staged edits, the phase of a save, the open groups and the feedback being written), `SaveBar`, `Footer` |
 | `view/hero.cjs` | `Hero`: the headline, the line and the facts of the summary, with the mascot's drawing |
 | `view/settings-tab.cjs` | `SettingsTab`: the sections of one settings tab, sub-rows inside a `Reveal`, folding groups in the Advanced tab |
 | `view/field-row.cjs` | `FieldRow`: one setting as one row, with the control that fits its kind; `fieldId` |
-| `view/tabs.cjs` | `OverviewTab` and `ChangelogTab`, the two tabs without settings |
+| `view/tabs.cjs` | `OverviewTab` and `ChangelogTab`, two of the tabs without settings |
+| `view/feedback.cjs` | `FeedbackTab`, the third: what it is about, the text, the environment lines, the link out to GitHub and the copy button; `emptyFeedback` |
 | `view/models.cjs` | `ModelsPanel` and `ModelRow`: the local embedding models and their one button |
 | `view/markdown.cjs` | the changelog Markdown subset, text in and React elements out: `inlineMarkdown`, `joinLines`, `renderMarkdown` |
 
@@ -104,10 +107,10 @@ the row's settings namespace (`packages/client/ui-plugin-manager/src/client/slot
 
 `SettingsBody` draws, in order: the `Hero` (the state in one headline, one line and a few facts, with a
 mood that picks one of four drawings of the mascot), the `Tabs` (overview, features, retrieval, advanced,
-changelog), the one `TabPanel` of the selected tab, the `SaveBar` (only while edits are staged, or just
+changelog, feedback), the one `TabPanel` of the selected tab, the `SaveBar` (only while edits are staged, or just
 after a save) and the `Footer`. The page keeps its shape whatever the settings form is doing: while the
-form is loading, unavailable or read-only, the summary, the model list and the changelog still work, and a
-settings tab says what is the matter instead of showing rows nobody can use.
+form is loading, unavailable or read-only, the summary, the model list, the changelog and the feedback tab
+still work, and a settings tab says what is the matter instead of showing rows nobody can use.
 
 The settings form follows the host's conventions: edits are staged, only Save writes, all staged edits go
 in one `form.mutate(ops, revision)` with the revision they were made against, a changed setting shows a
@@ -124,6 +127,19 @@ Changelog. The Changelog tab reads `GET feiyu-memgate/changelog` (owner only, li
 entries of the package's `CHANGELOG.md`. Their Markdown is drawn by a small subset (`view/markdown.cjs`)
 that builds React elements from text (headings, lists, paragraphs, code, bold, https links), so no HTML
 from the file can reach the page.
+
+Feedback. The Feedback tab writes a report and hands it to the person's browser; the page sends nothing.
+`model/feedback.cjs` builds the address of GitHub's new-issue page with the title and the text as query
+parameters, and the button is a plain link to it (`target="_blank"`), so the report exists only once the
+person submits it on GitHub under their own account. What is attached besides their own words is decided in
+one function, `environment(status)`: version numbers and state names, each of which has to look like one
+(letters, digits, dots, dashes, at most 40 characters) or becomes a question mark, so a path, an address or
+a file name cannot get in whatever a later status holds. The same lines are listed on the tab under the
+switch that attaches them. An address is kept under `MAX_URL` characters: a longer report is cut in the
+address only, the cut is marked, and the link copies the whole report to the clipboard on the way out.
+The host half loads the same module for `/memgate feedback` (`src/commands.js` imports
+`client/src/model/feedback.cjs`), which is why that module and `constants.cjs` must stay plain CommonJS
+that runs in Node without a browser.
 
 The mascot. The four drawings are the files of `client/art/` (`mascot-<mood>.webp`). The host half serves
 them from its art route (`GET feiyu-memgate/art/<file>`, `src/plugin.js`); the page loads the one that fits
@@ -151,10 +167,10 @@ checks every line of this):
 
 | layer | may require |
 |---|---|
-| `constants.cjs`, `fields.cjs`, `layout.cjs`, `react.cjs` | nothing of the page |
+| `constants.cjs`, `fields.cjs`, `layout.cjs`, `react.cjs`, `clipboard.cjs` | nothing of the page |
 | `i18n.cjs` | `fields.cjs` |
 | `net.cjs` | `constants.cjs` |
-| `hooks.cjs` | `react.cjs`, `constants.cjs`, `net.cjs` (no view, kit or theme) |
+| `hooks.cjs` | `react.cjs`, `constants.cjs`, `net.cjs`, `clipboard.cjs` (no view, kit or theme) |
 | `model/*` | other `model/*` files, `fields.cjs`, `layout.cjs`, `constants.cjs` (no React, kit, view, theme or hooks) |
 | `theme/*` | `theme/*` |
 | `kit/*` | `kit/*`, `react.cjs`, `theme/styles.cjs` |

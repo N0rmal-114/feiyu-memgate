@@ -1034,6 +1034,7 @@ feiyu-memgate forget explain --config FILE STORE REF
 |---|---|
 | `version` | 插件版本 |
 | `language` | 正在用的语言，`zh` 或 `en` |
+| `runtime` | 插件运行在什么上面：`platform`、`arch`（Node 的 `process.platform` 和 `process.arch`）、`node`（Node 的版本）。设置页面的“反馈”和 `/memgate feedback` 把它写进由用户自己决定是否提交的报告里 |
 | `modules` | 每个功能开关的当前值 |
 | `registered` | 现在注册在宿主里的功能名 |
 | `gateway` | `mode`（`managed` 或 `external`）和 `state`。自带网关的 `state`：`idle`、`starting`、`running`、`restarting`、`off`、`failed`、`stopped`，不需要记忆功能时是 `unused`；外部网关是 `configured` 或 `incomplete`，另带 `url` |

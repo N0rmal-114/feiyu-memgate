@@ -166,6 +166,7 @@ test('the status route: owner only, GET and HEAD, no secret, removed on unload',
   assert.equal(body.gateway.mode, 'managed')
   assert.equal(body.gateway.state, 'running')
   assert.deepEqual(body.python, { found: true, version: '3.12.4', source: 'path', executable: 'python-for-tests' })
+  assert.deepEqual(body.runtime, { platform: process.platform, arch: process.arch, node: process.versions.node }, 'what the plugin runs on, for a feedback report')
   assert.deepEqual(body.store, { tier: 'keyword', id: 'keyword', type: 'sqlite', file: 'memories.db', count: 12, hybrid: false })
   assert.deepEqual(body.retrieval.hybrid, { setting: false, active: false })
   assert.deepEqual(body.secrets, { 'external.token': true, 'retrieval.apiKey': true })

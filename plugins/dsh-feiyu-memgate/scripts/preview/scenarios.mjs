@@ -6,6 +6,7 @@ const PYTHON = { found: true, version: '3.12.4', source: 'python3', executable: 
 const base = (overrides = {}) => ({
   version: '0.0.0-preview',
   language: 'zh',
+  runtime: { platform: 'linux', arch: 'x64', node: '22.19.0' },
   gateway: { mode: 'managed', state: 'running' },
   secrets: { 'external.token': false, 'retrieval.apiKey': false },
   python: PYTHON,
@@ -20,7 +21,7 @@ const base = (overrides = {}) => ({
 const LOCAL = {
   retrieval: { setting: 'auto', active: 'local', hybrid: { setting: true, active: true } },
   store: { tier: 'local', type: 'embedding', file: 'memories-3f9a1c.json', keywordFile: 'memories-3f9a1c-keywords.db', count: 1284 },
-  embed: { state: 'ready', error: null, model: 'bge-m3', dimensions: 1024, parity: 'exact' },
+  embed: { version: '0.1.0', state: 'ready', error: null, model: 'bge-m3', dimensions: 1024, parity: 'exact' },
 }
 
 /** name → { label, status } where status is the answer of the status route, or a number for an HTTP error. */

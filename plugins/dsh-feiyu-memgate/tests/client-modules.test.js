@@ -38,7 +38,8 @@ test('constants: the routes, names and addresses the page and the host half agre
     SAVED_NOTE_MS: 2600,
     ID_PREFIX: 'feiyu-memgate',
   })
-  assert.deepEqual(Object.keys(LINKS), ['docs', 'source', 'issues'])
+  assert.deepEqual(Object.keys(LINKS), ['docs', 'source', 'issues', 'newIssue'])
+  assert.equal(LINKS.newIssue, LINKS.issues + '/new', 'a new issue of the same repository')
   for (const href of Object.values(LINKS)) assert.equal(new URL(href).protocol, 'https:')
   for (const route of [c.STATUS_ROUTE, c.CHANGELOG_ROUTE, c.MODELS_ROUTE, c.ART_ROUTE]) assert.ok(!route.startsWith('/'), `${route} is document-relative`)
 })
@@ -393,10 +394,10 @@ test('sources: every relative require ends in .cjs (or .css) and resolves to a f
 // What each layer may require, besides itself where it says so. Every rule is checked against the whole
 // graph, and the graph must have no cycle.
 const LAYER_RULES = [
-  [(id) => ['constants.cjs', 'fields.cjs', 'layout.cjs', 'react.cjs'].includes(id), () => false, 'tables and the React entry require nothing of the page'],
+  [(id) => ['constants.cjs', 'fields.cjs', 'layout.cjs', 'react.cjs', 'clipboard.cjs'].includes(id), () => false, 'tables, the React entry and the clipboard require nothing of the page'],
   [(id) => id === 'i18n.cjs', (to) => to === 'fields.cjs', 'i18n.cjs: the field table only'],
   [(id) => id === 'net.cjs', (to) => to === 'constants.cjs', 'net.cjs: the constants only'],
-  [(id) => id === 'hooks.cjs', (to) => ['react.cjs', 'constants.cjs', 'net.cjs'].includes(to), 'hooks.cjs: React, the constants and the calls; no view, kit or theme'],
+  [(id) => id === 'hooks.cjs', (to) => ['react.cjs', 'constants.cjs', 'net.cjs', 'clipboard.cjs'].includes(to), 'hooks.cjs: React, the constants, the calls and the clipboard; no view, kit or theme'],
   [(id) => id.startsWith('model/'), (to) => to.startsWith('model/') || ['fields.cjs', 'layout.cjs', 'constants.cjs'].includes(to), 'model/*: other model files and the tables; no React, kit, view, theme or hooks'],
   [(id) => id.startsWith('theme/'), (to) => to.startsWith('theme/'), 'theme/*: theme/* only'],
   [(id) => id.startsWith('kit/'), (to) => to.startsWith('kit/') || ['react.cjs', 'theme/styles.cjs'].includes(to), 'kit/*: kit/*, react.cjs and theme/styles.cjs only'],
@@ -436,7 +437,7 @@ test('sources: the require graph has no cycle', () => {
 })
 
 test('sources: the layers load on their own in Node, with no React and no browser', () => {
-  for (const id of CJS.filter((x) => /^(constants|fields|i18n|layout|net)\.cjs$|^model\//.test(x))) assert.doesNotThrow(() => load(id), id)
+  for (const id of CJS.filter((x) => /^(constants|fields|i18n|layout|net|clipboard)\.cjs$|^model\//.test(x))) assert.doesNotThrow(() => load(id), id)
 })
 
 // ---- layout.cjs
@@ -473,7 +474,7 @@ test('layout: tab ids and section ids are unique and do not meet the ids of the 
   const sectionIds = TABS.flatMap((tab) => tab.sections.map((section) => section.id))
   assert.equal(new Set(tabIds).size, tabIds.length)
   assert.equal(new Set(sectionIds).size, sectionIds.length)
-  for (const id of tabIds) assert.ok(!['overview', 'changelog'].includes(id), 'those two tabs are the page’s own')
+  for (const id of tabIds) assert.ok(!['overview', 'changelog', 'feedback'].includes(id), 'those three tabs are the page’s own')
   for (const id of [...tabIds, ...sectionIds]) assert.match(id, /^[a-z]+$/)
 })
 
@@ -680,7 +681,7 @@ const KNOWN_UNUSED = [] // none today; a text nobody asks for fails the test bel
 
 test('i18n: every static key of the dictionary is used somewhere in client/src, except the ones listed in KNOWN_UNUSED', () => {
   const { UI } = load('i18n.cjs')
-  const DYNAMIC_PREFIXES = ['state.', 'installState.', 'language.', 'mascot.', 'overview.ready.', 'overview.fact.tier.', 'overview.asleep.']
+  const DYNAMIC_PREFIXES = ['state.', 'installState.', 'language.', 'mascot.', 'overview.ready.', 'overview.fact.tier.', 'overview.asleep.', 'feedback.kind.', 'feedback.hint.']
   const code = CJS.filter((id) => !['i18n.cjs', 'fields.cjs'].includes(id)).map((id) => scan(read(id)).code).join('\n')
   for (const prefix of DYNAMIC_PREFIXES) {
     assert.ok(code.includes(`'${prefix}' +`), `no module builds a key from '${prefix}' any more: take it off the list`)

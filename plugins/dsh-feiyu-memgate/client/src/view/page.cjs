@@ -6,11 +6,12 @@
 //   draft   the staged edits (key → { value } | { unset: true }); nothing is written until Save
 //   phase   idle | saving | saved | failed, the life of one save
 //   open    which folding groups of the Advanced tab are open
+//   report  the feedback a person is writing (view/feedback.cjs), kept while they look at other tabs
 //
 // The page keeps its shape whatever the settings form is doing. While the form is loading,
-// unavailable (the host serves no settings for this row) or read-only, the summary, the model list
-// and the changelog still work; the settings tabs then say what is the matter instead of showing
-// rows nobody can use.
+// unavailable (the host serves no settings for this row) or read-only, the summary, the model list,
+// the changelog and the feedback tab still work; the settings tabs then say what is the matter
+// instead of showing rows nobody can use.
 
 const { h, useEffect, useState } = require('../react.cjs')
 const { ID_PREFIX, LINKS, SAVED_NOTE_MS } = require('../constants.cjs')
@@ -21,7 +22,8 @@ const { summarise } = require('../model/overview.cjs')
 const { pageView, savable } = require('../model/page.cjs')
 const { Button } = require('../kit/controls.cjs')
 const { Icon } = require('../kit/icons.cjs')
-const { Notice, Tabs, TabPanel } = require('../kit/layout.cjs')
+const { Notice, Tabs, TabPanel, tabId } = require('../kit/layout.cjs')
+const { emptyFeedback, FeedbackTab } = require('./feedback.cjs')
 const { Hero } = require('./hero.cjs')
 const { ModelsPanel } = require('./models.cjs')
 const { SettingsTab } = require('./settings-tab.cjs')
@@ -49,7 +51,10 @@ function SaveBar(props) {
       h(Button, { variant: 'primary', disabled: saving || invalid, onClick: props.onSave }, saving ? t('saving') : t('saveChanges'))))
 }
 
-/** The line under the page: where to read more and where to report a problem. */
+/**
+ * The line under the page: the installed version, where to read more, and the way to the Feedback tab.
+ * @param {{ t: Function, version?: string, onFeedback: () => void }} props
+ */
 function Footer(props) {
   const { t, version } = props
   const link = (href, text) => h('a', { className: 'fmg-link', href, target: '_blank', rel: 'noreferrer noopener' }, text)
@@ -57,14 +62,14 @@ function Footer(props) {
     version ? h('span', null, 'dsh-feiyu-memgate ' + version) : null,
     link(LINKS.docs, t('footDocs')),
     link(LINKS.source, t('footSource')),
-    link(LINKS.issues, t('footIssue')))
+    h(Button, { variant: 'text', onClick: props.onFeedback }, t('footFeedback')))
 }
 
 /**
  * The page.
- * @param {{ t: Function, form?: { state: object, mutate: Function }, fetch?: Function }} props
+ * @param {{ t: Function, form?: { state: object, mutate: Function }, fetch?: Function, copy?: Function }} props
  *   `form` is the host's settings form for the plugin's row (absent when the host serves none);
- *   `fetch` replaces the browser's fetch in tests and in the preview.
+ *   `fetch` replaces the browser's fetch in tests and in the preview, `copy` the clipboard in tests.
  */
 function SettingsBody(props) {
   const { t, form } = props
@@ -74,6 +79,7 @@ function SettingsBody(props) {
   const [draft, setDraft] = useState({})
   const [phase, setPhase] = useState('idle')
   const [open, setOpen] = useState({})
+  const [report, setReport] = useState(emptyFeedback)
   const status = useStatus(fetchImpl)
   const changelog = useChangelog(fetchImpl)
 
@@ -125,12 +131,24 @@ function SettingsBody(props) {
     tabs.push({ id: entry.id, label: entry.label[lang] || entry.label.en, mark, markLabel: mark ? t(mark === 'invalid' ? 'fixFirst' : 'tabEdited') : undefined })
   }
   tabs.push({ id: 'changelog', label: t('tab.changelog') })
+  tabs.push({ id: 'feedback', label: t('tab.feedback') })
+
+  // The footer's way to the Feedback tab: select it and move the keyboard there, which also brings
+  // the tab bar into view from the bottom of a long tab.
+  const openFeedback = () => {
+    setTab('feedback')
+    const button = typeof document === 'undefined' ? null : document.getElementById(tabId(ID_PREFIX, 'feedback'))
+    if (button) button.focus()
+  }
 
   // The model list does not depend on the settings form: it is built once and placed by the layout.
   const panels = { models: h(ModelsPanel, { t, lang, fetch: fetchImpl, onChange: status.refreshSoon }) }
   let content
   if (tab === 'overview') content = h(OverviewTab, { t, status })
   else if (tab === 'changelog') content = h(ChangelogTab, { t, state: changelog })
+  else if (tab === 'feedback') {
+    content = h(FeedbackTab, { t, status, draft: report, copy: props.copy, onChange: (patch) => setReport((previous) => Object.assign({}, previous, patch)) })
+  }
   else if (ready) {
     content = h(SettingsTab, {
       t, lang, disabled, readOnly: !writable, edit, reset, open, panels,
@@ -153,14 +171,14 @@ function SettingsBody(props) {
     h(Tabs, { idPrefix: ID_PREFIX, label: t('tabsLabel'), tabs, value: tab, onChange: setTab }),
     h(TabPanel, { idPrefix: ID_PREFIX, id: tab }, content),
     h(SaveBar, { t, count, invalid, phase, onSave: save, onDiscard: discard }),
-    h(Footer, { t, version: status.data && status.data.version }))
+    h(Footer, { t, version: status.data && status.data.version, onFeedback: openFeedback }))
 }
 
 /** The slot entry: the one-liner for `summary`, the page for `page`. */
 function SettingsPage(props) {
   const t = typeof props.t === 'function' ? props.t : typeof props.translate === 'function' ? props.translate : (key) => key
   if (props.view === 'summary') return t('summary')
-  return h(SettingsBody, { t, form: props.form, fetch: props.fetch })
+  return h(SettingsBody, { t, form: props.form, fetch: props.fetch, copy: props.copy })
 }
 
 module.exports = { SaveBar, Footer, SettingsBody, SettingsPage }

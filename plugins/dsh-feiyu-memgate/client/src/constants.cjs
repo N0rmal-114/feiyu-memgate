@@ -15,7 +15,7 @@ const MODELS_POLL_MS = 10000
 const MODELS_BUSY_POLL_MS = 1500
 // The mascot's drawings: GET <ART_ROUTE><mood>.webp (src/plugin.js serves the files of client/art).
 const ART_ROUTE = 'feiyu-memgate/art/'
-// How long the "Saved" confirmation stays before the bar goes away.
+// How long a confirmation ("Saved", "Copied") stays before it goes away.
 const SAVED_NOTE_MS = 2600
 // The prefix of every element id the page makes, so that none can meet an id of the host's page.
 const ID_PREFIX = 'feiyu-memgate'
@@ -23,6 +23,8 @@ const LINKS = {
   docs: 'https://github.com/N0rmal-114/feiyu-memgate/tree/main/plugins/dsh-feiyu-memgate#readme',
   source: 'https://github.com/N0rmal-114/feiyu-memgate',
   issues: 'https://github.com/N0rmal-114/feiyu-memgate/issues',
+  // GitHub's page for a new issue; model/feedback.cjs adds the title and the text to it.
+  newIssue: 'https://github.com/N0rmal-114/feiyu-memgate/issues/new',
 }
 
 module.exports = {

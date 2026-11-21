@@ -462,6 +462,17 @@
   min-height: 22px;
 }
 
+/* A control with a line under it (the text area and its count). */
+.fmg-row__control--stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.fmg-row__control--stack > .fmg-quiet {
+  align-self: flex-end;
+}
+
 /* A setting that depends on the one above it: set in, with a rail down the left. */
 .fmg-row--sub {
   padding-left: 32px;
@@ -529,6 +540,8 @@
   color: var(--fmg-ink);
   font: inherit;
   font-size: 13px;
+  /* A link may be drawn as a button (the way out to GitHub on the feedback tab). */
+  text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
@@ -652,6 +665,16 @@
 
 .fmg-input:disabled {
   opacity: 0.6;
+}
+
+/* Several lines of text: the same box, as tall as its rows, and the person can drag it taller. */
+.fmg-input--area {
+  display: block;
+  height: auto;
+  min-height: 96px;
+  padding: 8px 12px;
+  line-height: 1.6;
+  resize: vertical;
 }
 
 .fmg-input-line {
@@ -897,6 +920,12 @@
   gap: 8px;
 }
 
+/* The last thing of a line of actions, pushed to the far end (a link aside from the buttons). */
+.fmg-actions__end {
+  margin-left: auto;
+  font-size: 12px;
+}
+
 .fmg-model {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1065,7 +1094,8 @@
   font-size: 12px;
 }
 
-.fmg-foot .fmg-link {
+.fmg-foot .fmg-link,
+.fmg-foot .fmg-button--text {
   color: var(--fmg-ink-2);
 }
 
