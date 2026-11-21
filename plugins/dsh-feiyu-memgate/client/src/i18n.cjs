@@ -109,7 +109,7 @@ const UI = {
     footSource: 'Source',
     footFeedback: 'Give feedback',
     'tab.feedback': 'Feedback',
-    'feedback.title': 'Tell us what you think',
+    'feedback.title': 'Tell me what you think',
     'feedback.intro': 'A feature you miss, something that broke, a part that feels clumsy: all of it helps.',
     'feedback.kind': 'What it is about',
     'feedback.kind.idea': 'An idea',
