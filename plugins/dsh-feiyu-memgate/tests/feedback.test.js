@@ -288,7 +288,8 @@ test('FeedbackTab: the kind, the text, the environment with every line that is a
     assert.equal(area.props.maxLength, 4000)
     assert.equal(findAll(tree, (n) => n.type === 'label' && n.props.htmlFor === area.props.id).length, 0, 'no visible label')
     assert.equal(area.props['aria-label'], t('feedback.text'))
-    assert.equal(area.props.placeholder, t('feedback.hint.idea'))
+    assert.equal(area.props.placeholder, t('feedback.placeholder'))
+    if (lang === 'zh') assert.equal(area.props.placeholder, '在这里进行反馈')
     assert.equal(area.props['aria-describedby'], undefined)
     const [toggle] = withRole(tree, 'switch')
     assert.equal(toggle.props['aria-checked'], 'true')
@@ -329,7 +330,7 @@ test('FeedbackTab: once something is written the primary control is a link to th
   assert.equal(link.props.onClick, undefined, 'a report that fits needs no clipboard')
   assert.ok(link.props.className.split(' ').includes('fmg-button'))
   assert.equal(buttonNamed(tree, t('feedback.copy')).props.disabled, undefined)
-  assert.equal(findAll(tree, (n) => n.type === 'textarea')[0].props.placeholder, t('feedback.hint.problem'), 'the hint follows the kind')
+  assert.equal(findAll(tree, (n) => n.type === 'textarea')[0].props.placeholder, t('feedback.placeholder'), 'the same for every kind')
   for (const a of findAll(tree, (n) => n.type === 'a')) {
     assert.equal(new URL(a.props.href).origin, 'https://github.com')
     assert.equal(a.props.target, '_blank')
@@ -424,7 +425,7 @@ test('the page: Feedback is the last tab, works without a settings form, and the
   const tree = expand(shared.internals.SettingsPage({ view: 'page', t: translatorFor('en'), fetch: async () => ({ ok: false, status: 503 }) }))
   const [footer] = findAll(tree, (n) => n.type === 'footer')
   const [toFeedback] = findAll(footer, (n) => n.type === 'button')
-  assert.equal(textOf(toFeedback), 'Give feedback')
+  assert.equal(textOf(toFeedback), 'Feedback')
   assert.doesNotThrow(() => toFeedback.props.onClick(), 'outside a browser there is no tab to focus, and that is fine')
 })
 

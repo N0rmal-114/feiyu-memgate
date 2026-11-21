@@ -503,7 +503,7 @@ test('the footer links are https only, open in a new tab and carry noopener and 
   const [footer] = findAll(tree, (n) => n.type === 'footer')
   const links = findAll(footer, (n) => n.type === 'a')
   assert.deepEqual(links.map(textOf), ['Documentation', 'Source'])
-  assert.deepEqual(findAll(footer, (n) => n.type === 'button').map(textOf), ['Give feedback'])
+  assert.deepEqual(findAll(footer, (n) => n.type === 'button').map(textOf), ['Feedback'])
   for (const link of links) {
     assert.equal(new URL(link.props.href).protocol, 'https:')
     assert.equal(link.props.target, '_blank')

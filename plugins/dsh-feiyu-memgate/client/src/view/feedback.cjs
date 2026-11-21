@@ -149,7 +149,7 @@ function FeedbackTab(props) {
           }))),
       h('div', { className: 'fmg-row fmg-row--stack' },
         h('div', { className: 'fmg-row__control fmg-row__control--stack' },
-          h(TextArea, { id: textId, value: draft.text, rows: 7, maxLength: MAX_TEXT, disabled: sending, label: t('feedback.text'), placeholder: t('feedback.hint.' + draft.kind), onChange: (text) => onChange({ text }) }),
+          h(TextArea, { id: textId, value: draft.text, rows: 7, maxLength: MAX_TEXT, disabled: sending, label: t('feedback.text'), placeholder: t('feedback.placeholder'), onChange: (text) => onChange({ text }) }),
           length >= MAX_TEXT * COUNT_FROM
             ? h('span', { className: 'fmg-quiet', role: 'status' }, t('feedback.count', { count: length, max: MAX_TEXT }))
             : null)),
