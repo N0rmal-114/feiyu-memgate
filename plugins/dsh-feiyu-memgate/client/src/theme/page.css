@@ -1,0 +1,1118 @@
+/*
+ * The stylesheet of the settings page. Assembled into client/client.js as a string module and applied
+ * once by theme/styles.cjs.
+ *
+ * How it is organised:
+ *   1. Tokens. `.fmg-root` maps the host's style variables to the page's own (`--fmg-*`) and defines
+ *      the few colours the page brings itself. Every rule below uses `--fmg-*` only, so this block is
+ *      the single place that knows the host's names, and each mapping has a fallback for a host that
+ *      does not define it.
+ *   2. Parts, in the order they appear on the page: hero, tabs, sections and rows, controls, panels,
+ *      save bar, changelog, footer.
+ *
+ * Conventions:
+ *   - Every class starts with `fmg-`; modifiers are `--name`; state is carried by ARIA or data
+ *     attributes the components set anyway (`aria-selected`, `aria-checked`, `data-open`), not by
+ *     extra classes.
+ *   - No rule reaches outside `.fmg-root`, so nothing leaks into the host's page.
+ *   - Dark and light: there is no theme branch. The host's variables switch by themselves and the
+ *     page's own colours are mixed from them (`color-mix`), so a third-party theme carries through.
+ *   - Lines are hairlines (`--fmg-hair`, the host's device-pixel-aware width), like the host's own.
+ *   - The host draws every corner as a superellipse; shapes that must be true circles or pills say
+ *     `corner-shape: round`.
+ *   - Hover rules sit under `@media (hover: hover)`, so a touch screen shows no stuck hover.
+ *   - Spacing steps are 4, 8, 12, 16, 24, 32; text sizes are 12, 13, 14 and 18, on the host's line
+ *     heights (18, 20, 20, 26).
+ *   - Width: the root is a size container; the narrow rules are container queries, because the page
+ *     sits in a column of the host whose width has little to do with the window's.
+ */
+
+/* ------------------------------------------------------------------ 1. tokens */
+
+.fmg-root {
+  /* host → page. The host switches these between light and dark by itself (and a third-party theme
+     may override them), so nothing below has a theme branch. */
+  --fmg-ink: var(--dsw-alias-label-primary, #0f1115);
+  --fmg-ink-2: var(--dsw-alias-label-secondary, #61666b);
+  --fmg-ink-3: var(--dsw-alias-label-tertiary, #81858c);
+  --fmg-base: var(--dsw-alias-bg-base, #ffffff);
+  --fmg-surface: var(--dsw-alias-settings-card-fill, #ffffff);
+  --fmg-raised: var(--dsw-alias-bg-layer-3, #ffffff);
+  --fmg-sunk: var(--dsw-alias-bg-module-platform, #f5f6f7);
+  --fmg-hover: var(--dsw-alias-interactive-bg-hover, rgba(38, 49, 72, 0.06));
+  --fmg-line: var(--dsw-alias-border-l2, rgba(0, 0, 0, 0.1));
+  --fmg-line-strong: var(--dsw-alias-border-l4, rgba(0, 0, 0, 0.16));
+  --fmg-hair: var(--dsh-hairline-width, 1px);
+  --fmg-danger: var(--dsw-alias-state-error-primary, #ec1313);
+  --fmg-thumb: var(--dsw-alias-switch-thumb, #ffffff);
+  --fmg-radius-s: var(--dsw-radius-sm, 8px);    /* small buttons */
+  --fmg-radius-m: var(--dsw-radius-md, 12px);   /* inputs, choices, notices */
+  --fmg-radius-l: var(--dsw-radius-lg, 16px);   /* groups of rows */
+  --fmg-radius-xl: var(--dsw-radius-xl, 20px);  /* the hero */
+  --fmg-mono: var(--dsh-font-family-code-default, 'SF Mono', 'JetBrains Mono', Consolas, Menlo, monospace);
+  --fmg-ease: var(--ds-ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
+
+  /* The page's own colour is the sea the mascot lives in. It is the host's blue accent, so it already
+     has a light and a dark value; everything else is mixed from it and from the host's neutrals. */
+  --fmg-sea: var(--dsw-alias-state-business-primary, #4176e6);   /* switches that are on, the primary button, the selected tab */
+  --fmg-sea-ink: var(--dsw-alias-link, #4176e6);                 /* the same blue as text */
+  --fmg-on-sea: var(--dsw-alias-label-primary-foreground, #ffffff);
+  --fmg-sea-wash: color-mix(in srgb, var(--fmg-sea) 10%, transparent);
+  --fmg-sea-edge: color-mix(in srgb, var(--fmg-sea) 38%, transparent);
+  /* Her cheeks: the one warm colour, kept for "experimental". Mixed with the text colour so that it
+     is dark on a light page and light on a dark one. */
+  --fmg-blush: color-mix(in srgb, #e0528d 72%, var(--fmg-ink));
+  --fmg-blush-wash: color-mix(in srgb, #e0528d 12%, transparent);
+  /* Status colours as text: the host's are picked for dots and fills, too light to read on white. */
+  --fmg-ok-fill: var(--dsw-alias-state-success-primary, #22c55e);
+  --fmg-ok: color-mix(in srgb, var(--fmg-ok-fill) 68%, var(--fmg-ink));
+  --fmg-wait-fill: var(--dsw-alias-state-warn-primary, #f59e0b);
+  --fmg-wait: color-mix(in srgb, var(--dsw-alias-state-warn-label, #dd8629) 78%, var(--fmg-ink));
+  --fmg-warn-wash: color-mix(in srgb, var(--fmg-wait-fill) 14%, transparent);
+  --fmg-hero-a: color-mix(in srgb, var(--fmg-sea) 20%, var(--fmg-base));
+  --fmg-hero-b: color-mix(in srgb, var(--fmg-sea) 5%, var(--fmg-base));
+  --fmg-hero-edge: color-mix(in srgb, var(--fmg-sea) 24%, transparent);
+  --fmg-hero-chip: color-mix(in srgb, var(--fmg-base) 62%, transparent);
+  --fmg-bubble: color-mix(in srgb, var(--fmg-sea) 26%, transparent);
+  --fmg-shadow: var(--dsw-shadow-lv2, 0 6px 24px rgba(15, 17, 21, 0.14), 0 1px 3px rgba(15, 17, 21, 0.1));
+
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  color: var(--fmg-ink);
+  font-size: 13px;
+  line-height: 20px;
+  text-align: left;
+}
+
+/* The resets are written with :where(), which adds no weight: any rule of a part further down wins
+   over them without having to out-rank them. */
+:where(.fmg-root) *,
+:where(.fmg-root) *::before,
+:where(.fmg-root) *::after {
+  box-sizing: border-box;
+}
+
+:where(.fmg-root) :is(p, h4, h5, dl, dd, ul) {
+  margin: 0;
+  padding: 0;
+  font: inherit;
+}
+
+:where(.fmg-root) ul {
+  list-style: none;
+}
+
+/* One focus ring for everything that takes the keyboard. */
+.fmg-root :focus-visible {
+  outline: 2px solid var(--fmg-sea);
+  outline-offset: 2px;
+}
+
+.fmg-note {
+  color: var(--fmg-ink-2);
+  font-size: 12px;
+}
+
+.fmg-quiet {
+  color: var(--fmg-ink-3);
+  font-size: 12px;
+}
+
+.fmg-link {
+  color: var(--fmg-sea-ink);
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .fmg-link:hover {
+    text-decoration: underline;
+  }
+}
+
+.fmg-code {
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--fmg-sunk);
+  font-family: var(--fmg-mono);
+  font-size: 0.92em;
+}
+
+/* ------------------------------------------------------------------ 2. hero */
+
+/* The margin on top is the room the mascot's head needs: she stands on the card's lower edge and is
+   taller than the card. */
+.fmg-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 16px;
+  margin-top: 28px;
+  padding: 20px 8px 20px 24px;
+  min-height: 132px;
+  border: var(--fmg-hair) solid var(--fmg-hero-edge);
+  border-radius: var(--fmg-radius-xl);
+  background: linear-gradient(120deg, var(--fmg-hero-a) 0%, var(--fmg-hero-b) 62%);
+  color: var(--fmg-ink);
+}
+
+.fmg-hero__text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: center;
+  min-width: 0;
+}
+
+.fmg-hero__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 26px;
+}
+
+.fmg-hero__line {
+  max-width: 520px;
+  color: var(--fmg-ink-2);
+  font-size: 13px;
+}
+
+.fmg-hero__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.fmg-fact {
+  padding: 2px 10px;
+  border: var(--fmg-hair) solid var(--fmg-hero-edge);
+  border-radius: 999px;
+  corner-shape: round;
+  background: var(--fmg-hero-chip);
+  color: var(--fmg-ink);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fmg-fact--warn {
+  border-color: transparent;
+  background: var(--fmg-warn-wash);
+  color: var(--fmg-wait);
+}
+
+/* The state at a glance, for those who do not read the drawing: a dot in front of the headline. */
+.fmg-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  corner-shape: round;
+  background: var(--fmg-ink-3);
+}
+
+.fmg-dot[data-mood='ready'] {
+  background: var(--fmg-ok);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--fmg-ok) 18%, transparent);
+}
+
+.fmg-dot[data-mood='busy'] {
+  background: var(--fmg-wait);
+  animation: fmg-pulse 1.6s ease-in-out infinite;
+}
+
+.fmg-dot[data-mood='trouble'] {
+  background: var(--fmg-danger);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--fmg-danger) 18%, transparent);
+}
+
+.fmg-hero__art {
+  position: relative;
+  align-self: end;
+  width: 123px;
+  height: 172px;
+  margin: -48px 0 -20px;
+  pointer-events: none;
+}
+
+.fmg-hero__art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.fmg-hero__art img[data-shown='true'] {
+  opacity: 1;
+  animation: fmg-bob 5s ease-in-out infinite;
+}
+
+/* Three bubbles drift up behind the text; decoration only. */
+.fmg-hero__sea {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.fmg-hero__sea i {
+  position: absolute;
+  bottom: -24px;
+  border: var(--fmg-hair) solid var(--fmg-bubble);
+  border-radius: 50%;
+  corner-shape: round;
+  background: radial-gradient(circle at 32% 30%, transparent 55%, var(--fmg-bubble) 100%);
+  animation: fmg-rise 14s linear infinite;
+}
+
+.fmg-hero__sea i:nth-child(1) { left: 58%; width: 14px; height: 14px; animation-delay: -2s; }
+.fmg-hero__sea i:nth-child(2) { left: 67%; width: 22px; height: 22px; animation-duration: 19s; animation-delay: -9s; }
+.fmg-hero__sea i:nth-child(3) { left: 44%; width: 9px; height: 9px; animation-duration: 11s; animation-delay: -5s; }
+
+@keyframes fmg-rise {
+  from { transform: translateY(0); opacity: 0; }
+  12% { opacity: 1; }
+  85% { opacity: 1; }
+  to { transform: translateY(-190px); opacity: 0; }
+}
+
+@keyframes fmg-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes fmg-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* ------------------------------------------------------------------ 3. tabs */
+
+.fmg-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  border-bottom: var(--fmg-hair) solid var(--fmg-line);
+  scrollbar-width: none;
+}
+
+.fmg-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.fmg-tab {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px 10px;
+  border: 0;
+  background: none;
+  color: var(--fmg-ink-2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .fmg-tab:hover {
+    color: var(--fmg-ink);
+  }
+}
+
+.fmg-tab::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--fmg-sea);
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+.fmg-tab[aria-selected='true'] {
+  color: var(--fmg-ink);
+  font-weight: 600;
+}
+
+.fmg-tab[aria-selected='true']::after {
+  transform: scaleX(1);
+}
+
+/* A tab that holds unsaved edits. */
+.fmg-mark {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  corner-shape: round;
+  background: var(--fmg-sea);
+}
+
+.fmg-mark--invalid {
+  background: var(--fmg-danger);
+}
+
+.fmg-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-top: 4px;
+}
+
+/* ------------------------------------------------------------------ 4. sections and rows */
+
+.fmg-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fmg-section__head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 4px;
+}
+
+.fmg-section__title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* A group is the bordered list the rows of a section sit in. `fmg-rows` draws the lines between
+   rows, for a group and for the body of a folding group alike. */
+.fmg-group {
+  border: var(--fmg-hair) solid var(--fmg-line);
+  border-radius: var(--fmg-radius-l);
+  background: var(--fmg-surface);
+  overflow: hidden;
+}
+
+.fmg-rows > * + * {
+  border-top: var(--fmg-hair) solid var(--fmg-line);
+}
+
+/* A closed part takes no room, so it draws no line either. */
+.fmg-rows > .fmg-reveal:not([data-open='true']) {
+  border-top-width: 0;
+}
+
+.fmg-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 24px;
+  row-gap: 10px;
+  padding: 14px 16px;
+}
+
+/* A row whose control needs the full width (text, choices) puts it under the text. */
+.fmg-row--stack {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.fmg-row__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fmg-row__label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.fmg-row__help {
+  max-width: 640px;
+  color: var(--fmg-ink-2);
+  font-size: 12px;
+}
+
+.fmg-row__error {
+  color: var(--fmg-danger);
+  font-size: 12px;
+}
+
+.fmg-row__control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 22px;
+}
+
+/* A setting that depends on the one above it: set in, with a rail down the left. */
+.fmg-row--sub {
+  padding-left: 32px;
+  background:
+    linear-gradient(var(--fmg-sea-edge), var(--fmg-sea-edge)) 16px 0 / 2px 100% no-repeat,
+    var(--fmg-sunk);
+}
+
+/* A part that opens and closes: the height animates through the grid row. While closed the content
+   is not visible, which also keeps the keyboard and a screen reader out of it; the switch to hidden
+   waits until the closing animation is over. */
+.fmg-reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.22s var(--fmg-ease);
+}
+
+.fmg-reveal[data-open='true'] {
+  grid-template-rows: 1fr;
+}
+
+.fmg-reveal > div {
+  min-height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  transition: visibility 0s linear 0.22s;
+}
+
+.fmg-reveal[data-open='true'] > div {
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+/* ------------------------------------------------------------------ 5. controls */
+
+.fmg-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 7px;
+  border-radius: 999px;
+  corner-shape: round;
+  background: var(--fmg-sunk);
+  color: var(--fmg-ink-2);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.fmg-tag--sea { background: var(--fmg-sea-wash); color: var(--fmg-sea-ink); }
+.fmg-tag--blush { background: var(--fmg-blush-wash); color: var(--fmg-blush); }
+.fmg-tag--warn { background: var(--fmg-warn-wash); color: var(--fmg-wait); }
+.fmg-tag--ok { background: color-mix(in srgb, var(--fmg-ok) 14%, transparent); color: var(--fmg-ok); }
+
+.fmg-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border: var(--fmg-hair) solid var(--fmg-line-strong);
+  border-radius: var(--fmg-radius-s);
+  background: var(--fmg-raised);
+  color: var(--fmg-ink);
+  font: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+@media (hover: hover) {
+  .fmg-button:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--fmg-raised), var(--fmg-ink) 6%);
+  }
+}
+
+.fmg-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.fmg-button--primary {
+  border-color: transparent;
+  background: var(--fmg-sea);
+  color: var(--fmg-on-sea);
+  font-weight: 500;
+}
+
+@media (hover: hover) {
+  .fmg-button--primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--fmg-sea) 88%, #000);
+  }
+}
+
+/* A button that reads as text: "Reset", "Clear", "Refresh". */
+.fmg-button--text {
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--fmg-sea-ink);
+  font-size: 12px;
+}
+
+@media (hover: hover) {
+  .fmg-button--text:hover:not(:disabled) {
+    background: none;
+    text-decoration: underline;
+  }
+}
+
+.fmg-switch {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  corner-shape: round;
+  background: var(--fmg-line-strong);
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+
+.fmg-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  corner-shape: round;
+  background: var(--fmg-thumb);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.18s ease;
+}
+
+.fmg-switch[aria-checked='true'] {
+  background: var(--fmg-sea);
+}
+
+.fmg-switch[aria-checked='true']::after {
+  background: var(--fmg-on-sea);
+  transform: translateX(16px);
+}
+
+.fmg-switch:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.fmg-input {
+  width: 100%;
+  height: 34px;
+  padding: 0 12px;
+  border: var(--fmg-hair) solid var(--fmg-line-strong);
+  border-radius: var(--fmg-radius-m);
+  background: var(--fmg-raised);
+  color: var(--fmg-ink);
+  font: inherit;
+  font-size: 13px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fmg-input::placeholder {
+  color: var(--fmg-ink-3);
+}
+
+@media (hover: hover) {
+  .fmg-input:hover:not(:disabled) {
+    border-color: var(--fmg-sea-edge);
+  }
+}
+
+.fmg-input:focus-visible {
+  outline: none;
+  border-color: var(--fmg-sea);
+  box-shadow: 0 0 0 3px var(--fmg-sea-wash);
+}
+
+.fmg-input[aria-invalid='true'] {
+  border-color: var(--fmg-danger);
+}
+
+.fmg-input:disabled {
+  opacity: 0.6;
+}
+
+.fmg-input-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 460px;
+}
+
+/* A number with a minus and a plus: one bordered box, the unit after it. */
+.fmg-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  height: 30px;
+  border: var(--fmg-hair) solid var(--fmg-line-strong);
+  border-radius: var(--fmg-radius-m);
+  background: var(--fmg-raised);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fmg-stepper:focus-within {
+  border-color: var(--fmg-sea);
+  box-shadow: 0 0 0 3px var(--fmg-sea-wash);
+}
+
+.fmg-stepper[data-invalid='true'] {
+  border-color: var(--fmg-danger);
+}
+
+.fmg-stepper input {
+  width: 56px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--fmg-ink);
+  font: inherit;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.fmg-stepper input:focus-visible {
+  outline: none;
+}
+
+.fmg-stepper button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--fmg-ink-2);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .fmg-stepper button:hover:not(:disabled) {
+    background: var(--fmg-sunk);
+    color: var(--fmg-ink);
+  }
+}
+
+.fmg-stepper button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.fmg-stepper button:focus-visible {
+  outline-offset: -2px;
+}
+
+/* The options of a choice, each with what it means: a list of radio rows. */
+.fmg-choices {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+/* Four options would wrap three and one: two by two reads better. */
+.fmg-choices[data-count='4'] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.fmg-choice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: 10px;
+  padding: 10px 12px;
+  border: var(--fmg-hair) solid var(--fmg-line);
+  border-radius: var(--fmg-radius-m);
+  background: var(--fmg-raised);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .fmg-choice:hover:not(:disabled) {
+    border-color: var(--fmg-sea-edge);
+  }
+}
+
+.fmg-choice[aria-checked='true'] {
+  border-color: var(--fmg-sea);
+  background: var(--fmg-sea-wash);
+}
+
+.fmg-choice:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.fmg-choice__dot {
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  border: 1.5px solid var(--fmg-line-strong);
+  border-radius: 50%;
+  corner-shape: round;
+  background: var(--fmg-raised);
+}
+
+.fmg-choice[aria-checked='true'] .fmg-choice__dot {
+  border: 4px solid var(--fmg-sea);
+  background: var(--fmg-on-sea);
+}
+
+.fmg-choice__name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.fmg-choice__note {
+  display: block;
+  color: var(--fmg-ink-2);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* ------------------------------------------------------------------ 6. disclosures, panels, notices */
+
+.fmg-fold {
+  border: var(--fmg-hair) solid var(--fmg-line);
+  border-radius: var(--fmg-radius-l);
+  background: var(--fmg-surface);
+  overflow: hidden;
+}
+
+.fmg-fold__head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .fmg-fold__head:hover {
+    background: var(--fmg-hover);
+  }
+}
+
+.fmg-fold__head:focus-visible {
+  outline-offset: -2px;
+}
+
+.fmg-fold__chevron {
+  color: var(--fmg-ink-3);
+  transition: transform 0.2s ease;
+}
+
+.fmg-root [aria-expanded='true'] > .fmg-fold__chevron {
+  transform: rotate(90deg);
+}
+
+.fmg-fold__title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.fmg-fold__help {
+  display: block;
+  color: var(--fmg-ink-2);
+  font-size: 12px;
+}
+
+.fmg-fold__body {
+  border-top: var(--fmg-hair) solid var(--fmg-line);
+}
+
+/* Label and value pairs: the details of the overview, the facts of a model. */
+.fmg-facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 16px;
+  padding: 14px 16px;
+  font-size: 12px;
+}
+
+.fmg-facts dt {
+  color: var(--fmg-ink-2);
+}
+
+.fmg-facts dd {
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.fmg-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--fmg-radius-m);
+  background: var(--fmg-sunk);
+  font-size: 12px;
+}
+
+.fmg-notice--warn {
+  background: var(--fmg-warn-wash);
+}
+
+.fmg-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.fmg-model {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px 16px;
+  padding: 14px 16px;
+}
+
+.fmg-model__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fmg-model__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.fmg-model__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+  color: var(--fmg-ink-2);
+  font-size: 12px;
+}
+
+.fmg-model__wide {
+  grid-column: 1 / -1;
+}
+
+.fmg-check {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.fmg-check input {
+  accent-color: var(--fmg-sea);
+}
+
+.fmg-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--fmg-sunk);
+  overflow: hidden;
+}
+
+.fmg-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--fmg-sea);
+  transition: width 0.4s ease;
+}
+
+/* ------------------------------------------------------------------ 7. save bar */
+
+/* Sticks to the lower edge of whatever scrolls the page; takes no room while nothing is staged. */
+.fmg-savebar {
+  position: sticky;
+  bottom: 12px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 10px 12px 10px 16px;
+  border: var(--fmg-hair) solid var(--fmg-line);
+  border-radius: var(--fmg-radius-l);
+  background: var(--fmg-raised);
+  box-shadow: var(--fmg-shadow);
+  animation: fmg-up 0.22s ease;
+}
+
+.fmg-savebar__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.fmg-savebar__text .fmg-row__error {
+  font-weight: 400;
+}
+
+.fmg-savebar--done {
+  justify-content: flex-start;
+  color: var(--fmg-ok);
+}
+
+@keyframes fmg-up {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+/* ------------------------------------------------------------------ 8. changelog */
+
+.fmg-release {
+  padding: 14px 16px;
+}
+
+.fmg-release__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fmg-release__version {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.fmg-release__date {
+  color: var(--fmg-ink-3);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fmg-release__head .fmg-fold__chevron {
+  margin-left: auto;
+}
+
+.fmg-md {
+  padding-top: 10px;
+  color: var(--fmg-ink);
+  font-size: 12.5px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.fmg-md p { margin: 0 0 6px; }
+.fmg-md h5 { margin: 12px 0 4px; font-size: 12.5px; font-weight: 600; }
+.fmg-md ul { margin: 0 0 6px; padding-left: 18px; list-style: disc; }
+.fmg-md li { margin: 2px 0; }
+.fmg-md li::marker { color: var(--fmg-ink-3); }
+
+/* ------------------------------------------------------------------ 9. footer */
+
+.fmg-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 0 4px 4px;
+  color: var(--fmg-ink-3);
+  font-size: 12px;
+}
+
+.fmg-foot .fmg-link {
+  color: var(--fmg-ink-2);
+}
+
+/* ------------------------------------------------------------------ narrow columns and calm motion */
+
+@container (max-width: 520px) {
+  .fmg-hero {
+    padding: 16px 4px 16px 16px;
+    gap: 8px;
+  }
+
+  .fmg-hero__head {
+    font-size: 17px;
+  }
+
+  .fmg-hero__art {
+    width: 92px;
+    height: 129px;
+    margin-top: -36px;
+    margin-bottom: -16px;
+  }
+
+  .fmg-row,
+  .fmg-model {
+    column-gap: 12px;
+    padding: 12px;
+  }
+
+  .fmg-choices[data-count='4'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fmg-row--sub {
+    padding-left: 24px;
+    background-position: 10px 0, 0 0;
+  }
+
+  .fmg-model {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fmg-root *,
+  .fmg-root *::before,
+  .fmg-root *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

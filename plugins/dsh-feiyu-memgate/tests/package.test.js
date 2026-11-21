@@ -248,3 +248,20 @@ test('the settings page sources, the assembled script and the scripts that make 
   }
   assert.ok(clientSources().includes('client/src/index.cjs'), 'the entry module the assembly loads')
 })
+
+test('the mascot drawings ship in client/art: four small WebP files, the ones the art routes and the page name', async () => {
+  const { ART_FILES, ART_PATH } = await import('../src/plugin.js')
+  const { createRequire } = await import('node:module')
+  const constants = createRequire(import.meta.url)('../client/src/constants.cjs')
+  // The page asks document-relative (no leading slash), the host half registers the absolute path.
+  assert.equal('/' + constants.ART_ROUTE, ART_PATH)
+  const files = fs.readdirSync(path.join(ROOT, 'client', 'art')).sort()
+  assert.deepEqual(files, [...ART_FILES].sort())
+  assert.deepEqual(files, ['asleep', 'busy', 'ready', 'trouble'].map((mood) => `mascot-${mood}.webp`), 'one drawing per mood of the page')
+  for (const name of files) {
+    const bytes = fs.readFileSync(path.join(ROOT, 'client', 'art', name))
+    assert.equal(bytes.subarray(0, 4).toString('latin1') + bytes.subarray(8, 12).toString('latin1'), 'RIFFWEBP', name)
+    assert.ok(bytes.length > 2000 && bytes.length < 60 * 1024, `${name}: ${bytes.length} bytes, expected a drawing of a few tens of KB`)
+  }
+  assert.ok(pkg.files.includes('client/'), 'client/art is published with client/')
+})

@@ -1,11 +1,12 @@
 'use strict'
 
-// The two React hooks that read the host half: useStatus (polled) and useChangelog (read once).
-// They own the timers and the "still mounted" flag; they know nothing about how the data is drawn.
+// The React hooks that talk to the host half: useStatus (polled), useChangelog (read once) and
+// useModels (polled, plus the clicks of the model list). They own the timers and the "still mounted"
+// flag; they know nothing about how the data is drawn.
 
 const { useEffect, useRef, useState } = require('./react.cjs')
-const { STATUS_POLL_MS } = require('./constants.cjs')
-const { fetchStatus, fetchChangelog } = require('./net.cjs')
+const { STATUS_POLL_MS, MODELS_POLL_MS, MODELS_BUSY_POLL_MS } = require('./constants.cjs')
+const { fetchStatus, fetchChangelog, fetchModels, postModels } = require('./net.cjs')
 
 /** The changelog, read once when the page mounts: { loading, data }; data stays null when the read failed. */
 function useChangelog(fetchImpl) {
@@ -49,4 +50,57 @@ function useStatus(fetchImpl) {
   })
 }
 
-module.exports = { useChangelog, useStatus }
+/**
+ * The local model list and its clicks: { view, error, pending, refusal, reload, send }.
+ *   view     what GET feiyu-memgate/models last answered (src/setup.js view()), or null
+ *   error    the code of the last failed read or click, or null; a failure keeps the last view
+ *   pending  a click is on its way
+ *   refusal  the problem the host half gave for the last click it refused, or null
+ *   send     post one click ({ action, id?, ... }); the answer carries the new view
+ * The list is read more often while a download or an installation runs. `onDone` is called once when
+ * a setup reaches its end, because the retrieval tier follows a model that became active.
+ */
+function useModels(fetchImpl, onDone) {
+  const [state, setState] = useState({ view: null, error: null })
+  const [pending, setPending] = useState(false)
+  const [refusal, setRefusal] = useState(null)
+  const alive = useRef(true)
+  const load = useRef(null)
+  const lastPhase = useRef(null)
+  load.current = () => fetchModels(fetchImpl).then(
+    (view) => { if (alive.current) setState({ view, error: null }) },
+    (error) => { if (alive.current) setState((previous) => ({ view: previous.view, error: (error && error.code) || 'network' })) },
+  )
+  const busy = Boolean(state.view && state.view.busy)
+  useEffect(() => {
+    alive.current = true
+    load.current()
+    return () => { alive.current = false }
+  }, [])
+  useEffect(() => {
+    const timer = setInterval(() => load.current(), busy ? MODELS_BUSY_POLL_MS : MODELS_POLL_MS)
+    return () => clearInterval(timer)
+  }, [busy])
+  const phase = state.view && state.view.chain ? state.view.chain.phase : null
+  useEffect(() => {
+    if (phase === 'done' && lastPhase.current && lastPhase.current !== 'done' && onDone) onDone()
+    lastPhase.current = phase
+  }, [phase])
+  const send = (body) => {
+    setPending(true)
+    setRefusal(null)
+    postModels(fetchImpl, body).then((answer) => {
+      if (!alive.current) return
+      setPending(false)
+      if (answer && answer.view) setState({ view: answer.view, error: null })
+      if (answer && answer.result && !answer.result.ok && answer.result.problem) setRefusal(answer.result.problem)
+    }, (error) => {
+      if (!alive.current) return
+      setPending(false)
+      setState((previous) => ({ view: previous.view, error: (error && error.code) || 'network' }))
+    })
+  }
+  return { view: state.view, error: state.error, pending, refusal, reload: () => load.current(), send }
+}
+
+module.exports = { useChangelog, useStatus, useModels }

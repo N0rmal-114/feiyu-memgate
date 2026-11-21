@@ -6,7 +6,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { CHANGELOG_PATH, MODELS_PATH, ROW_ID, STATUS_PATH, applyPlugin } from '../src/plugin.js'
+import { ART_FILES, ART_PATH, CHANGELOG_PATH, MODELS_PATH, ROW_ID, STATUS_PATH, applyPlugin } from '../src/plugin.js'
 import { migrationStateFile } from '../src/migrate.js'
 import { EMBED_SERVICE, EMBEDDINGS_KEY_ENV, keywordIndexFile } from '../src/tiers.js'
 import { OWNER, callRoute, createFakeHost, fakeClients, fakeConnection, fakeManagers, tick, volatile } from './helpers/fake-host.js'
@@ -208,6 +208,65 @@ test('the changelog route: owner only, GET and HEAD, the released entries of the
   assert.equal(host.routes.size, 0)
 })
 
+test('the art routes: one per drawing of client/art, owner only, GET and HEAD, WebP bytes with a tag that answers 304', async () => {
+  const { host, plugin } = setup({ services: ['webServer'] })
+  await plugin.settled()
+  assert.equal(ART_PATH, '/feiyu-memgate/art/')
+  assert.deepEqual([...ART_FILES].sort(), fs.readdirSync(new URL('../client/art/', import.meta.url)).sort(), 'every file of client/art has a route and the other way round')
+  for (const name of ART_FILES) {
+    const route = host.routes.get(ART_PATH + name)
+    assert.ok(route, name)
+    assert.deepEqual([route.kind, route.auth], ['exact', 'required'])
+    assert.equal((await callRoute(route, { peer: undefined })).status, 503)
+    assert.equal((await callRoute(route, { peer: { principal: { kind: 'guest' } } })).status, 403)
+    const post = await callRoute(route, { method: 'POST', peer: OWNER })
+    assert.equal(post.status, 405)
+    assert.equal(post.headers.allow, 'GET, HEAD')
+    const ok = await callRoute(route, { peer: OWNER, raw: true })
+    assert.equal(ok.status, 200)
+    assert.equal(ok.headers['content-type'], 'image/webp')
+    assert.equal(ok.headers['x-content-type-options'], 'nosniff')
+    assert.equal(ok.headers['cache-control'], 'private, no-cache')
+    const bytes = fs.readFileSync(new URL('../client/art/' + name, import.meta.url))
+    assert.ok(Buffer.isBuffer(ok.body) && ok.body.equals(bytes), 'the bytes of the file')
+    assert.equal(ok.body.subarray(0, 4).toString('latin1'), 'RIFF')
+    assert.equal(ok.body.subarray(8, 12).toString('latin1'), 'WEBP')
+    assert.equal(ok.headers['content-length'], String(bytes.length))
+    assert.match(ok.headers.etag, /^"[0-9a-f]{16}"$/)
+    const head = await callRoute(route, { method: 'HEAD', peer: OWNER })
+    assert.equal(head.status, 200)
+    assert.equal(head.body, '')
+    const again = await callRoute(route, { peer: OWNER, headers: { 'if-none-match': ok.headers.etag } })
+    assert.equal(again.status, 304)
+    assert.equal(again.body, '')
+  }
+  await host.unload()
+  assert.equal(host.routes.size, 0)
+})
+
+test('the art routes: a missing, empty or oversized file answers 404 with no path; the name never comes from the request', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'memgate-art-'))
+  const { host, plugin } = setup({ services: ['webServer'], deps: { artDir: dir } })
+  await plugin.settled()
+  const [first, second, third] = ART_FILES
+  fs.writeFileSync(path.join(dir, second), '')
+  fs.writeFileSync(path.join(dir, third), Buffer.alloc(600 * 1024, 1))
+  for (const name of [first, second, third]) {
+    const answer = await callRoute(host.routes.get(ART_PATH + name), { peer: OWNER })
+    assert.equal(answer.status, 404, name)
+    assert.equal(answer.body, '')
+  }
+  // A request for another address is not this route's business: the route reads its own fixed name.
+  fs.writeFileSync(path.join(dir, first), 'RIFF0000WEBPtest')
+  const route = host.routes.get(ART_PATH + first)
+  const odd = await callRoute(route, { peer: OWNER, url: ART_PATH + '../../package.json' })
+  assert.equal(odd.status, 200)
+  assert.equal(odd.body, 'RIFF0000WEBPtest')
+  assert.equal(host.routes.get(ART_PATH + 'package.json'), undefined)
+  await host.unload()
+  fs.rmSync(dir, { recursive: true, force: true })
+})
+
 test('the changelog route: 0.2.2-rc.1 asks connection.admit() like the status route', async () => {
   const { host, plugin } = setup({ services: ['webServer'] })
   await plugin.settled()
@@ -272,10 +331,11 @@ test('the page routes come and go with the web server', async () => {
   const { host } = setup()
   assert.equal(host.routes.size, 0)
   host.useWebServer()
-  assert.deepEqual([...host.routes.keys()].sort(), [CHANGELOG_PATH, MODELS_PATH, STATUS_PATH].sort())
+  const all = [CHANGELOG_PATH, MODELS_PATH, STATUS_PATH, ...ART_FILES.map((name) => ART_PATH + name)]
+  assert.deepEqual([...host.routes.keys()].sort(), all.sort())
   host.unprovide('webServer')
   host.useWebServer()
-  assert.equal(host.routes.size, 3, 'registered again, not twice')
+  assert.equal(host.routes.size, all.length, 'registered again, not twice')
 })
 
 test('a broken probe or count degrades to unknown values', async () => {

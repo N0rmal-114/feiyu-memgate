@@ -251,7 +251,7 @@ export function createFakeHost({ entryId = 'feiyu-memgate' } = {}) {
  * becomes the request stream; `headers` are the request headers. Without `peer` the handler sees
  * what 0.2.2-rc.1 hands it: no Peer at all.
  */
-export async function callRoute(route, { method = 'GET', peer, headers = {}, body } = {}) {
+export async function callRoute(route, { method = 'GET', peer, headers = {}, body, url, raw = false } = {}) {
   const response = { status: 0, headers: {}, body: '' }
   const res = {
     headersSent: false,
@@ -261,11 +261,14 @@ export async function callRoute(route, { method = 'GET', peer, headers = {}, bod
       res.headersSent = true
     },
     end(body) {
-      if (body !== undefined) response.body += body
+      if (body === undefined) return
+      // `raw` keeps the bytes of a binary answer (an image); otherwise the answer is text.
+      if (raw) response.body = Buffer.isBuffer(body) ? body : Buffer.from(String(body))
+      else response.body += body
     },
   }
   const req = Readable.from(body === undefined ? [] : [Buffer.from(body, 'utf8')])
-  Object.assign(req, { method, url: route.path, headers })
+  Object.assign(req, { method, url: url ?? route.path, headers })
   await route.handler(req, res, peer)
   return response
 }

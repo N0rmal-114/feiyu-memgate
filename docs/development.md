@@ -139,10 +139,11 @@ DSH 聊天宿主的主插件：自带并启动网关，每轮自动召回，给�
 | `src/catalogue.js` | 设置页在附加包没装时显示的本地模型清单，其中 `<catalogue>` 标记之间是生成的 |
 | `src/migrate.js`、`src/migrate.py` | 切到向量档位时，把关键词存储里的记忆分批复制过去；`.py` 用网关的 Python 解释器运行 |
 | `src/mirror.py` | 混合检索：让关键词索引和向量库保持同一批记忆，起网关之前由 `gateway.js` 运行 |
-| `client/src/` | 设置页（浏览器那一半）的源码：按职责拆成的一组小模块（`.cjs`），其中 `fields.cjs` 是生成的；分工和规则见 [client/README.md](../plugins/dsh-feiyu-memgate/client/README.md) |
+| `client/src/` | 设置页（浏览器那一半）的源码：按职责拆成的一组小模块（`.cjs`，加上样式表 `theme/page.css`），分成数据表、`model/`（纯逻辑）、`kit/`（页面自己的控件）、`view/`（各部分的画法）和 `theme/`，其中 `fields.cjs` 是生成的；页面只向宿主要 `react`；分工、依赖规则和设计约定见 [client/README.md](../plugins/dsh-feiyu-memgate/client/README.md) |
+| `client/art/` | 设置页顶部吉祥物的四张图（`mascot-<ready\|busy\|asleep\|trouble>.webp`），由主插件的路由提供 |
 | `client/client.js` | 设置页脚本，**由 `npm run build-client` 从 `client/src/` 拼出来，不要手改**；宿主只加载这一个文件 |
 | `python/` | 打包进去的网关，是 `src/feiyu_memgate/` 的一份拷贝，不要手改，见 [生成的和打包的部分](#插件里生成的和打包的部分) |
-| `scripts/` | `sync-gateway.mjs`、`sync-client.mjs`、`build-client.mjs`、`sync-catalogue.mjs` |
+| `scripts/` | `sync-gateway.mjs`、`sync-client.mjs`、`build-client.mjs`、`sync-catalogue.mjs`，以及开发用的 `preview-client.mjs`（连同 `preview/`：编造的状态和模型清单、预览页的脚本和宿主样式变量），在浏览器里预览设置页面，见下 |
 | `tools/make-parity-fixtures.py` | 用真正的 Python 客户端生成对照数据 |
 | `tests/` | `node --test` 的测试；`fixtures/parity/` 是对照数据，`helpers/` 是假宿主 |
 | `locale/`、`docs/`、`cordis.patch.yml` | 界面文字、插件管理页显示的说明、安装时往宿主配置里加一行的补丁 |
@@ -194,6 +195,16 @@ CI 用的是 Node 22，也就是插件支持的最低版本。推送之前最好
 | `DSH_FEIYU_MEMGATE_SRC` | `dsh-feiyu-memgate-embed` | 主插件的文件夹，CI 里是 `../dsh-feiyu-memgate` | `tests/plugin.test.js` 里的一个用例多检查一步：把附加包发布的服务快照交给主插件自己的 `src/tiers.js`（`readEmbed`、`embedReady`），要读得通、算作就绪。不是跳过，是多几条断言 |
 
 与环境变量无关的跳过：主插件里需要 Python 的测试（`gateway.test.js`、`migrate.test.js`、`mirror.test.js`、`tiers.test.js` 里的一个）在 PATH 上找不到 3.11 或更高的 Python 时跳过；`catalogue.test.js` 里和附加包比较清单的用例在旁边没有 `dsh-feiyu-memgate-embed` 文件夹时跳过。
+
+## 预览设置页面
+
+不需要 DSH，也不需要安装任何依赖，就能在浏览器里看设置页面：
+
+```bash
+node scripts/preview-client.mjs --react <一个带有 react 和 react-dom 18 的 node_modules 文件夹> [--port 47931]
+```
+
+在 `plugins/dsh-feiyu-memgate/` 里运行，然后打开 `http://127.0.0.1:47931/`，在顶部的栏里选情形、浅色或深色、语言、设置表单的状态和栏宽。页面脚本每次请求都从 `client/src/` 重新拼，改了源码刷新就能看到。真的部分：页面脚本和样式表、`client/art/` 里的图、读自 `CHANGELOG.md` 的更新日志；编造的部分：状态和模型清单（`scripts/preview/scenarios.mjs`）、设置表单（保存在页面里）、宿主的样式变量（`scripts/preview/host-tokens.css`，抄来的值）。所以它能看版式、文字、各种状态和两种主题，看不到页面在真正的插件页里的样子。服务只监听 `127.0.0.1`，只提供脚本里写明的几个文件；`tests/client-preview.test.js` 检查编造的数据能被页面画出来，测试不启动这个服务。
 
 ## 插件里生成的和打包的部分
 

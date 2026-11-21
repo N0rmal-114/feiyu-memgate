@@ -1,23 +1,37 @@
 'use strict'
 
-// Entry point: the module the host loads. It registers the page's dictionaries and the settings page
-// in the Plugins page's row slot, and exposes `internals` for tests. Wiring only; no page logic here.
+// Entry point: the module the host loads. It registers the page's dictionaries, its stylesheet and
+// the settings page in the Plugins page's row slot, and exposes `internals` for tests. Wiring only;
+// no page logic here.
 
-const { NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE } = require('./constants.cjs')
-const { FIELDS } = require('./fields.cjs')
+const { NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE, ART_ROUTE } = require('./constants.cjs')
+const { FIELDS, INDEX } = require('./fields.cjs')
 const { dictionaries } = require('./i18n.cjs')
+const { TABS, placedKeys } = require('./layout.cjs')
 const { fetchChangelog, fetchStatus, fetchModels, postModels } = require('./net.cjs')
+const { entryDate, releases } = require('./model/changelog.cjs')
 const { fieldView, buildOps, saveDraft, checkText } = require('./model/form.cjs')
-const { statusRows } = require('./model/status.cjs')
 const { pickText, formatSize, memoryText, modelActions, chainLine, sameProblem } = require('./model/models.cjs')
-const { inlineMarkdown, renderMarkdown, entryDate } = require('./model/markdown.cjs')
-const { ChangelogView, SettingsPage, SettingsBody, ModelsSection, ModelRow } = require('./view/legacy.cjs')
+const { formatCount, summarise } = require('./model/overview.cjs')
+const { splitOption, isMet, sectionView, pageView, savable } = require('./model/page.cjs')
+const { statusRows } = require('./model/status.cjs')
+const { STYLE_ID, installStyles } = require('./theme/styles.cjs')
+const { stepText } = require('./kit/controls.cjs')
+const { FieldRow, fieldId } = require('./view/field-row.cjs')
+const { Hero, artUrl } = require('./view/hero.cjs')
+const { inlineMarkdown, renderMarkdown } = require('./view/markdown.cjs')
+const { ModelRow, ModelsPanel } = require('./view/models.cjs')
+const { SaveBar, SettingsBody, SettingsPage } = require('./view/page.cjs')
+const { SettingsTab } = require('./view/settings-tab.cjs')
+const { ChangelogTab, OverviewTab } = require('./view/tabs.cjs')
 
 const name = 'dsh-feiyu-memgate'
 const inject = ['slots', 'locale']
 
 function apply(ctx) {
   ctx.effect(() => ctx.locale.register(NS, dictionaries()), 'dsh-feiyu-memgate: dictionaries')
+  // The stylesheet lives as long as the plugin is loaded: the effect's return value removes it.
+  ctx.effect(() => installStyles(typeof document === 'undefined' ? undefined : document), 'dsh-feiyu-memgate: stylesheet')
   const t = ctx.locale.bind(NS)
   ctx.slots.inject('plugins.row.config', () => ctx.slots.register({
     name: 'plugins.row.config',
@@ -31,10 +45,19 @@ module.exports = {
   name,
   inject,
   apply,
-  // For tests: the page's pure parts and components.
+  // For tests and the preview (scripts/preview-client.mjs): the page's pure parts and its components.
   internals: {
-    FIELDS, NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE, dictionaries, fetchChangelog, inlineMarkdown, renderMarkdown, entryDate, ChangelogView, fieldView, buildOps, saveDraft, statusRows, checkText,
-    fetchStatus, fetchModels, postModels, pickText, formatSize, memoryText, modelActions, chainLine, sameProblem, SettingsPage, SettingsBody, ModelsSection,
-    ModelRowForTests: ModelRow,
+    // tables and names
+    FIELDS, INDEX, TABS, NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE, ART_ROUTE, STYLE_ID,
+    dictionaries, placedKeys,
+    // calls to the host half
+    fetchStatus, fetchChangelog, fetchModels, postModels,
+    // logic
+    fieldView, buildOps, saveDraft, checkText, splitOption, isMet, sectionView, pageView, savable,
+    statusRows, summarise, formatCount, entryDate, releases,
+    pickText, formatSize, memoryText, modelActions, chainLine, sameProblem, stepText, fieldId, artUrl,
+    // view
+    installStyles, inlineMarkdown, renderMarkdown,
+    Hero, FieldRow, SettingsTab, OverviewTab, ChangelogTab, ModelRow, ModelsPanel, SaveBar, SettingsBody, SettingsPage,
   },
 }

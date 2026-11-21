@@ -1,20 +1,11 @@
 'use strict'
 
-// The changelog Markdown subset: text in, React elements out. This is the one model module that builds
-// React elements (through react.cjs); it never reads the DOM and has no path from the text to raw HTML.
-// It owns the few styles it uses (STYLES) so that the model layer does not depend on the view.
+// The changelog's Markdown subset: text in, React elements out. Headings, lists (one nested level),
+// paragraphs, `code`, **bold** and https links; everything else stays text. The elements are built
+// from strings here, so there is no path from the changelog file to raw HTML on the page.
+// How they look is the stylesheet's business (`.fmg-md` in theme/page.css).
 
 const { h } = require('../react.cjs')
-
-// The styles of the elements renderMarkdown() and inlineMarkdown() build; view/legacy.cjs reuses them.
-const STYLES = {
-  mdP: { margin: '0 0 6px' },
-  mdH: { margin: '10px 0 4px', fontSize: '12px', fontWeight: 600, lineHeight: 1.5 },
-  mdUl: { margin: '0 0 6px', paddingLeft: '18px' },
-  mdLi: { margin: '2px 0' },
-  code: { fontFamily: 'var(--dsw-font-mono, ui-monospace, monospace)', fontSize: '11px', padding: '0 4px', borderRadius: 'var(--dsw-radius-sm)', background: 'var(--dsw-alias-bg-layer-4)' },
-  link: { fontSize: '12px', lineHeight: 1.5, color: 'var(--dsw-alias-label-link, var(--dsw-alias-label-secondary))' },
-}
 
 const INLINE = /`([^`]+)`|\*\*([^*]+)\*\*|\[([^\]]+)\]\(([^)\s]+)\)/g
 const CJK = /[\u2e80-\u9fff\uf900-\ufaff\uff00-\uffef]/
@@ -29,9 +20,9 @@ function inlineMarkdown(text) {
   while ((match = INLINE.exec(text)) !== null) {
     if (match.index > last) out.push(text.slice(last, match.index))
     n += 1
-    if (match[1] !== undefined) out.push(h('code', { key: 'c' + n, style: STYLES.code }, match[1]))
+    if (match[1] !== undefined) out.push(h('code', { key: 'c' + n, className: 'fmg-code' }, match[1]))
     else if (match[2] !== undefined) out.push(h('strong', { key: 'b' + n }, match[2]))
-    else if (/^https:\/\//i.test(match[4])) out.push(h('a', { key: 'a' + n, href: match[4], target: '_blank', rel: 'noopener noreferrer', style: STYLES.link }, match[3]))
+    else if (/^https:\/\//i.test(match[4])) out.push(h('a', { key: 'a' + n, href: match[4], target: '_blank', rel: 'noopener noreferrer', className: 'fmg-link' }, match[3]))
     else out.push(match[3]) // any other address is shown as its text, not a link
     last = match.index + match[0].length
   }
@@ -60,15 +51,15 @@ function renderMarkdown(body) {
   let list = null
   let tail = null // the item (top or nested) a continuation line belongs to
   const flushPara = () => {
-    if (para) blocks.push(h('p', { key: 'p' + blocks.length, style: STYLES.mdP }, inlineMarkdown(joinLines(para))))
+    if (para) blocks.push(h('p', { key: 'p' + blocks.length }, inlineMarkdown(joinLines(para))))
     para = null
   }
   const flushList = () => {
     if (list) {
       const key = 'l' + blocks.length
-      const items = (entries, prefix) => entries.map((item, index) => h('li', { key: prefix + index, style: STYLES.mdLi },
-        inlineMarkdown(item.text), item.children && item.children.length ? h('ul', { style: STYLES.mdUl }, items(item.children, prefix + index + '.')) : null))
-      blocks.push(h('ul', { key, style: STYLES.mdUl }, items(list, key)))
+      const items = (entries, prefix) => entries.map((item, index) => h('li', { key: prefix + index },
+        inlineMarkdown(item.text), item.children && item.children.length ? h('ul', null, items(item.children, prefix + index + '.')) : null))
+      blocks.push(h('ul', { key }, items(list, key)))
     }
     list = null
     tail = null
@@ -81,7 +72,7 @@ function renderMarkdown(body) {
     } else if ((match = /^#{1,6}[ \t]+(.+?)[ \t]*$/.exec(line))) {
       flushPara()
       flushList()
-      blocks.push(h('h5', { key: 'h' + blocks.length, style: STYLES.mdH }, inlineMarkdown(match[1])))
+      blocks.push(h('h5', { key: 'h' + blocks.length }, inlineMarkdown(match[1])))
     } else if ((match = /^([ \t]*)[-*][ \t]+(.*)$/.exec(line))) {
       flushPara()
       if (!list) list = []
@@ -102,10 +93,4 @@ function renderMarkdown(body) {
   return blocks
 }
 
-/** The date a changelog entry gives on its date line ("日期：2026-11-18"), or ''. */
-function entryDate(body) {
-  const match = /日期[：:]\s*(\d{4}-\d{2}-\d{2})/.exec(String(body || ''))
-  return match ? match[1] : ''
-}
-
-module.exports = { STYLES, inlineMarkdown, joinLines, renderMarkdown, entryDate }
+module.exports = { inlineMarkdown, joinLines, renderMarkdown }

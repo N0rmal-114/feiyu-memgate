@@ -71,7 +71,7 @@
 //                                           lib/index.js:742-750), as rc.1 open-in-app does (:1264)
 //   settings.mutate(ns, ops)                packages/settings/settings/src/index.ts:368 (ns = the profile entry
 //                                           id, ctx.fiber.entry.options.id, vendor/loader/src/index.ts:53, :129-131)
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { buildPrompt, collect, MAX_ANSWER_TOKENS, parseAnswer } from './relevance.js'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -101,6 +101,14 @@ export const MODELS_PATH = '/feiyu-memgate/models'
 // The released sections of the package's own CHANGELOG.md, for the settings page (src/changelog.js). Owner only too.
 export const CHANGELOG_PATH = '/feiyu-memgate/changelog'
 const CHANGELOG_FILE = new URL('../CHANGELOG.md', import.meta.url)
+// The mascot's drawings on the settings page: GET <ART_PATH><name>, one exact route per file of client/art.
+// Owner only like the other routes of the page: nothing here is secret, but the plugin serves nothing
+// to anyone the host has not admitted.
+export const ART_PATH = '/feiyu-memgate/art/'
+export const ART_FILES = Object.freeze(['mascot-ready.webp', 'mascot-busy.webp', 'mascot-asleep.webp', 'mascot-trouble.webp'])
+const ART_DIR = new URL('../client/art/', import.meta.url)
+// A drawing is about 30 KB; a file far beyond that is not one of ours and is not served.
+const MAX_ART_BYTES = 512 * 1024
 const MAX_ACTION_BYTES = 8 * 1024
 const MODEL_ACTIONS = new Set(['install', 'builds', 'cancel', 'use', 'remove'])
 // Actions that can make the host install a package: only with `confirmed: true`, which the page sends
@@ -354,6 +362,7 @@ export function createPlugin(ctx, config, deps = {}) {
   const { pauseMs: migrationPauseMs = 1000, ...migrationOptions } = deps.migration ?? {}
   const embedPollMs = deps.embedPollMs ?? 30000
   const changelogFile = deps.changelogFile ?? CHANGELOG_FILE // replaceable in tests
+  const artDir = deps.artDir ?? ART_DIR // replaceable in tests
   const env = deps.env ?? process.env
   // The clock, read where a date is needed (never kept): today's date in a block, the time of a memory.
   const clock = () => {
@@ -1559,6 +1568,67 @@ export function createPlugin(ctx, config, deps = {}) {
     }
   }
 
+  // ---------------------------------------------------------------- art
+
+  const artCache = new Map() // file name -> { key: 'mtime:size', bytes, etag }
+
+  /**
+   * One drawing of client/art: its bytes and an entity tag made from them, read again only when the
+   * file changed. Null when the file is missing, unreadable or not the size of a drawing.
+   */
+  function art(name) {
+    try {
+      const file = artDir instanceof URL ? new URL(name, artDir) : path.join(String(artDir), name)
+      const stat = fs.statSync(file)
+      if (!stat.isFile() || stat.size === 0 || stat.size > MAX_ART_BYTES) return null
+      const key = `${stat.mtimeMs}:${stat.size}`
+      const hit = artCache.get(name)
+      if (hit?.key === key) return hit
+      const bytes = fs.readFileSync(file)
+      const entry = { key, bytes, etag: `"${createHash('sha1').update(bytes).digest('hex').slice(0, 16)}"` }
+      artCache.set(name, entry)
+      return entry
+    } catch {
+      artCache.delete(name)
+      return null
+    }
+  }
+
+  // The settings page's <img> for one mood. The name is fixed by the route, never taken from the
+  // request, so no path of the request reaches the file system. The browser may keep the picture but
+  // asks each time whether it changed (the tag answers with 304), so an updated plugin shows its own.
+  function artRoute(name) {
+    return {
+      kind: 'exact',
+      auth: 'required',
+      path: ART_PATH + name,
+      handler: async (req, res, peer) => {
+        const plain = (code, extra = {}) => {
+          res.writeHead(code, { 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', ...extra })
+          res.end()
+        }
+        try {
+          const refused = admission(req, peer)
+          if (refused !== null) return plain(refused)
+          if (req.method !== 'GET' && req.method !== 'HEAD') return plain(405, { allow: 'GET, HEAD' })
+          const entry = art(name)
+          if (!entry) return plain(404)
+          const headers = { 'content-type': 'image/webp', 'cache-control': 'private, no-cache', etag: entry.etag, 'x-content-type-options': 'nosniff' }
+          if (req.headers?.['if-none-match'] === entry.etag) {
+            res.writeHead(304, headers)
+            return res.end()
+          }
+          res.writeHead(200, { ...headers, 'content-length': String(entry.bytes.length) })
+          res.end(req.method === 'HEAD' ? undefined : entry.bytes)
+        } catch (error) {
+          log.warn(`feiyu-memgate: a drawing of the settings page is unavailable (${kindOf(error)})`)
+          if (!res.headersSent) plain(500)
+          else res.end()
+        }
+      },
+    }
+  }
+
   // ---------------------------------------------------------------- settings writes
 
   /** Apply setting edits through the host's Settings service: persisted in the profile, applied live. */
@@ -1741,6 +1811,7 @@ export function createPlugin(ctx, config, deps = {}) {
           scoped.effect(() => scoped.webServer.register(statusRoute()))
           scoped.effect(() => scoped.webServer.register(modelsRoute()))
           scoped.effect(() => scoped.webServer.register(changelogRoute()))
+          for (const name of ART_FILES) scoped.effect(() => scoped.webServer.register(artRoute(name)))
         })
         watchers.push(() => fiber?.dispose?.())
       } catch (error) {
@@ -1785,6 +1856,7 @@ export function createPlugin(ctx, config, deps = {}) {
     modelsRoute,
     changelogRoute,
     changelog,
+    artRoute,
     setup,
     activeModules: () => [...active.keys()],
     gateway: () => manager,

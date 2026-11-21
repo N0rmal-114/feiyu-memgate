@@ -36,7 +36,8 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     'use strict'
 
     // Names and numbers the page agrees on with the host half: the settings namespace, the slot key,
-    // the three routes and how often each one is polled. Plain values only; no logic, no host modules.
+    // the routes and how often each one is polled, and the public addresses the page links to. Plain values
+    // only; no logic, no host modules.
 
     const NS = 'feiyuMemgate'
     const ROW_KEY = 'dsh-feiyu-memgate#feiyu-memgate'
@@ -47,8 +48,22 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     const MODELS_ROUTE = 'feiyu-memgate/models'
     const MODELS_POLL_MS = 10000
     const MODELS_BUSY_POLL_MS = 1500
+    // The mascot's drawings: GET <ART_ROUTE><mood>.webp (src/plugin.js serves the files of client/art).
+    const ART_ROUTE = 'feiyu-memgate/art/'
+    // How long the "Saved" confirmation stays before the bar goes away.
+    const SAVED_NOTE_MS = 2600
+    // The prefix of every element id the page makes, so that none can meet an id of the host's page.
+    const ID_PREFIX = 'feiyu-memgate'
+    const LINKS = {
+      docs: 'https://github.com/N0rmal-114/feiyu-memgate/tree/main/plugins/dsh-feiyu-memgate#readme',
+      source: 'https://github.com/N0rmal-114/feiyu-memgate',
+      issues: 'https://github.com/N0rmal-114/feiyu-memgate/issues',
+    }
 
-    module.exports = { NS, ROW_KEY, STATUS_ROUTE, STATUS_POLL_MS, CHANGELOG_ROUTE, MODELS_ROUTE, MODELS_POLL_MS, MODELS_BUSY_POLL_MS }
+    module.exports = {
+      NS, ROW_KEY, STATUS_ROUTE, STATUS_POLL_MS, CHANGELOG_ROUTE, MODELS_ROUTE, MODELS_POLL_MS, MODELS_BUSY_POLL_MS,
+      ART_ROUTE, SAVED_NOTE_MS, ID_PREFIX, LINKS,
+    }
   })
 
   // fields.cjs
@@ -986,12 +1001,13 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
   define("hooks.cjs", function (require, module, exports) {
     'use strict'
 
-    // The two React hooks that read the host half: useStatus (polled) and useChangelog (read once).
-    // They own the timers and the "still mounted" flag; they know nothing about how the data is drawn.
+    // The React hooks that talk to the host half: useStatus (polled), useChangelog (read once) and
+    // useModels (polled, plus the clicks of the model list). They own the timers and the "still mounted"
+    // flag; they know nothing about how the data is drawn.
 
     const { useEffect, useRef, useState } = require('./react.cjs')
-    const { STATUS_POLL_MS } = require('./constants.cjs')
-    const { fetchStatus, fetchChangelog } = require('./net.cjs')
+    const { STATUS_POLL_MS, MODELS_POLL_MS, MODELS_BUSY_POLL_MS } = require('./constants.cjs')
+    const { fetchStatus, fetchChangelog, fetchModels, postModels } = require('./net.cjs')
 
     /** The changelog, read once when the page mounts: { loading, data }; data stays null when the read failed. */
     function useChangelog(fetchImpl) {
@@ -1035,25 +1051,60 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
       })
     }
 
-    module.exports = { useChangelog, useStatus }
-  })
-
-  // host-ui.cjs
-  define("host-ui.cjs", function (require, module, exports) {
-    'use strict'
-
-    // The one place that asks for the host's UI primitives (@deepseek-ai/dsh-client-ui-primitives).
-    // Older hosts do not export the package or some of its components, so the result is an object that
-    // may be empty: callers test `ui.Name` and fall back to plain elements. It must never throw.
-
-    let ui = {}
-    try {
-      ui = require('@deepseek-ai/dsh-client-ui-primitives') || {}
-    } catch (error) {
-      ui = {}
+    /**
+     * The local model list and its clicks: { view, error, pending, refusal, reload, send }.
+     *   view     what GET feiyu-memgate/models last answered (src/setup.js view()), or null
+     *   error    the code of the last failed read or click, or null; a failure keeps the last view
+     *   pending  a click is on its way
+     *   refusal  the problem the host half gave for the last click it refused, or null
+     *   send     post one click ({ action, id?, ... }); the answer carries the new view
+     * The list is read more often while a download or an installation runs. `onDone` is called once when
+     * a setup reaches its end, because the retrieval tier follows a model that became active.
+     */
+    function useModels(fetchImpl, onDone) {
+      const [state, setState] = useState({ view: null, error: null })
+      const [pending, setPending] = useState(false)
+      const [refusal, setRefusal] = useState(null)
+      const alive = useRef(true)
+      const load = useRef(null)
+      const lastPhase = useRef(null)
+      load.current = () => fetchModels(fetchImpl).then(
+        (view) => { if (alive.current) setState({ view, error: null }) },
+        (error) => { if (alive.current) setState((previous) => ({ view: previous.view, error: (error && error.code) || 'network' })) },
+      )
+      const busy = Boolean(state.view && state.view.busy)
+      useEffect(() => {
+        alive.current = true
+        load.current()
+        return () => { alive.current = false }
+      }, [])
+      useEffect(() => {
+        const timer = setInterval(() => load.current(), busy ? MODELS_BUSY_POLL_MS : MODELS_POLL_MS)
+        return () => clearInterval(timer)
+      }, [busy])
+      const phase = state.view && state.view.chain ? state.view.chain.phase : null
+      useEffect(() => {
+        if (phase === 'done' && lastPhase.current && lastPhase.current !== 'done' && onDone) onDone()
+        lastPhase.current = phase
+      }, [phase])
+      const send = (body) => {
+        setPending(true)
+        setRefusal(null)
+        postModels(fetchImpl, body).then((answer) => {
+          if (!alive.current) return
+          setPending(false)
+          if (answer && answer.view) setState({ view: answer.view, error: null })
+          if (answer && answer.result && !answer.result.ok && answer.result.problem) setRefusal(answer.result.problem)
+        }, (error) => {
+          if (!alive.current) return
+          setPending(false)
+          setState((previous) => ({ view: previous.view, error: (error && error.code) || 'network' }))
+        })
+      }
+      return { view: state.view, error: state.error, pending, refusal, reload: () => load.current(), send }
     }
 
-    module.exports = ui
+    module.exports = { useChangelog, useStatus, useModels }
   })
 
   // i18n.cjs
@@ -1069,9 +1120,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     const UI = {
       en: {
         summary: 'Long-term memory through the feiyu-memgate gateway: automatic recall, memory tools and retrieval tiers.',
-        statusTitle: 'Status',
         changelogTitle: 'Changelog',
-        changelogCurrent: 'Installed version {version}.',
         changelogChinese: 'The entries are written in Chinese.',
         changelogLoading: 'Reading the changelog…',
         changelogFailed: 'The changelog could not be shown.',
@@ -1100,10 +1149,10 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         relevanceRow: '{calls} calls · {kept} kept · {rejected} left out',
         relevanceSkipped: '{count} skipped ({kinds})',
         approximate: 'scores not calibrated',
-        save: 'Save', saving: 'Saving…', saved: 'Saved.',
+        saving: 'Saving…', saved: 'Saved.',
         saveFailed: 'The host did not accept the change; nothing was saved.',
         readOnly: 'Settings are read-only in this deployment.',
-        unavailable: 'The settings of this plugin are not available right now.',
+        unavailable: 'The host is not offering the settings form of this plugin right now. Every setting can still be changed in a chat with /memgate set.',
         loading: 'Loading the settings…',
         overridden: 'Changed', reset: 'Reset',
         invalidInteger: 'A whole number from {min} to {max}.',
@@ -1111,6 +1160,64 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         secretSet: 'Set', secretUnset: 'Not set', secretHint: 'Leave empty to keep the stored value.',
         secretClear: 'Clear', secretClearing: 'Cleared when you save.',
         lang: 'en',
+        // the redesigned page: tabs, the summary at the top, rows, the save bar, the footer
+        'tab.overview': 'Overview',
+        'tab.changelog': 'Changelog',
+        tabsLabel: 'Sections of the settings',
+        tabEdited: 'has unsaved changes',
+        'overview.head.ready': 'Memory is working',
+        'overview.head.busy': 'Getting memory ready',
+        'overview.head.asleep': 'Memory is resting',
+        'overview.head.trouble': 'Memory needs a hand',
+        'overview.head.loading': 'Reading the status',
+        'overview.head.unknown': 'The status is out of reach',
+        'overview.line.loading': 'One moment.',
+        'overview.line.unknown': 'The plugin did not answer ({code}). It may still be starting; the page asks again by itself.',
+        'overview.ready.keyword': 'The bundled gateway is running and finds memories by shared words.',
+        'overview.ready.local': 'The bundled gateway is running and finds memories by meaning, with {model} on this computer.',
+        'overview.ready.local.hybrid': 'The bundled gateway is running and finds memories by meaning and by shared words, with {model} on this computer.',
+        'overview.ready.endpoint': 'The bundled gateway is running and finds memories by meaning, through your embeddings endpoint.',
+        'overview.ready.endpoint.hybrid': 'The bundled gateway is running and finds memories by meaning and by shared words, through your embeddings endpoint.',
+        'overview.ready.external': 'Connected to the gateway you run yourself.',
+        'overview.busy.gateway': 'The bundled gateway is starting. Memories arrive from the next turn on.',
+        'overview.busy.model': 'Loading the embedding model {model}.',
+        'overview.busy.copy': 'Copying memories into the vector store: {copied} of {total}. Recall already works.',
+        'overview.asleep.off': 'The bundled gateway is switched off.',
+        'overview.asleep.stopped': 'The bundled gateway is stopped.',
+        'overview.asleep.unused': 'No feature that needs memory is on, so nothing is running. Switch one on under Features.',
+        'overview.trouble.python': 'No Python 3.11 or newer was found, and the bundled gateway needs one. Install Python, or name one under Advanced, Gateway.',
+        'overview.trouble.failed': 'The bundled gateway stopped after failing several times. Its log is in the data folder; saving any setting starts it again.',
+        'overview.trouble.incomplete': 'The external gateway needs an address and a client token. Fill them in under Advanced, Gateway.',
+        'overview.fact.count': '{count} memories',
+        'overview.fact.tier.keyword': 'By shared words',
+        'overview.fact.tier.local': 'By meaning, local model',
+        'overview.fact.tier.local.hybrid': 'Meaning and words, local model',
+        'overview.fact.tier.endpoint': 'By meaning, endpoint',
+        'overview.fact.tier.endpoint.hybrid': 'Meaning and words, endpoint',
+        'overview.fact.managed': 'Bundled gateway',
+        'overview.fact.external': 'External gateway',
+        'overview.fact.embedError': 'Embedding add-on reports an error',
+        'overview.fact.refused': '{count} memories refused by the embedding model',
+        'mascot.ready': 'The mascot holds up a glowing puzzle piece.',
+        'mascot.busy': 'The mascot carries a stack of puzzle pieces.',
+        'mascot.asleep': 'The mascot is asleep.',
+        'mascot.trouble': 'The mascot holds a cracked puzzle piece and looks worried.',
+        detailsTitle: 'Details',
+        detailsHint: 'What the plugin reports about itself. No secret, address of the add-on or memory is shown here.',
+        experimental: 'Experimental',
+        stepDown: 'Less',
+        stepUp: 'More',
+        unsaved: '{count} unsaved changes',
+        unsavedOne: '1 unsaved change',
+        fixFirst: 'A value marked in red cannot be saved yet.',
+        discard: 'Discard',
+        saveChanges: 'Save changes',
+        changelogIntro: 'What each update changed, newest first.',
+        changelogInstalled: 'Installed',
+        footDocs: 'Documentation',
+        footSource: 'Source',
+        footIssue: 'Report a problem',
+        changedCount: '{count} changed',
         modelsTitle: 'Local embedding models',
         modelsIntro: 'Optional. With a local model, memory is recalled by meaning rather than by shared words, on this computer. Nothing is downloaded or installed until you press a button.',
         modelsLink: 'Measured retrieval quality of each tier',
@@ -1144,9 +1251,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
       },
       zh: {
         summary: '通过 feiyu-memgate 网关使用长期记忆：自动召回、记忆工具和多种检索方式。',
-        statusTitle: '状态',
         changelogTitle: '更新日志',
-        changelogCurrent: '当前版本 {version}。',
         changelogChinese: '这些条目是用中文写的。',
         changelogLoading: '正在读取更新日志…',
         changelogFailed: '更新日志现在无法显示。',
@@ -1175,10 +1280,10 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         relevanceRow: '调用 {calls} 次 · 留下 {kept} 条 · 去掉 {rejected} 条',
         relevanceSkipped: '跳过 {count} 次（{kinds}）',
         approximate: '分数未校准',
-        save: '保存', saving: '正在保存…', saved: '已保存。',
+        saving: '正在保存…', saved: '已保存。',
         saveFailed: '宿主没有接受这次修改，什么都没有保存。',
         readOnly: '这个部署的设置是只读的。',
-        unavailable: '这个插件的设置现在不可用。',
+        unavailable: '宿主现在没有提供这个插件的设置表单。所有设置仍然可以在对话里用 /memgate set 修改。',
         loading: '正在加载设置…',
         overridden: '已修改', reset: '恢复',
         invalidInteger: '{min} 到 {max} 之间的整数。',
@@ -1186,6 +1291,64 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         secretSet: '已设置', secretUnset: '未设置', secretHint: '留空则保留已保存的值。',
         secretClear: '清空', secretClearing: '保存时清空。',
         lang: 'zh',
+        // the redesigned page: tabs, the summary at the top, rows, the save bar, the footer
+        'tab.overview': '概览',
+        'tab.changelog': '更新日志',
+        tabsLabel: '设置的各个部分',
+        tabEdited: '有未保存的修改',
+        'overview.head.ready': '记忆在正常工作',
+        'overview.head.busy': '正在准备记忆',
+        'overview.head.asleep': '记忆在休息',
+        'overview.head.trouble': '记忆需要你帮个忙',
+        'overview.head.loading': '正在读取状态',
+        'overview.head.unknown': '读不到状态',
+        'overview.line.loading': '稍等一下。',
+        'overview.line.unknown': '插件没有应答（{code}）。它可能还在启动，页面会自己再问。',
+        'overview.ready.keyword': '自带网关在运行，按字面找记忆。',
+        'overview.ready.local': '自带网关在运行，用这台电脑上的 {model} 按意思找记忆。',
+        'overview.ready.local.hybrid': '自带网关在运行，用这台电脑上的 {model} 按意思找记忆，同时也按字面找。',
+        'overview.ready.endpoint': '自带网关在运行，通过你的向量接口按意思找记忆。',
+        'overview.ready.endpoint.hybrid': '自带网关在运行，通过你的向量接口按意思找记忆，同时也按字面找。',
+        'overview.ready.external': '已连接到你自己运行的网关。',
+        'overview.busy.gateway': '自带网关正在启动，下一轮对话起就有记忆。',
+        'overview.busy.model': '正在加载向量模型 {model}。',
+        'overview.busy.copy': '正在把记忆复制到向量存储：{copied} / {total}。这期间照常能召回。',
+        'overview.asleep.off': '自带网关已关闭。',
+        'overview.asleep.stopped': '自带网关已停止。',
+        'overview.asleep.unused': '没有开启需要记忆的功能，所以什么都没有运行。到“功能”里打开一项就行。',
+        'overview.trouble.python': '没有找到 Python 3.11 或更新的版本，自带网关需要它。装一个 Python，或者到“高级 › 网关”里指定一个。',
+        'overview.trouble.failed': '自带网关连续失败几次之后停下了。日志在数据文件夹里；保存任意一项设置会让它重新启动。',
+        'overview.trouble.incomplete': '外部网关还缺地址和客户端令牌。到“高级 › 网关”里填上。',
+        'overview.fact.count': '{count} 条记忆',
+        'overview.fact.tier.keyword': '按字面检索',
+        'overview.fact.tier.local': '按意思检索 · 本地模型',
+        'overview.fact.tier.local.hybrid': '意思加字面 · 本地模型',
+        'overview.fact.tier.endpoint': '按意思检索 · 向量接口',
+        'overview.fact.tier.endpoint.hybrid': '意思加字面 · 向量接口',
+        'overview.fact.managed': '自带网关',
+        'overview.fact.external': '外部网关',
+        'overview.fact.embedError': '向量插件报告了错误',
+        'overview.fact.refused': '向量模型拒收了 {count} 条记忆',
+        'mascot.ready': '吉祥物举着一块发光的拼图。',
+        'mascot.busy': '吉祥物抱着一摞拼图。',
+        'mascot.asleep': '吉祥物睡着了。',
+        'mascot.trouble': '吉祥物拿着一块裂开的拼图，有点着急。',
+        detailsTitle: '详细信息',
+        detailsHint: '插件对自己的描述。这里不显示任何密钥、向量插件的地址或记忆内容。',
+        experimental: '实验',
+        stepDown: '减少',
+        stepUp: '增加',
+        unsaved: '{count} 项修改未保存',
+        unsavedOne: '1 项修改未保存',
+        fixFirst: '标红的那一项现在还不能保存。',
+        discard: '放弃修改',
+        saveChanges: '保存修改',
+        changelogIntro: '每次更新改了什么，新的在前。',
+        changelogInstalled: '当前安装',
+        footDocs: '文档',
+        footSource: '源代码',
+        footIssue: '反馈问题',
+        changedCount: '已改 {count} 项',
         modelsTitle: '本地向量模型',
         modelsIntro: '可选。有了本地模型，记忆按意思而不是按字面找回，全部在这台电脑上完成。按下按钮之前不会下载或安装任何东西。',
         modelsLink: '各档位的实测检索效果',
@@ -1246,24 +1409,38 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
   define("index.cjs", function (require, module, exports) {
     'use strict'
 
-    // Entry point: the module the host loads. It registers the page's dictionaries and the settings page
-    // in the Plugins page's row slot, and exposes `internals` for tests. Wiring only; no page logic here.
+    // Entry point: the module the host loads. It registers the page's dictionaries, its stylesheet and
+    // the settings page in the Plugins page's row slot, and exposes `internals` for tests. Wiring only;
+    // no page logic here.
 
-    const { NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE } = require('./constants.cjs')
-    const { FIELDS } = require('./fields.cjs')
+    const { NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE, ART_ROUTE } = require('./constants.cjs')
+    const { FIELDS, INDEX } = require('./fields.cjs')
     const { dictionaries } = require('./i18n.cjs')
+    const { TABS, placedKeys } = require('./layout.cjs')
     const { fetchChangelog, fetchStatus, fetchModels, postModels } = require('./net.cjs')
+    const { entryDate, releases } = require('./model/changelog.cjs')
     const { fieldView, buildOps, saveDraft, checkText } = require('./model/form.cjs')
-    const { statusRows } = require('./model/status.cjs')
     const { pickText, formatSize, memoryText, modelActions, chainLine, sameProblem } = require('./model/models.cjs')
-    const { inlineMarkdown, renderMarkdown, entryDate } = require('./model/markdown.cjs')
-    const { ChangelogView, SettingsPage, SettingsBody, ModelsSection, ModelRow } = require('./view/legacy.cjs')
+    const { formatCount, summarise } = require('./model/overview.cjs')
+    const { splitOption, isMet, sectionView, pageView, savable } = require('./model/page.cjs')
+    const { statusRows } = require('./model/status.cjs')
+    const { STYLE_ID, installStyles } = require('./theme/styles.cjs')
+    const { stepText } = require('./kit/controls.cjs')
+    const { FieldRow, fieldId } = require('./view/field-row.cjs')
+    const { Hero, artUrl } = require('./view/hero.cjs')
+    const { inlineMarkdown, renderMarkdown } = require('./view/markdown.cjs')
+    const { ModelRow, ModelsPanel } = require('./view/models.cjs')
+    const { SaveBar, SettingsBody, SettingsPage } = require('./view/page.cjs')
+    const { SettingsTab } = require('./view/settings-tab.cjs')
+    const { ChangelogTab, OverviewTab } = require('./view/tabs.cjs')
 
     const name = 'dsh-feiyu-memgate'
     const inject = ['slots', 'locale']
 
     function apply(ctx) {
       ctx.effect(() => ctx.locale.register(NS, dictionaries()), 'dsh-feiyu-memgate: dictionaries')
+      // The stylesheet lives as long as the plugin is loaded: the effect's return value removes it.
+      ctx.effect(() => installStyles(typeof document === 'undefined' ? undefined : document), 'dsh-feiyu-memgate: stylesheet')
       const t = ctx.locale.bind(NS)
       ctx.slots.inject('plugins.row.config', () => ctx.slots.register({
         name: 'plugins.row.config',
@@ -1277,13 +1454,536 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
       name,
       inject,
       apply,
-      // For tests: the page's pure parts and components.
+      // For tests and the preview (scripts/preview-client.mjs): the page's pure parts and its components.
       internals: {
-        FIELDS, NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE, dictionaries, fetchChangelog, inlineMarkdown, renderMarkdown, entryDate, ChangelogView, fieldView, buildOps, saveDraft, statusRows, checkText,
-        fetchStatus, fetchModels, postModels, pickText, formatSize, memoryText, modelActions, chainLine, sameProblem, SettingsPage, SettingsBody, ModelsSection,
-        ModelRowForTests: ModelRow,
+        // tables and names
+        FIELDS, INDEX, TABS, NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE, ART_ROUTE, STYLE_ID,
+        dictionaries, placedKeys,
+        // calls to the host half
+        fetchStatus, fetchChangelog, fetchModels, postModels,
+        // logic
+        fieldView, buildOps, saveDraft, checkText, splitOption, isMet, sectionView, pageView, savable,
+        statusRows, summarise, formatCount, entryDate, releases,
+        pickText, formatSize, memoryText, modelActions, chainLine, sameProblem, stepText, fieldId, artUrl,
+        // view
+        installStyles, inlineMarkdown, renderMarkdown,
+        Hero, FieldRow, SettingsTab, OverviewTab, ChangelogTab, ModelRow, ModelsPanel, SaveBar, SettingsBody, SettingsPage,
       },
     }
+  })
+
+  // kit/controls.cjs
+  define("kit/controls.cjs", function (require, module, exports) {
+    'use strict'
+    // The controls of the page: button, tag, switch, text input, number stepper, list of choices.
+    //
+    // They are the page's own (not the host's primitives) so that the page looks the same on every host
+    // version it supports and can be drawn outside a host (scripts/preview-client.mjs). Their sizes
+    // follow the host's: 13px text, a 36 by 20 switch, 30 to 34px high controls.
+    //
+    // Each control is a plain function of its props: it keeps no state, the form does. All of them use
+    // native elements and ARIA roles, so the keyboard and a screen reader get them without extra code:
+    // a switch is a button with role="switch", a list of choices is a radio group with arrow keys.
+
+    const { h } = require('../react.cjs')
+    const { cx } = require('../theme/styles.cjs')
+    const { Icon } = require('./icons.cjs')
+
+    /**
+     * @param {{ variant?: 'primary' | 'text', disabled?: boolean, onClick?: () => void, label?: string,
+     *   children?: any }} props `label` is the accessible name of a button that shows only an icon.
+     */
+    function Button(props) {
+      return h('button', {
+        type: 'button',
+        className: cx('fmg-button', props.variant && 'fmg-button--' + props.variant),
+        disabled: props.disabled || undefined,
+        'aria-label': props.label,
+        onClick: props.onClick,
+      }, props.children)
+    }
+
+    /** A small label. tone: undefined (neutral) | 'sea' | 'blush' | 'warn' | 'ok'. */
+    function Tag(props) {
+      return h('span', { className: cx('fmg-tag', props.tone && 'fmg-tag--' + props.tone) }, props.children)
+    }
+
+    /**
+     * An on/off switch.
+     * @param {{ id: string, checked: boolean, label: string, describedBy?: string, disabled?: boolean,
+     *   onChange: (next: boolean) => void }} props `label` names it for a screen reader; the visible
+     *   label of the row points at it with htmlFor, so a click on the text flips it too.
+     */
+    function Switch(props) {
+      return h('button', {
+        type: 'button',
+        id: props.id,
+        className: 'fmg-switch',
+        role: 'switch',
+        'aria-checked': props.checked ? 'true' : 'false',
+        'aria-label': props.label,
+        'aria-describedby': props.describedBy,
+        disabled: props.disabled || undefined,
+        onClick: () => props.onChange(!props.checked),
+      })
+    }
+
+    /**
+     * A line of text. `onChange` gets the text, not the event.
+     * @param {{ id: string, value: string, type?: string, invalid?: boolean, disabled?: boolean,
+     *   placeholder?: string, describedBy?: string, autoComplete?: string, onChange: (text: string) => void }} props
+     */
+    function TextInput(props) {
+      return h('input', {
+        id: props.id,
+        className: 'fmg-input',
+        type: props.type || 'text',
+        value: props.value,
+        placeholder: props.placeholder,
+        autoComplete: props.autoComplete || 'off',
+        spellCheck: false,
+        disabled: props.disabled || undefined,
+        'aria-invalid': props.invalid ? 'true' : undefined,
+        'aria-describedby': props.describedBy,
+        onChange: (event) => props.onChange(event.target.value),
+      })
+    }
+
+    /**
+     * The text a step leads to: one more or one less than the number on screen, kept inside the range.
+     * A text that is no number steps from the nearer end of the range, so the buttons always lead out
+     * of an invalid entry.
+     */
+    function stepText(text, delta, min, max) {
+      const raw = String(text).trim()
+      const current = /^-?\d{1,9}$/.test(raw) ? Number(raw) : (delta > 0 ? min - 1 : max + 1)
+      return String(Math.min(max, Math.max(min, current + delta)))
+    }
+
+    /**
+     * A whole number with a minus and a plus. The text is kept as typed (the form decides whether it is
+     * valid), so a half-typed number is never rewritten under the cursor.
+     * @param {{ id: string, text: string, min: number, max: number, invalid?: boolean, disabled?: boolean,
+     *   describedBy?: string, labels: { down: string, up: string }, onChange: (text: string) => void }} props
+     */
+    function Stepper(props) {
+      const { text, min, max, disabled } = props
+      const number = /^-?\d{1,9}$/.test(String(text).trim()) ? Number(text) : null
+      const step = (delta) => () => props.onChange(stepText(text, delta, min, max))
+      return h('span', { className: 'fmg-stepper', 'data-invalid': props.invalid ? 'true' : undefined },
+        h('button', { type: 'button', 'aria-label': props.labels.down, disabled: disabled || (number !== null && number <= min) || undefined, onClick: step(-1) },
+          h(Icon, { name: 'minus', size: 14 })),
+        h('input', {
+          id: props.id,
+          type: 'text',
+          inputMode: 'numeric',
+          value: text,
+          autoComplete: 'off',
+          disabled: disabled || undefined,
+          'aria-invalid': props.invalid ? 'true' : undefined,
+          'aria-describedby': props.describedBy,
+          onChange: (event) => props.onChange(event.target.value),
+        }),
+        h('button', { type: 'button', 'aria-label': props.labels.up, disabled: disabled || (number !== null && number >= max) || undefined, onClick: step(1) },
+          h(Icon, { name: 'plus', size: 14 })))
+    }
+
+    // Arrow keys move the choice, as in a native radio group: the neighbour is chosen and focused.
+    function onChoiceKey(event, props) {
+      const forward = event.key === 'ArrowRight' || event.key === 'ArrowDown'
+      const backward = event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+      if (!forward && !backward) return
+      event.preventDefault()
+      const values = props.options.map((option) => option.value)
+      const at = Math.max(0, values.indexOf(props.value))
+      const next = (at + (forward ? 1 : values.length - 1)) % values.length
+      props.onChange(values[next])
+      const buttons = event.currentTarget.querySelectorAll('[role="radio"]')
+      if (buttons[next]) buttons[next].focus()
+    }
+
+    /**
+     * One of a few options, each shown with what it means. A radio group: Tab reaches the chosen option,
+     * the arrow keys change it.
+     * @param {{ labelledBy: string, describedBy?: string, value: string, disabled?: boolean,
+     *   options: { value: string, name: string, note: string }[], onChange: (value: string) => void }} props
+     */
+    function Choices(props) {
+      const known = props.options.some((option) => option.value === props.value)
+      return h('div', {
+        className: 'fmg-choices',
+        // The stylesheet lays four options out two by two, so that none is left alone on a line.
+        'data-count': String(props.options.length),
+        role: 'radiogroup',
+        'aria-labelledby': props.labelledBy,
+        'aria-describedby': props.describedBy,
+        onKeyDown: props.disabled ? undefined : (event) => onChoiceKey(event, props),
+      }, props.options.map((option, index) => {
+        const checked = option.value === props.value
+        return h('button', {
+          key: option.value,
+          type: 'button',
+          className: 'fmg-choice',
+          role: 'radio',
+          'aria-checked': checked ? 'true' : 'false',
+          // Roving focus: the chosen option takes Tab; with no known choice the first one does.
+          tabIndex: checked || (!known && index === 0) ? 0 : -1,
+          disabled: props.disabled || undefined,
+          onClick: () => props.onChange(option.value),
+        },
+        h('span', { className: 'fmg-choice__dot', 'aria-hidden': 'true' }),
+        h('span', { className: 'fmg-choice__name' }, option.name,
+          option.note ? h('span', { className: 'fmg-choice__note' }, option.note) : null))
+      }))
+    }
+
+    module.exports = { Button, Tag, Switch, TextInput, stepText, Stepper, Choices }
+  })
+
+  // kit/icons.cjs
+  define("kit/icons.cjs", function (require, module, exports) {
+    'use strict'
+    // The few line icons of the page, drawn here so that the page needs no icon font and no sprite of the
+    // host. All share one 16-unit grid and one stroke, and take their colour from the text around them.
+
+    const { h } = require('../react.cjs')
+
+    // One path each, on a 16 by 16 grid, stroke only.
+    const PATHS = {
+      chevron: 'M6 3.5 10.5 8 6 12.5',
+      check: 'M3.5 8.5 6.5 11.5 12.5 4.5',
+      minus: 'M4 8h8',
+      plus: 'M8 4v8M4 8h8',
+      refresh: 'M13 8a5 5 0 1 1-1.5-3.6M13 3v2.5h-2.5',
+      external: 'M9.5 3H13v3.5M13 3 7.5 8.5M11 9.5V13H3V5h3.5',
+      alert: 'M8 6v3M8 11.2h.01M8 2.2 14.3 13H1.7L8 2.2Z',
+    }
+
+    /**
+     * A decorative icon: hidden from assistive technology, so the control it sits in needs its own text
+     * or label.
+     * @param {{ name: keyof PATHS, size?: number, className?: string }} props
+     */
+    function Icon(props) {
+      const size = props.size || 16
+      return h('svg', {
+        className: props.className,
+        width: size,
+        height: size,
+        viewBox: '0 0 16 16',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 1.5,
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+        'aria-hidden': 'true',
+        focusable: 'false',
+      }, h('path', { d: PATHS[props.name] || '' }))
+    }
+
+    module.exports = { ICON_NAMES: Object.keys(PATHS), Icon }
+  })
+
+  // kit/layout.cjs
+  define("kit/layout.cjs", function (require, module, exports) {
+    'use strict'
+    // The structural parts of the page: tabs, a part that opens and closes, a folding group, the bordered
+    // list of rows, label and value pairs, a notice, a progress bar. Like the controls they keep no
+    // state; the page owns which tab is selected and which group is open.
+
+    const { h } = require('../react.cjs')
+    const { cx } = require('../theme/styles.cjs')
+    const { Icon } = require('./icons.cjs')
+
+    // The ids that tie a tab to its panel, both ways (aria-controls and aria-labelledby).
+    const tabId = (prefix, id) => prefix + '-tab-' + id
+    const panelId = (prefix, id) => prefix + '-panel-' + id
+
+    // Arrow keys, Home and End move between tabs and select at once, as the tabs pattern asks.
+    function onTabKey(event, props) {
+      const ids = props.tabs.map((tab) => tab.id)
+      const at = ids.indexOf(props.value)
+      let next = -1
+      if (event.key === 'ArrowRight') next = (at + 1) % ids.length
+      else if (event.key === 'ArrowLeft') next = (at + ids.length - 1) % ids.length
+      else if (event.key === 'Home') next = 0
+      else if (event.key === 'End') next = ids.length - 1
+      if (next < 0) return
+      event.preventDefault()
+      props.onChange(ids[next])
+      const buttons = event.currentTarget.querySelectorAll('[role="tab"]')
+      if (buttons[next]) buttons[next].focus()
+    }
+
+    /**
+     * The row of tabs.
+     * @param {{ idPrefix: string, label: string, value: string, onChange: (id: string) => void,
+     *   tabs: { id: string, label: string, mark?: 'edited' | 'invalid' | null, markLabel?: string }[] }} props
+     *   `mark` puts a dot after the label: the tab holds unsaved edits, or one that cannot be saved;
+     *   `markLabel` says so to a screen reader.
+     */
+    function Tabs(props) {
+      return h('div', { className: 'fmg-tabs', role: 'tablist', 'aria-label': props.label, onKeyDown: (event) => onTabKey(event, props) },
+        props.tabs.map((tab) => {
+          const selected = tab.id === props.value
+          return h('button', {
+            key: tab.id,
+            type: 'button',
+            id: tabId(props.idPrefix, tab.id),
+            className: 'fmg-tab',
+            role: 'tab',
+            'aria-selected': selected ? 'true' : 'false',
+            // Only the selected tab's panel is in the document, so only that tab can point at one.
+            'aria-controls': selected ? panelId(props.idPrefix, tab.id) : undefined,
+            tabIndex: selected ? 0 : -1,
+            onClick: () => props.onChange(tab.id),
+          },
+          tab.label,
+          tab.mark ? h('span', { className: cx('fmg-mark', tab.mark === 'invalid' && 'fmg-mark--invalid'), role: 'img', 'aria-label': tab.markLabel }) : null)
+        }))
+    }
+
+    /** The content of the selected tab. */
+    function TabPanel(props) {
+      return h('div', {
+        className: 'fmg-panel',
+        role: 'tabpanel',
+        id: panelId(props.idPrefix, props.id),
+        'aria-labelledby': tabId(props.idPrefix, props.id),
+      }, props.children)
+    }
+
+    /**
+     * A part that opens and closes with a short height animation. The content stays in the document
+     * while closed (that is what makes the animation possible); the stylesheet hides it then
+     * (`visibility: hidden`), which also takes it out of the tab order and away from a screen reader.
+     * `aria-hidden` says the same in the markup, for a reader of the tree and for the tests.
+     */
+    function Reveal(props) {
+      return h('div', { className: 'fmg-reveal', 'data-open': props.open ? 'true' : 'false', 'aria-hidden': props.open ? undefined : 'true' },
+        h('div', { id: props.id }, props.children))
+    }
+
+    /**
+     * A group with a header that folds it.
+     * @param {{ id: string, title: string, help?: string, open: boolean, onToggle: () => void,
+     *   accessory?: any, children?: any }} props `accessory` sits at the right end of the header
+     *   (a tag saying how many settings inside are changed).
+     */
+    function Fold(props) {
+      return h('div', { className: 'fmg-fold' },
+        h('button', { type: 'button', className: 'fmg-fold__head', 'aria-expanded': props.open ? 'true' : 'false', 'aria-controls': props.id, onClick: props.onToggle },
+          h(Icon, { name: 'chevron', className: 'fmg-fold__chevron' }),
+          h('span', null,
+            h('span', { className: 'fmg-fold__title' }, props.title),
+            props.help ? h('span', { className: 'fmg-fold__help' }, props.help) : null),
+          props.accessory || null),
+        h(Reveal, { open: props.open, id: props.id }, h('div', { className: 'fmg-fold__body fmg-rows' }, props.children)))
+    }
+
+    /** The bordered list the rows of a section sit in. */
+    function Group(props) {
+      return h('div', { className: 'fmg-group fmg-rows' }, props.children)
+    }
+
+    /** Label and value pairs. rows: [label, value][] */
+    function Facts(props) {
+      return h('dl', { className: 'fmg-facts' }, props.rows.flatMap((row, index) => [
+        h('dt', { key: 'dt' + index }, row[0]),
+        h('dd', { key: 'dd' + index }, row[1]),
+      ]))
+    }
+
+    /**
+     * A boxed message. tone 'warn' for something the person should act on; `role` is 'status' for news
+     * that can wait and 'alert' for a failure.
+     */
+    function Notice(props) {
+      return h('div', { className: cx('fmg-notice', props.tone && 'fmg-notice--' + props.tone), role: props.role, 'aria-label': props.label }, props.children)
+    }
+
+    /** A thin bar for a known share of work done (0 to 100). */
+    function Progress(props) {
+      const percent = Math.min(100, Math.max(0, Number(props.percent) || 0))
+      return h('div', { className: 'fmg-progress', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': percent, 'aria-label': props.label },
+        h('i', { style: { width: percent + '%' } }))
+    }
+
+    module.exports = { tabId, panelId, Tabs, TabPanel, Reveal, Fold, Group, Facts, Notice, Progress }
+  })
+
+  // layout.cjs
+  define("layout.cjs", function (require, module, exports) {
+    'use strict'
+    // Where each setting sits on the page: tabs, the sections of a tab, the settings of a section.
+    //
+    // The settings themselves (keys, kinds, defaults, texts, `needs`) come from src/config.js through
+    // fields.cjs. This table is only about presentation, which is why it lives here and not there: the
+    // stored keys group settings by what they configure (`modules`, `advanced`, ...), the page groups them
+    // by what a person is trying to do. A setting therefore may sit in a tab that does not match its key
+    // (advanced.captureMinChars sits under the capture switch it belongs to).
+    //
+    // Rules, checked by tests/client-modules.test.js:
+    //   - every setting of FIELDS is placed exactly once;
+    //   - a setting with `needs` sits in the same section as the setting it depends on, after it
+    //     (the page draws it as a sub-row that appears while the other setting has a fitting value).
+    //
+    // Two tabs hold no settings and are not listed here: the overview (status) and the changelog.
+    // `panel` names a part of the page that is not a settings row and is drawn after the section's rows.
+
+    const TABS = [
+      {
+        id: 'features',
+        label: { en: 'Features', zh: '功能' },
+        sections: [
+          {
+            id: 'recall',
+            label: { en: 'Recall', zh: '回忆' },
+            help: {
+              en: 'What the model is given without asking: related memories each turn, and a short note on how to treat them.',
+              zh: '不用模型开口就给它的东西：每一轮的相关记忆，以及怎么对待这些记忆的一小段说明。',
+            },
+            fields: ['modules.autoRecall', 'modules.promptSection'],
+          },
+          {
+            id: 'tools',
+            label: { en: 'Tools', zh: '工具' },
+            help: {
+              en: 'What the model and you can do on your own initiative.',
+              zh: '模型和你可以主动做的事。',
+            },
+            fields: ['modules.rememberTool', 'modules.searchTool', 'modules.commands'],
+          },
+          {
+            id: 'capture',
+            label: { en: 'Capture', zh: '记录' },
+            help: {
+              en: 'Saving what you say without the model deciding.',
+              zh: '不经过模型判断，直接把你说的话记下来。',
+            },
+            fields: ['modules.autoCapture', 'advanced.captureMinChars'],
+          },
+        ],
+      },
+      {
+        id: 'retrieval',
+        label: { en: 'Retrieval', zh: '检索' },
+        sections: [
+          {
+            id: 'tier',
+            label: { en: 'How memories are found', zh: '怎么找记忆' },
+            help: {
+              en: 'Each way keeps its own store file: memories saved under one are not searched under another unless they were copied, and switching back finds them again.',
+              zh: '每种方式各用一个存储文件：在一种方式下记的内容，换成另一种方式后不会被查到，除非已经复制过去；切回来还能找到。',
+            },
+            fields: [
+              'retrieval.tier', 'retrieval.url', 'retrieval.model', 'retrieval.apiKey',
+              'retrieval.hybrid', 'modules.migrateOnTierChange',
+            ],
+          },
+          {
+            id: 'models',
+            label: { en: 'Local embedding models', zh: '本地向量模型' },
+            panel: 'models',
+            fields: [],
+          },
+        ],
+      },
+      {
+        id: 'advanced',
+        label: { en: 'Advanced', zh: '高级' },
+        note: {
+          en: 'The defaults suit most conversations. Each group opens on its own and says how many of its settings were changed.',
+          zh: '默认值适合大多数对话。每一组可以单独展开，组名右边会标出里面改过几项。',
+        },
+        collapsible: true,
+        sections: [
+          {
+            id: 'tuning',
+            label: { en: 'Recall details', zh: '召回细节' },
+            help: { en: 'How many memories a turn gets and how strict the match is.', zh: '每轮给几条记忆，以及匹配有多严格。' },
+            fields: [
+              'advanced.recallLimit', 'advanced.profile', 'advanced.maxNewPerTurn', 'advanced.recallTimeoutMs',
+              'advanced.linkedRecall', 'advanced.skipRepeats',
+            ],
+          },
+          {
+            id: 'block',
+            label: { en: 'Memory block', zh: '记忆块' },
+            help: { en: 'How the recalled memories are presented to the model.', zh: '召回的记忆以什么样子交给模型。' },
+            fields: ['advanced.language', 'advanced.blockTone', 'advanced.showAge', 'advanced.failureNote'],
+          },
+          {
+            id: 'experiments',
+            label: { en: 'Experiments', zh: '实验功能' },
+            help: {
+              en: 'Measured offline only, not yet in everyday chats. All off by default; each says what it costs.',
+              zh: '只做过离线测量，还没有在日常聊天里验证。默认全部关闭，每一项都写了它的代价。',
+            },
+            fields: [
+              'advanced.relevanceCheck', 'advanced.relevanceProvider', 'advanced.relevanceModel', 'advanced.relevanceTimeoutMs',
+              'advanced.afterthought', 'advanced.afterthoughtMax',
+              'advanced.conversationPool', 'advanced.poolSize',
+              'advanced.recentPool', 'advanced.recentSize', 'advanced.recentDays',
+            ],
+          },
+          {
+            id: 'gateway',
+            label: { en: 'Gateway', zh: '网关' },
+            help: {
+              en: 'Where memories are kept: the gateway that ships with the plugin, or one you run yourself.',
+              zh: '记忆放在哪里：插件自带的网关，或你自己运行的网关。',
+            },
+            fields: [
+              'gateway.mode', 'gateway.python', 'gateway.dataDir', 'external.url', 'external.token',
+              'advanced.dailyWrites', 'advanced.redaction', 'advanced.newerFirst', 'advanced.forgetting',
+            ],
+          },
+        ],
+      },
+    ]
+
+    /** Every placed setting key, in page order. */
+    function placedKeys() {
+      const keys = []
+      for (const tab of TABS) for (const section of tab.sections) for (const key of section.fields) keys.push(key)
+      return keys
+    }
+
+    module.exports = { TABS, placedKeys }
+  })
+
+  // model/changelog.cjs
+  define("model/changelog.cjs", function (require, module, exports) {
+    'use strict'
+    // The changelog as plain data: the answer of GET feiyu-memgate/changelog turned into the list of
+    // releases the page shows. Pure; drawing the Markdown of a release is view/markdown.cjs.
+
+    /** The date a changelog entry gives on its date line ("日期：2026-11-18"), or ''. */
+    function entryDate(body) {
+      const match = /日期[：:]\s*(\d{4}-\d{2}-\d{2})/.exec(String(body || ''))
+      return match ? match[1] : ''
+    }
+
+    /**
+     * The releases of a changelog answer, newest first as the host half sent them.
+     * @param {{ version?: string, entries?: object[] } | null} data
+     * @returns {{ id: string, name: string, date: string, body: string, installed: boolean }[]}
+     *   `installed` marks the release whose version is the one running now. Entries without a text body
+     *   are left out.
+     */
+    function releases(data) {
+      const entries = data && Array.isArray(data.entries) ? data.entries : []
+      const current = data && data.version ? String(data.version) : ''
+      return entries
+        .filter((entry) => entry && typeof entry.body === 'string')
+        .map((entry, index) => {
+          const name = String(entry.version || entry.title || '')
+          return { id: name || String(index), name, date: entryDate(entry.body), body: entry.body, installed: Boolean(current) && String(entry.version || '') === current }
+        })
+    }
+
+    module.exports = { entryDate, releases }
   })
 
   // model/form.cjs
@@ -1371,121 +2071,6 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     }
 
     module.exports = { at, checkText, fieldView, buildOps, saveDraft }
-  })
-
-  // model/markdown.cjs
-  define("model/markdown.cjs", function (require, module, exports) {
-    'use strict'
-
-    // The changelog Markdown subset: text in, React elements out. This is the one model module that builds
-    // React elements (through react.cjs); it never reads the DOM and has no path from the text to raw HTML.
-    // It owns the few styles it uses (STYLES) so that the model layer does not depend on the view.
-
-    const { h } = require('../react.cjs')
-
-    // The styles of the elements renderMarkdown() and inlineMarkdown() build; view/legacy.cjs reuses them.
-    const STYLES = {
-      mdP: { margin: '0 0 6px' },
-      mdH: { margin: '10px 0 4px', fontSize: '12px', fontWeight: 600, lineHeight: 1.5 },
-      mdUl: { margin: '0 0 6px', paddingLeft: '18px' },
-      mdLi: { margin: '2px 0' },
-      code: { fontFamily: 'var(--dsw-font-mono, ui-monospace, monospace)', fontSize: '11px', padding: '0 4px', borderRadius: 'var(--dsw-radius-sm)', background: 'var(--dsw-alias-bg-layer-4)' },
-      link: { fontSize: '12px', lineHeight: 1.5, color: 'var(--dsw-alias-label-link, var(--dsw-alias-label-secondary))' },
-    }
-
-    const INLINE = /`([^`]+)`|\*\*([^*]+)\*\*|\[([^\]]+)\]\(([^)\s]+)\)/g
-    const CJK = /[\u2e80-\u9fff\uf900-\ufaff\uff00-\uffef]/
-
-    /** Inline marks in a line of text: `code`, **bold**, [text](https://...). Anything else, tags included, stays text. */
-    function inlineMarkdown(text) {
-      const out = []
-      let last = 0
-      let n = 0
-      let match
-      INLINE.lastIndex = 0
-      while ((match = INLINE.exec(text)) !== null) {
-        if (match.index > last) out.push(text.slice(last, match.index))
-        n += 1
-        if (match[1] !== undefined) out.push(h('code', { key: 'c' + n, style: STYLES.code }, match[1]))
-        else if (match[2] !== undefined) out.push(h('strong', { key: 'b' + n }, match[2]))
-        else if (/^https:\/\//i.test(match[4])) out.push(h('a', { key: 'a' + n, href: match[4], target: '_blank', rel: 'noopener noreferrer', style: STYLES.link }, match[3]))
-        else out.push(match[3]) // any other address is shown as its text, not a link
-        last = match.index + match[0].length
-      }
-      if (last < text.length) out.push(text.slice(last))
-      return out
-    }
-
-    // Lines of one paragraph joined the way they read: no space between two Chinese characters.
-    function joinLines(lines) {
-      let out = ''
-      for (const line of lines) {
-        if (out && !(CJK.test(out[out.length - 1]) && CJK.test(line[0]))) out += ' '
-        out += line
-      }
-      return out
-    }
-
-    /**
-     * A changelog body as React elements: ### headings, - list items (one nested level, by indentation),
-     * paragraphs. Text goes in as text; there is no path from the file to raw HTML.
-     */
-    function renderMarkdown(body) {
-      const lines = String(body === undefined || body === null ? '' : body).replace(/\r\n?/g, '\n').split('\n')
-      const blocks = []
-      let para = null
-      let list = null
-      let tail = null // the item (top or nested) a continuation line belongs to
-      const flushPara = () => {
-        if (para) blocks.push(h('p', { key: 'p' + blocks.length, style: STYLES.mdP }, inlineMarkdown(joinLines(para))))
-        para = null
-      }
-      const flushList = () => {
-        if (list) {
-          const key = 'l' + blocks.length
-          const items = (entries, prefix) => entries.map((item, index) => h('li', { key: prefix + index, style: STYLES.mdLi },
-            inlineMarkdown(item.text), item.children && item.children.length ? h('ul', { style: STYLES.mdUl }, items(item.children, prefix + index + '.')) : null))
-          blocks.push(h('ul', { key, style: STYLES.mdUl }, items(list, key)))
-        }
-        list = null
-        tail = null
-      }
-      for (const line of lines) {
-        let match
-        if (!line.trim()) {
-          flushPara()
-          flushList()
-        } else if ((match = /^#{1,6}[ \t]+(.+?)[ \t]*$/.exec(line))) {
-          flushPara()
-          flushList()
-          blocks.push(h('h5', { key: 'h' + blocks.length, style: STYLES.mdH }, inlineMarkdown(match[1])))
-        } else if ((match = /^([ \t]*)[-*][ \t]+(.*)$/.exec(line))) {
-          flushPara()
-          if (!list) list = []
-          const item = { text: match[2].trim(), children: [] }
-          if (match[1].length >= 2 && list.length) list[list.length - 1].children.push(item)
-          else list.push(item)
-          tail = item
-        } else if (list && tail && /^[ \t]+\S/.test(line)) {
-          tail.text = joinLines([tail.text, line.trim()])
-        } else {
-          flushList()
-          if (!para) para = []
-          para.push(line.trim())
-        }
-      }
-      flushPara()
-      flushList()
-      return blocks
-    }
-
-    /** The date a changelog entry gives on its date line ("日期：2026-11-18"), or ''. */
-    function entryDate(body) {
-      const match = /日期[：:]\s*(\d{4}-\d{2}-\d{2})/.exec(String(body || ''))
-      return match ? match[1] : ''
-    }
-
-    module.exports = { STYLES, inlineMarkdown, joinLines, renderMarkdown, entryDate }
   })
 
   // model/models.cjs
@@ -1577,6 +2162,229 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     }
 
     module.exports = { pickText, formatSize, memoryText, modelActions, chainLine, sameProblem }
+  })
+
+  // model/overview.cjs
+  define("model/overview.cjs", function (require, module, exports) {
+    'use strict'
+    // The status of the plugin boiled down for the top of the page: one mood, one headline, one line of
+    // explanation, and a few facts. Pure: it takes what GET feiyu-memgate/status answered and returns
+    // translation keys with their parameters; it never touches React or the DOM.
+    //
+    // The mood decides which drawing of the mascot is shown, so the order of the checks below is the
+    // order of what a person needs to hear first: something is broken, then something is still on its
+    // way, then nothing is running, and only then "all is well".
+
+    /** The four moods, each with the drawing that goes with it (view/hero.cjs). */
+    const MOODS = ['ready', 'busy', 'asleep', 'trouble']
+
+    // Gateway states (src/gateway.js for the bundled gateway, src/plugin.js for an external one).
+    const BUSY_STATES = ['idle', 'starting', 'restarting']
+    const ASLEEP_STATES = ['off', 'stopped', 'unused']
+
+    const text = (key, params) => ({ key, params: params || {} })
+
+    /** Whole numbers with thousands separators, the same in both languages (1,284). */
+    function formatCount(value) {
+      return String(Math.trunc(value)).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+    }
+
+    /**
+     * The reason the plugin cannot work right now, or null.
+     * @returns {{ key: string, params: object } | null} the explanation line
+     */
+    function trouble(data) {
+      const gateway = data.gateway || {}
+      const managed = gateway.mode !== 'external'
+      if (managed && data.python && data.python.found === false) return text('overview.trouble.python')
+      if (gateway.state === 'failed') return text('overview.trouble.failed')
+      if (!managed && gateway.state === 'incomplete') return text('overview.trouble.incomplete')
+      return null
+    }
+
+    /**
+     * What is still on its way, or null: the gateway starting, a model loading, memories being copied.
+     * The copy comes last: the plugin already answers while it runs.
+     */
+    function busy(data) {
+      const gateway = data.gateway || {}
+      if (BUSY_STATES.includes(gateway.state)) return text('overview.busy.gateway')
+      if (data.embed && data.embed.state === 'loading') return text('overview.busy.model', { model: data.embed.model || '' })
+      const copy = data.migration
+      if (copy && (copy.state === 'running' || copy.state === 'partial')) {
+        return text('overview.busy.copy', { copied: formatCount(copy.copied || 0), total: formatCount(copy.total || 0) })
+      }
+      return null
+    }
+
+    /** The explanation line of a working plugin: where the memories are and how they are found. */
+    function readyLine(data) {
+      const gateway = data.gateway || {}
+      if (gateway.mode === 'external') return text('overview.ready.external')
+      const retrieval = data.retrieval || {}
+      const tier = retrieval.active || 'keyword'
+      const hybrid = Boolean(retrieval.hybrid && retrieval.hybrid.active)
+      return text('overview.ready.' + tier + (hybrid && tier !== 'keyword' ? '.hybrid' : ''), { model: (data.embed && data.embed.model) || '' })
+    }
+
+    /**
+     * The short facts under the headline, most useful first. Each is { id, key, params, tone }, where
+     * tone is 'plain' or 'warn' (a fact the person should look at).
+     */
+    function facts(data) {
+      const out = []
+      const gateway = data.gateway || {}
+      const managed = gateway.mode !== 'external'
+      const store = data.store
+      if (managed && store && store.count !== null && store.count !== undefined) {
+        out.push({ id: 'count', key: 'overview.fact.count', params: { count: formatCount(store.count) }, tone: 'plain' })
+      }
+      if (managed && data.retrieval && data.retrieval.active) {
+        const hybrid = Boolean(data.retrieval.hybrid && data.retrieval.hybrid.active)
+        // Keyword retrieval has no hybrid form: the switch only adds keyword search to a vector tier.
+        const tier = data.retrieval.active
+        out.push({ id: 'tier', key: 'overview.fact.tier.' + tier + (hybrid && tier !== 'keyword' ? '.hybrid' : ''), params: {}, tone: 'plain' })
+      }
+      out.push({ id: 'gateway', key: managed ? 'overview.fact.managed' : 'overview.fact.external', params: {}, tone: 'plain' })
+      if (data.embed && data.embed.state === 'error') out.push({ id: 'embed', key: 'overview.fact.embedError', params: {}, tone: 'warn' })
+      if (data.migration && data.migration.refused > 0) {
+        out.push({ id: 'refused', key: 'overview.fact.refused', params: { count: formatCount(data.migration.refused) }, tone: 'warn' })
+      }
+      return out
+    }
+
+    /**
+     * The top of the page for one status answer.
+     * @param {object | null} data the answer of the status route, or null when there is none yet
+     * @param {string | null} error the code of a failed read, or null
+     * @param {boolean} loading whether the first read is still under way
+     * @returns {{ mood: string, headline: object, line: object, facts: object[] }}
+     */
+    function summarise(data, error, loading) {
+      if (!data) {
+        if (loading) return { mood: 'busy', headline: text('overview.head.loading'), line: text('overview.line.loading'), facts: [] }
+        return { mood: 'trouble', headline: text('overview.head.unknown'), line: text('overview.line.unknown', { code: error || '' }), facts: [] }
+      }
+      const state = (data.gateway || {}).state
+      const broken = trouble(data)
+      if (broken) return { mood: 'trouble', headline: text('overview.head.trouble'), line: broken, facts: facts(data) }
+      if (ASLEEP_STATES.includes(state)) {
+        return { mood: 'asleep', headline: text('overview.head.asleep'), line: text('overview.asleep.' + state), facts: facts(data) }
+      }
+      const waiting = busy(data)
+      if (waiting) return { mood: 'busy', headline: text('overview.head.busy'), line: waiting, facts: facts(data) }
+      return { mood: 'ready', headline: text('overview.head.ready'), line: readyLine(data), facts: facts(data) }
+    }
+
+    module.exports = { MOODS, formatCount, summarise }
+  })
+
+  // model/page.cjs
+  define("model/page.cjs", function (require, module, exports) {
+    'use strict'
+    // The settings of the page arranged for drawing: the layout table (layout.cjs) joined with the field
+    // table (fields.cjs) and the state of the form (model/form.cjs). Pure: no React, no DOM.
+    //
+    // Two ideas live here.
+    //   - Dependence. A setting with `needs` (src/config.js) only has an effect while another setting has
+    //     a fitting value; the page shows it as a sub-row of that setting, and only then. The value that
+    //     counts is the one on screen (a staged edit included), so flipping a switch opens its sub-rows
+    //     before anything is saved.
+    //   - Change marks. A tab or a group that is closed still has to say that something inside it was
+    //     edited or cannot be saved, so both are counted per section and per tab.
+
+    const { INDEX } = require('../fields.cjs')
+    const { TABS } = require('../layout.cjs')
+    const { fieldView } = require('./form.cjs')
+
+    /**
+     * Split an option label of the form "name: what it means" (both the ASCII and the full-width colon
+     * are used in src/config.js) into its two parts. A label without a colon is all name.
+     * @returns {{ name: string, note: string }}
+     */
+    function splitOption(label) {
+      const text = String(label === undefined || label === null ? '' : label)
+      const match = /^([^:：]{1,24})[:：]\s*(.+)$/.exec(text)
+      return match ? { name: match[1].trim(), note: match[2].trim() } : { name: text, note: '' }
+    }
+
+    /** Whether a setting's `needs` is met by the values on screen (`values`: key → value). */
+    function isMet(field, values) {
+      if (!field.needs) return true
+      return field.needs.in.includes(values[field.needs.key])
+    }
+
+    /**
+     * One section ready to draw.
+     * @param {object} section a section of layout.cjs
+     * @param {object} state the form state of the host ({ value, base, user })
+     * @param {object} draft the staged edits (key → { value } | { unset })
+     * @param {object | null} secrets which secrets hold a value (key → boolean), from the status route
+     * @returns {{ section: object, rows: object[], staged: number, invalid: number, overridden: number }}
+     *   rows: { view, parent, shown }: `view` is fieldView()'s answer, `parent` the key this row depends
+     *   on (or null), `shown` whether its `needs` is met. Counts cover shown and hidden rows alike:
+     *   a staged edit of a row that has since been hidden is still saved.
+     */
+    function sectionView(section, state, draft, secrets) {
+      const views = section.fields.map((key) => {
+        const field = INDEX[key]
+        return fieldView(field, field.group, state, draft, secrets)
+      })
+      // The values on screen for every setting some row of this section depends on.
+      const values = {}
+      for (const view of views) {
+        const needs = view.field.needs
+        if (!needs || needs.key in values) continue
+        const other = INDEX[needs.key]
+        values[needs.key] = fieldView(other, other.group, state, draft, secrets).value
+      }
+      const rows = views.map((view) => ({
+        view,
+        parent: view.field.needs && section.fields.includes(view.field.needs.key) ? view.field.needs.key : null,
+        shown: isMet(view.field, values),
+      }))
+      return {
+        section,
+        rows,
+        staged: views.filter((view) => draft[view.k] !== undefined).length,
+        invalid: rows.filter((row) => row.shown && row.view.invalid).length,
+        overridden: views.filter((view) => view.overridden).length,
+      }
+    }
+
+    /**
+     * Every settings tab ready to draw: { tab, sections: sectionView[], staged, invalid }.
+     */
+    function pageView(state, draft, secrets) {
+      return TABS.map((tab) => {
+        const sections = tab.sections.map((section) => sectionView(section, state, draft, secrets))
+        return {
+          tab,
+          sections,
+          staged: sections.reduce((sum, s) => sum + s.staged, 0),
+          invalid: sections.reduce((sum, s) => sum + s.invalid, 0),
+        }
+      })
+    }
+
+    /**
+     * The staged edits a save may write: all of them, except an edit the field would refuse on a row
+     * that is closed right now. Such a draft cannot be seen, so it cannot be corrected; dropping it
+     * keeps one forgotten entry from blocking every later save.
+     * @param {object} draft the staged edits
+     * @param {object[]} tabViews pageView()'s answer for the same draft
+     */
+    function savable(draft, tabViews) {
+      const out = Object.assign({}, draft)
+      for (const tabView of tabViews) {
+        for (const section of tabView.sections) {
+          for (const row of section.rows) if (!row.shown && row.view.invalid) delete out[row.view.k]
+        }
+      }
+      return out
+    }
+
+    module.exports = { splitOption, isMet, sectionView, pageView, savable }
   })
 
   // model/status.cjs
@@ -1712,360 +2520,575 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     module.exports = { React, h, useEffect, useRef, useState }
   })
 
-  // view/legacy.cjs
-  define("view/legacy.cjs", function (require, module, exports) {
+  // theme/page.css
+  define("theme/page.css", function (require, module) {
+    module.exports = "/*\n * The stylesheet of the settings page. Assembled into client/client.js as a string module and applied\n * once by theme/styles.cjs.\n *\n * How it is organised:\n *   1. Tokens. `.fmg-root` maps the host's style variables to the page's own (`--fmg-*`) and defines\n *      the few colours the page brings itself. Every rule below uses `--fmg-*` only, so this block is\n *      the single place that knows the host's names, and each mapping has a fallback for a host that\n *      does not define it.\n *   2. Parts, in the order they appear on the page: hero, tabs, sections and rows, controls, panels,\n *      save bar, changelog, footer.\n *\n * Conventions:\n *   - Every class starts with `fmg-`; modifiers are `--name`; state is carried by ARIA or data\n *     attributes the components set anyway (`aria-selected`, `aria-checked`, `data-open`), not by\n *     extra classes.\n *   - No rule reaches outside `.fmg-root`, so nothing leaks into the host's page.\n *   - Dark and light: there is no theme branch. The host's variables switch by themselves and the\n *     page's own colours are mixed from them (`color-mix`), so a third-party theme carries through.\n *   - Lines are hairlines (`--fmg-hair`, the host's device-pixel-aware width), like the host's own.\n *   - The host draws every corner as a superellipse; shapes that must be true circles or pills say\n *     `corner-shape: round`.\n *   - Hover rules sit under `@media (hover: hover)`, so a touch screen shows no stuck hover.\n *   - Spacing steps are 4, 8, 12, 16, 24, 32; text sizes are 12, 13, 14 and 18, on the host's line\n *     heights (18, 20, 20, 26).\n *   - Width: the root is a size container; the narrow rules are container queries, because the page\n *     sits in a column of the host whose width has little to do with the window's.\n */\n\n/* ------------------------------------------------------------------ 1. tokens */\n\n.fmg-root {\n  /* host → page. The host switches these between light and dark by itself (and a third-party theme\n     may override them), so nothing below has a theme branch. */\n  --fmg-ink: var(--dsw-alias-label-primary, #0f1115);\n  --fmg-ink-2: var(--dsw-alias-label-secondary, #61666b);\n  --fmg-ink-3: var(--dsw-alias-label-tertiary, #81858c);\n  --fmg-base: var(--dsw-alias-bg-base, #ffffff);\n  --fmg-surface: var(--dsw-alias-settings-card-fill, #ffffff);\n  --fmg-raised: var(--dsw-alias-bg-layer-3, #ffffff);\n  --fmg-sunk: var(--dsw-alias-bg-module-platform, #f5f6f7);\n  --fmg-hover: var(--dsw-alias-interactive-bg-hover, rgba(38, 49, 72, 0.06));\n  --fmg-line: var(--dsw-alias-border-l2, rgba(0, 0, 0, 0.1));\n  --fmg-line-strong: var(--dsw-alias-border-l4, rgba(0, 0, 0, 0.16));\n  --fmg-hair: var(--dsh-hairline-width, 1px);\n  --fmg-danger: var(--dsw-alias-state-error-primary, #ec1313);\n  --fmg-thumb: var(--dsw-alias-switch-thumb, #ffffff);\n  --fmg-radius-s: var(--dsw-radius-sm, 8px);    /* small buttons */\n  --fmg-radius-m: var(--dsw-radius-md, 12px);   /* inputs, choices, notices */\n  --fmg-radius-l: var(--dsw-radius-lg, 16px);   /* groups of rows */\n  --fmg-radius-xl: var(--dsw-radius-xl, 20px);  /* the hero */\n  --fmg-mono: var(--dsh-font-family-code-default, 'SF Mono', 'JetBrains Mono', Consolas, Menlo, monospace);\n  --fmg-ease: var(--ds-ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));\n\n  /* The page's own colour is the sea the mascot lives in. It is the host's blue accent, so it already\n     has a light and a dark value; everything else is mixed from it and from the host's neutrals. */\n  --fmg-sea: var(--dsw-alias-state-business-primary, #4176e6);   /* switches that are on, the primary button, the selected tab */\n  --fmg-sea-ink: var(--dsw-alias-link, #4176e6);                 /* the same blue as text */\n  --fmg-on-sea: var(--dsw-alias-label-primary-foreground, #ffffff);\n  --fmg-sea-wash: color-mix(in srgb, var(--fmg-sea) 10%, transparent);\n  --fmg-sea-edge: color-mix(in srgb, var(--fmg-sea) 38%, transparent);\n  /* Her cheeks: the one warm colour, kept for \"experimental\". Mixed with the text colour so that it\n     is dark on a light page and light on a dark one. */\n  --fmg-blush: color-mix(in srgb, #e0528d 72%, var(--fmg-ink));\n  --fmg-blush-wash: color-mix(in srgb, #e0528d 12%, transparent);\n  /* Status colours as text: the host's are picked for dots and fills, too light to read on white. */\n  --fmg-ok-fill: var(--dsw-alias-state-success-primary, #22c55e);\n  --fmg-ok: color-mix(in srgb, var(--fmg-ok-fill) 68%, var(--fmg-ink));\n  --fmg-wait-fill: var(--dsw-alias-state-warn-primary, #f59e0b);\n  --fmg-wait: color-mix(in srgb, var(--dsw-alias-state-warn-label, #dd8629) 78%, var(--fmg-ink));\n  --fmg-warn-wash: color-mix(in srgb, var(--fmg-wait-fill) 14%, transparent);\n  --fmg-hero-a: color-mix(in srgb, var(--fmg-sea) 20%, var(--fmg-base));\n  --fmg-hero-b: color-mix(in srgb, var(--fmg-sea) 5%, var(--fmg-base));\n  --fmg-hero-edge: color-mix(in srgb, var(--fmg-sea) 24%, transparent);\n  --fmg-hero-chip: color-mix(in srgb, var(--fmg-base) 62%, transparent);\n  --fmg-bubble: color-mix(in srgb, var(--fmg-sea) 26%, transparent);\n  --fmg-shadow: var(--dsw-shadow-lv2, 0 6px 24px rgba(15, 17, 21, 0.14), 0 1px 3px rgba(15, 17, 21, 0.1));\n\n  container-type: inline-size;\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n  min-width: 0;\n  color: var(--fmg-ink);\n  font-size: 13px;\n  line-height: 20px;\n  text-align: left;\n}\n\n/* The resets are written with :where(), which adds no weight: any rule of a part further down wins\n   over them without having to out-rank them. */\n:where(.fmg-root) *,\n:where(.fmg-root) *::before,\n:where(.fmg-root) *::after {\n  box-sizing: border-box;\n}\n\n:where(.fmg-root) :is(p, h4, h5, dl, dd, ul) {\n  margin: 0;\n  padding: 0;\n  font: inherit;\n}\n\n:where(.fmg-root) ul {\n  list-style: none;\n}\n\n/* One focus ring for everything that takes the keyboard. */\n.fmg-root :focus-visible {\n  outline: 2px solid var(--fmg-sea);\n  outline-offset: 2px;\n}\n\n.fmg-note {\n  color: var(--fmg-ink-2);\n  font-size: 12px;\n}\n\n.fmg-quiet {\n  color: var(--fmg-ink-3);\n  font-size: 12px;\n}\n\n.fmg-link {\n  color: var(--fmg-sea-ink);\n  text-decoration: none;\n}\n\n@media (hover: hover) {\n  .fmg-link:hover {\n    text-decoration: underline;\n  }\n}\n\n.fmg-code {\n  padding: 0 4px;\n  border-radius: 4px;\n  background: var(--fmg-sunk);\n  font-family: var(--fmg-mono);\n  font-size: 0.92em;\n}\n\n/* ------------------------------------------------------------------ 2. hero */\n\n/* The margin on top is the room the mascot's head needs: she stands on the card's lower edge and is\n   taller than the card. */\n.fmg-hero {\n  position: relative;\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) auto;\n  align-items: end;\n  gap: 16px;\n  margin-top: 28px;\n  padding: 20px 8px 20px 24px;\n  min-height: 132px;\n  border: var(--fmg-hair) solid var(--fmg-hero-edge);\n  border-radius: var(--fmg-radius-xl);\n  background: linear-gradient(120deg, var(--fmg-hero-a) 0%, var(--fmg-hero-b) 62%);\n  color: var(--fmg-ink);\n}\n\n.fmg-hero__text {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  align-self: center;\n  min-width: 0;\n}\n\n.fmg-hero__head {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  font-size: 18px;\n  font-weight: 600;\n  line-height: 26px;\n}\n\n.fmg-hero__line {\n  max-width: 520px;\n  color: var(--fmg-ink-2);\n  font-size: 13px;\n}\n\n.fmg-hero__facts {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 6px;\n  margin-top: 4px;\n}\n\n.fmg-fact {\n  padding: 2px 10px;\n  border: var(--fmg-hair) solid var(--fmg-hero-edge);\n  border-radius: 999px;\n  corner-shape: round;\n  background: var(--fmg-hero-chip);\n  color: var(--fmg-ink);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  white-space: nowrap;\n}\n\n.fmg-fact--warn {\n  border-color: transparent;\n  background: var(--fmg-warn-wash);\n  color: var(--fmg-wait);\n}\n\n/* The state at a glance, for those who do not read the drawing: a dot in front of the headline. */\n.fmg-dot {\n  flex: none;\n  width: 8px;\n  height: 8px;\n  border-radius: 50%;\n  corner-shape: round;\n  background: var(--fmg-ink-3);\n}\n\n.fmg-dot[data-mood='ready'] {\n  background: var(--fmg-ok);\n  box-shadow: 0 0 0 4px color-mix(in srgb, var(--fmg-ok) 18%, transparent);\n}\n\n.fmg-dot[data-mood='busy'] {\n  background: var(--fmg-wait);\n  animation: fmg-pulse 1.6s ease-in-out infinite;\n}\n\n.fmg-dot[data-mood='trouble'] {\n  background: var(--fmg-danger);\n  box-shadow: 0 0 0 4px color-mix(in srgb, var(--fmg-danger) 18%, transparent);\n}\n\n.fmg-hero__art {\n  position: relative;\n  align-self: end;\n  width: 123px;\n  height: 172px;\n  margin: -48px 0 -20px;\n  pointer-events: none;\n}\n\n.fmg-hero__art img {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: contain;\n  object-position: bottom;\n  opacity: 0;\n  transition: opacity 0.35s ease;\n}\n\n.fmg-hero__art img[data-shown='true'] {\n  opacity: 1;\n  animation: fmg-bob 5s ease-in-out infinite;\n}\n\n/* Three bubbles drift up behind the text; decoration only. */\n.fmg-hero__sea {\n  position: absolute;\n  inset: 0;\n  overflow: hidden;\n  border-radius: inherit;\n  pointer-events: none;\n}\n\n.fmg-hero__sea i {\n  position: absolute;\n  bottom: -24px;\n  border: var(--fmg-hair) solid var(--fmg-bubble);\n  border-radius: 50%;\n  corner-shape: round;\n  background: radial-gradient(circle at 32% 30%, transparent 55%, var(--fmg-bubble) 100%);\n  animation: fmg-rise 14s linear infinite;\n}\n\n.fmg-hero__sea i:nth-child(1) { left: 58%; width: 14px; height: 14px; animation-delay: -2s; }\n.fmg-hero__sea i:nth-child(2) { left: 67%; width: 22px; height: 22px; animation-duration: 19s; animation-delay: -9s; }\n.fmg-hero__sea i:nth-child(3) { left: 44%; width: 9px; height: 9px; animation-duration: 11s; animation-delay: -5s; }\n\n@keyframes fmg-rise {\n  from { transform: translateY(0); opacity: 0; }\n  12% { opacity: 1; }\n  85% { opacity: 1; }\n  to { transform: translateY(-190px); opacity: 0; }\n}\n\n@keyframes fmg-bob {\n  0%, 100% { transform: translateY(0); }\n  50% { transform: translateY(-3px); }\n}\n\n@keyframes fmg-pulse {\n  0%, 100% { opacity: 1; }\n  50% { opacity: 0.35; }\n}\n\n/* ------------------------------------------------------------------ 3. tabs */\n\n.fmg-tabs {\n  display: flex;\n  gap: 4px;\n  overflow-x: auto;\n  border-bottom: var(--fmg-hair) solid var(--fmg-line);\n  scrollbar-width: none;\n}\n\n.fmg-tabs::-webkit-scrollbar {\n  display: none;\n}\n\n.fmg-tab {\n  position: relative;\n  flex: none;\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n  padding: 8px 12px 10px;\n  border: 0;\n  background: none;\n  color: var(--fmg-ink-2);\n  font: inherit;\n  font-size: 13px;\n  cursor: pointer;\n  transition: color 0.15s ease;\n}\n\n@media (hover: hover) {\n  .fmg-tab:hover {\n    color: var(--fmg-ink);\n  }\n}\n\n.fmg-tab::after {\n  content: '';\n  position: absolute;\n  left: 12px;\n  right: 12px;\n  bottom: -1px;\n  height: 2px;\n  border-radius: 2px;\n  background: var(--fmg-sea);\n  transform: scaleX(0);\n  transition: transform 0.2s ease;\n}\n\n.fmg-tab[aria-selected='true'] {\n  color: var(--fmg-ink);\n  font-weight: 600;\n}\n\n.fmg-tab[aria-selected='true']::after {\n  transform: scaleX(1);\n}\n\n/* A tab that holds unsaved edits. */\n.fmg-mark {\n  width: 6px;\n  height: 6px;\n  border-radius: 50%;\n  corner-shape: round;\n  background: var(--fmg-sea);\n}\n\n.fmg-mark--invalid {\n  background: var(--fmg-danger);\n}\n\n.fmg-panel {\n  display: flex;\n  flex-direction: column;\n  gap: 24px;\n  padding-top: 4px;\n}\n\n/* ------------------------------------------------------------------ 4. sections and rows */\n\n.fmg-section {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.fmg-section__head {\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n  padding: 0 4px;\n}\n\n.fmg-section__title {\n  font-size: 14px;\n  font-weight: 600;\n  line-height: 1.5;\n}\n\n/* A group is the bordered list the rows of a section sit in. `fmg-rows` draws the lines between\n   rows, for a group and for the body of a folding group alike. */\n.fmg-group {\n  border: var(--fmg-hair) solid var(--fmg-line);\n  border-radius: var(--fmg-radius-l);\n  background: var(--fmg-surface);\n  overflow: hidden;\n}\n\n.fmg-rows > * + * {\n  border-top: var(--fmg-hair) solid var(--fmg-line);\n}\n\n/* A closed part takes no room, so it draws no line either. */\n.fmg-rows > .fmg-reveal:not([data-open='true']) {\n  border-top-width: 0;\n}\n\n.fmg-row {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) auto;\n  align-items: start;\n  column-gap: 24px;\n  row-gap: 10px;\n  padding: 14px 16px;\n}\n\n/* A row whose control needs the full width (text, choices) puts it under the text. */\n.fmg-row--stack {\n  grid-template-columns: minmax(0, 1fr);\n}\n\n.fmg-row__text {\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n  min-width: 0;\n}\n\n.fmg-row__label {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 4px 8px;\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.fmg-row__help {\n  max-width: 640px;\n  color: var(--fmg-ink-2);\n  font-size: 12px;\n}\n\n.fmg-row__error {\n  color: var(--fmg-danger);\n  font-size: 12px;\n}\n\n.fmg-row__control {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  min-height: 22px;\n}\n\n/* A setting that depends on the one above it: set in, with a rail down the left. */\n.fmg-row--sub {\n  padding-left: 32px;\n  background:\n    linear-gradient(var(--fmg-sea-edge), var(--fmg-sea-edge)) 16px 0 / 2px 100% no-repeat,\n    var(--fmg-sunk);\n}\n\n/* A part that opens and closes: the height animates through the grid row. While closed the content\n   is not visible, which also keeps the keyboard and a screen reader out of it; the switch to hidden\n   waits until the closing animation is over. */\n.fmg-reveal {\n  display: grid;\n  grid-template-rows: 0fr;\n  transition: grid-template-rows 0.22s var(--fmg-ease);\n}\n\n.fmg-reveal[data-open='true'] {\n  grid-template-rows: 1fr;\n}\n\n.fmg-reveal > div {\n  min-height: 0;\n  overflow: hidden;\n  visibility: hidden;\n  transition: visibility 0s linear 0.22s;\n}\n\n.fmg-reveal[data-open='true'] > div {\n  visibility: visible;\n  transition-delay: 0s;\n}\n\n/* ------------------------------------------------------------------ 5. controls */\n\n.fmg-tag {\n  display: inline-flex;\n  align-items: center;\n  padding: 0 7px;\n  border-radius: 999px;\n  corner-shape: round;\n  background: var(--fmg-sunk);\n  color: var(--fmg-ink-2);\n  font-size: 11px;\n  font-weight: 500;\n  line-height: 18px;\n  white-space: nowrap;\n}\n\n.fmg-tag--sea { background: var(--fmg-sea-wash); color: var(--fmg-sea-ink); }\n.fmg-tag--blush { background: var(--fmg-blush-wash); color: var(--fmg-blush); }\n.fmg-tag--warn { background: var(--fmg-warn-wash); color: var(--fmg-wait); }\n.fmg-tag--ok { background: color-mix(in srgb, var(--fmg-ok) 14%, transparent); color: var(--fmg-ok); }\n\n.fmg-button {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  height: 30px;\n  padding: 0 12px;\n  border: var(--fmg-hair) solid var(--fmg-line-strong);\n  border-radius: var(--fmg-radius-s);\n  background: var(--fmg-raised);\n  color: var(--fmg-ink);\n  font: inherit;\n  font-size: 13px;\n  white-space: nowrap;\n  cursor: pointer;\n  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;\n}\n\n@media (hover: hover) {\n  .fmg-button:hover:not(:disabled) {\n    background: color-mix(in srgb, var(--fmg-raised), var(--fmg-ink) 6%);\n  }\n}\n\n.fmg-button:disabled {\n  opacity: 0.5;\n  cursor: default;\n}\n\n.fmg-button--primary {\n  border-color: transparent;\n  background: var(--fmg-sea);\n  color: var(--fmg-on-sea);\n  font-weight: 500;\n}\n\n@media (hover: hover) {\n  .fmg-button--primary:hover:not(:disabled) {\n    background: color-mix(in srgb, var(--fmg-sea) 88%, #000);\n  }\n}\n\n/* A button that reads as text: \"Reset\", \"Clear\", \"Refresh\". */\n.fmg-button--text {\n  height: auto;\n  padding: 0;\n  border: 0;\n  background: none;\n  color: var(--fmg-sea-ink);\n  font-size: 12px;\n}\n\n@media (hover: hover) {\n  .fmg-button--text:hover:not(:disabled) {\n    background: none;\n    text-decoration: underline;\n  }\n}\n\n.fmg-switch {\n  position: relative;\n  flex: none;\n  width: 36px;\n  height: 20px;\n  padding: 0;\n  border: 0;\n  border-radius: 999px;\n  corner-shape: round;\n  background: var(--fmg-line-strong);\n  cursor: pointer;\n  transition: background-color 0.18s ease;\n}\n\n.fmg-switch::after {\n  content: '';\n  position: absolute;\n  top: 2px;\n  left: 2px;\n  width: 16px;\n  height: 16px;\n  border-radius: 50%;\n  corner-shape: round;\n  background: var(--fmg-thumb);\n  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);\n  transition: transform 0.18s ease;\n}\n\n.fmg-switch[aria-checked='true'] {\n  background: var(--fmg-sea);\n}\n\n.fmg-switch[aria-checked='true']::after {\n  background: var(--fmg-on-sea);\n  transform: translateX(16px);\n}\n\n.fmg-switch:disabled {\n  opacity: 0.5;\n  cursor: default;\n}\n\n.fmg-input {\n  width: 100%;\n  height: 34px;\n  padding: 0 12px;\n  border: var(--fmg-hair) solid var(--fmg-line-strong);\n  border-radius: var(--fmg-radius-m);\n  background: var(--fmg-raised);\n  color: var(--fmg-ink);\n  font: inherit;\n  font-size: 13px;\n  transition: border-color 0.15s ease, box-shadow 0.15s ease;\n}\n\n.fmg-input::placeholder {\n  color: var(--fmg-ink-3);\n}\n\n@media (hover: hover) {\n  .fmg-input:hover:not(:disabled) {\n    border-color: var(--fmg-sea-edge);\n  }\n}\n\n.fmg-input:focus-visible {\n  outline: none;\n  border-color: var(--fmg-sea);\n  box-shadow: 0 0 0 3px var(--fmg-sea-wash);\n}\n\n.fmg-input[aria-invalid='true'] {\n  border-color: var(--fmg-danger);\n}\n\n.fmg-input:disabled {\n  opacity: 0.6;\n}\n\n.fmg-input-line {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  width: 100%;\n  max-width: 460px;\n}\n\n/* A number with a minus and a plus: one bordered box, the unit after it. */\n.fmg-stepper {\n  display: inline-flex;\n  align-items: stretch;\n  height: 30px;\n  border: var(--fmg-hair) solid var(--fmg-line-strong);\n  border-radius: var(--fmg-radius-m);\n  background: var(--fmg-raised);\n  overflow: hidden;\n  transition: border-color 0.15s ease, box-shadow 0.15s ease;\n}\n\n.fmg-stepper:focus-within {\n  border-color: var(--fmg-sea);\n  box-shadow: 0 0 0 3px var(--fmg-sea-wash);\n}\n\n.fmg-stepper[data-invalid='true'] {\n  border-color: var(--fmg-danger);\n}\n\n.fmg-stepper input {\n  width: 56px;\n  padding: 0 4px;\n  border: 0;\n  background: none;\n  color: var(--fmg-ink);\n  font: inherit;\n  font-size: 13px;\n  font-variant-numeric: tabular-nums;\n  text-align: center;\n}\n\n.fmg-stepper input:focus-visible {\n  outline: none;\n}\n\n.fmg-stepper button {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  width: 28px;\n  padding: 0;\n  border: 0;\n  background: none;\n  color: var(--fmg-ink-2);\n  cursor: pointer;\n}\n\n@media (hover: hover) {\n  .fmg-stepper button:hover:not(:disabled) {\n    background: var(--fmg-sunk);\n    color: var(--fmg-ink);\n  }\n}\n\n.fmg-stepper button:disabled {\n  opacity: 0.35;\n  cursor: default;\n}\n\n.fmg-stepper button:focus-visible {\n  outline-offset: -2px;\n}\n\n/* The options of a choice, each with what it means: a list of radio rows. */\n.fmg-choices {\n  width: 100%;\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n  gap: 8px;\n}\n\n/* Four options would wrap three and one: two by two reads better. */\n.fmg-choices[data-count='4'] {\n  grid-template-columns: repeat(2, minmax(0, 1fr));\n}\n\n.fmg-choice {\n  display: grid;\n  grid-template-columns: auto minmax(0, 1fr);\n  align-items: start;\n  column-gap: 10px;\n  padding: 10px 12px;\n  border: var(--fmg-hair) solid var(--fmg-line);\n  border-radius: var(--fmg-radius-m);\n  background: var(--fmg-raised);\n  color: inherit;\n  font: inherit;\n  text-align: left;\n  cursor: pointer;\n  transition: border-color 0.15s ease, background-color 0.15s ease;\n}\n\n@media (hover: hover) {\n  .fmg-choice:hover:not(:disabled) {\n    border-color: var(--fmg-sea-edge);\n  }\n}\n\n.fmg-choice[aria-checked='true'] {\n  border-color: var(--fmg-sea);\n  background: var(--fmg-sea-wash);\n}\n\n.fmg-choice:disabled {\n  opacity: 0.6;\n  cursor: default;\n}\n\n.fmg-choice__dot {\n  width: 14px;\n  height: 14px;\n  margin-top: 3px;\n  border: 1.5px solid var(--fmg-line-strong);\n  border-radius: 50%;\n  corner-shape: round;\n  background: var(--fmg-raised);\n}\n\n.fmg-choice[aria-checked='true'] .fmg-choice__dot {\n  border: 4px solid var(--fmg-sea);\n  background: var(--fmg-on-sea);\n}\n\n.fmg-choice__name {\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.fmg-choice__note {\n  display: block;\n  color: var(--fmg-ink-2);\n  font-size: 12px;\n  font-weight: 400;\n}\n\n/* ------------------------------------------------------------------ 6. disclosures, panels, notices */\n\n.fmg-fold {\n  border: var(--fmg-hair) solid var(--fmg-line);\n  border-radius: var(--fmg-radius-l);\n  background: var(--fmg-surface);\n  overflow: hidden;\n}\n\n.fmg-fold__head {\n  display: grid;\n  grid-template-columns: auto minmax(0, 1fr) auto;\n  align-items: center;\n  gap: 12px;\n  width: 100%;\n  padding: 14px 16px;\n  border: 0;\n  background: none;\n  color: inherit;\n  font: inherit;\n  text-align: left;\n  cursor: pointer;\n}\n\n@media (hover: hover) {\n  .fmg-fold__head:hover {\n    background: var(--fmg-hover);\n  }\n}\n\n.fmg-fold__head:focus-visible {\n  outline-offset: -2px;\n}\n\n.fmg-fold__chevron {\n  color: var(--fmg-ink-3);\n  transition: transform 0.2s ease;\n}\n\n.fmg-root [aria-expanded='true'] > .fmg-fold__chevron {\n  transform: rotate(90deg);\n}\n\n.fmg-fold__title {\n  display: block;\n  font-size: 14px;\n  font-weight: 600;\n}\n\n.fmg-fold__help {\n  display: block;\n  color: var(--fmg-ink-2);\n  font-size: 12px;\n}\n\n.fmg-fold__body {\n  border-top: var(--fmg-hair) solid var(--fmg-line);\n}\n\n/* Label and value pairs: the details of the overview, the facts of a model. */\n.fmg-facts {\n  display: grid;\n  grid-template-columns: max-content minmax(0, 1fr);\n  gap: 6px 16px;\n  padding: 14px 16px;\n  font-size: 12px;\n}\n\n.fmg-facts dt {\n  color: var(--fmg-ink-2);\n}\n\n.fmg-facts dd {\n  overflow-wrap: anywhere;\n  font-variant-numeric: tabular-nums;\n}\n\n.fmg-notice {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  padding: 10px 14px;\n  border-radius: var(--fmg-radius-m);\n  background: var(--fmg-sunk);\n  font-size: 12px;\n}\n\n.fmg-notice--warn {\n  background: var(--fmg-warn-wash);\n}\n\n.fmg-actions {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 8px;\n}\n\n.fmg-model {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) auto;\n  align-items: start;\n  gap: 8px 16px;\n  padding: 14px 16px;\n}\n\n.fmg-model__text {\n  display: flex;\n  flex-direction: column;\n  gap: 4px;\n  min-width: 0;\n}\n\n.fmg-model__name {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 4px 8px;\n  font-size: 13px;\n  font-weight: 600;\n  overflow-wrap: anywhere;\n}\n\n.fmg-model__facts {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 2px 16px;\n  color: var(--fmg-ink-2);\n  font-size: 12px;\n}\n\n.fmg-model__wide {\n  grid-column: 1 / -1;\n}\n\n.fmg-check {\n  display: flex;\n  align-items: baseline;\n  flex-wrap: wrap;\n  gap: 6px;\n  font-size: 12px;\n}\n\n.fmg-check input {\n  accent-color: var(--fmg-sea);\n}\n\n.fmg-progress {\n  height: 4px;\n  border-radius: 2px;\n  background: var(--fmg-sunk);\n  overflow: hidden;\n}\n\n.fmg-progress i {\n  display: block;\n  height: 100%;\n  border-radius: inherit;\n  background: var(--fmg-sea);\n  transition: width 0.4s ease;\n}\n\n/* ------------------------------------------------------------------ 7. save bar */\n\n/* Sticks to the lower edge of whatever scrolls the page; takes no room while nothing is staged. */\n.fmg-savebar {\n  position: sticky;\n  bottom: 12px;\n  z-index: 2;\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  justify-content: space-between;\n  gap: 8px 16px;\n  padding: 10px 12px 10px 16px;\n  border: var(--fmg-hair) solid var(--fmg-line);\n  border-radius: var(--fmg-radius-l);\n  background: var(--fmg-raised);\n  box-shadow: var(--fmg-shadow);\n  animation: fmg-up 0.22s ease;\n}\n\n.fmg-savebar__text {\n  display: flex;\n  flex-direction: column;\n  min-width: 0;\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.fmg-savebar__text .fmg-row__error {\n  font-weight: 400;\n}\n\n.fmg-savebar--done {\n  justify-content: flex-start;\n  color: var(--fmg-ok);\n}\n\n@keyframes fmg-up {\n  from { transform: translateY(8px); opacity: 0; }\n  to { transform: none; opacity: 1; }\n}\n\n/* ------------------------------------------------------------------ 8. changelog */\n\n.fmg-release {\n  padding: 14px 16px;\n}\n\n.fmg-release__head {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 4px 10px;\n  width: 100%;\n  padding: 0;\n  border: 0;\n  background: none;\n  color: inherit;\n  font: inherit;\n  text-align: left;\n  cursor: pointer;\n}\n\n.fmg-release__version {\n  font-size: 14px;\n  font-weight: 600;\n  font-variant-numeric: tabular-nums;\n}\n\n.fmg-release__date {\n  color: var(--fmg-ink-3);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n}\n\n.fmg-release__head .fmg-fold__chevron {\n  margin-left: auto;\n}\n\n.fmg-md {\n  padding-top: 10px;\n  color: var(--fmg-ink);\n  font-size: 12.5px;\n  line-height: 1.7;\n  overflow-wrap: anywhere;\n}\n\n.fmg-md p { margin: 0 0 6px; }\n.fmg-md h5 { margin: 12px 0 4px; font-size: 12.5px; font-weight: 600; }\n.fmg-md ul { margin: 0 0 6px; padding-left: 18px; list-style: disc; }\n.fmg-md li { margin: 2px 0; }\n.fmg-md li::marker { color: var(--fmg-ink-3); }\n\n/* ------------------------------------------------------------------ 9. footer */\n\n.fmg-foot {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 4px 16px;\n  padding: 0 4px 4px;\n  color: var(--fmg-ink-3);\n  font-size: 12px;\n}\n\n.fmg-foot .fmg-link {\n  color: var(--fmg-ink-2);\n}\n\n/* ------------------------------------------------------------------ narrow columns and calm motion */\n\n@container (max-width: 520px) {\n  .fmg-hero {\n    padding: 16px 4px 16px 16px;\n    gap: 8px;\n  }\n\n  .fmg-hero__head {\n    font-size: 17px;\n  }\n\n  .fmg-hero__art {\n    width: 92px;\n    height: 129px;\n    margin-top: -36px;\n    margin-bottom: -16px;\n  }\n\n  .fmg-row,\n  .fmg-model {\n    column-gap: 12px;\n    padding: 12px;\n  }\n\n  .fmg-choices[data-count='4'] {\n    grid-template-columns: minmax(0, 1fr);\n  }\n\n  .fmg-row--sub {\n    padding-left: 24px;\n    background-position: 10px 0, 0 0;\n  }\n\n  .fmg-model {\n    grid-template-columns: minmax(0, 1fr);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .fmg-root *,\n  .fmg-root *::before,\n  .fmg-root *::after {\n    animation: none !important;\n    transition: none !important;\n  }\n}\n"
+  })
+
+  // theme/styles.cjs
+  define("theme/styles.cjs", function (require, module, exports) {
     'use strict'
+    // Puts the page's stylesheet (theme/page.css) into the document, once, and takes it out again.
+    //
+    // The page cannot use inline styles alone: hover, keyboard focus, container widths and reduced
+    // motion only exist in a stylesheet. The host has no rule against a plugin adding a <style> element
+    // (it installs its own plugins' styles the same way), so that is what this does. The element is
+    // found again by its id, so loading the plugin twice never adds a second copy.
 
-    // The page as first written, moved here unchanged: styles, components and the settings page itself.
-    // Temporary: the redesigned view replaces this file. It may use React, the host primitives, the model
-    // modules and the hooks; nothing else may depend on it.
+    const CSS = require('./page.css')
 
-    const { h, useEffect, useRef, useState } = require('../react.cjs')
-    const ui = require('../host-ui.cjs')
-    const { MODELS_POLL_MS, MODELS_BUSY_POLL_MS } = require('../constants.cjs')
-    const { FIELDS } = require('../fields.cjs')
-    const { fetchModels, postModels } = require('../net.cjs')
-    const { fieldView, buildOps, saveDraft } = require('../model/form.cjs')
-    const { statusRows } = require('../model/status.cjs')
-    const { pickText, formatSize, memoryText, modelActions, chainLine, sameProblem } = require('../model/models.cjs')
-    const markdown = require('../model/markdown.cjs')
-    const { useStatus, useChangelog } = require('../hooks.cjs')
+    const STYLE_ID = 'dsh-feiyu-memgate-styles'
 
-    // ------------------------------------------------------------ view
-
-    const S = {
-      page: { display: 'flex', flexDirection: 'column', gap: '16px' },
-      changelogList: { display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' },
-      details: { padding: '8px 12px', border: '0.5px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-md)' },
-      summary: { cursor: 'pointer', fontSize: '13px', fontWeight: 500, lineHeight: 1.5, color: 'var(--dsw-alias-label-primary)' },
-      mdBody: { marginTop: '8px', fontSize: '12px', lineHeight: 1.6, color: 'var(--dsw-alias-label-primary)', overflowWrap: 'anywhere' },
-      mdP: markdown.STYLES.mdP,
-      mdH: markdown.STYLES.mdH,
-      mdUl: markdown.STYLES.mdUl,
-      mdLi: markdown.STYLES.mdLi,
-      code: markdown.STYLES.code,
-      status: { padding: '12px', border: '0.5px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-md)', background: 'var(--dsw-alias-bg-layer-2)' },
-      statusHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' },
-      title: { margin: 0, fontSize: '13px', fontWeight: 600, lineHeight: 1.5, color: 'var(--dsw-alias-label-primary)' },
-      rows: { display: 'grid', gridTemplateColumns: 'max-content 1fr', columnGap: '12px', rowGap: '4px', margin: 0, fontSize: '12px', lineHeight: 1.5 },
-      dt: { color: 'var(--dsw-alias-label-secondary)' },
-      dd: { margin: 0, minWidth: 0, color: 'var(--dsw-alias-label-primary)', overflowWrap: 'anywhere' },
-      section: { display: 'flex', flexDirection: 'column' },
-      sectionTitle: { margin: '0 0 4px', fontSize: '14px', fontWeight: 600, lineHeight: 1.5, color: 'var(--dsw-alias-label-primary)' },
-      hint: { margin: 0, fontSize: '12px', lineHeight: 1.5, color: 'var(--dsw-alias-label-tertiary)' },
-      note: { margin: 0, fontSize: '12px', lineHeight: 1.5, color: 'var(--dsw-alias-label-secondary)' },
-      field: { display: 'flex', flexDirection: 'column', gap: '6px', padding: '12px 0', borderTop: '0.5px solid var(--dsw-alias-border-l2)' },
-      head: { display: 'flex', alignItems: 'center', gap: '8px' },
-      label: { flex: 1, minWidth: 0, fontSize: '13px', fontWeight: 500, lineHeight: 1.5, color: 'var(--dsw-alias-label-primary)' },
-      badges: { display: 'inline-flex', alignItems: 'center', gap: '8px' },
-      tag: { padding: '0 6px', borderRadius: 'var(--dsw-radius-sm)', fontSize: '11px', lineHeight: '18px', background: 'var(--dsw-alias-bg-layer-4)', color: 'var(--dsw-alias-label-secondary)' },
-      reset: { border: 'none', background: 'none', padding: 0, font: 'inherit', fontSize: '12px', lineHeight: 1.5, color: 'var(--dsw-alias-label-secondary)', cursor: 'pointer' },
-      input: { height: '34px', padding: '0 12px', border: '0.5px solid var(--dsw-alias-border-l4)', borderRadius: 'var(--dsw-radius-md)', background: 'var(--dsw-alias-bg-layer-3)', font: 'inherit', fontSize: '13px', lineHeight: 1.5, color: 'var(--dsw-alias-label-primary)' },
-      invalid: { margin: 0, fontSize: '12px', lineHeight: 1.5, color: 'var(--dsw-alias-state-error-primary)' },
-      footer: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', paddingTop: '12px' },
-      button: { height: '32px', padding: '0 14px', border: '0.5px solid var(--dsw-alias-border-l4)', borderRadius: 'var(--dsw-radius-md)', background: 'var(--dsw-alias-bg-layer-3)', font: 'inherit', fontSize: '13px', color: 'var(--dsw-alias-label-primary)', cursor: 'pointer' },
-      models: { display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' },
-      model: { display: 'flex', flexDirection: 'column', gap: '6px', padding: '12px', border: '0.5px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-md)' },
-      modelHead: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' },
-      modelName: { fontSize: '13px', fontWeight: 600, lineHeight: 1.5, color: 'var(--dsw-alias-label-primary)', overflowWrap: 'anywhere' },
-      facts: { display: 'flex', flexWrap: 'wrap', columnGap: '16px', rowGap: '2px', margin: 0, fontSize: '12px', lineHeight: 1.5, color: 'var(--dsw-alias-label-secondary)' },
-      actions: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' },
-      check: { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', lineHeight: 1.5, color: 'var(--dsw-alias-label-primary)' },
-      problem: { margin: 0, padding: '8px 12px', borderRadius: 'var(--dsw-radius-md)', fontSize: '12px', lineHeight: 1.5, background: 'var(--dsw-alias-bg-layer-4)', color: 'var(--dsw-alias-label-primary)' },
-      confirm: { display: 'flex', flexDirection: 'column', gap: '8px', padding: '8px 12px', borderRadius: 'var(--dsw-radius-md)', background: 'var(--dsw-alias-bg-layer-4)' },
-      link: markdown.STYLES.link,
+    /**
+     * Add the stylesheet to a document.
+     * @param {Document | undefined} doc the page's document; undefined outside a browser (tests)
+     * @returns {() => void} removes the stylesheet again (called when the plugin is unloaded)
+     */
+    function installStyles(doc) {
+      if (!doc || !doc.head || typeof doc.createElement !== 'function') return () => {}
+      let element = doc.getElementById(STYLE_ID)
+      if (!element) {
+        element = doc.createElement('style')
+        element.id = STYLE_ID
+        doc.head.appendChild(element)
+      }
+      // Written every time: after an update of the plugin the old element may still hold the old rules.
+      element.textContent = CSS
+      return () => {
+        if (element.parentNode) element.parentNode.removeChild(element)
+      }
     }
 
-    function Tag(props) {
-      return ui.Tag ? h(ui.Tag, { tone: props.tone || 'neutral' }, props.children) : h('span', { style: S.tag }, props.children)
+    /** Class names joined, skipping whatever is empty: cx('fmg-row', sub && 'fmg-row--sub'). */
+    function cx() {
+      let out = ''
+      for (let i = 0; i < arguments.length; i += 1) {
+        const part = arguments[i]
+        if (part) out += (out ? ' ' : '') + part
+      }
+      return out
     }
 
-    function SmallButton(props) {
-      if (ui.Button) return h(ui.Button, { variant: 'outline', size: 'sm', type: 'button', disabled: props.disabled, onClick: props.onClick }, props.children)
-      return h('button', { type: 'button', style: S.button, disabled: props.disabled, onClick: props.onClick }, props.children)
+    module.exports = { STYLE_ID, installStyles, cx }
+  })
+
+  // view/field-row.cjs
+  define("view/field-row.cjs", function (require, module, exports) {
+    'use strict'
+    // One setting as one row: its name, what it does, and the control that fits its kind.
+    //
+    //   boolean  a switch at the right end of the row
+    //   integer  a stepper with its unit at the right end
+    //   choice   the options with their meanings, under the text
+    //   string   a text line under the text; a secret is write-only and shows only whether one is stored
+    //
+    // The row follows the host's settings conventions: an edit is staged, not written; a setting that
+    // differs from its inherited value carries a tag and a "Reset" that stages the return; a draft the
+    // field cannot accept shows why instead of the help text being lost (both are shown).
+
+    const { h } = require('../react.cjs')
+    const { ID_PREFIX } = require('../constants.cjs')
+    const { splitOption } = require('../model/page.cjs')
+    const { cx } = require('../theme/styles.cjs')
+    const { Button, Tag, Switch, TextInput, Stepper, Choices } = require('../kit/controls.cjs')
+
+    /** The element id of a setting's control: 'advanced.recallLimit' → 'feiyu-memgate-advanced-recallLimit'. */
+    function fieldId(k) {
+      return ID_PREFIX + '-' + k.replace('.', '-')
     }
 
-    /** Label, change tag and reset, control, then the hint or the reason the draft is refused. */
-    function FieldFrame(props) {
-      const { t, view, disabled } = props
-      return h('div', { style: S.field },
-        h('div', { style: S.head },
-          h('label', { style: S.label, htmlFor: props.id }, t('f.' + view.k)),
-          view.overridden
-            ? h('span', { style: S.badges }, h(Tag, null, t('overridden')),
-              h('button', { type: 'button', style: S.reset, disabled, onClick: props.onReset }, t('reset')))
-            : null,
-          props.inline || null),
-        props.control || null,
-        view.invalid ? h('p', { style: S.invalid }, props.invalidText) : h('p', { style: S.hint }, props.hint !== undefined ? props.hint : t('h.' + view.k)))
-    }
-
+    /** Why a draft is refused, in words. */
     function invalidText(t, field) {
       return field.kind === 'integer' ? t('invalidInteger', { min: field.min, max: field.max }) : t('invalidUrl')
     }
 
-    function Field(props) {
-      const { t, view, disabled, edit, reset } = props
+    /**
+     * @param {{ t: Function, lang: 'en' | 'zh', row: { view: object, parent: string | null }, disabled: boolean,
+     *   edit: (k: string, value: unknown) => void, reset: (k: string) => void }} props
+     *   `row` comes from model/page.cjs sectionView(); `edit` stages a value, `reset` stages a return to
+     *   the inherited value (for a secret: clearing it).
+     */
+    function FieldRow(props) {
+      const { t, lang, row, disabled, edit, reset } = props
+      const view = row.view
       const field = view.field
-      const id = 'feiyu-memgate-' + view.k.replace('.', '-')
+      const k = view.k
+      const id = fieldId(k)
+      const labelId = id + '-label'
+      const helpId = id + '-help'
+      const label = t('f.' + k)
+
+      let control
+      let stacked = false
+      let labelled = true // whether the label element can point at one control with htmlFor
+      let help = t('h.' + k)
+      const tags = []
+      if (field.experimental) tags.push(h(Tag, { key: 'experimental', tone: 'blush' }, t('experimental')))
+
       if (view.secret) {
-        const stateLabel = view.configured === null ? '' : view.configured ? t('secretSet') : t('secretUnset')
-        const clear = h('button', { type: 'button', style: S.reset, disabled: disabled || view.clearing, onClick: () => reset(view.k) }, t('secretClear'))
-        const hint = view.clearing ? t('secretClearing') : t('h.' + view.k) + ' ' + t('secretHint')
-        if (ui.SettingsSecretField) {
-          return h('div', null,
-            h(ui.SettingsSecretField, { id, label: t('f.' + view.k), hint, text: view.text, disabled, configured: view.configured === true, stateLabel, onEdit: (text) => edit(view.k, text) }),
-            h('div', { style: S.badges }, clear))
-        }
-        return h(FieldFrame, {
-          t, view, id, disabled, hint,
-          inline: h('span', { style: S.badges }, stateLabel ? h(Tag, null, stateLabel) : null, clear),
-          control: h('input', { id, type: 'password', autoComplete: 'new-password', style: S.input, value: view.text, disabled, onChange: (event) => edit(view.k, event.target.value) }),
+        stacked = true
+        if (view.configured !== null) tags.push(h(Tag, { key: 'stored', tone: view.configured ? 'ok' : undefined }, t(view.configured ? 'secretSet' : 'secretUnset')))
+        help = view.clearing ? t('secretClearing') : help + ' ' + t('secretHint')
+        control = h('div', { className: 'fmg-input-line' },
+          h(TextInput, { id, type: 'password', autoComplete: 'new-password', value: view.text, disabled, describedBy: helpId, onChange: (text) => edit(k, text) }),
+          view.configured || view.text ? h(Button, { variant: 'text', disabled: disabled || view.clearing, onClick: () => reset(k) }, t('secretClear')) : null)
+      } else if (field.kind === 'boolean') {
+        control = h(Switch, { id, checked: view.value === true, label, describedBy: helpId, disabled, onChange: (next) => edit(k, next) })
+      } else if (field.kind === 'integer') {
+        control = [
+          h(Stepper, {
+            key: 'stepper', id, text: view.text, min: field.min, max: field.max, invalid: view.invalid, disabled, describedBy: helpId,
+            labels: { down: t('stepDown'), up: t('stepUp') }, onChange: (text) => edit(k, text),
+          }),
+          field.unit ? h('span', { key: 'unit', className: 'fmg-quiet' }, field.unit[lang] || field.unit.en) : null,
+        ]
+      } else if (field.kind === 'choice') {
+        stacked = true
+        labelled = false
+        control = h(Choices, {
+          labelledBy: labelId, describedBy: helpId, value: view.value, disabled,
+          options: field.options.map((option) => Object.assign({ value: option.value }, splitOption(t('o.' + k + '.' + option.value)))),
+          onChange: (value) => edit(k, value),
         })
-      }
-      if (field.kind === 'boolean') {
-        const label = t('f.' + view.k)
-        const control = ui.Switch
-          ? h(ui.Switch, { checked: view.value === true, label, disabled, onChange: (next) => edit(view.k, next) })
-          : h('input', { type: 'checkbox', id, checked: view.value === true, 'aria-label': label, disabled, onChange: (event) => edit(view.k, event.target.checked) })
-        return h(FieldFrame, { t, view, id, disabled, inline: control, onReset: () => reset(view.k) })
-      }
-      if (field.kind === 'choice') {
-        const control = h('select', { id, style: S.input, value: view.value, disabled, onChange: (event) => edit(view.k, event.target.value) },
-          field.options.map((option) => h('option', { key: option.value, value: option.value }, t('o.' + view.k + '.' + option.value))))
-        return h(FieldFrame, { t, view, id, disabled, control, onReset: () => reset(view.k) })
-      }
-      if (ui.SettingsValueField) {
-        return h(ui.SettingsValueField, {
-          id, label: t('f.' + view.k), hint: t('h.' + view.k), text: view.text, overridden: view.overridden, invalid: view.invalid,
-          overriddenLabel: t('overridden'), resetLabel: t('reset'), invalidLabel: invalidText(t, field), disabled,
-          numeric: field.kind === 'integer', onEdit: (text) => edit(view.k, text), onReset: () => reset(view.k),
-        })
-      }
-      const control = h('input', {
-        id, type: 'text', style: S.input, value: view.text, disabled, 'aria-invalid': view.invalid || undefined,
-        inputMode: field.kind === 'integer' ? 'numeric' : undefined, onChange: (event) => edit(view.k, event.target.value),
-      })
-      return h(FieldFrame, { t, view, id, disabled, control, invalidText: invalidText(t, field), onReset: () => reset(view.k) })
-    }
-
-    function StatusBlock(props) {
-      const { t, status } = props
-      let body
-      if (status.data) {
-        body = h('dl', { style: S.rows }, statusRows(status.data, t).flatMap((row, index) => [
-          h('dt', { key: 'dt' + index, style: S.dt }, row[0]),
-          h('dd', { key: 'dd' + index, style: S.dd }, row[1]),
-        ]))
       } else {
-        body = h('p', { style: S.note, role: 'status' }, status.loading ? t('statusLoading') : t('statusFailed', { code: status.error }))
+        stacked = true
+        control = h('div', { className: 'fmg-input-line' },
+          h(TextInput, { id, value: view.text, invalid: view.invalid, disabled, describedBy: helpId, onChange: (text) => edit(k, text) }))
       }
-      return h('section', { style: S.status, 'aria-label': t('statusTitle') },
-        h('div', { style: S.statusHead },
-          h('h4', { style: S.title }, t('statusTitle')),
-          h(SmallButton, { onClick: status.refresh }, t('refresh'))),
-        status.data && status.error ? h('p', { style: S.note, role: 'status' }, t('statusFailed', { code: status.error })) : null,
-        body)
+
+      if (view.overridden) {
+        tags.push(h(Tag, { key: 'changed', tone: 'sea' }, t('overridden')))
+        tags.push(h(Button, { key: 'reset', variant: 'text', disabled, onClick: () => reset(k) }, t('reset')))
+      }
+
+      return h('div', { className: cx('fmg-row', stacked && 'fmg-row--stack', row.parent && 'fmg-row--sub') },
+        h('div', { className: 'fmg-row__text' },
+          h('div', { className: 'fmg-row__label' },
+            labelled ? h('label', { id: labelId, htmlFor: id }, label) : h('span', { id: labelId }, label),
+            tags),
+          h('p', { className: 'fmg-row__help', id: helpId }, help),
+          view.invalid ? h('p', { className: 'fmg-row__error', role: 'alert' }, invalidText(t, field)) : null),
+        h('div', { className: 'fmg-row__control' }, control))
     }
 
+    module.exports = { fieldId, invalidText, FieldRow }
+  })
+
+  // view/hero.cjs
+  define("view/hero.cjs", function (require, module, exports) {
+    'use strict'
+    // The top of the page: how memory is doing, said three ways at once. A headline with a coloured dot,
+    // one line of explanation, and the mascot in the mood that fits (model/overview.cjs decides which).
+    //
+    // The drawing is the one decorative thing on the page and is treated as such: it is loaded from the
+    // plugin's own route, fades in when it has arrived, and when it cannot be loaded (an older host, a
+    // blocked request) the card simply has no drawing. Nothing a person needs is only in the picture.
+
+    const { h, useState } = require('../react.cjs')
+    const { ART_ROUTE } = require('../constants.cjs')
+    const { cx } = require('../theme/styles.cjs')
+
+    /** The address of the drawing for a mood ('ready' | 'busy' | 'asleep' | 'trouble'). */
+    function artUrl(mood) {
+      return ART_ROUTE + 'mascot-' + mood + '.webp'
+    }
+
+    /**
+     * @param {{ t: Function, summary: { mood: string, headline: object, line: object, facts: object[] } }} props
+     *   `summary` is model/overview.cjs summarise().
+     */
+    function Hero(props) {
+      const { t, summary } = props
+      const mood = summary.mood
+      // Which drawings have arrived, and whether one failed (then none is tried again on this page).
+      const [art, setArt] = useState({ loaded: {}, failed: false })
+      const drawing = art.failed ? null : h('div', { className: 'fmg-hero__art' },
+        h('img', {
+          key: mood,
+          src: artUrl(mood),
+          alt: t('mascot.' + mood),
+          draggable: false,
+          'data-shown': art.loaded[mood] ? 'true' : 'false',
+          onLoad: () => setArt((previous) => (previous.loaded[mood] ? previous : { loaded: Object.assign({}, previous.loaded, { [mood]: true }), failed: false })),
+          onError: () => setArt({ loaded: {}, failed: true }),
+        }))
+      return h('header', { className: 'fmg-hero' },
+        h('div', { className: 'fmg-hero__sea', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')),
+        // role="status": a change of state is read out; the poll re-renders the same text without a change.
+        h('div', { className: 'fmg-hero__text', role: 'status' },
+          h('h4', { className: 'fmg-hero__head' },
+            h('span', { className: 'fmg-dot', 'data-mood': mood, 'aria-hidden': 'true' }),
+            t(summary.headline.key, summary.headline.params)),
+          h('p', { className: 'fmg-hero__line' }, t(summary.line.key, summary.line.params)),
+          summary.facts.length
+            ? h('ul', { className: 'fmg-hero__facts' }, summary.facts.map((fact) => h('li', {
+              key: fact.id,
+              className: cx('fmg-fact', fact.tone === 'warn' && 'fmg-fact--warn'),
+            }, t(fact.key, fact.params))))
+            : null),
+        drawing)
+    }
+
+    module.exports = { artUrl, Hero }
+  })
+
+  // view/markdown.cjs
+  define("view/markdown.cjs", function (require, module, exports) {
+    'use strict'
+
+    // The changelog's Markdown subset: text in, React elements out. Headings, lists (one nested level),
+    // paragraphs, `code`, **bold** and https links; everything else stays text. The elements are built
+    // from strings here, so there is no path from the changelog file to raw HTML on the page.
+    // How they look is the stylesheet's business (`.fmg-md` in theme/page.css).
+
+    const { h } = require('../react.cjs')
+
+    const INLINE = /`([^`]+)`|\*\*([^*]+)\*\*|\[([^\]]+)\]\(([^)\s]+)\)/g
+    const CJK = /[\u2e80-\u9fff\uf900-\ufaff\uff00-\uffef]/
+
+    /** Inline marks in a line of text: `code`, **bold**, [text](https://...). Anything else, tags included, stays text. */
+    function inlineMarkdown(text) {
+      const out = []
+      let last = 0
+      let n = 0
+      let match
+      INLINE.lastIndex = 0
+      while ((match = INLINE.exec(text)) !== null) {
+        if (match.index > last) out.push(text.slice(last, match.index))
+        n += 1
+        if (match[1] !== undefined) out.push(h('code', { key: 'c' + n, className: 'fmg-code' }, match[1]))
+        else if (match[2] !== undefined) out.push(h('strong', { key: 'b' + n }, match[2]))
+        else if (/^https:\/\//i.test(match[4])) out.push(h('a', { key: 'a' + n, href: match[4], target: '_blank', rel: 'noopener noreferrer', className: 'fmg-link' }, match[3]))
+        else out.push(match[3]) // any other address is shown as its text, not a link
+        last = match.index + match[0].length
+      }
+      if (last < text.length) out.push(text.slice(last))
+      return out
+    }
+
+    // Lines of one paragraph joined the way they read: no space between two Chinese characters.
+    function joinLines(lines) {
+      let out = ''
+      for (const line of lines) {
+        if (out && !(CJK.test(out[out.length - 1]) && CJK.test(line[0]))) out += ' '
+        out += line
+      }
+      return out
+    }
+
+    /**
+     * A changelog body as React elements: ### headings, - list items (one nested level, by indentation),
+     * paragraphs. Text goes in as text; there is no path from the file to raw HTML.
+     */
+    function renderMarkdown(body) {
+      const lines = String(body === undefined || body === null ? '' : body).replace(/\r\n?/g, '\n').split('\n')
+      const blocks = []
+      let para = null
+      let list = null
+      let tail = null // the item (top or nested) a continuation line belongs to
+      const flushPara = () => {
+        if (para) blocks.push(h('p', { key: 'p' + blocks.length }, inlineMarkdown(joinLines(para))))
+        para = null
+      }
+      const flushList = () => {
+        if (list) {
+          const key = 'l' + blocks.length
+          const items = (entries, prefix) => entries.map((item, index) => h('li', { key: prefix + index },
+            inlineMarkdown(item.text), item.children && item.children.length ? h('ul', null, items(item.children, prefix + index + '.')) : null))
+          blocks.push(h('ul', { key }, items(list, key)))
+        }
+        list = null
+        tail = null
+      }
+      for (const line of lines) {
+        let match
+        if (!line.trim()) {
+          flushPara()
+          flushList()
+        } else if ((match = /^#{1,6}[ \t]+(.+?)[ \t]*$/.exec(line))) {
+          flushPara()
+          flushList()
+          blocks.push(h('h5', { key: 'h' + blocks.length }, inlineMarkdown(match[1])))
+        } else if ((match = /^([ \t]*)[-*][ \t]+(.*)$/.exec(line))) {
+          flushPara()
+          if (!list) list = []
+          const item = { text: match[2].trim(), children: [] }
+          if (match[1].length >= 2 && list.length) list[list.length - 1].children.push(item)
+          else list.push(item)
+          tail = item
+        } else if (list && tail && /^[ \t]+\S/.test(line)) {
+          tail.text = joinLines([tail.text, line.trim()])
+        } else {
+          flushList()
+          if (!para) para = []
+          para.push(line.trim())
+        }
+      }
+      flushPara()
+      flushList()
+      return blocks
+    }
+
+    module.exports = { inlineMarkdown, joinLines, renderMarkdown }
+  })
+
+  // view/models.cjs
+  define("view/models.cjs", function (require, module, exports) {
+    'use strict'
+    // The local embedding models: what each costs, where it stands, and its one button.
+    //
+    // Nothing here downloads or installs by itself. A click on "Download and enable" names what will be
+    // fetched; when the add-on plugin is missing, the page first says what installing it brings and
+    // waits for a second yes. The host half checks the same things again (src/setup.js): this file is
+    // the conversation, not the gate.
+
+    const { h, useState } = require('../react.cjs')
+    const { ID_PREFIX } = require('../constants.cjs')
+    const { useModels } = require('../hooks.cjs')
+    const { pickText, formatSize, memoryText, modelActions, chainLine, sameProblem } = require('../model/models.cjs')
+    const { Button, Tag } = require('../kit/controls.cjs')
+    const { Group, Notice, Progress } = require('../kit/layout.cjs')
+
+    // Where "measured retrieval quality" leads before the host half has answered with its own link.
+    const QUALITY_LINK = 'https://github.com/N0rmal-114/feiyu-memgate#部署档位'
+
+    /** A failure with what to do about it, as the host half worded it ({ title, todo }, each { en, zh }). */
     function Problem(props) {
       const { problem, lang, t } = props
       if (!problem) return null
-      return h('p', { style: S.problem, role: 'alert' },
-        pickText(problem.title, lang), ' ', h('strong', null, t('todo')), ' ', pickText(problem.todo, lang))
+      return h(Notice, { tone: 'warn', role: 'alert' },
+        h('p', null, pickText(problem.title, lang), ' ', h('strong', null, t('todo')), ' ', pickText(problem.todo, lang)))
     }
 
+    /** An outside link that opens in a new tab without handing the page over to it. */
+    function OutLink(props) {
+      return h('a', { className: 'fmg-link', href: props.href, target: '_blank', rel: 'noreferrer noopener' }, props.children)
+    }
+
+    /**
+     * One model.
+     * @param {{ t: Function, lang: string, model: object, view: object, accepted: boolean, pending: boolean,
+     *   onAccept: (id: string, value: boolean) => void, onAction: (action: string, model: object) => void }} props
+     */
     function ModelRow(props) {
       const { t, lang, model, view, accepted, onAccept, onAction, pending } = props
       const acts = modelActions(model, view, accepted)
-      const languages = (model.languages || []).map((l) => t('language.' + l) === 'language.' + l ? l : t('language.' + l)).join(lang === 'zh' ? '、' : ', ')
+      const languages = (model.languages || []).map((l) => (t('language.' + l) === 'language.' + l ? l : t('language.' + l))).join(lang === 'zh' ? '、' : ', ')
       // The memory the add-on measured for the running model process (loaded), never the file size.
       const memory = memoryText(model.memoryMB, t)
       const licence = model.license
-        ? (model.license.url ? h('a', { href: model.license.url, target: '_blank', rel: 'noreferrer noopener', style: S.link }, model.license.name) : model.license.name)
+        ? (model.license.url ? h(OutLink, { href: model.license.url }, model.license.name) : model.license.name)
         : '?'
-      const id = 'feiyu-memgate-accept-' + model.id
+      const acceptId = ID_PREFIX + '-accept-' + model.id
       const press = (action) => () => { if (action) onAction(action, model) }
-      return h('li', { style: S.model },
-        h('div', { style: S.modelHead },
-          h('span', { style: S.modelName }, model.id),
-          model.tierLabel ? h(Tag, null, pickText(model.tierLabel, lang)) : null,
-          model.status === 'unverified' ? h(Tag, { tone: 'warning' }, t('unverified')) : null,
-          model.pinned ? h(Tag, null, t('pinned')) : null),
-        model.note ? h('p', { style: S.note }, pickText(model.note, lang)) : null,
-        h('p', { style: S.facts },
-          h('span', null, t('colSize') + ' ' + formatSize(model.sizeBytes)),
-          h('span', null, t('colMemory') + ' ' + memory),
-          h('span', null, t('colLanguages') + ' ' + (languages || '?')),
-          h('span', null, t('colLicence') + ' ', licence)),
+      const downloading = model.state === 'downloading' && model.percent !== null && model.percent !== undefined
+      // The primary action is a button only while it can lead somewhere; a state that offers nothing to
+      // press ("In use", "Loading", "Downloading 42%") is said as text, not as a greyed-out button.
+      const primaryLabel = t(acts.primary.label[0], acts.primary.label[1])
+      const primary = acts.primary.action
+        ? h(Button, { variant: 'primary', disabled: pending || !acts.primary.enabled, onClick: press(acts.primary.action) }, primaryLabel)
+        : model.state === 'active' ? h(Tag, { tone: 'ok' }, primaryLabel) : h('span', { className: 'fmg-note', role: 'status' }, primaryLabel)
+      return h('li', { className: 'fmg-model' },
+        h('div', { className: 'fmg-model__text' },
+          h('div', { className: 'fmg-model__name' },
+            model.id,
+            model.tierLabel ? h(Tag, null, pickText(model.tierLabel, lang)) : null,
+            model.status === 'unverified' ? h(Tag, { tone: 'warn' }, t('unverified')) : null,
+            model.pinned ? h(Tag, null, t('pinned')) : null),
+          model.note ? h('p', { className: 'fmg-note' }, pickText(model.note, lang)) : null,
+          h('p', { className: 'fmg-model__facts' },
+            h('span', null, t('colSize') + ' ' + formatSize(model.sizeBytes)),
+            h('span', null, t('colMemory') + ' ' + memory),
+            h('span', null, t('colLanguages') + ' ' + (languages || '?')),
+            h('span', null, t('colLicence') + ' ', licence))),
+        h('div', { className: 'fmg-actions' },
+          primary,
+          acts.secondary ? h(Button, { disabled: pending, onClick: press(acts.secondary.action) }, t(acts.secondary.label[0])) : null),
+        downloading ? h('div', { className: 'fmg-model__wide' }, h(Progress, { percent: model.percent, label: t('actDownloading', { percent: model.percent }) })) : null,
         model.requiresAcceptance && model.state === 'absent'
-          ? h('label', { style: S.check, htmlFor: id },
-            h('input', { id, type: 'checkbox', checked: accepted, onChange: (event) => onAccept(model.id, event.target.checked) }),
-            t('acceptLabel', { name: model.requiresAcceptance.name }), ' ',
-            model.requiresAcceptance.url ? h('a', { href: model.requiresAcceptance.url, target: '_blank', rel: 'noreferrer noopener', style: S.link }, model.requiresAcceptance.url) : null)
-          : null,
-        h('div', { style: S.actions },
-          h(SmallButton, { disabled: pending || !acts.primary.enabled, onClick: press(acts.primary.action) }, t(acts.primary.label[0], acts.primary.label[1])),
-          acts.secondary ? h(SmallButton, { disabled: pending, onClick: press(acts.secondary.action) }, t(acts.secondary.label[0])) : null))
+          ? h('label', { className: 'fmg-check fmg-model__wide', htmlFor: acceptId },
+            h('input', { id: acceptId, type: 'checkbox', checked: accepted, onChange: (event) => onAccept(model.id, event.target.checked) }),
+            t('acceptLabel', { name: model.requiresAcceptance.name }),
+            model.requiresAcceptance.url ? h(OutLink, { href: model.requiresAcceptance.url }, model.requiresAcceptance.url) : null)
+          : null)
     }
 
-    /** The local embedding models: what each costs, its state and its one button. */
-    function ModelsSection(props) {
-      const { t, onChange } = props
-      const fetchImpl = props.fetch
-      const lang = t('lang') === 'zh' ? 'zh' : 'en'
-      const [state, setState] = useState({ view: null, error: null })
-      const [accepted, setAccepted] = useState({})
+    /**
+     * The panel: the introduction, whatever needs saying about the setup, and the list.
+     * @param {{ t: Function, lang: string, fetch: Function, onChange?: () => void }} props
+     *   `onChange` is called when a model became active (the status has changed with it).
+     */
+    function ModelsPanel(props) {
+      const { t, lang } = props
+      const models = useModels(props.fetch, props.onChange)
+      const [accepted, setAccepted] = useState({}) // model id → the licence box is ticked
       const [confirm, setConfirm] = useState(null) // the model waiting for the add-on confirmation
       const [declined, setDeclined] = useState(false)
-      const [pending, setPending] = useState(false)
-      const [refusal, setRefusal] = useState(null)
-      const alive = useRef(true)
-      const load = useRef(null)
-      const lastPhase = useRef(null)
-      load.current = () => fetchModels(fetchImpl).then(
-        (view) => { if (alive.current) setState({ view, error: null }) },
-        (error) => { if (alive.current) setState((previous) => ({ view: previous.view, error: (error && error.code) || 'network' })) },
-      )
-      const busy = Boolean(state.view && state.view.busy)
-      useEffect(() => {
-        alive.current = true
-        load.current()
-        return () => { alive.current = false }
-      }, [])
-      useEffect(() => {
-        const timer = setInterval(() => load.current(), busy ? MODELS_BUSY_POLL_MS : MODELS_POLL_MS)
-        return () => clearInterval(timer)
-      }, [busy])
-      const phase = state.view && state.view.chain ? state.view.chain.phase : null
-      useEffect(() => {
-        // The tier and the copy follow a model that became active: read the status again.
-        if (phase === 'done' && lastPhase.current && lastPhase.current !== 'done' && onChange) onChange()
-        lastPhase.current = phase
-      }, [phase])
+      const view = models.view
 
-      const send = (body) => {
-        setPending(true)
-        setRefusal(null)
-        postModels(fetchImpl, body).then((answer) => {
-          if (!alive.current) return
-          setPending(false)
-          if (answer && answer.view) setState({ view: answer.view, error: null })
-          if (answer && answer.result && !answer.result.ok && answer.result.problem) setRefusal(answer.result.problem)
-        }, (error) => {
-          if (!alive.current) return
-          setPending(false)
-          setState((previous) => ({ view: previous.view, error: (error && error.code) || 'network' }))
-        })
-      }
+      // `confirmed`: the person pressed the button that names the download (and, when the add-on is
+      // missing, confirmed what it installs); the host route refuses an install without it.
       const installBody = (model) => {
-        // `confirmed`: the person pressed the button that names the download (and, when the add-on is
-        // missing, confirmed what it installs); the host route refuses an install without it.
         const body = { action: 'install', id: model.id, confirmed: true }
         if (model.requiresAcceptance) body.acceptLicence = model.requiresAcceptance.name
         return body
       }
       const onAction = (action, model) => {
         setDeclined(false)
-        if (action === 'install' && state.view.addon.state === 'absent') {
+        if (action === 'install' && view.addon.state === 'absent') {
           setConfirm(model.id) // the add-on comes first: say what will be installed, then wait for a yes
           return
         }
-        if (action === 'install') return send(installBody(model))
+        if (action === 'install') return models.send(installBody(model))
         const body = { action }
         if (action !== 'cancel') body.id = model.id
-        send(body)
+        models.send(body)
       }
 
-      const view = state.view
-      let body
+      const intro = h('p', { className: 'fmg-note' }, t('modelsIntro'), ' ', h(OutLink, { href: view ? view.link : QUALITY_LINK }, t('modelsLink')))
       if (!view) {
-        body = h('p', { style: S.note, role: 'status' }, state.error ? t('modelsFailed', { code: state.error }) : t('modelsLoading'))
-      } else {
-        const waiting = confirm ? view.models.find((m) => m.id === confirm) : null
-        const line = chainLine(view, t)
-        body = h('div', null,
-          state.error ? h('p', { style: S.note, role: 'status' }, t('modelsFailed', { code: state.error })) : null,
-          view.python && view.python.problem ? h(Problem, { problem: view.python.problem, lang, t }) : null,
-          line ? h('p', { style: S.note, role: 'status' }, line) : null,
-          view.chain && view.chain.error ? h(Problem, { problem: view.chain.error, lang, t }) : null,
-          refusal && !sameProblem(refusal, view.chain && view.chain.error) ? h(Problem, { problem: refusal, lang, t }) : null,
-          declined ? h('p', { style: S.note, role: 'status' }, t('declined')) : null,
-          view.builds
-            ? h('div', { style: S.confirm, role: 'dialog', 'aria-label': t('phase.builds') },
-              h('p', { style: S.note }, h('strong', null, t('phase.builds')), ' ', pickText(view.builds.note, lang)),
-              h('div', { style: S.actions },
-                h(SmallButton, { disabled: pending, onClick: () => send({ action: 'builds', allow: true, confirmed: true }) }, t('buildsAllow')),
-                h(SmallButton, { disabled: pending, onClick: () => send({ action: 'builds', allow: false, confirmed: true }) }, t('buildsDeny'))))
-            : null,
-          waiting
-            ? h('div', { style: S.confirm, role: 'dialog', 'aria-label': t('modelsTitle') },
-              h('p', { style: S.note }, view.confirm
-                ? pickText(view.confirm, lang).replace('{model}', waiting.id).replace('{size}', formatSize(waiting.sizeBytes))
-                : t('confirmAddon', { model: waiting.id, size: formatSize(waiting.sizeBytes) })),
-              h('div', { style: S.actions },
-                h(SmallButton, { disabled: pending, onClick: () => { setConfirm(null); send(installBody(waiting)) } }, t('confirmYes')),
-                h(SmallButton, { disabled: pending, onClick: () => { setConfirm(null); setDeclined(true) } }, t('confirmNo'))))
-            : null,
-          h('ul', { style: Object.assign({ listStyle: 'none', padding: 0, margin: 0 }, S.models) },
-            view.models.map((model) => h(ModelRow, {
-              key: model.id, t, lang, model, view, pending,
-              accepted: accepted[model.id] === true,
-              onAccept: (id, value) => setAccepted((previous) => Object.assign({}, previous, { [id]: value })),
-              onAction,
-            }))))
+        return h('div', { className: 'fmg-section' }, intro,
+          h('p', { className: 'fmg-note', role: 'status' }, models.error ? t('modelsFailed', { code: models.error }) : t('modelsLoading')))
       }
-      return h('section', { style: S.status, 'aria-label': t('modelsTitle') },
-        h('div', { style: S.statusHead },
-          h('h4', { style: S.title }, t('modelsTitle')),
-          h(SmallButton, { onClick: () => load.current() }, t('refresh'))),
-        h('p', { style: S.hint }, t('modelsIntro'), ' ',
-          h('a', { href: view ? view.link : 'https://github.com/N0rmal-114/feiyu-memgate#部署档位', target: '_blank', rel: 'noreferrer noopener', style: S.link }, t('modelsLink'))),
-        body)
+      const waiting = confirm ? view.models.find((model) => model.id === confirm) : null
+      const line = chainLine(view, t)
+      const chainError = view.chain && view.chain.error
+      return h('div', { className: 'fmg-section' },
+        intro,
+        models.error ? h('p', { className: 'fmg-note', role: 'status' }, t('modelsFailed', { code: models.error })) : null,
+        view.python && view.python.problem ? h(Problem, { problem: view.python.problem, lang, t }) : null,
+        line ? h(Notice, { role: 'status' }, h('p', null, line)) : null,
+        chainError ? h(Problem, { problem: chainError, lang, t }) : null,
+        // The answer to a click and the stored state of the setup often carry the same failure: show it once.
+        models.refusal && !sameProblem(models.refusal, chainError) ? h(Problem, { problem: models.refusal, lang, t }) : null,
+        declined ? h('p', { className: 'fmg-note', role: 'status' }, t('declined')) : null,
+        view.builds
+          ? h(Notice, { tone: 'warn', role: 'group', label: t('phase.builds') },
+            h('p', null, h('strong', null, t('phase.builds')), ' ', pickText(view.builds.note, lang)),
+            h('div', { className: 'fmg-actions' },
+              h(Button, { variant: 'primary', disabled: models.pending, onClick: () => models.send({ action: 'builds', allow: true, confirmed: true }) }, t('buildsAllow')),
+              h(Button, { disabled: models.pending, onClick: () => models.send({ action: 'builds', allow: false, confirmed: true }) }, t('buildsDeny'))))
+          : null,
+        waiting
+          ? h(Notice, { role: 'group', label: t('modelsTitle') },
+            h('p', null, view.confirm
+              ? pickText(view.confirm, lang).replace('{model}', waiting.id).replace('{size}', formatSize(waiting.sizeBytes))
+              : t('confirmAddon', { model: waiting.id, size: formatSize(waiting.sizeBytes) })),
+            h('div', { className: 'fmg-actions' },
+              h(Button, { variant: 'primary', disabled: models.pending, onClick: () => { setConfirm(null); models.send(installBody(waiting)) } }, t('confirmYes')),
+              h(Button, { disabled: models.pending, onClick: () => { setConfirm(null); setDeclined(true) } }, t('confirmNo'))))
+          : null,
+        h(Group, null, h('ul', { className: 'fmg-rows' },
+          view.models.map((model) => h(ModelRow, {
+            key: model.id, t, lang, model, view, pending: models.pending,
+            accepted: accepted[model.id] === true,
+            onAccept: (id, value) => setAccepted((previous) => Object.assign({}, previous, { [id]: value })),
+            onAction,
+          })))))
     }
 
-    /** The last section of the page: what each update changed, newest first, the newest open. Reference, not a banner. */
-    function ChangelogView(props) {
-      const { t, state } = props
-      const entries = state.data && Array.isArray(state.data.entries) ? state.data.entries.filter((entry) => entry && typeof entry.body === 'string') : []
-      let body
-      if (entries.length) {
-        body = [
-          h('p', { key: 'current', style: S.note }, t('changelogCurrent', { version: String(state.data.version || '') })),
-          t('lang') === 'zh' ? null : h('p', { key: 'chinese', style: S.hint }, t('changelogChinese')),
-          h('div', { key: 'entries', style: S.changelogList }, entries.map((entry, index) => {
-            const date = markdown.entryDate(entry.body)
-            return h('details', { key: String(entry.version || entry.title || index), open: index === 0, style: S.details },
-              h('summary', { style: S.summary }, String(entry.version || entry.title || '') + (date ? ' · ' + date : '')),
-              h('div', { style: S.mdBody }, markdown.renderMarkdown(entry.body)))
-          })),
-        ]
-      } else {
-        body = h('p', { style: S.note, role: 'status' }, state.loading ? t('changelogLoading') : t('changelogFailed'))
+    module.exports = { Problem, ModelRow, ModelsPanel }
+  })
+
+  // view/page.cjs
+  define("view/page.cjs", function (require, module, exports) {
+    'use strict'
+    // The settings page itself: the summary at the top, the tabs, and the bar that saves.
+    //
+    // State kept here, and nowhere else:
+    //   tab     which tab is shown
+    //   draft   the staged edits (key → { value } | { unset: true }); nothing is written until Save
+    //   phase   idle | saving | saved | failed, the life of one save
+    //   open    which folding groups of the Advanced tab are open
+    //
+    // The page keeps its shape whatever the settings form is doing. While the form is loading,
+    // unavailable (the host serves no settings for this row) or read-only, the summary, the model list
+    // and the changelog still work; the settings tabs then say what is the matter instead of showing
+    // rows nobody can use.
+
+    const { h, useEffect, useState } = require('../react.cjs')
+    const { ID_PREFIX, LINKS, SAVED_NOTE_MS } = require('../constants.cjs')
+    const { TABS } = require('../layout.cjs')
+    const { useChangelog, useStatus } = require('../hooks.cjs')
+    const { buildOps, saveDraft } = require('../model/form.cjs')
+    const { summarise } = require('../model/overview.cjs')
+    const { pageView, savable } = require('../model/page.cjs')
+    const { Button } = require('../kit/controls.cjs')
+    const { Icon } = require('../kit/icons.cjs')
+    const { Notice, Tabs, TabPanel } = require('../kit/layout.cjs')
+    const { Hero } = require('./hero.cjs')
+    const { ModelsPanel } = require('./models.cjs')
+    const { SettingsTab } = require('./settings-tab.cjs')
+    const { OverviewTab, ChangelogTab } = require('./tabs.cjs')
+
+    /**
+     * The bar that saves. It is not there while nothing is staged; after a save it confirms for a moment.
+     * @param {{ t: Function, count: number, invalid: boolean, phase: string, onSave: () => void, onDiscard: () => void }} props
+     *   `count` is the number of staged edits a save would write.
+     */
+    function SaveBar(props) {
+      const { t, count, invalid, phase } = props
+      if (count === 0) {
+        if (phase !== 'saved') return null
+        return h('div', { className: 'fmg-savebar fmg-savebar--done', role: 'status' }, h(Icon, { name: 'check' }), t('saved'))
       }
-      return h('section', { style: S.section, 'aria-label': t('changelogTitle') },
-        h('h4', { style: S.sectionTitle }, t('changelogTitle')),
-        body)
+      const saving = phase === 'saving'
+      return h('div', { className: 'fmg-savebar', role: 'region', 'aria-label': t('saveChanges') },
+        h('div', { className: 'fmg-savebar__text', role: 'status' },
+          count === 1 ? t('unsavedOne') : t('unsaved', { count }),
+          phase === 'failed' ? h('span', { className: 'fmg-row__error' }, t('saveFailed')) : null,
+          invalid ? h('span', { className: 'fmg-row__error' }, t('fixFirst')) : null),
+        h('div', { className: 'fmg-actions' },
+          h(Button, { disabled: saving, onClick: props.onDiscard }, t('discard')),
+          h(Button, { variant: 'primary', disabled: saving || invalid, onClick: props.onSave }, saving ? t('saving') : t('saveChanges'))))
     }
 
+    /** The line under the page: where to read more and where to report a problem. */
+    function Footer(props) {
+      const { t, version } = props
+      const link = (href, text) => h('a', { className: 'fmg-link', href, target: '_blank', rel: 'noreferrer noopener' }, text)
+      return h('footer', { className: 'fmg-foot' },
+        version ? h('span', null, 'dsh-feiyu-memgate ' + version) : null,
+        link(LINKS.docs, t('footDocs')),
+        link(LINKS.source, t('footSource')),
+        link(LINKS.issues, t('footIssue')))
+    }
+
+    /**
+     * The page.
+     * @param {{ t: Function, form?: { state: object, mutate: Function }, fetch?: Function }} props
+     *   `form` is the host's settings form for the plugin's row (absent when the host serves none);
+     *   `fetch` replaces the browser's fetch in tests and in the preview.
+     */
     function SettingsBody(props) {
       const { t, form } = props
-      const [draft, setDraft] = useState({})
-      const [phase, setPhase] = useState('idle') // idle | saving | saved | failed
+      const lang = t('lang') === 'zh' ? 'zh' : 'en'
       const fetchImpl = props.fetch || ((...args) => fetch(...args))
+      const [tab, setTab] = useState('overview')
+      const [draft, setDraft] = useState({})
+      const [phase, setPhase] = useState('idle')
+      const [open, setOpen] = useState({})
       const status = useStatus(fetchImpl)
-      const changelog = h(ChangelogView, { t, state: useChangelog(fetchImpl) })
+      const changelog = useChangelog(fetchImpl)
+
+      // The "Saved" confirmation goes away by itself.
+      useEffect(() => {
+        if (phase !== 'saved') return undefined
+        const timer = setTimeout(() => setPhase((current) => (current === 'saved' ? 'idle' : current)), SAVED_NOTE_MS)
+        return () => clearTimeout(timer)
+      }, [phase])
+
       const state = form && form.state
-      // The model list does not depend on the settings form: it shows even while the form is unavailable.
-      const models = h(ModelsSection, { t, fetch: fetchImpl, onChange: status.refreshSoon })
-      if (!state || state.status === 'unavailable') return h('div', { style: S.page }, h('p', { style: S.note, role: 'status' }, t('unavailable')), models, changelog)
-      if (state.status !== 'ready') return h('div', { style: S.page }, h('p', { style: S.note, role: 'status' }, t('loading')), models, changelog)
-      const secrets = status.data && status.data.secrets
-      const groups = FIELDS.map((group) => ({ group, views: group.fields.map((field) => fieldView(field, group.group, state, draft, secrets)) }))
-      const dirty = buildOps(draft).length > 0
-      const invalid = groups.some((g) => g.views.some((v) => v.invalid))
-      const writable = state.writable !== false
+      const ready = Boolean(state && state.status === 'ready')
+      const writable = ready && state.writable !== false
       const disabled = !writable || phase === 'saving'
+      const secrets = status.data && status.data.secrets
+      const tabViews = ready ? pageView(state, draft, secrets) : []
+      // What a save writes: the staged edits, minus those nobody can see and the field would refuse.
+      const toSave = ready ? savable(draft, tabViews) : {}
+      const count = buildOps(toSave).length
+      const invalid = tabViews.some((tabView) => tabView.invalid > 0)
+
       const edit = (k, value) => {
         setPhase('idle')
         setDraft((previous) => Object.assign({}, previous, { [k]: { value } }))
@@ -2074,49 +3097,224 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         setPhase('idle')
         setDraft((previous) => Object.assign({}, previous, { [k]: { unset: true } }))
       }
+      const discard = () => {
+        setPhase('idle')
+        setDraft({})
+      }
       const save = () => {
-        if (!dirty || invalid || disabled) return
+        if (count === 0 || invalid || disabled) return
         setPhase('saving')
-        saveDraft(form, draft).then((accepted) => {
-          if (accepted) {
-            setDraft({})
-            setPhase('saved')
-            status.refreshSoon()
-          } else setPhase('failed')
+        saveDraft(form, toSave).then((accepted) => {
+          if (!accepted) return setPhase('failed')
+          setDraft({})
+          setPhase('saved')
+          status.refreshSoon() // the gateway restarts after most changes
         }, () => setPhase('failed'))
       }
-      const sections = groups.map((g) => h('section', { key: g.group.group, style: S.section, 'aria-label': t('g.' + g.group.group) },
-        h('h4', { style: S.sectionTitle }, t('g.' + g.group.group)),
-        h('p', { style: S.hint }, t('gh.' + g.group.group)),
-        g.views.map((view) => h(Field, { key: view.k, t, view, disabled, edit, reset }))))
-      const saved = phase === 'saved' && !dirty ? h('p', { style: S.note, role: 'status' }, t('saved')) : null
-      let form_
-      if (ui.SettingsForm) {
-        form_ = h(ui.SettingsForm, {
-          labels: { unavailable: t('unavailable'), readOnly: t('readOnly'), saveFailed: t('saveFailed'), save: t('save'), saving: t('saving') },
-          state: { available: true, writable, dirty, invalid, saving: phase === 'saving', failed: phase === 'failed' },
-          onSave: save,
-          onDiscard: () => setDraft({}),
-        }, sections, saved)
-      } else {
-        form_ = h('div', null,
-          writable ? null : h('p', { style: S.note, role: 'status' }, t('readOnly')),
-          sections,
-          h('div', { style: S.footer },
-            phase === 'failed' ? h('p', { style: S.invalid, role: 'status' }, t('saveFailed')) : saved,
-            h('button', { type: 'button', style: S.button, disabled: !dirty || invalid || disabled, onClick: save }, phase === 'saving' ? t('saving') : t('save'))))
+
+      const tabs = [{ id: 'overview', label: t('tab.overview') }]
+      for (const entry of TABS) {
+        const view = tabViews.find((tabView) => tabView.tab.id === entry.id)
+        const mark = view && view.invalid > 0 ? 'invalid' : view && view.staged > 0 ? 'edited' : null
+        tabs.push({ id: entry.id, label: entry.label[lang] || entry.label.en, mark, markLabel: mark ? t(mark === 'invalid' ? 'fixFirst' : 'tabEdited') : undefined })
       }
-      return h('div', { style: S.page }, h(StatusBlock, { t, status }), models, form_, changelog)
+      tabs.push({ id: 'changelog', label: t('tab.changelog') })
+
+      // The model list does not depend on the settings form: it is built once and placed by the layout.
+      const panels = { models: h(ModelsPanel, { t, lang, fetch: fetchImpl, onChange: status.refreshSoon }) }
+      let content
+      if (tab === 'overview') content = h(OverviewTab, { t, status })
+      else if (tab === 'changelog') content = h(ChangelogTab, { t, state: changelog })
+      else if (ready) {
+        content = h(SettingsTab, {
+          t, lang, disabled, readOnly: !writable, edit, reset, open, panels,
+          tabView: tabViews.find((tabView) => tabView.tab.id === tab),
+          onToggle: (id) => setOpen((previous) => Object.assign({}, previous, { [id]: !previous[id] })),
+        })
+      } else {
+        // No form to show. The model list is still useful on its tab.
+        const unavailable = !state || state.status === 'unavailable'
+        content = [
+          h(Notice, { key: 'form', tone: unavailable ? 'warn' : undefined, role: 'status' }, h('p', null, t(unavailable ? 'unavailable' : 'loading'))),
+          tab === 'retrieval' ? h('section', { key: 'models', className: 'fmg-section', 'aria-label': t('modelsTitle') },
+            h('div', { className: 'fmg-section__head' }, h('h4', { className: 'fmg-section__title' }, t('modelsTitle'))),
+            panels.models) : null,
+        ]
+      }
+
+      return h('div', { className: 'fmg-root' },
+        h(Hero, { t, summary: summarise(status.data, status.error, status.loading) }),
+        h(Tabs, { idPrefix: ID_PREFIX, label: t('tabsLabel'), tabs, value: tab, onChange: setTab }),
+        h(TabPanel, { idPrefix: ID_PREFIX, id: tab }, content),
+        h(SaveBar, { t, count, invalid, phase, onSave: save, onDiscard: discard }),
+        h(Footer, { t, version: status.data && status.data.version }))
     }
 
     /** The slot entry: the one-liner for `summary`, the page for `page`. */
     function SettingsPage(props) {
       const t = typeof props.t === 'function' ? props.t : typeof props.translate === 'function' ? props.translate : (key) => key
       if (props.view === 'summary') return t('summary')
-      return h(SettingsBody, { t, form: props.form })
+      return h(SettingsBody, { t, form: props.form, fetch: props.fetch })
     }
 
-    module.exports = { S, Tag, SmallButton, FieldFrame, invalidText, Field, StatusBlock, Problem, ModelRow, ModelsSection, ChangelogView, SettingsBody, SettingsPage }
+    module.exports = { SaveBar, Footer, SettingsBody, SettingsPage }
+  })
+
+  // view/settings-tab.cjs
+  define("view/settings-tab.cjs", function (require, module, exports) {
+    'use strict'
+    // One settings tab: its sections, each a titled list of rows (view/field-row.cjs).
+    //
+    // A row that depends on another setting (`needs`) is always in the document and opens and closes
+    // with that setting, so flipping a switch shows what it brings with it. In a tab marked
+    // `collapsible` (Advanced) every section is a folding group that starts closed, with a tag saying
+    // how many of its settings differ from their defaults: what was changed is found without opening
+    // everything.
+
+    const { h } = require('../react.cjs')
+    const { ID_PREFIX } = require('../constants.cjs')
+    const { Tag } = require('../kit/controls.cjs')
+    const { Fold, Group, Notice, Reveal } = require('../kit/layout.cjs')
+    const { cx } = require('../theme/styles.cjs')
+    const { FieldRow } = require('./field-row.cjs')
+
+    /** The rows of a section: plain rows as they are, dependent rows inside a part that opens and closes. */
+    function rowsOf(sectionView, props) {
+      return sectionView.rows.map((row) => {
+        const element = h(FieldRow, { key: row.view.k, t: props.t, lang: props.lang, row, disabled: props.disabled, edit: props.edit, reset: props.reset })
+        return row.view.field.needs ? h(Reveal, { key: row.view.k, open: row.shown }, element) : element
+      })
+    }
+
+    /** What a closed group says about its content: unsaved edits (a dot) and changed settings (a tag). */
+    function foldAccessory(sectionView, t) {
+      const parts = []
+      if (sectionView.overridden > 0) parts.push(h(Tag, { key: 'changed', tone: 'sea' }, t('changedCount', { count: sectionView.overridden })))
+      if (sectionView.invalid > 0 || sectionView.staged > 0) {
+        parts.push(h('span', {
+          key: 'mark', role: 'img', 'aria-label': t(sectionView.invalid > 0 ? 'fixFirst' : 'tabEdited'),
+          className: cx('fmg-mark', sectionView.invalid > 0 && 'fmg-mark--invalid'),
+        }))
+      }
+      return parts.length ? h('span', { className: 'fmg-actions' }, parts) : null
+    }
+
+    /**
+     * @param {{ t: Function, lang: 'en' | 'zh', tabView: object, disabled: boolean, readOnly: boolean,
+     *   edit: Function, reset: Function, open: Record<string, boolean>, onToggle: (sectionId: string) => void,
+     *   panels: Record<string, any> }} props
+     *   `tabView` is one entry of model/page.cjs pageView(); `panels` holds the parts of the page that a
+     *   section places by name (layout.cjs `panel`), already built.
+     */
+    function SettingsTab(props) {
+      const { t, lang, tabView, open, onToggle, panels } = props
+      const tab = tabView.tab
+      const sections = tabView.sections.map((sectionView) => {
+        const section = sectionView.section
+        const title = section.label[lang] || section.label.en
+        const help = section.help ? (section.help[lang] || section.help.en) : ''
+        const rows = rowsOf(sectionView, props)
+        const panel = section.panel ? panels[section.panel] : null
+        if (tab.collapsible) {
+          return h(Fold, {
+            key: section.id,
+            id: ID_PREFIX + '-fold-' + section.id,
+            title, help,
+            open: open[section.id] === true,
+            onToggle: () => onToggle(section.id),
+            accessory: foldAccessory(sectionView, t),
+          }, rows, panel)
+        }
+        return h('section', { key: section.id, className: 'fmg-section', 'aria-label': title },
+          h('div', { className: 'fmg-section__head' },
+            h('h4', { className: 'fmg-section__title' }, title),
+            help ? h('p', { className: 'fmg-note' }, help) : null),
+          rows.length ? h(Group, null, rows) : null,
+          panel)
+      })
+      return [
+        props.readOnly ? h(Notice, { key: 'read-only', role: 'status' }, t('readOnly')) : null,
+        tab.note ? h('p', { key: 'note', className: 'fmg-note' }, tab.note[lang] || tab.note.en) : null,
+        tab.collapsible ? h('div', { key: 'folds', className: 'fmg-section' }, sections) : sections,
+      ]
+    }
+
+    module.exports = { SettingsTab }
+  })
+
+  // view/tabs.cjs
+  define("view/tabs.cjs", function (require, module, exports) {
+    'use strict'
+    // The two tabs that hold no settings: the overview (what the plugin reports about itself) and the
+    // changelog (what each update changed).
+
+    const { h, useState } = require('../react.cjs')
+    const { ID_PREFIX } = require('../constants.cjs')
+    const { releases } = require('../model/changelog.cjs')
+    const { statusRows } = require('../model/status.cjs')
+    const { Button, Tag } = require('../kit/controls.cjs')
+    const { Facts, Group, Reveal } = require('../kit/layout.cjs')
+    const { Icon } = require('../kit/icons.cjs')
+    const { renderMarkdown } = require('./markdown.cjs')
+
+    /**
+     * The overview: the details behind the summary at the top of the page.
+     * @param {{ t: Function, status: { data: object | null, loading: boolean, error: string | null, refresh: Function } }} props
+     */
+    function OverviewTab(props) {
+      const { t, status } = props
+      const title = t('detailsTitle')
+      let body
+      if (status.data) {
+        body = [
+          // A failed read keeps the last answer on screen: say that it is not fresh.
+          status.error ? h('p', { key: 'stale', className: 'fmg-note', role: 'status' }, t('statusFailed', { code: status.error })) : null,
+          h(Group, { key: 'rows' }, h(Facts, { rows: statusRows(status.data, t) })),
+        ]
+      } else {
+        body = h('p', { className: 'fmg-note', role: 'status' }, status.loading ? t('statusLoading') : t('statusFailed', { code: status.error }))
+      }
+      return h('section', { className: 'fmg-section', 'aria-label': title },
+        h('div', { className: 'fmg-section__head' },
+          h('div', { className: 'fmg-actions' },
+            h('h4', { className: 'fmg-section__title' }, title),
+            h(Button, { variant: 'text', onClick: status.refresh }, h(Icon, { name: 'refresh', size: 13 }), t('refresh'))),
+          h('p', { className: 'fmg-note' }, t('detailsHint'))),
+        body)
+    }
+
+    /**
+     * The changelog: one release per row, the newest open.
+     * @param {{ t: Function, state: { loading: boolean, data: object | null } }} props
+     */
+    function ChangelogTab(props) {
+      const { t, state } = props
+      const list = releases(state.data)
+      // Which releases the person opened or closed; a release not in the map is open when it is the newest.
+      const [toggled, setToggled] = useState({})
+      if (!list.length) {
+        return h('p', { className: 'fmg-note', role: 'status' }, state.loading ? t('changelogLoading') : t('changelogFailed'))
+      }
+      return h('section', { className: 'fmg-section', 'aria-label': t('changelogTitle') },
+        h('div', { className: 'fmg-section__head' },
+          h('p', { className: 'fmg-note' }, t('changelogIntro'), t('lang') === 'zh' ? null : ' ' + t('changelogChinese'))),
+        h(Group, null, list.map((release, index) => {
+          const open = toggled[release.id] !== undefined ? toggled[release.id] : index === 0
+          const bodyId = ID_PREFIX + '-release-' + index
+          return h('div', { key: release.id, className: 'fmg-release' },
+            h('button', {
+              type: 'button', className: 'fmg-release__head', 'aria-expanded': open ? 'true' : 'false', 'aria-controls': bodyId,
+              onClick: () => setToggled((previous) => Object.assign({}, previous, { [release.id]: !open })),
+            },
+            h('span', { className: 'fmg-release__version' }, release.name),
+            release.date ? h('span', { className: 'fmg-release__date' }, release.date) : null,
+            release.installed ? h(Tag, { tone: 'sea' }, t('changelogInstalled')) : null,
+            h(Icon, { name: 'chevron', className: 'fmg-fold__chevron' })),
+            h(Reveal, { open, id: bodyId }, h('div', { className: 'fmg-md' }, renderMarkdown(release.body))))
+        })))
+    }
+
+    module.exports = { OverviewTab, ChangelogTab }
   })
 
   return load('index.cjs')
