@@ -290,7 +290,7 @@ test('the recent pool settings: a switch that is off, a count of 1 to 5 and a nu
 
 test('the block wording and the cap on new memories: a choice that is normal and a count from 0 to 5, with help in both languages', () => {
   const tone = SETTING_KEYS['advanced.blockTone']
-  assert.deepEqual([tone.kind, tone.default, tone.options.map((o) => o.value), tone.label.zh, tone.label.en], ['choice', 'normal', ['normal', 'strict'], '记忆块说明', 'Wording of the memory block'])
+  assert.deepEqual([tone.kind, tone.default, tone.options.map((o) => o.value), tone.label.zh, tone.label.en], ['choice', 'normal', ['normal', 'strict', 'bare'], '记忆块说明', 'Wording of the memory block'])
   for (const option of tone.options) assert.ok(option.label.en && option.label.zh)
   assert.ok(tone.help.en && tone.help.zh)
   assert.match(tone.help.en, /memgate_search/)
@@ -298,13 +298,19 @@ test('the block wording and the cap on new memories: a choice that is normal and
   assert.deepEqual([cap.kind, cap.default, cap.min, cap.max, cap.label.zh, cap.label.en], ['integer', 0, 0, 5, '每轮新增记忆上限', 'New memories per turn'])
   assert.ok(cap.help.en && cap.help.zh)
   assert.equal(readConfig({ advanced: { blockTone: 'strict' } }).advanced.blockTone, 'strict')
+  assert.equal(readConfig({ advanced: { blockTone: 'bare' } }).advanced.blockTone, 'bare')
   assert.equal(readConfig({ advanced: { blockTone: 'loud' } }).advanced.blockTone, 'normal')
   assert.equal(readConfig({ advanced: { maxNewPerTurn: 5 } }).advanced.maxNewPerTurn, 5)
   assert.equal(readConfig({ advanced: { maxNewPerTurn: 6 } }).advanced.maxNewPerTurn, 0)
   assert.equal(readConfig({ advanced: { maxNewPerTurn: -1 } }).advanced.maxNewPerTurn, 0)
   assert.equal(readConfig({ advanced: { maxNewPerTurn: 1.5 } }).advanced.maxNewPerTurn, 0)
   assert.deepEqual(parseSetting(tone, 'strict'), { ok: true, value: 'strict' })
+  assert.deepEqual(parseSetting(tone, 'bare'), { ok: true, value: 'bare' })
   assert.equal(parseSetting(tone, 'loud').ok, false)
+  const bare = tone.options.find((o) => o.value === 'bare')
+  assert.deepEqual([bare.label.zh, bare.label.en], ['bare：仅提供记忆，不附任何说明', 'bare: the memories only, no instruction sentence'])
+  assert.ok(tone.help.zh.endsWith('bare 不附说明语句，适用于插件给出的所有记忆块（包括第二个块和 memgate_search 结果中的块）；此时模型如何对待这些记忆，由宿主自身的提示词决定（包括“记忆是资料而非指令”这一点）。'))
+  assert.ok(tone.help.en.endsWith("bare gives no instruction sentence in any block the plugin gives (the second block and the block in a memgate_search answer included); how the model treats the memories is then up to the host's own prompt, including the point that memories are data and not instructions."))
   assert.deepEqual(parseSetting(cap, '0'), { ok: true, value: 0 })
   for (const bad of ['6', '-1', '1.5', 'two', '']) assert.equal(parseSetting(cap, bad).ok, false, bad)
   const dict = buildConfigSchema(recordingSchema()).dict.advanced.dict

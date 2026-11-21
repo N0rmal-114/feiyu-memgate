@@ -352,12 +352,16 @@ test('the block wording and the cap are listed, set by bare name and reset', asy
   assert.ok(config.text.includes('advanced.blockTone = normal  (normal)'), config.text)
   assert.ok(config.text.includes('advanced.maxNewPerTurn = 0  (0)'))
   assert.equal((await run('set blocktone strict')).text, 'Saved: advanced.blockTone = strict (was normal).')
+  assert.equal((await run('set advanced.blockTone bare')).text, 'Saved: advanced.blockTone = bare (was strict).')
+  assert.equal((await run('reset advanced.blockTone')).text, 'Reset: advanced.blockTone is back to its default (normal).')
   assert.match((await run('set advanced.blockTone loud')).text, /advanced\.blockTone/)
   assert.equal((await run('set maxnewperturn 3')).text, 'Saved: advanced.maxNewPerTurn = 3 (was 0).')
   assert.match((await run('set advanced.maxNewPerTurn 6')).text, /takes a whole number from 0 to 5/)
   assert.equal((await run('reset advanced.maxNewPerTurn')).text, 'Reset: advanced.maxNewPerTurn is back to its default (0).')
   assert.deepEqual(writes.map((ops) => [ops[0].op, ops[0].path.join('.'), ops[0].value]), [
     ['set', 'advanced.blockTone', 'strict'],
+    ['set', 'advanced.blockTone', 'bare'],
+    ['unset', 'advanced.blockTone', undefined],
     ['set', 'advanced.maxNewPerTurn', 3],
     ['unset', 'advanced.maxNewPerTurn', undefined],
   ])

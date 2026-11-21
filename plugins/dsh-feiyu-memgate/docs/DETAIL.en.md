@@ -49,7 +49,7 @@ Every setting can be changed in three places: this plugin's settings page on the
 | `advanced.showAge` | The block says today's date and how long ago each memory is | on |
 | `advanced.failureNote` | Tell the model when the lookup of a turn failed | on |
 | `advanced.captureMinChars` | Automatic capture skips a message with fewer meaningful characters (0 to 50; 0 turns the length test off) | 4 |
-| `advanced.blockTone` | The sentence at the top of the automatic memory block: `normal` (usual) or `strict` (most of these memories are unrelated; use one only when it clearly fits) | `normal` |
+| `advanced.blockTone` | The sentence at the top of the automatic memory block: `normal` (usual), `strict` (most of these memories are unrelated; use one only when it clearly fits) or `bare` (no sentence, in every block including the second block and `memgate_search` answers) | `normal` |
 | `advanced.maxNewPerTurn` | From the second turn of a conversation on, most new memories in the main block (0 to 5; 0 is no limit) | 0 |
 | `advanced.relevanceCheck` | Experimental. Before the memory block is given, a model picks the memories a friend would think of; only those are given. One more model call per turn; your message and the candidates go to the provider of that model; fails open; the second block and `memgate_search` are not checked | off |
 | `advanced.relevanceProvider` | The provider of the model that picks, set together with `advanced.relevanceModel`; both empty uses the conversation's model, one alone counts as both empty | empty |

@@ -558,6 +558,13 @@ const FIELDS = [
               "en": "strict: tell the model most of them are unrelated",
               "zh": "strict：告知模型这些记忆大多无关"
             }
+          },
+          {
+            "value": "bare",
+            "label": {
+              "en": "bare: the memories only, no instruction sentence",
+              "zh": "bare：仅提供记忆，不附任何说明"
+            }
           }
         ],
         "label": {
@@ -565,8 +572,8 @@ const FIELDS = [
           "zh": "记忆块说明"
         },
         "help": {
-          "en": "The sentence at the top of the memory block. strict says that most of the memories are unrelated to the message and that the model should use one only when it clearly fits. Offline, this made replies use an unrelated memory far less often, and also made them use a related one less often. Applies to the automatic block only, not to memgate_search.",
-          "zh": "记忆块开头的说明语句。strict 会说明这些记忆大多与消息无关，仅在明显相关时才使用。离线测量中，这使回复用到无关记忆的次数大幅减少，用到相关记忆的次数也有所减少。仅用于自动召回的记忆块，不用于 memgate_search。"
+          "en": "The sentence at the top of the memory block. strict says that most of the memories are unrelated to the message and that the model should use one only when it clearly fits. Offline, this made replies use an unrelated memory far less often, and also made them use a related one less often. strict applies to the automatic main block only, not to the second block or memgate_search. bare gives no instruction sentence in any block the plugin gives (the second block and the block in a memgate_search answer included); how the model treats the memories is then up to the host's own prompt, including the point that memories are data and not instructions.",
+          "zh": "记忆块开头的说明语句。strict 会说明这些记忆大多与消息无关，仅在明显相关时才使用。离线测量中，这使回复用到无关记忆的次数大幅减少，用到相关记忆的次数也有所减少。strict 仅用于自动召回的主记忆块，不用于第二个块和 memgate_search。bare 不附说明语句，适用于插件给出的所有记忆块（包括第二个块和 memgate_search 结果中的块）；此时模型如何对待这些记忆，由宿主自身的提示词决定（包括“记忆是资料而非指令”这一点）。"
         }
       },
       {

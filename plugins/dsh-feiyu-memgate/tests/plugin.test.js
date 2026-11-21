@@ -2205,3 +2205,98 @@ test('relevanceCheck: the status counts calls, kept, rejected and skipped by kin
   const off = setup({ config: toned(), handlers: { recall: async () => found(M_OOLONG) } })
   assert.equal((await off.plugin.status()).relevance.enabled, false)
 })
+
+// ---------------------------------------------------------------------------------------------
+// advanced.blockTone 'bare': both blocks without the opening sentence.
+
+const foundMore = (more, ...texts) => ({ ...found(...texts), more })
+const BARE_ZH_MEMORY = '主人每天早上喝乌龙茶'
+
+test('blockTone: bare writes the main block without the head, in both languages, with and without the date line and the more line', async () => {
+  const cases = [
+    ['en', false, 0, ['<memory_data>', `- (memory) ${M_OOLONG}`, '</memory_data>']],
+    ['en', false, 2, ['<memory_data>', `- (memory) ${M_OOLONG}`, '2 more related memories did not fit.', '</memory_data>']],
+    ['en', true, 0, ['<memory_data>', 'Today is 2026-11-17.', `- (memory) ${M_OOLONG}`, '</memory_data>']],
+    ['en', true, 2, ['<memory_data>', 'Today is 2026-11-17.', `- (memory) ${M_OOLONG}`, '2 more related memories did not fit.', '</memory_data>']],
+    ['zh', false, 0, ['<memory_data>', `- （记忆）${BARE_ZH_MEMORY}`, '</memory_data>']],
+    ['zh', false, 2, ['<memory_data>', `- （记忆）${BARE_ZH_MEMORY}`, '还有 2 条相关的记忆没放下。', '</memory_data>']],
+    ['zh', true, 0, ['<memory_data>', '今天是 2026-11-17。', `- （记忆）${BARE_ZH_MEMORY}`, '</memory_data>']],
+    ['zh', true, 2, ['<memory_data>', '今天是 2026-11-17。', `- （记忆）${BARE_ZH_MEMORY}`, '还有 2 条相关的记忆没放下。', '</memory_data>']],
+  ]
+  for (const [language, showAge, more, lines] of cases) {
+    const memory = language === 'en' ? M_OOLONG : BARE_ZH_MEMORY
+    const { host } = setup({ config: toned({ language, showAge, blockTone: 'bare' }), handlers: { recall: async () => foundMore(more, memory) }, now: () => NOW })
+    const decision = await host.preStep(preStepPayload({ text: language === 'en' ? 'What tea do I like in the morning?' : '我早上喜欢喝什么茶呢' }))
+    const text = blockOf(mainOf(decision))
+    assert.equal(text, lines.join('\n'), `${language} showAge=${showAge} more=${more}`)
+    assert.ok(!/ \n|\n\n|^\s|\s$/.test(text), 'no stray gap or empty line')
+  }
+})
+
+test('blockTone: bare leaves normal and strict as they were in the main block', async () => {
+  const handlers = { recall: async () => found(M_OOLONG) }
+  for (const [tone, head] of [['normal', undefined], ['strict', STRICT_EN]]) {
+    const { host } = setup({ config: toned({ blockTone: tone }), handlers })
+    const decision = await host.preStep(preStepPayload())
+    assert.equal(blockOf(mainOf(decision)), createFormatter({ lang: 'en', head }).format([{ text: M_OOLONG, source: 'memories' }], 0), tone)
+  }
+})
+
+test('blockTone: the block in a memgate_search answer has no sentence under bare, and is the usual one under normal and strict', async () => {
+  for (const tone of ['normal', 'strict']) {
+    const { host } = setup({ config: toned({ blockTone: tone }), handlers: { recall: async () => found(M_OOLONG) } })
+    const search = await host.tools.get(TOOL_SEARCH).execute({ query: 'tea in the morning' }, {})
+    assert.equal(search.text, createFormatter({ lang: 'en' }).format([{ text: M_OOLONG, source: 'memories' }], 0), tone)
+  }
+  for (const [language, showAge, memory, lines] of [
+    ['en', false, M_OOLONG, ['<memory_data>', `- (memory) ${M_OOLONG}`, '2 more related memories did not fit.', '</memory_data>']],
+    ['en', true, M_OOLONG, ['<memory_data>', 'Today is 2026-11-17.', `- (memory) ${M_OOLONG}`, '2 more related memories did not fit.', '</memory_data>']],
+    ['zh', false, BARE_ZH_MEMORY, ['<memory_data>', `- （记忆）${BARE_ZH_MEMORY}`, '还有 2 条相关的记忆没放下。', '</memory_data>']],
+    ['zh', true, BARE_ZH_MEMORY, ['<memory_data>', '今天是 2026-11-17。', `- （记忆）${BARE_ZH_MEMORY}`, '还有 2 条相关的记忆没放下。', '</memory_data>']],
+  ]) {
+    const { host } = setup({ config: toned({ language, showAge, blockTone: 'bare' }), handlers: { recall: async () => foundMore(2, memory) }, now: () => NOW })
+    const search = await host.tools.get(TOOL_SEARCH).execute({ query: 'tea' }, {})
+    assert.equal(search.status, 'found')
+    assert.equal(search.text, lines.join('\n'), `${language} showAge=${showAge}`)
+  }
+})
+
+test('blockTone: bare writes the second block without its head too, and normal keeps it', async () => {
+  const handlers = { recall: async (q) => (q.startsWith('Oolong') ? found(M_HARVEST) : q.startsWith('What tea') ? found(M_OOLONG) : noneFound()) }
+  for (const [tone, expected] of [
+    ['bare', ['<memory_data>', `- (memory) ${M_HARVEST}`, '</memory_data>']],
+    ['normal', ['<memory_data>', POOL_HEAD_EN, `- (memory) ${M_HARVEST}`, '</memory_data>']],
+  ]) {
+    const { host } = setup({ config: toned({ blockTone: tone, afterthought: true }), handlers })
+    const talk = conversation(host)
+    await talk.turn('What tea do I like in the morning?', 'Oolong, I believe.')
+    const next = await talk.turn('And the weekend?')
+    assert.equal(blockOf(secondOf(next)), expected.join('\n'), tone)
+  }
+  const dated = setup({ config: toned({ blockTone: 'bare', afterthought: true, showAge: true }), handlers, now: () => NOW })
+  const talk = conversation(dated.host)
+  await talk.turn('What tea do I like in the morning?', 'Oolong, I believe.')
+  const next = await talk.turn('And the weekend?')
+  assert.equal(blockOf(secondOf(next)), ['<memory_data>', 'Today is 2026-11-17.', `- (memory) ${M_HARVEST}`, '</memory_data>'].join('\n'))
+})
+
+test('blockTone: bare blocks are read back: repeats are skipped, and the tone can change between turns', async () => {
+  const tone = volatile({ language: 'en', showAge: false, blockTone: 'bare' })
+  const handlers = { recall: async (q) => (q.startsWith('Fourth') ? found(M_OOLONG, M_BIKE, M_VIOLIN, M_CAT) : q.startsWith('Third') ? found(M_OOLONG, M_BIKE, M_VIOLIN) : q.startsWith('Second') ? found(M_BIKE) : found(M_OOLONG)) }
+  const { host } = setup({ config: { advanced: tone }, handlers })
+  const talk = conversation(host)
+  const first = await talk.turn('What tea do I like in the morning?', 'Oolong.') // a bare block
+  assert.deepEqual(blockOf(mainOf(first)).split('\n')[1], `- (memory) ${M_OOLONG}`)
+  tone.set({ language: 'en', showAge: false, blockTone: 'normal' })
+  const second = await talk.turn('Second question about my bicycle', 'In the garage.') // a normal block, and a bare block was before it
+  assert.ok(blockOf(mainOf(second)).includes('that may be relevant'))
+  tone.set({ language: 'en', showAge: false, blockTone: 'bare' })
+  const third = await talk.turn('Third question, three memories')
+  assert.deepEqual(itemLines(mainOf(third)), [`- (memory) ${M_VIOLIN}`], 'bare and normal blocks before it are both seen')
+  assert.ok(!blockOf(mainOf(third)).includes('Below are'))
+  tone.set({ language: 'en', showAge: false, blockTone: 'strict' })
+  const fourth = await talk.turn('Fourth question, all four')
+  assert.deepEqual(itemLines(mainOf(fourth)), [`- (memory) ${M_CAT}`], 'bare, normal and bare blocks before a strict one')
+  const fmt = createFormatter({ lang: 'en' })
+  for (const message of talk.history.filter((m) => m.source?.kind === SOURCE_KIND && m.source.form !== 'notice')) assert.equal(fmt.strip(blockOf(message)), '')
+})

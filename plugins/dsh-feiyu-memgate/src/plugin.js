@@ -476,25 +476,29 @@ export function createPlugin(ctx, config, deps = {}) {
     return f
   }
 
-  // The formatter of the automatic main block: the usual one, or the strict head under advanced.blockTone.
-  // strip() and seen() do not look at the head, so blocks of either tone are read the same.
+  // The formatter of the automatic main block under advanced.blockTone: the usual head, the strict head,
+  // or none ('bare', also used for a memgate_search answer: made with noHead, so the block is the wrapper, the date sentence and the
+  // memories only). strip() and seen() do not look at the head, so blocks of any tone are read the same.
   function blockFormatter(s, lang = language()) {
-    if (s.advanced.blockTone !== 'strict') return formatter(lang)
-    const key = lang + ':strict'
+    const tone = s.advanced.blockTone
+    if (tone !== 'strict' && tone !== 'bare') return formatter(lang)
+    const key = lang + ':' + tone
     let f = formatters.get(key)
     if (!f) {
-      f = createFormatter({ lang, head: STRICT_HEADS[lang] })
+      f = createFormatter(tone === 'bare' ? { lang, noHead: true } : { lang, head: STRICT_HEADS[lang] })
       formatters.set(key, f)
     }
     return f
   }
 
-  // The formatter of the second block: the same block, with its own head (strip and seen work on both).
-  function poolFormatter(lang = language()) {
-    const key = lang + ':pool'
+  // The formatter of the second block: the same block, with its own head (strip and seen work on both),
+  // or no head under advanced.blockTone 'bare'.
+  function poolFormatter(s, lang = language()) {
+    const bare = s.advanced.blockTone === 'bare'
+    const key = lang + (bare ? ':pool-bare' : ':pool')
     let f = formatters.get(key)
     if (!f) {
-      f = createFormatter({ lang, head: POOL_HEADS[lang] })
+      f = createFormatter(bare ? { lang, noHead: true } : { lang, head: POOL_HEADS[lang] })
       formatters.set(key, f)
     }
     return f
@@ -956,7 +960,7 @@ export function createPlugin(ctx, config, deps = {}) {
       for (const memory of pool.pick(state, { limit: s.advanced.poolSize, skip: (text) => skip(text) || taken.has(text) })) add(memory)
     }
     let out = messages
-    const block = chosen.length ? poolFormatter().format(chosen, 0, blockOptions(s)) : ''
+    const block = chosen.length ? poolFormatter(s).format(chosen, 0, blockOptions(s)) : ''
     if (block) {
       const message = recallMessage(block, FORM_POOL)
       const at = main ? out.indexOf(main) : -1
@@ -1128,7 +1132,10 @@ export function createPlugin(ctx, config, deps = {}) {
           if (!c) return outcome('unavailable', t.searchUnavailable)
           const detail = await c.recallDetail(query, { signal: exec?.signal })
           if (!detail) return outcome('unavailable', t.searchUnavailable)
-          const block = formatter(lang).format(detail.results, detail.more, blockOptions(settings()))
+          const s = settings()
+          // Under advanced.blockTone 'bare' no sentence; 'strict' is about the current message, so a search keeps the usual one.
+          const fmt = s.advanced.blockTone === 'bare' ? blockFormatter(s, lang) : formatter(lang)
+          const block = fmt.format(detail.results, detail.more, blockOptions(s))
           if (block) return outcome('found', block)
           // A store that failed or was busy may hold the answer: that is not "nothing found".
           if (detail.failed > 0 || detail.busy > 0) return outcome('unavailable', t.searchUnavailable)

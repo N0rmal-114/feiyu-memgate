@@ -49,7 +49,7 @@ dsh plugin --profile <name> add dsh-feiyu-memgate
 | `advanced.showAge` | 记忆块写明今天的日期和每条记忆是多久以前的事 | 开 |
 | `advanced.failureNote` | 这一轮的查询失败时告诉模型 | 开 |
 | `advanced.captureMinChars` | 自动记录跳过有效字符少于这个数的消息（0 到 50；0 表示不按字数过滤） | 4 |
-| `advanced.blockTone` | 自动记忆块最上面那句话：`normal`（照常）或 `strict`（说明这些记忆大多无关，明显有关才用） | `normal` |
+| `advanced.blockTone` | 自动记忆块最上面那句话：`normal`（照常）、`strict`（说明这些记忆大多无关，明显有关才用）或 `bare`（所有记忆块都不附说明，包括第二个块和 `memgate_search` 的结果） | `normal` |
 | `advanced.maxNewPerTurn` | 一个对话从第二轮起，主记忆块最多带几条新记忆（0 到 5；0 不限） | 0 |
 | `advanced.relevanceCheck` | 实验功能。记忆块给出之前，让模型先挑出朋友会想到的记忆，只给这几条。每轮多一次模型调用，消息和候选记忆会发给该模型的提供方；失败时照常给出；第二个块和 `memgate_search` 不检查 | 关 |
 | `advanced.relevanceProvider` | 筛选模型的提供方，和 `advanced.relevanceModel` 一起填；两项都空用对话本身的模型，只填一项等于都空 | 空 |

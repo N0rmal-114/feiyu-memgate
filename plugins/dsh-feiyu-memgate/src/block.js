@@ -99,11 +99,14 @@ export function ageText(date, today, lang = 'zh') {
  *   labels        { source name: label }; sources without one get defaultLabel
  *   defaultLabel  label for an unknown source ('记忆' / 'memory')
  *   head          the sentence after the opening tag
+ *   noHead        true: no opening sentence at all (`head` is ignored); the block then holds only the
+ *                 "today is ..." sentence, when there is one, the items and the "more" line. Not the same
+ *                 as head '', which is an empty line (as in the gateway's Python formatter).
  *   moreTemplate  the "more" line, with one %d
  * Throws on an unknown lang or a tag that is not a plain name: a wrong option is a bug in the
  * caller, found at start-up and not in the middle of a chat.
  */
-export function createFormatter({ lang = 'zh', tag = 'memory_data', labels = {}, defaultLabel, head, moreTemplate } = {}) {
+export function createFormatter({ lang = 'zh', tag = 'memory_data', labels = {}, defaultLabel, head, noHead = false, moreTemplate } = {}) {
   if (typeof lang !== 'string' || !Object.hasOwn(DEFAULTS, lang)) {
     throw new RangeError('lang must be one of: ' + Object.keys(DEFAULTS).sort().join(', '))
   }
@@ -113,6 +116,7 @@ export function createFormatter({ lang = 'zh', tag = 'memory_data', labels = {},
   const d = DEFAULTS[lang]
   const labelMap = new Map(Object.entries(labels ?? {}))
   const fallbackLabel = defaultLabel ?? d.label
+  const headless = noHead === true
   const headLine = head ?? d.head
   const moreLine = moreTemplate ?? d.more
   // Any opening or closing form of the tag, with case and whitespace variants. The leading "<"
@@ -160,8 +164,10 @@ export function createFormatter({ lang = 'zh', tag = 'memory_data', labels = {},
     }
     if (!lines.length) return ''
     if (Number.isInteger(more) && more > 0) lines.push(fillMore(moreLine, more))
-    const head = now === null ? headLine : headLine + d.headGap + d.today.replace('%s', () => now)
-    return [`<${tag}>`, head, ...lines, `</${tag}>`].join('\n')
+    const dateSentence = now === null ? '' : d.today.replace('%s', () => now)
+    // Without a head there is no gap and no empty line: the first line is the date sentence or the first item.
+    const intro = headless ? dateSentence : now === null ? headLine : headLine + d.headGap + dateSentence
+    return [`<${tag}>`, ...(headless && !intro ? [] : [intro]), ...lines, `</${tag}>`].join('\n')
   }
 
   /**

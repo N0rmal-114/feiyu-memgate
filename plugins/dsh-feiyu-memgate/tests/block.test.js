@@ -222,3 +222,34 @@ test('seen looks for the formatter\'s own language', () => {
   assert.equal(en.seen([enBlock])('likes tea'), true)
   assert.equal(zh.seen([enBlock])('likes tea'), false)
 })
+
+test('noHead leaves the block without an opening sentence, and nothing stray in its place', () => {
+  const items = [{ text: 'a' }, { text: 'b', date: '2026-11-03' }]
+  const cases = [
+    ['zh', undefined, 0, ['<memory_data>', '- （记忆）a', '- （记忆，2026-11-03）b', '</memory_data>']],
+    ['zh', '2026-11-17', 0, ['<memory_data>', '今天是 2026-11-17。', '- （记忆）a', '- （记忆，2026-11-03，2 周前）b', '</memory_data>']],
+    ['zh', '2026-11-17', 3, ['<memory_data>', '今天是 2026-11-17。', '- （记忆）a', '- （记忆，2026-11-03，2 周前）b', '还有 3 条相关的记忆没放下。', '</memory_data>']],
+    ['en', undefined, 0, ['<memory_data>', '- (memory) a', '- (memory, 2026-11-03) b', '</memory_data>']],
+    ['en', '2026-11-17', 0, ['<memory_data>', 'Today is 2026-11-17.', '- (memory) a', '- (memory, 2026-11-03, 2 weeks ago) b', '</memory_data>']],
+    ['en', undefined, 3, ['<memory_data>', '- (memory) a', '- (memory, 2026-11-03) b', '3 more related memories did not fit.', '</memory_data>']],
+  ]
+  for (const [lang, today, more, lines] of cases) {
+    const f = fmt({ lang, noHead: true })
+    assert.equal(f.format(items, more, today ? { today } : null), lines.join('\n'), `${lang} ${today} ${more}`)
+  }
+  assert.equal(fmt({ noHead: true }).format([]), '')
+})
+
+test('a block without a head is read by strip() and seen() like any other', () => {
+  const f = fmt({ lang: 'en', noHead: true })
+  const block = f.format([{ text: 'likes oolong' }, { text: 'keeps a bike' }], 1, { today: '2026-11-17' })
+  assert.equal(f.strip(`before\n\n${block}\n\nafter`), 'before\n\nafter')
+  assert.equal(f.strip(block), '')
+  const seen = f.seen([block])
+  assert.ok(seen('likes oolong') && seen('keeps a bike') && !seen('plays violin'))
+  // Blocks written with and without a head are read by one formatter.
+  const headed = fmt({ lang: 'en' }).format([{ text: 'plays violin' }])
+  assert.ok(f.seen([block, headed])('plays violin'))
+  assert.equal(f.strip(`${headed}\n\n${block}`), '')
+  assert.equal(fmt({ lang: 'en' }).strip(block), '')
+})
