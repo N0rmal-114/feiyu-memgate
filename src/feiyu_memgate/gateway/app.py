@@ -27,7 +27,7 @@ from ..core.pool import POOL_SIZE, Pool
 from ..core.recall import BUSY, OK, RECALL_DEADLINE, MAX_WAIT, RecallContext, StageError, call, piece_name, recall
 from ..core.watch import ExtractionWatch, RecallFailures
 from ..errors import ConfigError, WriteRejected
-from ..model import TENANT_BINDINGS, TENANT_STORE
+from ..model import AUDIENCES, TENANT_BINDINGS, TENANT_STORE
 
 DEFAULT_LIMIT = 5
 MAX_LIMIT = 10
@@ -181,6 +181,10 @@ def parse_tenant_token(presented):
         return None
 
 
+def _audience_choices():
+    return ", ".join('"%s"' % level for level in AUDIENCES)
+
+
 def default_stages():
     return [registry.create("recall_stage", name) for name in stages_module.DEFAULT_STAGES]
 
@@ -290,6 +294,8 @@ class Gateway:
     stages    the recall stages, in order (default: the built-in set)
     guards    the write guards, in order (default: redact, daily_cap)
     redactors {"private": fn, "public": fn}: the text cleaner for private and public clients
+    audiences   {name: level}: who each store or tenants provider is for, "owner" (default for a
+                store), "group" (default for a tenants provider) or "public"; see audience_of
     forgetting  an optional forgetting.Forgetting: ranks older memories lower and, every
                 sweep_every_hours hours (0 = never), archives and removes the forgotten ones
 
@@ -303,10 +309,11 @@ class Gateway:
                  clock=time.monotonic, log=stderr_log, recall_deadline=RECALL_DEADLINE,
                  cold_recall_deadline=None, cold_after=COLD_AFTER, remember_deadline=REMEMBER_DEADLINE,
                  pool_size=POOL_SIZE, tenant_pool_total=None, tenant_pool_per_tenant=TENANT_PER_TENANT,
-                 store_max_inflight=None, forgetting=None, sweep_every_hours=24):
+                 store_max_inflight=None, forgetting=None, sweep_every_hours=24, audiences=None):
         self.stores = dict(stores)
         self.clients = dict(clients)
         self.tenants = dict(tenants or {})
+        self.audiences = self._load_audiences(audiences)
         self._check_policies()
         self._tokens, self._minting = self._load_tokens(tokens)
         self.stages = list(stages) if stages is not None else default_stages()
@@ -344,6 +351,60 @@ class Gateway:
         self._started = []
         self._closed = False
 
+    def _load_audiences(self, audiences):
+        """name -> level for every store and tenants provider; what was not declared gets its default."""
+        levels = {name: "owner" for name in self.stores}
+        levels.update({name: "group" for name in self.tenants})
+        self._declared = set()
+        for name, level in dict(audiences or {}).items():
+            if name not in levels:
+                raise ConfigError("audiences names %s, which is neither a store nor a tenants provider" % name)
+            kind = "stores" if name in self.stores else "tenants"
+            if level not in AUDIENCES:
+                raise ConfigError("%s.%s.audience must be one of %s" % (kind, name, _audience_choices()))
+            levels[name] = level
+            self._declared.add(name)
+        return levels
+
+    def audience_of(self, name):
+        """The level of a store or a tenants provider: who its content may be shown to."""
+        try:
+            return self.audiences[name]
+        except KeyError:
+            raise KeyError("no store or tenants provider named %r" % name) from None
+
+    def _check_audience(self, where, policy):
+        """The two audience rules: a client reads only stores at least as wide as its own audience,
+        and a client serving many groups reads no store that belongs to one group."""
+        if policy.audience is not None and policy.audience not in AUDIENCES:
+            raise ConfigError("%s.audience must be one of %s" % (where, _audience_choices()))
+        if policy.audience == "owner" and policy.public:
+            raise ConfigError("%s.audience is \"owner\" but public is true: an owner-level client is not public"
+                              % where)
+        if policy.audience in ("group", "public") and not policy.public:
+            raise ConfigError("%s.audience is \"%s\" but public is false: a client whose audience is \"group\" or "
+                              "\"public\" shows what it recalls to other people" % (where, policy.audience))
+        reach = AUDIENCES.index(policy.reach)
+        for entry in policy.recall or ():
+            shared = entry != TENANT_STORE
+            source = entry if shared else policy.tenants
+            level, note = self.audiences[source], "" if source in self._declared else " (the default: it declares none)"
+            if AUDIENCES.index(level) < reach:
+                if shared:
+                    head = "%s.recall names the store %r, whose audience is \"%s\"%s" % (where, entry, level, note)
+                else:
+                    head = "%s.recall names \"%s\", and the audience of tenants.%s is \"%s\"%s" % (
+                        where, TENANT_STORE, source, level, note)
+                raise ConfigError(
+                    "%s, but the client's audience is \"%s\": what it recalls would be shown to people the store "
+                    "is not for. take the store out of recall, or, if everything in it may be shown to them, set "
+                    "audience on [%s.%s]" % (head, policy.reach, "stores" if shared else "tenants", source))
+            if shared and policy.tenants is not None and policy.reach == "group" and level == "group":
+                raise ConfigError(
+                    "%s.recall names the store %r, whose audience is \"group\" (one group), but the client "
+                    "serves every tenant of %r: a store that all of them read must have audience \"public\""
+                    % (where, entry, policy.tenants))
+
     def _check_policies(self):
         for name in self.tenants:
             if name in self.stores:
@@ -367,6 +428,7 @@ class Gateway:
                     raise ConfigError("%s.write names an unknown store %r" % (where, policy.write))
                 if not getattr(self.stores[policy.write], "writable", False):
                     raise ConfigError("%s.write names the read-only store %r" % (where, policy.write))
+            self._check_audience(where, policy)
 
     @staticmethod
     def _check_binding(where, policy):
@@ -647,7 +709,7 @@ class Gateway:
                             public=policy.public, redact=self._redactor(policy), client=policy.name,
                             tenant_id=tenant_id, notes=notes, context=context, log=self._log,
                             tenant_source=policy.tenants if TENANT_STORE in policy.recall else None,
-                            slots=self.store_slots, keep=self._keep(policy))
+                            slots=self.store_slots, keep=self._keep(policy), audience=policy.reach)
         try:
             out = recall(stores, self.stages, ctx)
         except StageError:

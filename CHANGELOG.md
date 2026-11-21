@@ -6,6 +6,7 @@
 
 ### 要改的地方
 
+- **有公开客户端的配置，要给它读的存储声明受众，否则启动报错。** 存储和租户来源多了 `audience`（`"owner"`、`"group"`、`"public"`），客户端也可以写；启动时核对：客户端的 `recall` 里不能有受众比它自己窄的存储，带租户的群级客户端也不能读声明为 `group` 的共享存储。没声明的存储是 `owner`，租户来源是 `group`；不写 `audience` 的客户端，不公开的是 `owner`，`public = true` 的带 `tenants` 是 `group`、不带是 `public`。所以升级后，`public = true` 的客户端读着的共享存储要补一行：在这个存储的表里写 `audience = "public"`（确认里面的内容可以给任何人看之后），例如 `[stores.public_list]` 里加 `audience = "public"`；用代码建 `Gateway` 的，传 `audiences={"public_list": "public"}`。只读 `"@tenant"` 的公开客户端不用改。写入不受影响，`feiyu-memgate check` 会对“受众不是主人的客户端写入主人的存储”提醒一行，并显示每个存储、租户来源和客户端的受众。说明见 docs/configuration.md 的“受众”一节。
 - 分数线的默认档位从 `precise` 改成 `broad`：`min_score` 和 `relative_score` 不写 `profile` 时用每个存储的 `broad_*` 分数线。用向量存储时每个问题平均交约 2.5 条记忆（以前约 1 条），漏答更少，交出去的杂项更多，对没有答案的问题更少保持安静。原因：项目用在聊天陪伴上，一个话题通常牵到好几条记忆，每轮 1 条太少。两档的数值没有改。要回到以前的行为，在配置里写 `[recall] profile = "precise"`（或只在某一步上写 `profile = "precise"`）。`default_min_score` 等属性名不变，它们是 `precise` 档的分数线（`default_` 是历史命名）；没有声明 `broad_*` 的存储两档都用 `default_*`。每题交得更多，记忆块也更长：记忆块会留在对话历史里的聊天程序，上下文会涨得更快。
 - 默认召回步骤多了一步 `newer_first`（在 `relative_score` 后面）：通过分数线的候选里，分数不低于最高分 85% 的几条按日期新的在前。它不改变交付哪些记忆，只改顺序；记忆没有日期时不起作用。不想要它，在 `stages` 里自己列一套不含它的。
 - 默认召回步骤又多了一步 `linked`（在 `newer_first` 后面、`fill_text` 前面）：用 `embedding` 或带 `embedding` 子后端的 `hybrid` 存储时，一次召回可能多返回最多两条和最前面两条记忆连着的记忆（总数仍不超过 `limit`；候选数已经够 `limit` 条，或者一条候选都没有时什么都不加）。接上的记忆和别的记忆一样过 `fill_text`、`redact`、`dedupe`、`budget`，HTTP 回答的字段不变。只用关键词存储（`sqlite`、`inmemory`）或 `openviking` 时没有变化。每跟着一条候选，`embedding` 要把已存的向量扫一遍，所以一次召回最多多两遍扫描。要回到以前的行为：在 `[recall]` 里写一个不含 `linked` 的 `stages` 列表，或者把它的 `max_added` 设成 0（`{ type = "linked", max_added = 0 }`）。写了自己的 `stages` 的配置不变。
@@ -43,6 +44,9 @@
 
 ### 新增
 
+- 受众级别（见上面“要改的地方”）：`ClientPolicy` 多了最后一个字段 `audience` 和属性 `reach`，`Gateway` 多了 `audiences=` 参数和 `audience_of(名字)`，召回步骤的 `ctx.audience` 是这次请求的客户端的受众。
+- 客户端可以发送 `context`：`MemoryClient` 和 `LocalClient` 的 `recall`、`recall_detail`、`remember`、`remember_status`、`remember_messages` 多了只能按名字传的参数 `context=None`；不传时请求体和以前一样。约定三个常用的键 `channel`、`chat`、`via`，网关不解释它们，也不能把它们当身份（docs/api.md）。
+- AstrBot 示例插件的主人编号要带平台前缀：`FEIYU_MEMGATE_OWNER_IDS` 写成 `平台名:编号`（例如 `aiocqhttp:10001`），同一个号码在另一个平台上不再被当成主人；没有 `:` 的条目被忽略，启动时记一条警告（只写条数）。召回和记忆的请求带上 `context`（`channel` 是平台名，`chat` 是 `private` 或 `group`）。**已经在用这个示例的请改环境变量**，否则主人的私聊不再召回。
 - 关联召回：后端有了可选的能力 `neighbours(ref, limit, timeout=None, ctl=None)`（和已存的某一条最相似的最多 `limit` 条记忆，分数用后端自己的 0..1 相关度，不含它自己；`embedding` 用已存的向量，不请求 embeddings 接口，`hybrid` 问有这个方法的子后端再合并；`sqlite`、`inmemory`、`openviking` 没有），和召回步骤 `linked`（选项 `top` 默认 2、`max_added` 默认 2、`minimum` 默认 0.60；放在 `newer_first` 之后，`feiyu-memgate check` 会提醒顺序放反）。它在分数线之后，取最前面 `top` 条候选，把和它们最相似、相似度不低于 `minimum` 的记忆最多接上 `max_added` 条，总数不超过 `limit`，所以不改变“什么时候保持安静”。聊天测试题 `bench/chat`（bge-m3、`embedding` 后端、`broad` 档）的留出集上：连着的记忆被交出去的比例 29.2% → 42.7%，直接相关的那条 54.2% → 56.2%，每道闲聊交出的条数 3.73 → 4.27，交出去的条目里相关的占比 34.9% → 36.7%，追问命中和安静的比例没有变。这些数字只对 bge-m3 而言；别的模型沿用同一个 0.60，没有量过。每个划分只有 48 道闲聊，一道题约 2 个点。`RecallContext.run` 多了可选的 `until`（让等待比总时限早结束）。`bench/chat/run.py` 多了 `--linked on|off`（默认 `on`，是网关的默认步骤；`off` 是不含 `linked` 的默认步骤），用来在真实网关上量前后。设计和试过的其他做法见 docs/design/2026-11-18-linked-recall.md。
 - 文档：`docs/api.md`（API 参考：HTTP 接口、Python 客户端、扩展接口、命令行、DSH 插件的接口，逐项按代码核对）。HTTP 接口和“写死的上限”两节从 `configuration.md` 移到了这里，原处留有指向新位置的说明。`docs/development.md`（开发指南）、`docs/extending.md`（二次开发指引）。
 - 示例：`examples/custom-backend`（一个文件写成的存储后端）、`examples/chat-loop`（一轮对话从查询到写入的完整流程）。

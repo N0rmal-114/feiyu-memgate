@@ -6,15 +6,20 @@ Configuration comes only from the environment:
     FEIYU_MEMGATE_URL            gateway address, e.g. http://127.0.0.1:8080
     FEIYU_MEMGATE_TOKEN          token of the owner client
     FEIYU_MEMGATE_TENANT_TOKEN   token of the tenant client (group chats)
-    FEIYU_MEMGATE_OWNER_IDS      sender ids (comma separated) whose private chat gets the owner's memory
+    FEIYU_MEMGATE_OWNER_IDS      owner accounts (comma separated), each written <platform>:<id>, for example
+                                 aiocqhttp:10001; the platform is event.get_platform_name(). Entries without
+                                 a ":" are ignored (one warning at start). The same number on another
+                                 platform is another account and does not match
     FEIYU_MEMGATE_FALLBACK       where the memory block goes on an AstrBot without temporary message
                                  parts: "message" (default), "system" or "off"; see attach_memory
 
 Who gets memory:
-  - a private chat whose sender id is listed in FEIYU_MEMGATE_OWNER_IDS: the owner token;
+  - a private chat whose "<platform>:<sender id>" is listed in FEIYU_MEMGATE_OWNER_IDS: the owner token;
   - a group chat: the tenant token, with the group id as tenant_id (so every group has a
     store of its own), and at most one remember per reply;
   - anyone else: no recall and no remember.
+
+Recall and remember also send context={"channel": <platform name>, "chat": "private" | "group"}.
 """
 import asyncio
 import datetime
@@ -38,7 +43,15 @@ FORMATTER = BlockFormatter(labels={"private": "你们私聊里的", "group": "�
 
 
 def owner_ids(env=os.environ):
-    return {i.strip() for i in env.get("FEIYU_MEMGATE_OWNER_IDS", "").split(",") if i.strip()}
+    """The owner accounts as "<platform>:<id>" strings. An entry without a ":" is left out: a bare number
+    would match the same number on every platform."""
+    entries = [i.strip() for i in env.get("FEIYU_MEMGATE_OWNER_IDS", "").split(",") if i.strip()]
+    kept = {i for i in entries if all(i.partition(":")[::2])}  # both a platform and an id
+    skipped = sum(1 for i in entries if i not in kept)
+    if skipped:  # the count only, never the ids
+        logger.warning("FEIYU_MEMGATE_OWNER_IDS: %d entries ignored, each must be <platform>:<id>, "
+                       "for example aiocqhttp:12345", skipped)
+    return kept
 
 
 FALLBACKS = ("message", "system", "off")
@@ -106,9 +119,15 @@ class FeiyuMemgateRecall(Star):
         group_id = event.get_group_id() or None
         if group_id is not None:
             return self.client.tenant_configured, str(group_id)
-        owner = (event.is_private_chat() and str(event.get_sender_id() or "") in self.owners
-                 and self.client.configured)
+        platform, sender = event.get_platform_name(), event.get_sender_id()
+        account = "%s:%s" % (platform, sender) if platform and sender else None  # never half an account
+        owner = event.is_private_chat() and account in self.owners and self.client.configured
         return owner, None
+
+    @staticmethod
+    def _context(event: AstrMessageEvent):
+        """What the gateway's stages and guards may know about where this came from (never identity)."""
+        return {"channel": str(event.get_platform_name()), "chat": "group" if event.get_group_id() else "private"}
 
     @filter.on_llm_request()
     async def on_llm_request(self, event: AstrMessageEvent, req: ProviderRequest) -> None:
@@ -123,7 +142,8 @@ class FeiyuMemgateRecall(Star):
             if query is None:
                 return
             detail = await asyncio.wait_for(
-                asyncio.to_thread(self.client.recall_detail, query, RECALL_TIMEOUT, tenant_id), RECALL_BUDGET)
+                asyncio.to_thread(self.client.recall_detail, query, RECALL_TIMEOUT, tenant_id,
+                                  context=self._context(event)), RECALL_BUDGET)
             if detail is None:
                 logger.warning("memory recall skipped: failed")  # never the query
                 return
@@ -158,7 +178,8 @@ class FeiyuMemgateRecall(Star):
         deadline = time.monotonic() + REMEMBER_BUDGET
         try:
             outcome = await asyncio.wait_for(
-                asyncio.to_thread(self.client.remember_messages, [message], deadline, tenant_id), REMEMBER_BUDGET + 0.5)
+                asyncio.to_thread(self.client.remember_messages, [message], deadline, tenant_id,
+                                  context=self._context(event)), REMEMBER_BUDGET + 0.5)
         except asyncio.TimeoutError:
             outcome = "unsure"  # the worker may still finish: the write may happen
         except Exception as e:

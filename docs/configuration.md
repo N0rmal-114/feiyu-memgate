@@ -77,11 +77,13 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 取预设（bge-m3、bge-small-zh、bge-base-zh、embeddinggemma、qwen3-embedding 五个有预设；别的模型用 bge-m3 的数值并在日志里警告一次，
 请自己校准）。`document_prefix` 和 `model` 一样记在库里，换了会拒绝打开旧库。
 
+所有存储都可以再写一项 `audience`（`"owner"`、`"group"`、`"public"`，默认 `"owner"`）：里面的内容最多可以给谁看，见下面的“受众”一节。它由配置读取这一步取走，不会交给后端，所以后端不需要认识它。
+
 自己写的后端：`type = "模块:类名"`，见 [pieces.md](pieces.md)。
 
 ## `[tenants.<名字>]`：租户存储
 
-表名同时是租户存储的来源名，不能和共享存储重名。
+表名同时是租户存储的来源名，不能和共享存储重名。可以再写 `audience`（`"owner"`、`"group"`、`"public"`，默认 `"group"`：每个租户的存储只给这个租户看），规则见下面的“受众”一节。
 
 **`keyfile`**：一个 JSON 文件 `{"<租户编号>": "<这个租户的密钥>"}`，每个租户用自己的密钥访问自己的账号。文件改了会自动重读；读坏了保持上一份好的。
 
@@ -114,7 +116,8 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 | `tenants` | 无 | 租户提供方的名字。写了以后每次请求都是为某一个租户做的 |
 | `tenant_binding` | `"request"` | 怎么知道请求是哪个租户的：`"request"` = 请求体里的 `tenant_id`（自报）；`"token"` = 令牌本身绑定一个租户。只能和 `tenants` 一起写 |
 | `tenant_token_generation` | `1` | 只在 `tenant_binding = "token"` 时可写：铸造令牌的“代”，正整数。加一后重启，这个客户端以前铸造的令牌全部失效 |
-| `public` | `false` | 内容会被别人看到：改用公开脱敏 |
+| `public` | `false` | 内容会被别人看到：改用公开脱敏。只写了 `audience` 不写 `public` 时由它推出 |
+| `audience` | 见“受众”一节 | 这个客户端展示的内容会被谁看到：`"owner"`、`"group"`、`"public"`。启动时拿它和 `recall` 里每个存储的受众核对 |
 | `daily_writes` | 不限 | 每天最多写几次（多租户按租户分别计） |
 | `daily_writes_total` | 不限 | 整个客户端每天最多写几次（多租户是所有租户合计） |
 | `rate_limit` | `60` | 每分钟最多几次请求（多租户按租户分别计） |
@@ -127,12 +130,48 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 [clients.group]
 token_env = "GATEWAY_TOKEN_GROUP"
 tenants = "group"
-recall = ["public_list", "@tenant"]   # 先搜共享的可公开清单，再搜这个群自己的
+recall = ["public_list", "@tenant"]   # 先搜共享的可公开清单（它的 [stores.public_list] 要写 audience = "public"），再搜这个群自己的
 write = "@tenant"
 public = true
 daily_writes = 30                     # 每个群每天 30 次
 daily_writes_total = 500              # 所有群合计每天 500 次
 ```
+
+### 受众：存储给谁看，客户端被谁看
+
+以前 `recall` 里写什么存储，网关就读什么存储，没有人检查。把放私聊记忆的存储写进群聊客户端的名单，网关照常启动，私下说的话就会出现在群里。现在配置要说清楚两件事，启动时核对，对不上就拒绝启动。
+
+三个级别，从窄到宽：`owner`（只给主人）、`group`（给一个群的成员）、`public`（谁都可以看）。
+
+- **存储的受众**：里面的内容最多可以给谁看。写在 `[stores.<名字>]` 和 `[tenants.<名字>]` 里。
+- **客户端的受众**：它展示的内容会被谁看到。写在 `[clients.<名字>]` 里。
+
+两条规则：
+
+1. 客户端只能把受众不比自己窄的存储写进 `recall`。主人级的客户端什么都能读；群级的客户端能读 `group` 和 `public` 的存储；公开的客户端只能读 `public` 的存储。`"@tenant"` 的受众是这个客户端的租户来源的受众。
+2. 带 `tenants` 的群级客户端同时服务很多个群。一个共享存储如果是 `group`，它只属于其中一个群，所以这样的客户端不能读它：它读的共享存储必须是 `public`。
+
+没写的时候：存储是 `owner`，租户来源是 `group`。客户端不写 `audience` 时，不公开的是 `owner`；`public = true` 的，带 `tenants` 是 `group`，不带是 `public`。只写 `audience` 不写 `public` 时，`public` 由它推出（`owner` 为 `false`，其余为 `true`）；两个都写而互相矛盾（`audience = "owner"` 配 `public = true`，或 `group`、`public` 配 `public = false`）会启动报错。
+
+写入不按受众拒绝：整理“可公开清单”的客户端本来就是主人级的客户端往 `public` 存储里写。反过来，受众不是 `owner` 的客户端往 `owner` 的存储里写，`feiyu-memgate check` 会打印一行提醒。
+
+```toml
+[stores.private]
+type = "sqlite"
+path = "data/private.db"                # 不写 audience：owner，群聊客户端读它会启动报错
+
+[stores.public_list]
+type = "sqlite"
+path = "data/public-list.db"
+audience = "public"                     # 里面的内容确认过可以给任何人看
+
+[clients.group]
+tenants = "group"
+recall = ["public_list", "@tenant"]     # public_list 是 public，@tenant 取租户来源的受众（默认 group）
+public = true                           # 带 tenants，所以客户端的受众是 group
+```
+
+已有的配置里，公开客户端读着的存储现在要补一行 `audience`；写成 `public` 就是你确认它里面的内容可以给任何人看。网关检查的是这些声明对不对得上，声明本身由你负责，见 [security.md](security.md)。
 
 默认（`tenant_binding = "request"`）时 `tenant_id` 是客户端自己报的。网关只保证一个请求只碰到它报的那个租户的存储；客户端能不能代表这个租户，要由客户端自己（比如机器人框架给的群号）保证。这只适合一个可信的进程拿着这个令牌；`feiyu-memgate check` 对这样的客户端会打印一行提醒。令牌要交给别的程序时，用下面的令牌绑定。两种模式的取舍见 [security.md](security.md)。
 

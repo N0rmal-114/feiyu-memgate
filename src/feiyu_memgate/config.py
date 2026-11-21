@@ -56,11 +56,12 @@ from .forgetting.archive import Archive
 from .forgetting.engine import REQUIRED as FORGETTING_CAPABILITIES, Forgetting
 from .forgetting.ledger import Ledger
 from .gateway.app import Gateway, stderr_log, usable_token, MIN_TOKEN_CHARS
-from .model import TENANT_BINDINGS, ClientPolicy
+from .model import AUDIENCES, TENANT_BINDINGS, ClientPolicy
 
 SERVER_DEFAULTS = {"host": "127.0.0.1", "port": 8080}
 _POLICY_KEYS = {"token_env", "recall", "write", "tenants", "public", "daily_writes", "daily_writes_total",
-                "rate_limit", "rate_limit_total", "pin_writes", "tenant_binding", "tenant_token_generation"}
+                "rate_limit", "rate_limit_total", "pin_writes", "tenant_binding", "tenant_token_generation",
+                "audience"}
 _TOP_KEYS = {"server", "stores", "tenants", "clients", "recall", "write", "redaction", "forgetting"}
 
 # What each fixed section may hold: key -> checker(where, value). "stages"/"guards" are piece lists.
@@ -165,6 +166,21 @@ def _limit(where, value):
     return value
 
 
+def _audience(where, value):
+    """A declared audience level, or ConfigError naming the setting."""
+    if value not in AUDIENCES:
+        raise ConfigError("%s.audience must be one of %s" % (where, ", ".join('"%s"' % level for level in AUDIENCES)))
+    return value
+
+
+def _split_audience(kind, name, spec):
+    """(spec without its audience key, the audience or None): the key is the loader's, never the backend's."""
+    if "audience" not in spec:
+        return spec, None
+    rest = {key: value for key, value in spec.items() if key != "audience"}
+    return rest, _audience("%s.%s" % (kind, name), spec["audience"])
+
+
 def client_policy(name, spec):
     """The ClientPolicy of one [clients.<name>] table, every setting checked (ConfigError naming it)."""
     where = "clients.%s" % name
@@ -200,9 +216,13 @@ def client_policy(name, spec):
     if token_env is None and binding == "token":
         raise ConfigError("%s.token_env is required with tenant_binding = \"token\": it names the minting secret"
                           % where)
+    audience = _audience(where, spec["audience"]) if "audience" in spec else None
+    public = spec.get("public")
+    if public is None:
+        public = audience is not None and audience != "owner"  # derived; a stated one is checked by the Gateway
     return ClientPolicy(
         name=name, recall=recall, write=spec.get("write"), tenants=spec.get("tenants"),
-        public=spec.get("public", False), daily_writes=spec.get("daily_writes"),
+        public=public, audience=audience, daily_writes=spec.get("daily_writes"),
         daily_writes_total=spec.get("daily_writes_total"), rate_limit=spec.get("rate_limit", 60),
         rate_limit_total=spec.get("rate_limit_total"), pin_writes=spec.get("pin_writes", False),
         tenant_binding=binding, tenant_token_generation=spec.get("tenant_token_generation", 1),
@@ -379,10 +399,13 @@ def build_gateway(cfg, env=None, log=stderr_log, wall=None, **overrides):
 
     opened = []
     try:
-        stores = {}
+        stores, audiences = {}, {}
         for name, spec in _table(cfg, "stores").items():
             if not isinstance(spec, dict):
                 raise ConfigError("[stores.%s] must be a table" % name)
+            spec, audience = _split_audience("stores", name, spec)
+            if audience is not None:
+                audiences[name] = audience
             stores[name] = registry.create("backend", resolve_env(spec, env, "stores." + name))
             opened.append(stores[name])
 
@@ -392,6 +415,9 @@ def build_gateway(cfg, env=None, log=stderr_log, wall=None, **overrides):
                 raise ConfigError("[tenants.%s] must be a table" % name)
             if name in stores:
                 raise ConfigError("tenants.%s has the same name as a store" % name)
+            spec, audience = _split_audience("tenants", name, spec)
+            if audience is not None:
+                audiences[name] = audience
             tenants[name] = registry.create("tenants", resolve_env(spec, env, "tenants." + name))
             opened.append(tenants[name])
 
@@ -427,6 +453,7 @@ def build_gateway(cfg, env=None, log=stderr_log, wall=None, **overrides):
         _check_enforced(clients, stages, guards)
         options = {
             "tenants": tenants,
+            "audiences": audiences,
             "stages": stages,
             "guards": guards,
             "redactors": {

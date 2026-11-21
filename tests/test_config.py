@@ -231,7 +231,8 @@ class EnforcedTests(ConfigTestCase):
     def test_the_gateway_built_by_hand_is_not_restricted(self):
         Gateway({"a": InMemoryBackend()}, {"c": ClientPolicy("c", recall=("a",), write="a", public=True,
                                                              daily_writes=3)},
-                {"c": TOKEN_OWNER}, stages=[], guards=[], log=lambda line: None).close()
+                {"c": TOKEN_OWNER}, stages=[], guards=[], audiences={"a": "public"},
+                log=lambda line: None).close()
 
     def test_the_built_in_pieces_declare_what_they_enforce(self):
         from feiyu_memgate import registry

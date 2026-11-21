@@ -6,9 +6,11 @@
 2. 给模型一个 `remember` 工具，用来保存一条记忆，并把真实结果告诉模型：已交给记忆服务（整理要一会儿）、看过了但没有要记的（被过滤掉了）、不确定、今天的次数用完了、没记住。
 3. 可选：用了遗忘曲线（网关配置了 `[forgetting]`）时，客户端可以在回复之后调用 `MemoryClient.report_used(items, tenant_id=None)`，把这次回复真正依赖的那几条召回结果（带 `source` 和 `id` 的字典，最多 20 条）告诉网关，网关只给这几条记一次“用到”，没被用到的就会照常变旧。它不会抛异常，成功回 `True`。这个示例插件没有调用它：网关默认只给相似度最高的那一条（和它几乎一样相关的也算）记“用到”（`freshness` 的 `credit = "top"`）；想只按回报来记，把 `credit` 设成 `"none"` 并让插件调用 `report_used`。
 4. 谁能用记忆：
-   - 私聊，且发送者 ID 在 `FEIYU_MEMGATE_OWNER_IDS` 里：用主人的令牌，读写主人的记忆。
+   - 私聊，且“平台名:发送者 ID”在 `FEIYU_MEMGATE_OWNER_IDS` 里：用主人的令牌，读写主人的记忆。
    - 群聊：用租户令牌，群号作为 `tenant_id`，每个群一份自己的记忆；一次回复里最多记一条。
    - 其他人：不召回，也不能记。
+
+   召回和记忆的请求会带上 `context`：`{"channel": 平台名, "chat": "private" 或 "group"}`。网关自带的步骤不读它，自己写的召回步骤和写入守卫可以用；它不是身份，不能拿来判断谁是谁。
 
 > 示例，按 AstrBot v4.29 的插件接口编写。AstrBot 没有装在写这个示例的机器上：插件的逻辑用模拟的 AstrBot 接口测过（`tests/test_integration_astrbot.py`），没有在真实的 AstrBot 里跑过。接口名字以你用的 AstrBot 版本为准。
 
@@ -46,7 +48,7 @@
    | `FEIYU_MEMGATE_URL` | 网关地址，例如 `http://127.0.0.1:8080` |
    | `FEIYU_MEMGATE_TOKEN` | 主人客户端的令牌 |
    | `FEIYU_MEMGATE_TENANT_TOKEN` | 租户（群）客户端的令牌；不写就不给群开记忆 |
-   | `FEIYU_MEMGATE_OWNER_IDS` | 主人的发送者 ID，逗号分隔，例如 `10001,10002` |
+   | `FEIYU_MEMGATE_OWNER_IDS` | 主人的账号，逗号分隔，每个写成 `平台名:ID`，平台名是 AstrBot 里 `event.get_platform_name()` 的值，例如 `aiocqhttp:10001,aiocqhttp:10002`。同一个号码在另一个平台上是另一个账号，不会匹配；没有 `:` 的条目会被忽略，启动时记一条警告（只写条数，不写 ID） |
    | `FEIYU_MEMGATE_FALLBACK` | 可选。AstrBot 不支持临时消息片段时记忆块放哪：`message`（默认）、`system`、`off`，见上面“记忆块放在哪里” |
 
    缺少 URL 或令牌时插件只在启动时记一条警告，不影响机器人回复。
@@ -63,12 +65,14 @@ port = 8080
 [stores.private]                     # 源名 private：插件里标成“你们私聊里的”
 type = "sqlite"
 path = "data/private.db"
+audience = "owner"                   # 只给主人看
 
 [tenants.group]                      # 每个群一个 <群号>.db，源名 group：标成“这个群的”
 type = "directory"
 path = "data/groups"
 id_pattern = "[0-9]{5,12}"
 create = false                       # 只有登记过的群才有记忆
+audience = "group"                   # 每个群的存储只给这个群看
 
 [clients.owner]
 token_env = "FEIYU_OWNER_TOKEN"      # 对应插件的 FEIYU_MEMGATE_TOKEN

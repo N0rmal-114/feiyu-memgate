@@ -49,7 +49,7 @@ class WriteContext:
     """What a guard may know about the write.
 
     client, tenant_id  who writes (names, never tokens)
-    policy             the client's ClientPolicy
+    policy             the client's ClientPolicy (policy.reach is who sees what it shows)
     public             True when the client is a public one
     redact             the text cleaner chosen for this client (str -> str)
     key                client name, or "client:tenant" for a tenant client

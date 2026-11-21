@@ -123,6 +123,8 @@ Authorization: Bearer <令牌>
 - `tenant_id` 只有多租户客户端要写，而且必须写；别的客户端写了是 `bad_tenant`。`tenant_binding = "token"` 的客户端可以不写（就是令牌绑定的租户），写了必须和令牌里的一样，否则 403 `tenant_mismatch`。
 - `context` 可以不写，写了必须是对象，不合规 400 `bad_context`（上限见上表；值不能是 `null`、数组或嵌套的对象）。它原样交给召回步骤和写入守卫（`ctx.context`），比如“这是语音频道”；网关自己不看内容，也不写进日志。
 
+  约定一下常用的三个键（只是约定，不是格式，网关不解释它们；自己写的步骤和守卫可以用）：`channel`（对话发生在哪里，例如 `"dsh"`、AstrBot 的平台名、`"voice"`）、`chat`（`"private"` 或 `"group"`）、`via`（是什么触发了这次请求）。`context` 是客户端自己报的，不能当作身份使用。
+
 ```json
 {
   "results": [
@@ -343,7 +345,7 @@ from feiyu_memgate.client import (MemoryClient, LocalClient, BlockFormatter, for
 - **不发的情况**：没配置好（`configured` 为假）、参数不合规、截止时间已过，都是“没发出去”：`recall_detail` 得 `None`，`recall` 得 `[]`，写入得 `"failed"`，`report_used` 得 `False`。
 - **请求体按 UTF-8 发**，中文不转义成 `\uXXXX`。每次调用一个新连接；不读代理环境变量，不跟随重定向，不重试。回答超过 256 KiB 按失败处理。
 - **看错误码，不看错误文字**：网关的错误回答只用它的 `code` 分类。
-- 不发 `context`：客户端的方法没有这个参数。要传 `context` 请直接发 HTTP 请求。
+- **`context`**：召回和写入的方法（`recall_detail`、`recall`、`remember_messages`、`remember_status`、`remember`）都有一个只能按名字传的 `context=None`。给了就原样作为请求里的 `"context"` 发出（约定的键见 [`POST /v1/recall`](#post-v1recall)）；不给，请求体和以前完全一样。客户端不检查内容，不合规的由网关回 400 `bad_context`，和别的失败一样处理。`MemoryClient` 和 `LocalClient` 的参数一致。
 
 ### `MemoryClient`
 
@@ -372,11 +374,11 @@ MemoryClient(base_url, token, tenant_token=None, logger=None, recall_limit=5, te
 方法：
 
 ```python
-recall_detail(query, timeout=8.5, tenant_id=None) -> dict | None
-recall(query, timeout=8.5, tenant_id=None) -> list
-remember_messages(messages, deadline=None, tenant_id=None) -> str
-remember_status(text, deadline=None, tenant_id=None) -> str
-remember(text, tenant_id=None) -> bool
+recall_detail(query, timeout=8.5, tenant_id=None, *, context=None) -> dict | None
+recall(query, timeout=8.5, tenant_id=None, *, context=None) -> list
+remember_messages(messages, deadline=None, tenant_id=None, *, context=None) -> str
+remember_status(text, deadline=None, tenant_id=None, *, context=None) -> str
+remember(text, tenant_id=None, *, context=None) -> bool
 report_used(items, tenant_id=None, timeout=5.0) -> bool
 ```
 
@@ -791,7 +793,7 @@ class RecallStage:
 
 `Candidate`（`feiyu_memgate.pieces.Candidate`）：`score`、`source`、`store`、`ref`、`text=""`、`date=None`、`meta={}`；`as_item()` 给出返回的 `{"id", "source", "text", "score", "date"?}`。
 
-`RecallContext`（`ctx`）的成员：`query`、`limit`、`client`、`tenant_id`、`tenant_source`、`public`、`redact`（`str -> str`）、`context`（请求里的 `context`，已检查）、`accepted`、`notes`、`state`（字典，放这一次请求里自己的状态；步骤对象是所有请求共用的，不要存在 `self` 上）、`time_left()`、`expired()`、`note(word)`、`run(fn, store=None)`（在工作线程上跑一个会阻塞的调用，返回 `(ok, result)`，`fn` 收到 `ctl`）。
+`RecallContext`（`ctx`）的成员：`query`、`limit`、`client`、`tenant_id`、`tenant_source`、`public`、`audience`（这个客户端的受众 `reach`：`"owner"`、`"group"` 或 `"public"`，构造时是只能按名字传的参数，默认 `"owner"`）、`redact`（`str -> str`）、`context`（请求里的 `context`，已检查）、`accepted`、`notes`、`state`（字典，放这一次请求里自己的状态；步骤对象是所有请求共用的，不要存在 `self` 上）、`time_left()`、`expired()`、`note(word)`、`run(fn, store=None)`（在工作线程上跑一个会阻塞的调用，返回 `(ok, result)`，`fn` 收到 `ctl`）。
 
 ### `write_guard`：`WriteGuard`
 
@@ -811,7 +813,7 @@ class WriteGuard:
 | `rollback(ctx)` | `before` 放行了，但这次写入最后没成时调用，撤回 `before` 做的事。基类什么都不做 |
 | `after(receipt, ctx)` | 存储确认收下之后调用。基类什么都不做 |
 
-`WriteContext`（`ctx`）的成员：`client`、`tenant_id`、`policy`（`ClientPolicy`）、`public`、`redact`、`key`（客户端名，多租户时是 `客户端:租户`）、`context`、`state`。
+`WriteContext`（`ctx`）的成员：`client`、`tenant_id`、`policy`（`ClientPolicy`，`policy.reach` 是这个客户端的受众）、`public`、`redact`、`key`（客户端名，多租户时是 `客户端:租户`）、`context`、`state`。
 
 ```python
 WriteRejected(status, error, note="", code=None)
@@ -864,7 +866,8 @@ class ForgettingCurve:
 | 名字 | 是什么 |
 |---|---|
 | `KEEP`、`DROP`、`DEFER` | `admit` 的三个回答 |
-| `ClientPolicy` | 一个客户端的权限，冻结的数据类：`name`、`recall`、`write`、`tenants`、`public`、`daily_writes`、`rate_limit`、`pin_writes`、`daily_writes_total`、`rate_limit_total`、`tenant_binding`、`tenant_token_generation`，和属性 `token_bound`、`can_recall`、`can_write`、`total_rate_limit` |
+| `ClientPolicy` | 一个客户端的权限，冻结的数据类：`name`、`recall`、`write`、`tenants`、`public`、`daily_writes`、`rate_limit`、`pin_writes`、`daily_writes_total`、`rate_limit_total`、`tenant_binding`、`tenant_token_generation`、`audience`（最后一个字段，默认 `None` = 没声明），和属性 `token_bound`、`can_recall`、`can_write`、`total_rate_limit`、`reach`（客户端的受众：声明了就是声明的；没声明时不公开的是 `"owner"`，公开且带 `tenants` 的是 `"group"`，公开且不带的是 `"public"`）。`feiyu_memgate.model.AUDIENCES` 是 `("owner", "group", "public")`，顺序就是从窄到宽 |
+| `Gateway` 的 `audiences=` | `Gateway(stores, clients, tokens, ..., audiences=None)`：`{名字: 级别}`，名字是存储或租户来源的名字；没写的存储是 `"owner"`，租户来源是 `"group"`。名字不是存储也不是租户来源、级别不在 `AUDIENCES` 里，都抛 `ConfigError`。`gateway.audience_of(名字)` 返回这个存储或租户来源的级别。受众的两条规则和配置文件建出来的网关一样，在 `Gateway` 里检查，见 [configuration.md](configuration.md#受众存储给谁看客户端被谁看) |
 | `BackendError` | 后端失败时抛，不带上游的文字 |
 | `ConfigError` | 配置不能用；消息里说是哪一项，不带密钥的值 |
 | `WriteRejected` | 守卫拒绝一次写入，见上 |
@@ -907,7 +910,7 @@ feiyu-memgate serve --config FILE [--host HOST] [--port PORT]
 feiyu-memgate check --config FILE
 ```
 
-加载并建出网关，打印存储、租户来源、客户端、召回步骤（按顺序）、分数线档位、写入守卫（按顺序），配了遗忘的还有遗忘的设置；对放错位置的召回步骤、自报租户号的多租户客户端、看起来不随机的铸造密钥、只设了合计每日上限的绑定客户端各打印一行提醒。不显示令牌，只说有没有可用的。退出码 0；配置有问题时打印 `配置有问题：<说明>`，退出码 1。
+加载并建出网关，打印存储、租户来源（都带受众）、客户端（带它的受众）、召回步骤（按顺序）、分数线档位、写入守卫（按顺序），配了遗忘的还有遗忘的设置；对放错位置的召回步骤、自报租户号的多租户客户端、看起来不随机的铸造密钥、只设了合计每日上限的绑定客户端各打印一行提醒；受众不是主人的客户端写入受众是主人的存储时也提醒一行。不显示令牌，只说有没有可用的。退出码 0；配置有问题时打印 `配置有问题：<说明>`，退出码 1。
 
 ### `pieces`
 

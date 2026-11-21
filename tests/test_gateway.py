@@ -153,7 +153,8 @@ class GatewayTestCase(unittest.TestCase):
         tokens = {"owner": TOKEN_OWNER, "live": TOKEN_LIVE, "pub": TOKEN_PUB, "both": TOKEN_BOTH}
         self.cap_guard = DailyCapGuard(utc_offset_hours=8, wall=self.wall)
         guards = [registry.create("write_guard", "redact"), self.cap_guard]
-        self.gw = Gateway(stores, clients, tokens, guards=guards, clock=self.clock, log=self.logs.append)
+        self.gw = Gateway(stores, clients, tokens, guards=guards, clock=self.clock, log=self.logs.append,
+                          audiences={"channel": "public"})
         self.addCleanup(self.gw.close)
         self.server = gateway_server.make_server(self.gw, "127.0.0.1", 0)
         self.thread = threading.Thread(target=self.server.serve_forever, kwargs={"poll_interval": 0.02}, daemon=True)

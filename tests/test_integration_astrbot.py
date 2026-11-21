@@ -59,10 +59,13 @@ class OldRequest:
 
 
 class Event:
-    def __init__(self, text="what tea do I like", sender="10001", group=None):
+    def __init__(self, text="what tea do I like", sender="10001", group=None, platform="aiocqhttp"):
         self.message_str = text
-        self._sender, self._group = sender, group
+        self._sender, self._group, self._platform = sender, group, platform
         self._extra = {}
+
+    def get_platform_name(self):
+        return self._platform
 
     def get_group_id(self):
         return self._group
@@ -87,9 +90,11 @@ class FakeClient:
     def __init__(self, results=RESULTS):
         self.results = results
         self.queries = []
+        self.contexts = []
 
-    def recall_detail(self, query, timeout=None, tenant_id=None):
+    def recall_detail(self, query, timeout=None, tenant_id=None, context=None):
         self.queries.append((query, tenant_id))
+        self.contexts.append(context)
         return {"results": self.results, "more": 0, "failed": 0, "busy": 0}
 
 
@@ -141,7 +146,7 @@ class PluginCase(unittest.TestCase):
         self.block = self.plugin.FORMATTER.format(RESULTS, today=datetime.date.today().isoformat())
 
     def star(self, fallback="message", client=None):
-        with mock.patch.dict("os.environ", {"FEIYU_MEMGATE_OWNER_IDS": "10001", "FEIYU_MEMGATE_FALLBACK": fallback}):
+        with mock.patch.dict("os.environ", {"FEIYU_MEMGATE_OWNER_IDS": "aiocqhttp:10001", "FEIYU_MEMGATE_FALLBACK": fallback}):
             star = self.plugin.FeiyuMemgateRecall(object())
         star.client = client or FakeClient()
         return star
@@ -280,7 +285,7 @@ class RememberToolTests(PluginCase):
                 super().__init__()
                 self.sent = []
 
-            def remember_messages(self, messages, deadline=None, tenant_id=None):
+            def remember_messages(self, messages, deadline=None, tenant_id=None, context=None):
                 self.sent.append((messages, tenant_id))
                 return "saved"
 
@@ -296,6 +301,63 @@ class RememberToolTests(PluginCase):
         self.assertLessEqual(len(stamp), 40)
         self.assertEqual(datetime.datetime.fromisoformat(stamp).date(), datetime.date.today())
         self.assertIsNotNone(datetime.datetime.fromisoformat(stamp).utcoffset())
+
+
+class OwnerAccountTests(PluginCase):
+    def test_the_prefixed_id_is_the_owner(self):
+        star = self.star()
+        self.ask(star, Event(), Request())
+        self.assertEqual(len(star.client.queries), 1)
+
+    def test_the_same_number_on_another_platform_is_not(self):
+        star = self.star()
+        req = self.ask(star, Event(platform="telegram"), Request())
+        self.assertEqual(star.client.queries, [])
+        self.assertEqual(req.extra_user_content_parts, [])
+
+    def test_a_bare_entry_is_ignored_and_warned_about_once_without_the_id(self):
+        with mock.patch.dict("os.environ", {"FEIYU_MEMGATE_OWNER_IDS": "10001, 10002 ,aiocqhttp:30003"}):
+            star = self.plugin.FeiyuMemgateRecall(object())
+        self.assertEqual(star.owners, {"aiocqhttp:30003"})
+        warnings = [line for line in self.logger.lines if "OWNER_IDS" in line]
+        self.assertEqual(len(warnings), 1)
+        self.assertIn("2", warnings[0])
+        for secret in ("10001", "10002", "30003"):
+            self.assertNotIn(secret, warnings[0])
+
+    def test_half_an_account_is_not_an_owner(self):
+        with mock.patch.dict("os.environ", {"FEIYU_MEMGATE_OWNER_IDS": ":10001,aiocqhttp:,aiocqhttp:30003"}):
+            star = self.plugin.FeiyuMemgateRecall(object())
+        self.assertEqual(star.owners, {"aiocqhttp:30003"})
+        star.client = FakeClient()
+        # An event without a platform name or without a sender is nobody, whatever the list holds.
+        star.owners = {":10001", "aiocqhttp:", "None:10001", "aiocqhttp:None"}
+        for event in (Event(platform=""), Event(platform=None), Event(sender=""), Event(sender=None)):
+            self.ask(star, event, Request())
+        self.assertEqual(star.client.queries, [])
+
+    def test_no_warning_when_every_entry_is_prefixed(self):
+        self.star()
+        self.assertEqual([line for line in self.logger.lines if "OWNER_IDS" in line], [])
+
+    def test_recall_and_remember_send_the_context(self):
+        class Recorder(FakeClient):
+            sent = []
+
+            def remember_messages(self, messages, deadline=None, tenant_id=None, context=None):
+                self.sent.append(context)
+                return "saved"
+
+        client = Recorder()
+        star = self.star(client=client)
+        self.ask(star, Event(), Request())
+        self.ask(star, Event(group="20002", sender="30003", platform="telegram"), Request())
+        self.assertEqual(client.contexts, [{"channel": "aiocqhttp", "chat": "private"},
+                                           {"channel": "telegram", "chat": "group"}])
+        asyncio.run(star.remember_tool(Event(), "喜欢乌龙茶"))
+        asyncio.run(star.remember_tool(Event(group="20002", platform="telegram"), "喜欢乌龙茶"))
+        self.assertEqual(client.sent, [{"channel": "aiocqhttp", "chat": "private"},
+                                       {"channel": "telegram", "chat": "group"}])
 
 
 if __name__ == "__main__":

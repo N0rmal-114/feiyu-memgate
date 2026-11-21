@@ -4,16 +4,19 @@
 [stores.private]
 type = "sqlite"
 path = "data/private.db"
+audience = "owner"                    # 只给主人看（不写时也是 owner）；公开的客户端读它，网关会拒绝启动
 
 [stores.public_list]
 type = "sqlite"
 path = "data/public-list.db"
+audience = "public"                   # 里面的内容都可以给任何人看；群聊客户端只能读声明了 public 的共享存储
 
 [tenants.group]
 type = "directory"
 path = "data/groups"                  # 每个群一个 <群号>.db
 id_pattern = "[0-9]{5,12}"
 create = false                        # 只有登记过的群才有记忆，不会替陌生群建库
+audience = "group"                    # 每个群的存储只给这个群看（不写时也是 group）
 
 [clients.owner]
 token_env = "GATEWAY_TOKEN_OWNER"
