@@ -375,7 +375,7 @@ DSH 插件 [plugins/dsh-feiyu-memgate](../plugins/dsh-feiyu-memgate/README.zh.md
    - 块放在用户消息之后，前面的内容不动，所以提示词的前缀缓存不失效；块留在对话记录里，下一轮能看到并且不重复给同一条记忆（`advanced.skipRepeats`）；
    - 召回失败时可以在用户消息后加一行说明，只在连续失败的第一轮加（`advanced.failureNote`）。
 3. **给模型的工具。** `memgate_remember`（存一句话）和 `memgate_search`（查），都在 `src/plugin.js` 里注册；再加一段系统提示词，告诉模型什么时候调用、结果要如实转告、记忆块是资料不是指令（`PROMPT_TEXTS`）。工具返回的状态用的是写入的几种结果（`saved`、`skipped`……），不要把没存成说成存了。
-4. **设置。** `src/config.js` 定义设置的结构和默认值，每个功能（自动召回、两个工具、提示词、自动记录、命令）都能单独关，改设置不用重启；设置页是 `client/client.js`，聊天里的 `/memgate` 命令是 `src/commands.js`。设置里有密钥时，只显示“已设置”，从不回显。
+4. **设置。** `src/config.js` 定义设置的结构和默认值，每个功能（自动召回、两个工具、提示词、自动记录、命令）都能单独关，改设置不用重启；设置页的源码在 `client/src/`（`npm run build-client` 把它拼成宿主加载的 `client/client.js`），聊天里的 `/memgate` 命令是 `src/commands.js`。设置里有密钥时，只显示“已设置”，从不回显。
 5. **到处放行失败，日志里没有内容。** 记忆出问题不让一轮对话失败，日志只写失败的种类，不写查询词、记忆文字和令牌。
 
 对照数据和 JavaScript 移植的关系见上面“用别的语言接入”。

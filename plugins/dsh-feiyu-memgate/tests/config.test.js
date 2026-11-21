@@ -336,3 +336,64 @@ test('the relevance check: a switch that is off, a provider and a model that are
   const dict = buildConfigSchema(recordingSchema()).dict.advanced.dict
   assert.deepEqual([dict.relevanceTimeoutMs.meta.min, dict.relevanceTimeoutMs.meta.max], [500, 10000])
 })
+
+// The optional attributes of a field row (needs, unit, experimental) are for the settings page only.
+const possibleValues = (field) => (field.kind === 'boolean' ? [true, false] : field.kind === 'choice' ? field.options.map((option) => option.value) : null)
+
+test('needs: every field that depends on another names a real setting, a value it can hold, and never loops', () => {
+  let count = 0
+  for (const [name, field] of Object.entries(SETTING_KEYS)) {
+    if (!field.needs) continue
+    count += 1
+    const target = SETTING_KEYS[field.needs.key]
+    assert.ok(target, `${name} needs ${field.needs.key}, which is not a setting`)
+    assert.notEqual(field.needs.key, name, `${name} needs itself`)
+    assert.ok(Array.isArray(field.needs.in) && field.needs.in.length > 0, `${name}: needs.in is a non-empty list`)
+    const possible = possibleValues(target)
+    assert.ok(possible, `${name} needs ${field.needs.key}, which is neither a boolean nor a choice`)
+    for (const value of field.needs.in) assert.ok(possible.includes(value), `${name}: ${JSON.stringify(value)} is not a value of ${field.needs.key}`)
+    // Walk the chain of needs: it must end, without meeting a field twice.
+    const seen = new Set([name])
+    for (let next = field.needs.key; next; next = SETTING_KEYS[next].needs?.key) {
+      assert.ok(!seen.has(next), `${name}: needs loop through ${next}`)
+      seen.add(next)
+    }
+  }
+  assert.equal(count, 20, 'the fields that depend on another one')
+  const needs = (name) => SETTING_KEYS[name].needs
+  assert.deepEqual(needs('retrieval.hybrid'), { key: 'retrieval.tier', in: ['auto', 'endpoint', 'local'] })
+  assert.deepEqual(needs('retrieval.apiKey'), { key: 'retrieval.tier', in: ['endpoint'] })
+  assert.deepEqual(needs('external.token'), { key: 'gateway.mode', in: ['external'] })
+  assert.deepEqual(needs('advanced.captureMinChars'), { key: 'modules.autoCapture', in: [true] })
+  assert.deepEqual(needs('advanced.forgetting'), { key: 'gateway.mode', in: ['managed'] })
+  assert.equal(needs('advanced.recallLimit'), undefined)
+})
+
+test('unit is a word in both languages on integer fields only; experimental marks four boolean switches', () => {
+  const units = {}
+  for (const [name, field] of Object.entries(SETTING_KEYS)) {
+    if (field.unit !== undefined) {
+      assert.equal(field.kind, 'integer', `${name}: unit on a field that is not an integer`)
+      assert.ok(field.unit.en && field.unit.zh, `${name}: unit has en and zh`)
+      units[name] = [field.unit.en, field.unit.zh]
+    }
+  }
+  assert.deepEqual(units, {
+    'advanced.recallLimit': ['memories', '条'], 'advanced.recallTimeoutMs': ['ms', '毫秒'], 'advanced.captureMinChars': ['characters', '字'],
+    'advanced.maxNewPerTurn': ['memories', '条'], 'advanced.relevanceTimeoutMs': ['ms', '毫秒'], 'advanced.afterthoughtMax': ['memories', '条'],
+    'advanced.poolSize': ['memories', '条'], 'advanced.recentSize': ['memories', '条'], 'advanced.recentDays': ['days', '天'], 'advanced.dailyWrites': ['per day', '条/天'],
+  })
+  const experimental = Object.entries(SETTING_KEYS).filter(([, field]) => field.experimental !== undefined)
+  for (const [name, field] of experimental) assert.deepEqual([name, field.kind, field.experimental], [name, 'boolean', true])
+  assert.deepEqual(experimental.map(([name]) => name), ['advanced.relevanceCheck', 'advanced.afterthought', 'advanced.conversationPool', 'advanced.recentPool'])
+})
+
+test('the schema does not carry the page-only attributes of a field', () => {
+  const dict = buildConfigSchema(recordingSchema()).dict
+  for (const group of FIELDS) {
+    for (const field of group.fields) {
+      const meta = JSON.stringify(dict[group.group].dict[field.key])
+      for (const word of ['needs', 'unit', 'experimental']) assert.ok(!meta.includes(`"${word}"`), `${group.group}.${field.key}: ${word} in the schema`)
+    }
+  }
+})

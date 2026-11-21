@@ -1,5 +1,5 @@
-// The browser half (client/client.js), offline: it is a plain script in the client module system's
-// lazy-CJS form, its field table is current, it registers its dictionaries and the row's settings
+// The browser half (client/client.js, assembled from client/src), offline: it is a plain script in the
+// client module system's lazy-CJS form, its generated parts are current, it registers its dictionaries and the row's settings
 // page, and the page's logic (staged edits, one mutation per save, secrets write-only, status rows)
 // behaves. React is a small stand-in that expands function components with inert hooks; what only a
 // running Desktop can show (styles, the real slot renderer) is not claimed here.
@@ -7,7 +7,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import vm from 'node:vm'
-import { render } from '../scripts/sync-client.mjs'
+import { sync } from '../scripts/sync-client.mjs'
 import { FIELDS } from '../src/config.js'
 import { CHANGELOG_PATH, MODELS_PATH, STATUS_PATH } from '../src/plugin.js'
 import { ADDON_CONFIRM } from '../src/setup.js'
@@ -91,7 +91,7 @@ const formState = (overrides = {}) => ({
 })
 
 test('a plain script in the lazy-CJS form: registers the package name, asks only for shared modules', () => {
-  assert.match(SOURCE, /window\.__ModuleLoader__\.load\(\{ id: 'dsh-feiyu-memgate', factory: \(require\) => \{/)
+  assert.match(SOURCE, /window\.__ModuleLoader__\.load\(\{ id: 'dsh-feiyu-memgate', factory: \(hostRequire\) => \{/)
   assert.ok(!/^\s*(import|export)\s/m.test(SOURCE), 'no module syntax: the page runs it as a script')
   const { registered, exports, required } = load()
   assert.equal(registered.id, pkg.name)
@@ -99,11 +99,16 @@ test('a plain script in the lazy-CJS form: registers the package name, asks only
   assert.equal(exports.name, 'dsh-feiyu-memgate')
   assert.deepEqual(plain(exports.inject), ['slots', 'locale'])
   assert.equal(typeof exports.apply, 'function')
-  assert.deepEqual([...SOURCE.matchAll(/require\('([^']+)'\)/g)].map((m) => m[1]), ['react', '@deepseek-ai/dsh-client-ui-primitives'])
+  // Relative requires are the bundle's own modules; every other name goes to the host (the modules
+  // are in id order in the file, so compare as a set).
+  const hostIds = [...SOURCE.matchAll(/require\('([^']+)'\)/g)].map((m) => m[1]).filter((id) => !id.startsWith('.'))
+  assert.deepEqual(hostIds.sort(), ['@deepseek-ai/dsh-client-ui-primitives', 'react'])
 })
 
-test('the field table in the script is the one in src/config.js (npm run sync-client)', () => {
-  assert.equal(render(SOURCE), SOURCE, 'client/client.js is stale: run npm run sync-client')
+test('client/src/fields.cjs is the field table of src/config.js and client/client.js is assembled from client/src (npm run sync-client)', () => {
+  const { fields, client } = sync({ check: true })
+  assert.ok(fields.current, 'client/src/fields.cjs is stale: run npm run sync-client')
+  assert.ok(client.current, 'client/client.js is stale: run npm run sync-client')
   assert.deepEqual(plain(load().internals.FIELDS), plain(FIELDS))
 })
 

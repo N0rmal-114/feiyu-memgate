@@ -11,6 +11,12 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'))
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8')
 
+// Every file under client/src, as a path relative to the package root.
+function clientSources(dir = 'client/src') {
+  return fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })
+    .flatMap((entry) => (entry.isDirectory() ? clientSources(`${dir}/${entry.name}`) : [`${dir}/${entry.name}`]))
+}
+
 // Just enough of semver to check engines.dsh the way the host does (includePrerelease, see
 // packages/boot/app-boot/src/plugin-compatibility.ts:51-53) and the way npm does by default (a
 // prerelease only matches a comparator of the same version that has a prerelease too).
@@ -69,6 +75,7 @@ test('manifest fields', () => {
   assert.deepEqual(Object.keys(pkg.devDependencies ?? {}), [], 'no build tool: the browser half is a plain script')
   for (const key of ['.', './client', './package.json', './cordis.patch.yml', './locale/*.json']) assert.ok(pkg.exports[key], key)
   assert.equal(pkg.scripts['sync-client'], 'node scripts/sync-client.mjs')
+  assert.equal(pkg.scripts['build-client'], 'node scripts/build-client.mjs')
   assert.equal(pkg.scripts['sync-catalogue'], 'node scripts/sync-catalogue.mjs')
 })
 
@@ -210,12 +217,13 @@ test('the keyword index helper ships with the plugin and imports only the standa
 test('files of this task hold no local paths, private data or vendor names', () => {
   const own = [
     'index.js', 'package.json', 'cordis.patch.yml', '.gitignore', '.npmignore', 'locale/en.json', 'locale/zh.json',
-    'scripts/sync-gateway.mjs', 'scripts/sync-client.mjs', 'scripts/sync-catalogue.mjs', 'client/client.js',
+    'scripts/sync-gateway.mjs', 'scripts/sync-client.mjs', 'scripts/build-client.mjs', 'scripts/sync-catalogue.mjs',
+    'client/client.js', 'client/README.md', ...clientSources(),
     'src/plugin.js', 'src/config.js', 'src/gateway.js', 'src/tiers.js', 'src/commands.js', 'src/migrate.js', 'src/migrate.py',
     'src/mirror.py', 'src/setup.js', 'src/catalogue.js',
     'tests/plugin.test.js', 'tests/plugin-host.test.js', 'tests/gateway.test.js', 'tests/config.test.js', 'tests/package.test.js',
     'tests/tiers.test.js', 'tests/commands.test.js', 'tests/migrate.test.js', 'tests/mirror.test.js', 'tests/client-page.test.js',
-    'tests/setup.test.js', 'tests/catalogue.test.js',
+    'tests/client-build.test.js', 'tests/client-modules.test.js', 'tests/setup.test.js', 'tests/catalogue.test.js',
     'README.md', 'README.zh.md', 'docs/DETAIL.md', 'docs/DETAIL.en.md',
     ...fs.readdirSync(path.join(ROOT, 'tests', 'helpers')).map((f) => 'tests/helpers/' + f),
   ]
@@ -231,4 +239,12 @@ test('files of this task hold no local paths, private data or vendor names', () 
     assert.ok(!localPath.test(text), `${rel}: local path`)
     assert.ok(!email.test(text), `${rel}: e-mail address`)
   }
+})
+
+test('the settings page sources, the assembled script and the scripts that make it are shipped, with LF line endings', () => {
+  assert.ok(pkg.files.includes('client/'), 'client/ holds client.js, src/ and README.md')
+  for (const rel of ['client/client.js', 'client/README.md', 'scripts/build-client.mjs', 'scripts/sync-client.mjs', ...clientSources()]) {
+    assert.ok(!read(rel).includes('\r'), `${rel}: CR in a file written with LF`)
+  }
+  assert.ok(clientSources().includes('client/src/index.cjs'), 'the entry module the assembly loads')
 })

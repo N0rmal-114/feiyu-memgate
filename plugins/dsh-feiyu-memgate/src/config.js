@@ -23,9 +23,20 @@ import { TIER_CHOICES, TIERS } from './tiers.js'
 
 const VOLATILE_WRITE = Symbol.for('cosmokit.volatile.write') // vendor/cosmokit/src/volatile.ts, isVolatile()
 
-const bool = (key, value, label, help) => ({ key, kind: 'boolean', default: value, label, help })
+// `extra` carries the optional attributes described above GROUPS (needs, unit, experimental).
+const bool = (key, value, label, help, extra) => ({ key, kind: 'boolean', default: value, label, help, ...extra })
 
 // One row per field, in form order. kind: boolean | integer | choice | string.
+// Optional attributes describe a setting to the settings page; the schema, readConfig() and
+// parseSetting() do not use them:
+//   needs: { key: '<group>.<field>', in: [values] }
+//       the field has an effect only while that other setting holds one of these values (a boolean
+//       or one of its choice options); the page can fold or dim the field otherwise. A chain of
+//       needs is allowed, a loop is not.
+//   unit: { en, zh }
+//       a short word shown after the number of an integer field ("memories", "ms").
+//   experimental: true
+//       a boolean switch that is measured offline only; the page marks it.
 const GROUPS = [
   {
     key: 'modules',
@@ -88,14 +99,14 @@ const GROUPS = [
       bool('hybrid', false, { en: 'Combine with keyword search (hybrid)', zh: '同时用关键词检索（混合）' }, {
         en: 'Applies to the vector tiers (endpoint, local, and auto while it resolves to local); under keyword it does nothing. Keyword and vector search are both asked and their results fused. It uses the same vector store file as the tier without it, plus a keyword index file next to it, so switching it on or off loses no memory.',
         zh: '用于向量检索（endpoint、local，以及 auto 选到 local 的时候）；在 keyword 下不起作用。关键词检索和向量检索同时查，结果合并。它用的向量存储文件和不开它时相同，旁边多一个关键词索引文件，所以开或关都不会丢记忆。',
-      }),
-      { key: 'url', kind: 'string', default: '', format: 'url',
+      }, { needs: { key: 'retrieval.tier', in: ['auto', 'endpoint', 'local'] } }),
+      { key: 'url', kind: 'string', default: '', format: 'url', needs: { key: 'retrieval.tier', in: ['endpoint'] },
         label: { en: 'Endpoint URL', zh: '向量接口地址' },
         help: { en: 'endpoint tier: base URL of an OpenAI-compatible embeddings API, for example http://127.0.0.1:11434/v1.', zh: 'endpoint 方式：OpenAI 兼容向量接口的基础地址，例如 http://127.0.0.1:11434/v1。' } },
-      { key: 'model', kind: 'string', default: '',
+      { key: 'model', kind: 'string', default: '', needs: { key: 'retrieval.tier', in: ['endpoint'] },
         label: { en: 'Endpoint model', zh: '向量模型' },
         help: { en: 'endpoint tier: the embeddings model name. A different model starts a new, empty store.', zh: 'endpoint 方式：向量模型的名字。换模型会用一个新的空存储。' } },
-      { key: 'apiKey', kind: 'string', default: '', secret: true,
+      { key: 'apiKey', kind: 'string', default: '', secret: true, needs: { key: 'retrieval.tier', in: ['endpoint'] },
         label: { en: 'Endpoint API key', zh: '向量接口密钥' },
         help: { en: 'endpoint tier: the API key of the embeddings endpoint, if it needs one. It is never shown again after saving.', zh: 'endpoint 方式：向量接口的密钥（需要的话）。保存后不再显示。' } },
     ],
@@ -115,10 +126,10 @@ const GROUPS = [
         ],
         label: { en: 'Gateway mode', zh: '网关模式' },
         help: { en: 'managed starts the gateway that ships with the plugin; external talks to the address under External gateway.', zh: 'managed 启动插件自带的网关；external 连接“外部网关”里填写的地址。' } },
-      { key: 'python', kind: 'string', default: '',
+      { key: 'python', kind: 'string', default: '', needs: { key: 'gateway.mode', in: ['managed'] },
         label: { en: 'Python interpreter', zh: 'Python 解释器' },
         help: { en: "managed: the Python to use (3.11 or newer). Empty: the desktop app's bundled Python, then python3, python and py -3.", zh: 'managed：使用哪个 Python（3.11 或更新）。留空：先用桌面版自带的 Python，再找 python3、python、py -3。' } },
-      { key: 'dataDir', kind: 'string', default: '',
+      { key: 'dataDir', kind: 'string', default: '', needs: { key: 'gateway.mode', in: ['managed'] },
         label: { en: 'Data folder', zh: '数据文件夹' },
         help: { en: 'managed: the folder for the memory stores, the generated gateway configuration and its log. Empty: data/feiyu-memgate in the DSH home folder.', zh: 'managed：存放记忆库、生成的网关配置和日志的文件夹。留空：DSH 主目录下的 data/feiyu-memgate。' } },
     ],
@@ -128,10 +139,10 @@ const GROUPS = [
     label: { en: 'External gateway', zh: '外部网关' },
     help: { en: 'Used only in external mode.', zh: '只在 external 模式下使用。' },
     fields: [
-      { key: 'url', kind: 'string', default: '', format: 'url',
+      { key: 'url', kind: 'string', default: '', format: 'url', needs: { key: 'gateway.mode', in: ['external'] },
         label: { en: 'Gateway URL', zh: '网关地址' },
         help: { en: 'The gateway address, for example http://127.0.0.1:8080.', zh: '网关地址，例如 http://127.0.0.1:8080。' } },
-      { key: 'token', kind: 'string', default: '', secret: true,
+      { key: 'token', kind: 'string', default: '', secret: true, needs: { key: 'gateway.mode', in: ['external'] },
         label: { en: 'Client token', zh: '客户端令牌' },
         help: { en: 'The client token that gateway issued for this client. It is never shown again after saving.', zh: '那个网关给这个客户端的令牌。保存后不再显示。' } },
     ],
@@ -144,10 +155,10 @@ const GROUPS = [
       zh: '召回细节和自带网关的规则（规则只用于 managed 模式；外部网关按它自己的配置）。',
     },
     fields: [
-      { key: 'recallLimit', kind: 'integer', default: 5, min: 1, max: 10,
+      { key: 'recallLimit', kind: 'integer', default: 5, min: 1, max: 10, unit: { en: 'memories', zh: '条' },
         label: { en: 'Memories per turn', zh: '每轮记忆条数' },
         help: { en: 'Most memories added per turn (1 to 10); also the default number of memgate_search results.', zh: '每轮最多加入几条记忆（1 到 10），也是 memgate_search 默认返回的条数。' } },
-      { key: 'recallTimeoutMs', kind: 'integer', default: 4000, min: 500, max: 20000,
+      { key: 'recallTimeoutMs', kind: 'integer', default: 4000, min: 500, max: 20000, unit: { en: 'ms', zh: '毫秒' },
         label: { en: 'Recall time limit (ms)', zh: '召回等待上限（毫秒）' },
         help: { en: 'How long a turn waits for automatic recall (500 to 20000 ms). A slower lookup is skipped for that turn.', zh: '每轮最多等自动召回多少毫秒（500 到 20000）。超时的话这一轮不加记忆。' } },
       { key: 'language', kind: 'choice', default: 'auto',
@@ -174,7 +185,7 @@ const GROUPS = [
         en: 'When the lookup of a turn times out, fails, or the bundled gateway is still starting, add one short note after the user message, so the model does not take it for "no related memory". Only on the first turn of a failure streak.',
         zh: '这一轮的查询超时、出错，或者自带网关还在启动时，在用户消息之后加一行说明，免得模型当作“没有相关记忆”。连续失败时只在第一轮加。',
       }),
-      { key: 'captureMinChars', kind: 'integer', default: 4, min: 0, max: 50,
+      { key: 'captureMinChars', kind: 'integer', default: 4, min: 0, max: 50, unit: { en: 'characters', zh: '字' }, needs: { key: 'modules.autoCapture', in: [true] },
         label: { en: 'Automatic capture: shortest message', zh: '自动记录：最短的消息' },
         help: { en: 'With automatic capture on, a message is not saved when it is a command, only filler, or has fewer meaningful characters than this (0 to 50; punctuation, spaces and emoji do not count). 0 turns the length check off.', zh: '自动记录打开时，命令、只有语气词的消息，以及有意义的字数少于这个数的消息不保存（0 到 50；标点、空格和表情不算字数）。0 表示不按字数过滤。' } },
       { key: 'blockTone', kind: 'choice', default: 'normal',
@@ -187,7 +198,7 @@ const GROUPS = [
           en: 'The sentence at the top of the memory block. strict says that most of the memories are unrelated to the message and that the model should use one only when it clearly fits. Offline, this made replies use an unrelated memory far less often, and also made them use a related one less often. Applies to the automatic block only, not to memgate_search.',
           zh: '记忆块最上面的那句话。strict 会说明这些记忆大多和消息无关，只有明显有关的才用。离线测量里，这让回复用上无关记忆的次数少了很多，用上相关记忆的次数也少了一些。只用于自动召回的记忆块，不用于 memgate_search。',
         } },
-      { key: 'maxNewPerTurn', kind: 'integer', default: 0, min: 0, max: 5,
+      { key: 'maxNewPerTurn', kind: 'integer', default: 0, min: 0, max: 5, unit: { en: 'memories', zh: '条' },
         label: { en: 'New memories per turn', zh: '每轮最多新给几条' },
         help: {
           en: 'From the second turn of a conversation on, the memory block carries at most this many memories (0 to 5; 0 means no limit), the first ones the gateway returned after those already shown are left out. The "more" line counts the ones left out. The first turn and the second block are not limited.',
@@ -197,39 +208,39 @@ const GROUPS = [
       bool('relevanceCheck', false, { en: 'Let a model pick the related memories first', zh: '回复前让模型先挑一遍' }, {
         en: 'Before the memory block of a turn is given, a model looks at the message and the candidate memories and picks the ones a friend would think of; only those go into the block. Costs one more model call before the reply on every turn that has candidates: slower, and billed like any other use of that model. The message and the candidate memories are sent to the provider of that model. If the call fails or is too slow, the block is given as if this were off. The second block is not checked, and neither is memgate_search. Needs modules.autoRecall.',
         zh: '这一轮的记忆块给出之前，让一个模型看一遍用户的消息和候选记忆，挑出“一个了解主人的朋友会想到”的几条，只有这几条进记忆块。每一轮只要有候选记忆，回复之前就多一次模型调用：更慢，也和这个模型的其他用法一样计费。消息和候选记忆会发给这个模型的提供方。调用失败或太慢时，照没打开这项那样给出记忆块。第二个块不检查，memgate_search 也不检查。需要 modules.autoRecall。',
-      }),
-      { key: 'relevanceProvider', kind: 'string', default: '',
+      }, { experimental: true }),
+      { key: 'relevanceProvider', kind: 'string', default: '', needs: { key: 'advanced.relevanceCheck', in: [true] },
         label: { en: 'Provider of the model that picks', zh: '挑选用的模型的提供方' },
         help: { en: 'Together with the model setting: names another provider and model for the check, for example a cheaper one. Both empty means the model of the conversation. Only one of the two set counts as both empty.', zh: '和“挑选用的模型”一起填：为这一步指定另一个提供方和模型，比如便宜一点的。两项都空表示用对话本身的模型。只填其中一项等于两项都空。' } },
-      { key: 'relevanceModel', kind: 'string', default: '',
+      { key: 'relevanceModel', kind: 'string', default: '', needs: { key: 'advanced.relevanceCheck', in: [true] },
         label: { en: 'Model that picks', zh: '挑选用的模型' },
         help: { en: 'Together with the provider setting. Both empty means the model of the conversation.', zh: '和“挑选用的模型的提供方”一起填。两项都空表示用对话本身的模型。' } },
-      { key: 'relevanceTimeoutMs', kind: 'integer', default: 3000, min: 500, max: 10000,
+      { key: 'relevanceTimeoutMs', kind: 'integer', default: 3000, min: 500, max: 10000, unit: { en: 'ms', zh: '毫秒' }, needs: { key: 'advanced.relevanceCheck', in: [true] },
         label: { en: 'Time limit of the check (ms)', zh: '挑选的时限（毫秒）' },
         help: { en: 'With the check on: how long the pick may take (500 to 10000 ms). A slower one is given up and the block is given as if the check were off.', zh: '打开挑选之后：这一步最多等多久（500 到 10000 毫秒）。超时就放弃，照没打开挑选那样给出记忆块。' } },
       // Prototypes, off by default (docs/design/2026-11-18-recall-with-a-model.md): measured offline only.
       bool('afterthought', false, { en: 'Recall again after replying', zh: '回复之后再想一想' }, {
         en: "Experimental. After each reply, look memories up once more in the background with the reply as the query, and give the ones this conversation has not had yet on the next turn, in a second block after the memory block. Costs one more lookup per turn; the added block makes the context longer, and it may hold memories unrelated to the new message. Under keyword retrieval the second lookup matches words of the reply. Needs modules.autoRecall.",
         zh: '实验功能。每次回复之后，在后台拿这条回复再查一次记忆，把这个对话里还没给过的记忆在下一轮放进记忆块之后的第二个块里。每轮多一次查询；多出来的块会让上下文变长，里面可能有和新消息无关的记忆。用 keyword 检索时，第二次查询匹配的是回复里的词。需要 modules.autoRecall。',
-      }),
-      { key: 'afterthoughtMax', kind: 'integer', default: 2, min: 1, max: 5,
+      }, { experimental: true }),
+      { key: 'afterthoughtMax', kind: 'integer', default: 2, min: 1, max: 5, unit: { en: 'memories', zh: '条' }, needs: { key: 'advanced.afterthought', in: [true] },
         label: { en: 'Memories a second lookup may add', zh: '再想一想最多加几条' },
         help: { en: 'With advanced.afterthought on: the most memories one second lookup keeps for the next turn (1 to 5).', zh: '回复之后再想一想打开时：一次再查最多留几条给下一轮（1 到 5）。' } },
       bool('conversationPool', false, { en: 'Conversation pool', zh: '对话池' }, {
         en: 'Experimental. Remember in memory what this conversation was given. When the host has compacted the history and those memory blocks are gone, give the few that were still in play once more, in a second block after the memory block. A memory stays in play for about five turns after it was given, longer when your messages or the replies of the model keep using it. The block makes the context longer and may hold memories unrelated to the new message. Nothing is written to disk. Needs modules.autoRecall.',
         zh: '实验功能。在内存里记住这个对话给过哪些记忆。宿主压缩了历史、那些记忆块不在了的时候，把仍在谈论中的几条再给一次，放在记忆块之后的第二个块里。一条记忆给出之后约五轮内算仍在谈论中，你的消息或模型的回复一再用到它则更久。多出来的块会让上下文变长，里面可能有和新消息无关的记忆。不写入磁盘。需要 modules.autoRecall。',
-      }),
-      { key: 'poolSize', kind: 'integer', default: 3, min: 1, max: 5,
+      }, { experimental: true }),
+      { key: 'poolSize', kind: 'integer', default: 3, min: 1, max: 5, unit: { en: 'memories', zh: '条' }, needs: { key: 'advanced.conversationPool', in: [true] },
         label: { en: 'Memories the pool brings back', zh: '对话池一次带回几条' },
         help: { en: 'With advanced.conversationPool on: the most memories the pool brings back in one turn (1 to 5).', zh: '对话池打开时：一轮最多带回几条（1 到 5）。' } },
       bool('recentPool', false, { en: 'Recent pool', zh: '近期池' }, {
         en: 'Experimental. When a new conversation starts, give once, at its first turn, the memories the previous conversation was still using, in a second block after the memory block. To do that a small file (recent-pool.json) with those memories is kept in the data folder. Switching this off deletes the file. The block makes the context longer and may hold memories unrelated to the new message. Needs modules.autoRecall.',
         zh: '实验功能。新的对话开始时，在它的第一轮把上一个对话还在用的记忆给一次，放在记忆块之后的第二个块里。为此要在数据文件夹里放一个小文件（recent-pool.json），里面是这几条记忆。关掉这项会删除这个文件。多出来的块会让上下文变长，里面可能有和新消息无关的记忆。需要 modules.autoRecall。',
-      }),
-      { key: 'recentSize', kind: 'integer', default: 3, min: 1, max: 5,
+      }, { experimental: true }),
+      { key: 'recentSize', kind: 'integer', default: 3, min: 1, max: 5, unit: { en: 'memories', zh: '条' }, needs: { key: 'advanced.recentPool', in: [true] },
         label: { en: 'Memories the recent pool carries', zh: '近期池一次带上几条' },
         help: { en: 'With advanced.recentPool on: the most memories carried into a new conversation (1 to 5).', zh: '近期池打开时：带进新对话的记忆最多几条（1 到 5）。' } },
-      { key: 'recentDays', kind: 'integer', default: 7, min: 1, max: 30,
+      { key: 'recentDays', kind: 'integer', default: 7, min: 1, max: 30, unit: { en: 'days', zh: '天' }, needs: { key: 'advanced.recentPool', in: [true] },
         label: { en: 'Days the recent pool is kept', zh: '近期池保留几天' },
         help: { en: 'With advanced.recentPool on: a saved conversation older than this many days is not carried into a new one (1 to 30).', zh: '近期池打开时：保存下来的对话超过这么多天，就不再带进新对话（1 到 30）。' } },
       // broad is the default since 0.2.0, like the gateway's own default: in a chat a topic usually touches
@@ -241,21 +252,21 @@ const GROUPS = [
         ],
         label: { en: 'Recall profile', zh: '召回档位' },
         help: { en: 'How strict the gateway is about what counts as related. The memory block stays in the conversation, so broad makes the context grow faster.', zh: '网关判断“相关”的严格程度。记忆块会留在对话里，broad 会让上下文涨得更快。' } },
-      { key: 'dailyWrites', kind: 'integer', default: 50, min: 0, max: 100000,
+      { key: 'dailyWrites', kind: 'integer', default: 50, min: 0, max: 100000, unit: { en: 'per day', zh: '条/天' }, needs: { key: 'gateway.mode', in: ['managed'] },
         label: { en: 'Daily write cap', zh: '每日写入上限' },
         help: { en: 'Most memories the gateway accepts per day; 0 means no cap. The count starts again whenever the gateway restarts.', zh: '网关每天最多收下几条记忆；0 表示不限。网关重启后重新计数。' } },
       bool('redaction', true, { en: 'Redact secrets', zh: '去掉秘密' }, {
         en: 'Remove secrets such as keys, tokens and passwords from memories when they are saved and when they are recalled.',
         zh: '保存和召回记忆时去掉密钥、令牌、密码这类秘密。',
-      }),
+      }, { needs: { key: 'gateway.mode', in: ['managed'] } }),
       bool('newerFirst', true, { en: 'Newer first', zh: '新的优先' }, {
         en: 'Among nearly equal matches, put newer memories first.',
         zh: '相关度差不多时，较新的记忆排在前面。',
-      }),
+      }, { needs: { key: 'gateway.mode', in: ['managed'] } }),
       bool('forgetting', false, { en: 'Forgetting curve', zh: '遗忘曲线' }, {
         en: 'Memories unused for a long time rank lower and are eventually archived and removed (at most a few per day). Archived memories stay in the data folder for 90 days.',
         zh: '很久没用到的记忆排得更靠后，最终存档并删除（每天最多几条）。存档的记忆在数据文件夹里保留 90 天。',
-      }),
+      }, { needs: { key: 'gateway.mode', in: ['managed'] } }),
     ],
   },
 ]

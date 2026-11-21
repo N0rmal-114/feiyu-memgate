@@ -139,9 +139,10 @@ DSH 聊天宿主的主插件：自带并启动网关，每轮自动召回，给�
 | `src/catalogue.js` | 设置页在附加包没装时显示的本地模型清单，其中 `<catalogue>` 标记之间是生成的 |
 | `src/migrate.js`、`src/migrate.py` | 切到向量档位时，把关键词存储里的记忆分批复制过去；`.py` 用网关的 Python 解释器运行 |
 | `src/mirror.py` | 混合检索：让关键词索引和向量库保持同一批记忆，起网关之前由 `gateway.js` 运行 |
-| `client/client.js` | 设置页（浏览器那一半），手写的单个脚本，没有构建步骤，其中 `<fields>` 标记之间是生成的 |
+| `client/src/` | 设置页（浏览器那一半）的源码：按职责拆成的一组小模块（`.cjs`），其中 `fields.cjs` 是生成的；分工和规则见 [client/README.md](../plugins/dsh-feiyu-memgate/client/README.md) |
+| `client/client.js` | 设置页脚本，**由 `npm run build-client` 从 `client/src/` 拼出来，不要手改**；宿主只加载这一个文件 |
 | `python/` | 打包进去的网关，是 `src/feiyu_memgate/` 的一份拷贝，不要手改，见 [生成的和打包的部分](#插件里生成的和打包的部分) |
-| `scripts/` | `sync-gateway.mjs`、`sync-client.mjs`、`sync-catalogue.mjs` |
+| `scripts/` | `sync-gateway.mjs`、`sync-client.mjs`、`build-client.mjs`、`sync-catalogue.mjs` |
 | `tools/make-parity-fixtures.py` | 用真正的 Python 客户端生成对照数据 |
 | `tests/` | `node --test` 的测试；`fixtures/parity/` 是对照数据，`helpers/` 是假宿主 |
 | `locale/`、`docs/`、`cordis.patch.yml` | 界面文字、插件管理页显示的说明、安装时往宿主配置里加一行的补丁 |
@@ -196,11 +197,12 @@ CI 用的是 Node 22，也就是插件支持的最低版本。推送之前最好
 
 ## 插件里生成的和打包的部分
 
-主插件里有三处不是手写的。改了源头，要重新生成；CI 只检查其中两处是不是最新。
+主插件里有几处不是手写的：`client/src/fields.cjs`、`client/client.js`、`src/catalogue.js` 里的清单和 `python/`。改了源头，要重新生成；CI 只检查其中两条命令的结果是不是最新（`sync-client` 同时管前两个文件）。
 
 | 命令（在 `plugins/dsh-feiyu-memgate/` 里） | 复制什么、到哪里 | 什么时候要运行 | `--check` |
 |---|---|---|---|
-| `npm run sync-client` | `src/config.js` 里的 `FIELDS` 字段表 → `client/client.js` 里 `// <fields>` 和 `// </fields>` 之间。设置页是浏览器里直接加载的单个脚本，不能导入 `src/` 里的模块，所以要有一份拷贝 | 改了 `src/config.js` 里的设置（加、删、改默认值）之后 | `npm run sync-client -- --check`：拷贝不是最新就报错退出（状态 1），不改文件；`tests/client-page.test.js` 做同样的检查 |
+| `npm run sync-client` | 先把 `src/config.js` 里的 `FIELDS` 字段表写成 `client/src/fields.cjs`（设置页在浏览器里运行，不能导入 `src/` 里的模块，所以要有一份拷贝），再调用 `build-client` | 改了 `src/config.js` 里的设置（加、删、改默认值、`needs`、`unit`、`experimental`）之后 | `npm run sync-client -- --check`：`fields.cjs` 或 `client/client.js` 不是最新就报错退出（状态 1），不改文件；`tests/client-page.test.js` 做同样的检查 |
+| `npm run build-client` | `client/src/` 里的全部 `.cjs` 和 `.css` 文件 → `client/client.js`。宿主只加载一个脚本，所以把模块按路径排序后拼在一起，放进一个几十行的小注册表里，不编译、不压缩，结果不随平台、日期或路径变化 | 改了 `client/src/` 里的任何文件之后（改了设置的话直接运行 `sync-client`） | `npm run build-client -- --check`：`client/client.js` 不是最新就报错退出（状态 1），不改文件；CI 里由 `sync-client -- --check` 一并检查 |
 | `npm run sync-catalogue` | 附加包 `../dsh-feiyu-memgate-embed/src/models.js` 里的模型清单（编号、名称、档位、下载大小、实测内存、语言、许可证）→ `src/catalogue.js` 里 `// <catalogue>` 和 `// </catalogue>` 之间，不复制下载地址和校验值。`-- --from <models.js>` 读另一份检出 | 改了附加包的模型清单之后 | `npm run sync-catalogue -- --check`：同上；旁边有附加包文件夹时 `tests/catalogue.test.js` 做同样的检查 |
 | `npm run sync-gateway` | 仓库的 `src/feiyu_memgate/` 和 `LICENSE` → `python/feiyu_memgate/` 和 `python/LICENSE`（先删掉旧的），再写 `python/GATEWAY_VERSION.json`。`-- <检出的路径>` 可以指定另一个检出，默认是插件所在的仓库 | 改了 `src/feiyu_memgate/` 或 `LICENSE`，而这些改动要跟着插件一起发布之前 | **没有**。这个脚本的参数只认一个路径，写 `--check` 会被当成路径，报 `not a feiyu-memgate checkout` 退出，什么都不写 |
 

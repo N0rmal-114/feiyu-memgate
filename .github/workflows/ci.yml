@@ -65,7 +65,7 @@ jobs:
         env:
           FEIYU_MEMGATE_SRC: ../../src
         run: node --test
-      - name: The settings page's field table is in step with src/config.js
+      - name: The settings page script is in step with src/config.js and client/src
         working-directory: plugins/dsh-feiyu-memgate
         run: npm run sync-client -- --check
       - name: The model catalogue is in step with the embedding add-on

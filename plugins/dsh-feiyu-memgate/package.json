@@ -33,6 +33,7 @@
   "scripts": {
     "test": "node --test",
     "sync-gateway": "node scripts/sync-gateway.mjs",
+    "build-client": "node scripts/build-client.mjs",
     "sync-client": "node scripts/sync-client.mjs",
     "sync-catalogue": "node scripts/sync-catalogue.mjs"
   },
