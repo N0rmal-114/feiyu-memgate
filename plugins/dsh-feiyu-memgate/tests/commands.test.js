@@ -199,7 +199,7 @@ test('tiers lists availability, the active tier and what each needs', async () =
   assert.match(reply.text, /- endpoint: not available\. Needs: retrieval\.url and retrieval\.model .*Missing: retrieval\.url, retrieval\.model\./)
   assert.match(reply.text, /- local: not available\. Needs: the dsh-feiyu-memgate-embed add-on/)
   const zh = await harness({ lang: 'zh' }).run('tiers')
-  assert.match(zh.text, /- local：不可用。需要：安装并启用 dsh-feiyu-memgate-embed 插件/)
+  assert.match(zh.text, /- local：不可用。需要：已安装并启用 dsh-feiyu-memgate-embed 插件/)
 })
 
 test('the hybrid state shows in status and tiers, in both languages', async () => {
@@ -220,7 +220,7 @@ test('the hybrid state shows in status and tiers, in both languages', async () =
   const tiers = await harness({ status: async () => hybridStatus() }).run('tiers')
   assert.match(tiers.text, /\nHybrid \(keyword and vector search together, retrieval\.hybrid\): on\.$/)
   const tiersZh = await harness({ lang: 'zh', status: async () => hybridStatus() }).run('tiers')
-  assert.match(tiersZh.text, /\n混合检索（关键词和向量一起查，retrieval\.hybrid）：开。$/)
+  assert.match(tiersZh.text, /\n混合检索（关键词与向量同时检索，retrieval\.hybrid）：开启。$/)
   assert.match((await harness().run('tiers')).text, /: off\.$/)
   assert.match((await harness({ status: async () => idle }).run('tiers')).text, /: on, but it does nothing under the current tier\.$/)
   const external = fakeStatus({ gateway: { mode: 'external', state: 'configured', url: '' }, python: null, store: null })
@@ -340,7 +340,7 @@ test('changelog prints the newest released entry as plain text, in both language
 test('changelog says so when there is nothing to show, and is in the usage', async () => {
   assert.equal((await harness({ changelog: () => ({ version: '0.3.2', entries: [] }) }).run('changelog')).text, 'The changelog could not be shown.')
   assert.equal((await harness().run('changelog')).text, 'The changelog could not be shown.', 'no source at all')
-  assert.equal((await harness({ lang: 'zh', changelog: () => ({ entries: [] }) }).run('changelog')).text, '更新日志现在无法显示。')
+  assert.equal((await harness({ lang: 'zh', changelog: () => ({ entries: [] }) }).run('changelog')).text, '无法显示更新日志。')
   assert.ok((await harness().run('')).text.includes('changelog'))
   assert.ok((await harness({ lang: 'zh' }).run('')).text.includes('changelog'))
   assert.ok(harness().command.input.hint.includes('changelog'))

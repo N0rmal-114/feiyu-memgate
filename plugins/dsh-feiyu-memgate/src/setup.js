@@ -70,135 +70,135 @@ const CODE = /^[a-z][a-z0-9-]{0,39}$/
 export const FAILURES = Object.freeze({
   network: {
     en: ['The download source could not be reached (no network, or the mirror does not answer).', 'Check the connection. In the embedding add-on’s settings you can pick another download source (hf-mirror or your own mirror); then press the button again: the download resumes where it stopped.'],
-    zh: ['连不上下载来源（没有网络，或者镜像没有响应）。', '检查网络连接。可以在向量插件的设置里换一个下载来源（hf-mirror 或自己的镜像），然后再按一次按钮，下载会从中断处继续。'],
+    zh: ['无法连接下载来源（没有网络，或镜像无响应）。', '请检查网络连接。可在向量插件的设置中更换下载来源（hf-mirror 或自建镜像），然后再次点击按钮，下载将从中断处继续。'],
   },
   'disk-full': {
     en: ['Not enough disk space for the model.', 'Free some space on the drive that holds the DSH data folder (the model size plus a margin), then press the button again.'],
-    zh: ['磁盘空间不够放下这个模型。', '在存放 DSH 数据目录的磁盘上腾出空间（模型大小再多留一些），然后再按一次按钮。'],
+    zh: ['磁盘空间不足，无法存放该模型。', '请在存放 DSH 数据目录的磁盘上释放空间（模型大小再加一定余量），然后再次点击按钮。'],
   },
   integrity: {
     en: ['The downloaded file did not pass verification (its size or checksum is wrong).', 'Press the button again to download it anew. If it happens again, choose another download source in the embedding add-on’s settings.'],
-    zh: ['下载的文件没通过校验（大小或校验和不对）。', '再按一次按钮重新下载。如果再次出现，在向量插件的设置里换一个下载来源。'],
+    zh: ['下载的文件未通过校验（大小或校验和不符）。', '请再次点击按钮重新下载。若再次出现，请在向量插件的设置中更换下载来源。'],
   },
   'runtime-unavailable': {
     en: ['The embedding add-on cannot load its engine on this computer (its status shows the error runtime-missing).', 'On Windows this almost always means the Microsoft Visual C++ 2015-2022 Redistributable (x64) is missing: install it from Microsoft (vc_redist.x64.exe, https://aka.ms/vs/17/release/vc_redist.x64.exe), then restart DSH. Elsewhere the engine has no CPU build for this platform: keep the keyword tier, or use an embeddings service through the endpoint tier.'],
-    zh: ['向量插件在这台电脑上加载不了它的引擎（它的状态显示错误 runtime-missing）。', '在 Windows 上，这几乎都是因为缺少 Microsoft Visual C++ 2015-2022 运行库（x64）：从微软官网安装它（vc_redist.x64.exe，https://aka.ms/vs/17/release/vc_redist.x64.exe），然后重启 DSH。在其他系统上，说明引擎没有这个平台的 CPU 版本：继续用关键词检索，或者用 endpoint 方式接一个向量服务。'],
+    zh: ['向量插件无法在本机加载其运行引擎（状态显示错误 runtime-missing）。', '在 Windows 上，这几乎都是因为缺少 Microsoft Visual C++ 2015-2022 运行库（x64）：请从微软官网安装（vc_redist.x64.exe，https://aka.ms/vs/17/release/vc_redist.x64.exe），然后重启 DSH。在其他系统上，引擎没有适用于该平台的 CPU 版本：请继续使用关键词检索，或通过 endpoint 检索方式接入向量服务。'],
   },
   'python-missing': {
     en: ['Python 3.11 or newer was not found, so the managed memory gateway is off and a local model cannot be used for memory yet.', 'Install Python 3.11 or newer (or set gateway.python to its path); the gateway starts by itself afterwards.'],
-    zh: ['没有找到 Python 3.11 或更新的版本，自带的记忆网关没有运行，本地模型暂时用不上。', '安装 Python 3.11 或更新版本（或者把 gateway.python 设为它的路径），之后网关会自己启动。'],
+    zh: ['未找到 Python 3.11 或更高版本，内置网关未运行，暂时无法将本地模型用于记忆。', '请安装 Python 3.11 或更高版本（或将 gateway.python 设为其路径），网关随后会自动启动。'],
   },
   'install-cancelled': {
     en: ['The installation of the embedding add-on was declined or cancelled; nothing was installed.', 'Press the button again when you want to install it.'],
-    zh: ['向量插件的安装被拒绝或取消了，什么都没有装。', '想装的时候再按一次按钮。'],
+    zh: ['向量插件的安装已被拒绝或取消，未安装任何内容。', '需要时可再次点击按钮安装。'],
   },
   pinned: {
     en: ['The embedding add-on’s own settings pin a model (activeModel), and that setting wins.', 'Set activeModel back to none on the embedding add-on’s settings page, or use the model it pins.'],
-    zh: ['向量插件自己的设置里指定了模型（activeModel），以那个设置为准。', '在向量插件的设置页把 activeModel 改回 none，或者就用它指定的模型。'],
+    zh: ['向量插件自身的设置中指定了模型（activeModel），以该设置为准。', '请在向量插件的设置页将 activeModel 改回 none，或使用其指定的模型。'],
   },
   'addon-incompatible': {
     en: ['This version of the embedding add-on does not support the running DSH version.', 'Update DSH, or wait for an add-on version that supports it; the Plugins page shows the details.'],
-    zh: ['这个版本的向量插件不支持当前的 DSH 版本。', '升级 DSH，或者等支持它的插件版本；插件页面有详细说明。'],
+    zh: ['当前版本的向量插件不支持正在运行的 DSH 版本。', '请升级 DSH，或等待支持该版本的插件更新；详情见插件页面。'],
   },
   'build-approval': {
     en: ['The host still waits for a decision on an install script, or the decision went stale.', 'Press the button again and answer the install-script question that follows.'],
-    zh: ['宿主还在等对安装脚本的决定，或者之前的决定已经失效。', '再按一次按钮，回答随后出现的安装脚本问题。'],
+    zh: ['宿主仍在等待对安装脚本的决定，或之前的决定已失效。', '请再次点击按钮，并回答随后出现的安装脚本问题。'],
   },
   'builds-denied': {
     en: ['You did not allow the install script, so nothing was installed and nothing loads.', 'DSH has no button to record a refusal; record it in a file. Open {file}. Under “allowBuilds:”, DSH wrote the line “{name}: set this to true or false”; change it to “{name}: false” and save. Then press “Download and enable” again (or run /memgate install with --confirm): the add-on installs with the script skipped and is switched on. Or press the button again and allow the script.'],
-    zh: ['你没有允许安装脚本，所以什么都没有装，也不会加载。', 'DSH 没有记录“拒绝”的按钮，要在文件里记下。打开 {file}，在“allowBuilds:”下面，DSH 写了一行“{name}: set this to true or false”，把它改成“{name}: false”并保存。然后再按一次“下载并启用”（或者执行带 --confirm 的 /memgate install）：插件会跳过这个脚本装好并启用。也可以再按一次按钮，选择允许脚本。'],
+    zh: ['你未允许安装脚本，因此未安装任何内容，也不会加载。', 'DSH 没有记录“拒绝”的按钮，需在文件中手动记录。请打开 {file}，在“allowBuilds:”下找到 DSH 写入的“{name}: set this to true or false”，改为“{name}: false”并保存。然后再次点击“下载并启用”（或执行带 --confirm 的 /memgate install）：插件将跳过该脚本完成安装并启用。也可再次点击按钮，选择允许脚本。'],
   },
   'addon-enable-failed': {
     en: ['The embedding add-on is installed but DSH could not switch it on.', 'The Plugins page shows why (for example a version this DSH does not support). Fix that, or remove dsh-feiyu-memgate-embed there, then press the button again.'],
-    zh: ['向量插件已经安装，但 DSH 没能启用它。', '插件页面会显示原因（例如这个 DSH 不支持的版本）。处理好，或者在那里移除 dsh-feiyu-memgate-embed，然后再按一次按钮。'],
+    zh: ['向量插件已安装，但 DSH 无法启用。', '原因见插件页面（例如 DSH 不支持的版本）。请先处理，或在插件页面移除 dsh-feiyu-memgate-embed，然后再次点击按钮。'],
   },
   'confirm-required': {
     en: ['Installing the embedding add-on needs your explicit confirmation.', 'Confirm on the settings page, or repeat the command with --confirm.'],
-    zh: ['安装向量插件需要你明确确认。', '在设置页面确认，或者在命令后面加上 --confirm 再执行一次。'],
+    zh: ['安装向量插件需要你明确确认。', '请在设置页面确认，或在命令后加上 --confirm 再次执行。'],
   },
   'builds-pending': {
     en: ['The host waits for your decision on an install script.', 'Answer the install-script question on the settings page (or with /memgate builds allow|deny).'],
-    zh: ['宿主在等你对安装脚本做决定。', '在设置页面回答安装脚本的问题（或者用 /memgate builds allow|deny）。'],
+    zh: ['宿主正在等待你对安装脚本做出决定。', '请在设置页面回答安装脚本的问题（或使用 /memgate builds allow|deny）。'],
   },
   'restart-required': {
     en: ['The embedding add-on is installed and starts after DSH restarts.', 'Restart DSH; the setup continues by itself afterwards.'],
-    zh: ['向量插件已经装好，DSH 重启后才会启动。', '重启 DSH，之后会自动继续。'],
+    zh: ['向量插件已安装，DSH 重启后才会启动。', '请重启 DSH，之后设置会自动继续。'],
   },
   'addon-not-found': {
     en: ['The package dsh-feiyu-memgate-embed was not found in the package registry.', 'Check the registry and network settings of the Plugins page, or try again later.'],
-    zh: ['包仓库里找不到 dsh-feiyu-memgate-embed。', '检查插件页面的仓库和网络设置，或者稍后再试。'],
+    zh: ['包仓库中未找到 dsh-feiyu-memgate-embed。', '请检查插件页面的仓库和网络设置，或稍后重试。'],
   },
   'addon-install-failed': {
     en: ['The host could not install the embedding add-on.', 'The Plugins page has the installation log; fix what it names and press the button again.'],
-    zh: ['宿主没能装上向量插件。', '插件页面有安装日志；按日志处理后再按一次按钮。'],
+    zh: ['宿主未能安装向量插件。', '插件页面提供安装日志；请按日志处理后再次点击按钮。'],
   },
   'no-plugin-manager': {
     en: ['This DSH profile has no plugin manager, so the add-on cannot be installed from here.', 'Install dsh-feiyu-memgate-embed with the dsh plugin command or the profile’s package.json, then come back.'],
-    zh: ['这个 DSH 配置没有插件管理器，没法从这里安装向量插件。', '用 dsh plugin 命令或配置的 package.json 安装 dsh-feiyu-memgate-embed，然后回到这里。'],
+    zh: ['当前 DSH 配置没有插件管理器，无法在此安装向量插件。', '请使用 dsh plugin 命令或配置的 package.json 安装 dsh-feiyu-memgate-embed，然后返回此处。'],
   },
   'addon-outdated': {
     en: ['The installed embedding add-on is too old for one-click setup.', 'Update dsh-feiyu-memgate-embed on the Plugins page, or use its /memgate-embed command.'],
-    zh: ['已安装的向量插件版本太旧，不支持一键设置。', '在插件页面更新 dsh-feiyu-memgate-embed，或者用它的 /memgate-embed 命令。'],
+    zh: ['已安装的向量插件版本过旧，不支持一键设置。', '请在插件页面更新 dsh-feiyu-memgate-embed，或使用其 /memgate-embed 命令。'],
   },
   'addon-not-started': {
     en: ['The embedding add-on is installed but has not started.', 'Check on the Plugins page that dsh-feiyu-memgate-embed is turned on, then press the button again.'],
-    zh: ['向量插件已经安装，但没有启动。', '在插件页面确认 dsh-feiyu-memgate-embed 已打开，然后再按一次按钮。'],
+    zh: ['向量插件已安装，但未启动。', '请在插件页面确认 dsh-feiyu-memgate-embed 已开启，然后再次点击按钮。'],
   },
   'needs-acceptance': {
     en: ['This model’s weights come under a licence you must accept first.', 'Read the licence, tick the box next to the model, then press the button.'],
-    zh: ['这个模型的权重有一份需要先同意的许可。', '阅读许可，勾选模型旁的复选框，再按按钮。'],
+    zh: ['该模型的权重适用一份需先同意的许可。', '请阅读许可，勾选模型旁的复选框，再点击按钮。'],
   },
   busy: {
     en: ['Another model is being set up.', 'Wait for it to finish, or cancel it first.'],
-    zh: ['另一个模型正在设置。', '等它完成，或者先取消。'],
+    zh: ['另一个模型正在设置。', '请等待其完成，或先取消。'],
   },
   interrupted: {
     en: ['The installation was interrupted (DSH stopped in the middle).', 'Press the button again; what is already done is kept.'],
-    zh: ['安装中途被打断了（DSH 中途停止）。', '再按一次按钮，已经完成的部分会保留。'],
+    zh: ['安装被中断（DSH 中途停止）。', '请再次点击按钮，已完成的部分会保留。'],
   },
   storage: {
     en: ['The model file could not be written.', 'Check that the DSH data folder is writable, then press the button again.'],
-    zh: ['模型文件写不进去。', '确认 DSH 数据目录可以写入，然后再按一次按钮。'],
+    zh: ['无法写入模型文件。', '请确认 DSH 数据目录可写，然后再次点击按钮。'],
   },
   'model-failed': {
     en: ['The model could not be loaded.', 'Remove the model and download it again; if that does not help, choose another model.'],
-    zh: ['模型加载失败。', '删除这个模型重新下载；还不行就换一个模型。'],
+    zh: ['模型加载失败。', '请删除该模型后重新下载；仍无法解决时，请更换模型。'],
   },
   cancelled: {
     en: ['The download was cancelled. The part already downloaded stays on disk.', 'Press the button to continue, or remove the model to delete the part.'],
-    zh: ['下载已取消，已经下载的部分留在磁盘上。', '按按钮继续下载，或者删除模型把这部分删掉。'],
+    zh: ['下载已取消，已下载的部分保留在磁盘上。', '点击按钮可继续下载，或删除模型以清除这部分。'],
   },
   'unknown-model': {
     en: ['There is no such model in the list.', 'Pick one of the listed models.'],
-    zh: ['列表里没有这个模型。', '从列表里选一个模型。'],
+    zh: ['列表中没有该模型。', '请从列表中选择模型。'],
   },
   'not-running': {
     en: ['Nothing is being installed or downloaded.', 'There is nothing to cancel.'],
-    zh: ['没有正在进行的安装或下载。', '没有可以取消的。'],
+    zh: ['没有正在进行的安装或下载。', '没有可取消的内容。'],
   },
   'too-late': {
     en: ['Too late to cancel: the host is applying the add-on.', 'Wait a moment; you can remove the add-on on the Plugins page afterwards.'],
-    zh: ['来不及取消：宿主正在应用插件。', '稍等一下；之后可以在插件页面移除它。'],
+    zh: ['已无法取消：宿主正在应用插件。', '请稍候；之后可在插件页面移除该插件。'],
   },
   active: {
     en: ['This model is in use.', 'Switch to another model before deleting it.'],
-    zh: ['这个模型正在使用。', '先切换到别的模型再删除。'],
+    zh: ['该模型正在使用。', '请先切换到其他模型，再删除。'],
   },
   downloading: {
     en: ['This model is downloading.', 'Cancel the download first.'],
-    zh: ['这个模型正在下载。', '先取消下载。'],
+    zh: ['该模型正在下载。', '请先取消下载。'],
   },
   'not-installed': {
     en: ['This model is not downloaded.', 'Use “Download and enable”.'],
-    zh: ['这个模型还没下载。', '按“下载并启用”。'],
+    zh: ['该模型尚未下载。', '请点击“下载并启用”。'],
   },
   'addon-absent': {
     en: ['The embedding add-on is not installed yet.', 'Use “Download and enable” on a model: it installs the add-on first.'],
-    zh: ['还没有安装向量插件。', '在某个模型上按“下载并启用”，会先安装向量插件。'],
+    zh: ['尚未安装向量插件。', '请在某个模型上点击“下载并启用”，将先安装向量插件。'],
   },
   unknown: {
     en: ['The step failed.', 'Press the button again; the Plugins page and the add-on’s /memgate-embed status have details.'],
-    zh: ['这一步失败了。', '再按一次按钮；插件页面和向量插件的 /memgate-embed status 有详细信息。'],
+    zh: ['该步骤失败。', '请再次点击按钮；详细信息见插件页面和向量插件的 /memgate-embed status。'],
   },
 })
 
@@ -208,13 +208,13 @@ export const FAILURES = Object.freeze({
  */
 export const ADDON_CONFIRM = Object.freeze({
   en: 'This installs the plugin dsh-feiyu-memgate-embed from npm through the DSH plugin manager (it checks that the plugin supports this DSH first), then downloads {model} ({size}) and enables it. The plugin adds a dependency with a native binary (node-llama-cpp): about 90 MB on disk for the CPU build, up to about 740 MB on Windows and Linux x64, where pnpm also fetches the GPU builds. The model runs on the CPU only. On Windows the engine needs the Microsoft Visual C++ 2015-2022 runtime (x64), which most Windows installations already have.',
-  zh: '这会通过 DSH 的插件管理器从 npm 安装插件 dsh-feiyu-memgate-embed（先检查它是否支持当前 DSH），然后下载 {model}（{size}）并启用。这个插件会带来一个含原生二进制的依赖（node-llama-cpp）：CPU 版约占 90 MB 磁盘；在 Windows 和 Linux x64 上 pnpm 还会取 GPU 版本，最多约 740 MB。模型只在 CPU 上运行。在 Windows 上，引擎需要 Microsoft Visual C++ 2015-2022 运行库（x64），大多数 Windows 已经装有。',
+  zh: '将通过 DSH 的插件管理器从 npm 安装插件 dsh-feiyu-memgate-embed（先检查其是否支持当前 DSH），然后下载 {model}（{size}）并启用。该插件依赖含原生二进制文件的 node-llama-cpp：CPU 版本约占用 90 MB 磁盘；在 Windows 和 Linux x64 上，pnpm 还会获取 GPU 版本，最多约 740 MB。模型仅使用 CPU 运行。在 Windows 上，引擎需要 Microsoft Visual C++ 2015-2022 运行库（x64），大多数 Windows 系统已自带。',
 })
 
 /** The question when pnpm stopped an install script ({names} is filled in). */
 export const BUILDS_NOTE = Object.freeze({
   en: 'The embedding add-on depends on node-llama-cpp, which has an install script, and pnpm stopped the installation until you decide; nothing is installed yet. Both answers work: according to the add-on’s author, the script downloads and builds nothing, and the engine runs with it skipped. Allowing installs again and records a lasting permission in this DSH profile for: {names}. Denying has no button in DSH: the page then names the line to change in the profile’s pnpm-workspace.yaml, after which you press the button again.',
-  zh: '向量插件依赖 node-llama-cpp，它带有一个安装脚本，pnpm 把安装停下来等你决定，现在还什么都没装。两种选择都能用：据插件作者测试，这个脚本不下载也不编译任何东西，跳过它引擎照样能运行。允许会重新安装，并在这个 DSH 配置里为以下项目留下长期许可：{names}。拒绝在 DSH 里没有按钮：页面会告诉你在配置的 pnpm-workspace.yaml 里改哪一行，改好后再按一次按钮。',
+  zh: '向量插件依赖 node-llama-cpp，它带有安装脚本，pnpm 已暂停安装，等待你做出决定；目前尚未安装任何内容。两种选择均可：据插件作者测试，该脚本不下载也不编译任何内容，跳过后引擎仍可运行。选择允许将重新安装，并在当前 DSH 配置中为以下项目留下长期许可：{names}。DSH 中没有“拒绝”按钮：页面会指明需在配置的 pnpm-workspace.yaml 中修改的行，修改后再次点击按钮。',
 })
 
 /**
@@ -926,7 +926,7 @@ export function createModelSetup({
     }
     const file = typeof dir === 'string' && dir
       ? path.join(dir, 'pnpm-workspace.yaml')
-      : { en: 'the pnpm-workspace.yaml in the folder of this DSH profile (<DSH home>/profiles/<profile>)', zh: '这个 DSH 配置文件夹（<DSH home>/profiles/<配置名>）里的 pnpm-workspace.yaml' }
+      : { en: 'the pnpm-workspace.yaml in the folder of this DSH profile (<DSH home>/profiles/<profile>)', zh: '当前 DSH 配置文件夹（<DSH home>/profiles/<配置名>）中的 pnpm-workspace.yaml' }
     return { file, name: chain?.pendingBuilds?.[0] ?? 'node-llama-cpp' }
   }
 

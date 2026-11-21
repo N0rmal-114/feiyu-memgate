@@ -22,10 +22,10 @@ const TABS = [
     sections: [
       {
         id: 'recall',
-        label: { en: 'Recall', zh: '回忆' },
+        label: { en: 'Recall', zh: '召回' },
         help: {
-          en: 'What the model is given without asking: related memories each turn, and a short note on how to treat them.',
-          zh: '不用模型开口就给它的东西：每一轮的相关记忆，以及怎么对待这些记忆的一小段说明。',
+          en: 'What is provided without a model request: related memories each turn, and a note on how to use them.',
+          zh: '无需模型请求即可提供的内容：每轮对话的相关记忆，以及记忆的使用说明。',
         },
         fields: ['modules.autoRecall', 'modules.promptSection'],
       },
@@ -33,8 +33,8 @@ const TABS = [
         id: 'tools',
         label: { en: 'Tools', zh: '工具' },
         help: {
-          en: 'What the model and you can do on your own initiative.',
-          zh: '模型和你可以主动做的事。',
+          en: 'What the model and you can use on your own initiative.',
+          zh: '模型和你可以主动使用的功能。',
         },
         fields: ['modules.rememberTool', 'modules.searchTool', 'modules.commands'],
       },
@@ -43,7 +43,7 @@ const TABS = [
         label: { en: 'Capture', zh: '记录' },
         help: {
           en: 'Saving what you say without the model deciding.',
-          zh: '不经过模型判断，直接把你说的话记下来。',
+          zh: '不经模型判断，直接保存用户发送的消息。',
         },
         fields: ['modules.autoCapture', 'advanced.captureMinChars'],
       },
@@ -55,10 +55,10 @@ const TABS = [
     sections: [
       {
         id: 'tier',
-        label: { en: 'How memories are found', zh: '怎么找记忆' },
+        label: { en: 'Retrieval method', zh: '检索方式' },
         help: {
           en: 'Each way keeps its own store file: memories saved under one are not searched under another unless they were copied, and switching back finds them again.',
-          zh: '每种方式各用一个存储文件：在一种方式下记的内容，换成另一种方式后不会被查到，除非已经复制过去；切回来还能找到。',
+          zh: '各检索方式分别使用独立的存储文件：在一种方式下记录的记忆，切换方式后不会被检索到，除非已复制过去；切换回来后仍可找到。',
         },
         fields: [
           'retrieval.tier', 'retrieval.url', 'retrieval.model', 'retrieval.apiKey',
@@ -77,15 +77,15 @@ const TABS = [
     id: 'advanced',
     label: { en: 'Advanced', zh: '高级' },
     note: {
-      en: 'The defaults suit most conversations. Each group opens on its own and says how many of its settings were changed.',
-      zh: '默认值适合大多数对话。每一组可以单独展开，组名右边会标出里面改过几项。',
+      en: 'The defaults suit most conversations. Each group opens on its own and shows how many of its settings were changed.',
+      zh: '默认值适用于大多数对话。各组可单独展开，组名右侧显示已修改的设置项数量。',
     },
     collapsible: true,
     sections: [
       {
         id: 'tuning',
         label: { en: 'Recall details', zh: '召回细节' },
-        help: { en: 'How many memories a turn gets and how strict the match is.', zh: '每轮给几条记忆，以及匹配有多严格。' },
+        help: { en: 'How many memories a turn gets and how strict the match is.', zh: '每轮提供的记忆条数，以及匹配的严格程度。' },
         fields: [
           'advanced.recallLimit', 'advanced.profile', 'advanced.maxNewPerTurn', 'advanced.recallTimeoutMs',
           'advanced.linkedRecall', 'advanced.skipRepeats',
@@ -94,15 +94,15 @@ const TABS = [
       {
         id: 'block',
         label: { en: 'Memory block', zh: '记忆块' },
-        help: { en: 'How the recalled memories are presented to the model.', zh: '召回的记忆以什么样子交给模型。' },
+        help: { en: 'How the recalled memories are presented to the model.', zh: '召回的记忆交给模型时的呈现方式。' },
         fields: ['advanced.language', 'advanced.blockTone', 'advanced.showAge', 'advanced.failureNote'],
       },
       {
         id: 'experiments',
-        label: { en: 'Experiments', zh: '实验功能' },
+        label: { en: 'Experimental features', zh: '实验性功能' },
         help: {
-          en: 'Measured offline only, not yet in everyday chats. All off by default; each says what it costs.',
-          zh: '只做过离线测量，还没有在日常聊天里验证。默认全部关闭，每一项都写了它的代价。',
+          en: 'Measured offline only, not yet verified in everyday chats. All off by default; each states its cost.',
+          zh: '仅做过离线测量，尚未在日常对话中验证。默认全部关闭，每项都注明了代价。',
         },
         fields: [
           'advanced.relevanceCheck', 'advanced.relevanceProvider', 'advanced.relevanceModel', 'advanced.relevanceTimeoutMs',
@@ -115,8 +115,8 @@ const TABS = [
         id: 'gateway',
         label: { en: 'Gateway', zh: '网关' },
         help: {
-          en: 'Where memories are kept: the gateway that ships with the plugin, or one you run yourself.',
-          zh: '记忆放在哪里：插件自带的网关，或你自己运行的网关。',
+          en: 'Where memories are kept: the gateway bundled with the plugin, or an external one you run yourself.',
+          zh: '记忆的存放位置：插件内置的网关，或你自己运行的外部网关。',
         },
         fields: [
           'gateway.mode', 'gateway.python', 'gateway.dataDir', 'external.url', 'external.token',

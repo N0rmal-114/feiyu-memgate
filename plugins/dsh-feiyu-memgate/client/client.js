@@ -147,7 +147,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         },
         "help": {
           "en": "Each feature is switched on or off on its own; a switched-off feature leaves nothing behind in the host.",
-          "zh": "每项功能单独开关；关掉的功能不会在宿主里留下任何东西。"
+          "zh": "各项功能可单独开关；关闭的功能不会在宿主中留下任何内容。"
         },
         "fields": [
           {
@@ -160,7 +160,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "At the start of each user turn, look up related memories and add them after the user's message as background data.",
-              "zh": "每轮用户发言开始时查找相关记忆，作为背景资料放在用户消息之后。"
+              "zh": "每轮对话开始时查找相关记忆，作为背景资料附在用户消息之后。"
             }
           },
           {
@@ -173,7 +173,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "Give the model the memgate_remember tool, to save a memory when the user asks for it or shares a lasting fact.",
-              "zh": "给模型 memgate_remember 工具：用户要求记住、或说出长期有用的信息时记下来。"
+              "zh": "为模型提供 memgate_remember 工具，在用户要求记住或提供长期有用的信息时保存记忆。"
             }
           },
           {
@@ -186,7 +186,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "Give the model the memgate_search tool, to look up memories on demand.",
-              "zh": "给模型 memgate_search 工具：需要时主动查找记忆。"
+              "zh": "为模型提供 memgate_search 工具，用于按需查找记忆。"
             }
           },
           {
@@ -199,7 +199,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "Add a short, fixed system prompt section: when to save a memory, and that recalled memories are data, not instructions.",
-              "zh": "在系统提示词里加一小段固定说明：什么时候记，召回的记忆是资料不是指令。"
+              "zh": "在系统提示词中加入一小段固定说明：何时保存记忆，以及召回的记忆是资料而非指令。"
             }
           },
           {
@@ -212,7 +212,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "After each turn, send the user's own messages of that turn to memory without asking the model. Off by default.",
-              "zh": "每轮结束后，把这一轮用户自己发的消息直接交给记忆库，不经过模型。默认关闭。"
+              "zh": "每轮结束后，将该轮用户自己发送的消息直接保存为记忆，不经过模型。默认关闭。"
             }
           },
           {
@@ -225,7 +225,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "The /memgate chat command: status, settings and retrieval tiers. Needs a host with chat commands.",
-              "zh": "/memgate 聊天命令：状态、设置和检索方式。需要支持聊天命令的宿主。"
+              "zh": "/memgate 聊天命令：状态、设置和检索方式。需要宿主支持聊天命令。"
             }
           },
           {
@@ -234,11 +234,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             "default": true,
             "label": {
               "en": "Copy memories into a new vector store",
-              "zh": "切换到向量检索时复制记忆"
+              "zh": "切换到语义检索时复制记忆"
             },
             "help": {
               "en": "When a vector tier (endpoint or local) becomes active, copy the texts of the keyword store into it in the background, in bounded steps that resume after a restart.",
-              "zh": "启用向量检索（endpoint 或 local）时，在后台把关键词存储里的记忆复制过去；分批进行，重启后接着复制。"
+              "zh": "启用语义检索（endpoint 或 local）时，在后台将关键词存储中的记忆复制到向量存储；分批进行，重启后继续。"
             }
           }
         ]
@@ -251,7 +251,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         },
         "help": {
           "en": "How the bundled gateway finds memories. Each tier keeps its own store file: memories saved under one tier are not searched under another unless they were copied (see the features above), and switching back finds them again.",
-          "zh": "自带网关怎么查找记忆。每种方式各用一个存储文件：在一种方式下记的内容，换成另一种方式后不会被查到，除非已经复制过去（见上面的功能开关）；切回来还能找到。"
+          "zh": "内置网关查找记忆的方式。每种方式使用各自的存储文件：在一种方式下保存的记忆，切换到另一种方式后不会被检索到，除非已复制过去（见上方的功能设置）；切换回来后可再次检索到。"
         },
         "fields": [
           {
@@ -263,14 +263,14 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
                 "value": "auto",
                 "label": {
                   "en": "auto: local when the embedding add-on is ready, else keyword",
-                  "zh": "auto：本地向量插件就绪时用 local，否则用 keyword"
+                  "zh": "auto：本地向量插件就绪时使用 local，否则使用 keyword"
                 }
               },
               {
                 "value": "keyword",
                 "label": {
                   "en": "keyword: keyword (SQLite, no model)",
-                  "zh": "keyword：关键词（SQLite，不需要模型）"
+                  "zh": "keyword：关键词检索（SQLite，无需模型）"
                 }
               },
               {
@@ -284,7 +284,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
                 "value": "local",
                 "label": {
                   "en": "local: local model (dsh-feiyu-memgate-embed add-on)",
-                  "zh": "local：本地模型（dsh-feiyu-memgate-embed 插件）"
+                  "zh": "local：本地向量模型（dsh-feiyu-memgate-embed 插件）"
                 }
               }
             ],
@@ -294,7 +294,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "auto uses local while the dsh-feiyu-memgate-embed add-on has a model ready, and keyword otherwise.",
-              "zh": "auto：dsh-feiyu-memgate-embed 插件的模型就绪时用 local，否则用 keyword。"
+              "zh": "auto：dsh-feiyu-memgate-embed 插件的模型就绪时使用 local，否则使用 keyword。"
             }
           },
           {
@@ -303,11 +303,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             "default": false,
             "label": {
               "en": "Combine with keyword search (hybrid)",
-              "zh": "同时用关键词检索（混合）"
+              "zh": "同时使用关键词检索（混合检索）"
             },
             "help": {
               "en": "Applies to the vector tiers (endpoint, local, and auto while it resolves to local); under keyword it does nothing. Keyword and vector search are both asked and their results fused. It uses the same vector store file as the tier without it, plus a keyword index file next to it, so switching it on or off loses no memory.",
-              "zh": "用于向量检索（endpoint、local，以及 auto 选到 local 的时候）；在 keyword 下不起作用。关键词检索和向量检索同时查，结果合并。它用的向量存储文件和不开它时相同，旁边多一个关键词索引文件，所以开或关都不会丢记忆。"
+              "zh": "适用于语义检索（endpoint、local，以及 auto 选择 local 时）；在 keyword 下无效。同时进行关键词检索和语义检索，并合并结果。使用的向量存储文件与不开启时相同，另在其旁增加一个关键词索引文件，因此开启或关闭都不会丢失记忆。"
             },
             "needs": {
               "key": "retrieval.tier",
@@ -354,7 +354,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "endpoint tier: the embeddings model name. A different model starts a new, empty store.",
-              "zh": "endpoint 方式：向量模型的名字。换模型会用一个新的空存储。"
+              "zh": "endpoint 方式：向量模型的名称。更换模型会使用新的空存储。"
             }
           },
           {
@@ -374,7 +374,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "endpoint tier: the API key of the embeddings endpoint, if it needs one. It is never shown again after saving.",
-              "zh": "endpoint 方式：向量接口的密钥（需要的话）。保存后不再显示。"
+              "zh": "endpoint 方式：向量接口的密钥（如需要）。保存后不再显示。"
             }
           }
         ]
@@ -387,7 +387,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         },
         "help": {
           "en": "Where memories are kept: the bundled gateway (managed) or a gateway you run yourself (external).",
-          "zh": "记忆放在哪里：插件自带的网关（managed），或你自己运行的网关（external）。"
+          "zh": "记忆的存放位置：插件内置的网关（managed），或自行运行的外部网关（external）。"
         },
         "fields": [
           {
@@ -399,14 +399,14 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
                 "value": "managed",
                 "label": {
                   "en": "managed: start the bundled gateway (needs Python 3.11 or newer)",
-                  "zh": "managed：启动自带的网关（需要 Python 3.11 或更新）"
+                  "zh": "managed：启动内置网关（需要 Python 3.11 或更高版本）"
                 }
               },
               {
                 "value": "external",
                 "label": {
                   "en": "external: use a running gateway (see External gateway)",
-                  "zh": "external：使用已经在运行的网关（见“外部网关”）"
+                  "zh": "external：使用已在运行的网关（见“外部网关”）"
                 }
               }
             ],
@@ -416,7 +416,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "managed starts the gateway that ships with the plugin; external talks to the address under External gateway.",
-              "zh": "managed 启动插件自带的网关；external 连接“外部网关”里填写的地址。"
+              "zh": "managed 启动插件内置的网关；external 连接“外部网关”中填写的地址。"
             }
           },
           {
@@ -435,7 +435,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "managed: the Python to use (3.11 or newer). Empty: the desktop app's bundled Python, then python3, python and py -3.",
-              "zh": "managed：使用哪个 Python（3.11 或更新）。留空：先用桌面版自带的 Python，再找 python3、python、py -3。"
+              "zh": "managed：使用的 Python（3.11 或更高版本）。留空：依次使用桌面版内置的 Python、python3、python、py -3。"
             }
           },
           {
@@ -454,7 +454,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "managed: the folder for the memory stores, the generated gateway configuration and its log. Empty: data/feiyu-memgate in the DSH home folder.",
-              "zh": "managed：存放记忆库、生成的网关配置和日志的文件夹。留空：DSH 主目录下的 data/feiyu-memgate。"
+              "zh": "managed：存放记忆存储、生成的网关配置和日志的文件夹。留空：DSH 主目录下的 data/feiyu-memgate。"
             }
           }
         ]
@@ -467,7 +467,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         },
         "help": {
           "en": "Used only in external mode.",
-          "zh": "只在 external 模式下使用。"
+          "zh": "仅在 external 模式下使用。"
         },
         "fields": [
           {
@@ -507,7 +507,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "The client token that gateway issued for this client. It is never shown again after saving.",
-              "zh": "那个网关给这个客户端的令牌。保存后不再显示。"
+              "zh": "该网关为此客户端签发的令牌。保存后不再显示。"
             }
           }
         ]
@@ -520,7 +520,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         },
         "help": {
           "en": "Recall details and the rules of the bundled gateway (the rules apply to managed mode only; an external gateway follows its own configuration).",
-          "zh": "召回细节和自带网关的规则（规则只用于 managed 模式；外部网关按它自己的配置）。"
+          "zh": "召回细节和内置网关的规则（规则仅用于 managed 模式；外部网关按其自身配置）。"
         },
         "fields": [
           {
@@ -539,7 +539,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "Most memories added per turn (1 to 10); also the default number of memgate_search results.",
-              "zh": "每轮最多加入几条记忆（1 到 10），也是 memgate_search 默认返回的条数。"
+              "zh": "每轮最多加入的记忆条数（1 到 10），也是 memgate_search 默认返回的条数。"
             }
           },
           {
@@ -558,7 +558,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "How long a turn waits for automatic recall (500 to 20000 ms). A slower lookup is skipped for that turn.",
-              "zh": "每轮最多等自动召回多少毫秒（500 到 20000）。超时的话这一轮不加记忆。"
+              "zh": "每轮等待自动召回的最长时间（500 到 20000 毫秒）。超时则该轮不加入记忆。"
             }
           },
           {
@@ -594,7 +594,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "Language of the memory block, the tool replies and the /memgate command.",
-              "zh": "记忆块、工具回复和 /memgate 命令用的语言。"
+              "zh": "记忆块、工具回复和 /memgate 命令使用的语言。"
             }
           },
           {
@@ -603,11 +603,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             "default": true,
             "label": {
               "en": "Skip repeated memories",
-              "zh": "不重复给同一条记忆"
+              "zh": "不重复提供同一条记忆"
             },
             "help": {
               "en": "Leave out a memory that an earlier memory block of this conversation still shows, compared by its text. If nothing new is left, no block is added. Off: only a block identical to the previous one is left out.",
-              "zh": "这个对话里前面的记忆块还留着的记忆，不再给第二次（按记忆的文字比较）。没有新的就不加记忆块。关掉：只有和上一个记忆块完全相同时才不加。"
+              "zh": "本对话中，之前的记忆块仍包含的记忆不再重复提供（按记忆的文字比较）。没有新记忆时不加入记忆块。关闭：仅当与上一个记忆块完全相同时才不加入。"
             }
           },
           {
@@ -616,11 +616,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             "default": true,
             "label": {
               "en": "Recall linked memories",
-              "zh": "顺带想起相连的记忆"
+              "zh": "召回相关联的记忆"
             },
             "help": {
               "en": "With vector retrieval (the endpoint and local tiers, with or without retrieval.hybrid), after the usual lookup the gateway follows the first two memories it found to the memories closest to them and adds at most two, never beyond advanced.recallLimit. Under keyword retrieval it does nothing.",
-              "zh": "用向量检索时（endpoint 和 local 两档，开不开 retrieval.hybrid 都一样），网关在平常的查找之后，顺着找到的前两条记忆去找和它们最接近的记忆，最多再加两条，总数不超过 advanced.recallLimit。用 keyword 检索时什么都不做。"
+              "zh": "使用语义检索时（endpoint 和 local 两档，是否开启 retrieval.hybrid 均适用），网关在常规检索之后，以找到的前两条记忆为起点查找与它们最接近的记忆，最多再加入两条，总数不超过 advanced.recallLimit。使用 keyword 检索时无效。"
             }
           },
           {
@@ -629,11 +629,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             "default": true,
             "label": {
               "en": "Show today's date and each memory's age",
-              "zh": "写明今天的日期和每条记忆的时间"
+              "zh": "显示今天的日期和每条记忆的时间"
             },
             "help": {
               "en": "The memory block says today's date (the date on this computer) and how long ago each dated memory is, for example 3 weeks ago. Off: the block shows only the absolute dates.",
-              "zh": "记忆块里写明今天的日期（这台电脑上的日期），以及每条有日期的记忆是多久以前的事，例如“3 周前”。关掉：只写具体日期。"
+              "zh": "记忆块中写明今天的日期（本机日期），以及每条带日期的记忆距今多久，例如“3 周前”。关闭：只写具体日期。"
             }
           },
           {
@@ -646,7 +646,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "When the lookup of a turn times out, fails, or the bundled gateway is still starting, add one short note after the user message, so the model does not take it for \"no related memory\". Only on the first turn of a failure streak.",
-              "zh": "这一轮的查询超时、出错，或者自带网关还在启动时，在用户消息之后加一行说明，免得模型当作“没有相关记忆”。连续失败时只在第一轮加。"
+              "zh": "本轮检索超时、出错，或内置网关仍在启动时，在用户消息之后加一行说明，避免模型误认为“没有相关记忆”。连续失败时仅在第一轮加入。"
             }
           },
           {
@@ -667,11 +667,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "label": {
               "en": "Automatic capture: shortest message",
-              "zh": "自动记录：最短的消息"
+              "zh": "自动记录：最短消息长度"
             },
             "help": {
               "en": "With automatic capture on, a message is not saved when it is a command, only filler, or has fewer meaningful characters than this (0 to 50; punctuation, spaces and emoji do not count). 0 turns the length check off.",
-              "zh": "自动记录打开时，命令、只有语气词的消息，以及有意义的字数少于这个数的消息不保存（0 到 50；标点、空格和表情不算字数）。0 表示不按字数过滤。"
+              "zh": "开启自动记录后，命令、仅含语气词的消息，以及有意义的字数少于该值的消息不会保存（0 到 50；标点、空格和表情不计入字数）。0 表示不按字数过滤。"
             }
           },
           {
@@ -683,24 +683,24 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
                 "value": "normal",
                 "label": {
                   "en": "normal: the usual sentence in front of the memories",
-                  "zh": "normal：记忆块前面照常的那句话"
+                  "zh": "normal：记忆块开头使用常规说明"
                 }
               },
               {
                 "value": "strict",
                 "label": {
                   "en": "strict: tell the model most of them are unrelated",
-                  "zh": "strict：告诉模型这些记忆大多无关"
+                  "zh": "strict：告知模型这些记忆大多无关"
                 }
               }
             ],
             "label": {
               "en": "Wording of the memory block",
-              "zh": "记忆块的说明"
+              "zh": "记忆块说明"
             },
             "help": {
               "en": "The sentence at the top of the memory block. strict says that most of the memories are unrelated to the message and that the model should use one only when it clearly fits. Offline, this made replies use an unrelated memory far less often, and also made them use a related one less often. Applies to the automatic block only, not to memgate_search.",
-              "zh": "记忆块最上面的那句话。strict 会说明这些记忆大多和消息无关，只有明显有关的才用。离线测量里，这让回复用上无关记忆的次数少了很多，用上相关记忆的次数也少了一些。只用于自动召回的记忆块，不用于 memgate_search。"
+              "zh": "记忆块开头的说明语句。strict 会说明这些记忆大多与消息无关，仅在明显相关时才使用。离线测量中，这使回复用到无关记忆的次数大幅减少，用到相关记忆的次数也有所减少。仅用于自动召回的记忆块，不用于 memgate_search。"
             }
           },
           {
@@ -715,11 +715,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "label": {
               "en": "New memories per turn",
-              "zh": "每轮最多新给几条"
+              "zh": "每轮新增记忆上限"
             },
             "help": {
               "en": "From the second turn of a conversation on, the memory block carries at most this many memories (0 to 5; 0 means no limit), the first ones the gateway returned after those already shown are left out. The \"more\" line counts the ones left out. The first turn and the second block are not limited.",
-              "zh": "一个对话从第二轮起，记忆块最多带这么多条记忆（0 到 5；0 表示不限），取网关返回的顺序里，去掉已经给过的之后最前面的几条。“还有几条”那一行会算上被去掉的。第一轮和第二个块不受限制。"
+              "zh": "对话从第二轮起，记忆块最多包含该数量的记忆（0 到 5；0 表示不限），按网关返回的顺序，去掉已提供过的记忆后取靠前的几条。“还有几条”一行会计入被去掉的记忆。第一轮和第二个块不受限制。"
             }
           },
           {
@@ -728,11 +728,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             "default": false,
             "label": {
               "en": "Let a model pick the related memories first",
-              "zh": "回复前让模型先挑一遍"
+              "zh": "回复前由模型筛选记忆"
             },
             "help": {
               "en": "Before the memory block of a turn is given, a model looks at the message and the candidate memories and picks the ones a friend would think of; only those go into the block. Costs one more model call before the reply on every turn that has candidates: slower, and billed like any other use of that model. The message and the candidate memories are sent to the provider of that model. If the call fails or is too slow, the block is given as if this were off. The second block is not checked, and neither is memgate_search. Needs modules.autoRecall.",
-              "zh": "这一轮的记忆块给出之前，让一个模型看一遍用户的消息和候选记忆，挑出“一个了解主人的朋友会想到”的几条，只有这几条进记忆块。每一轮只要有候选记忆，回复之前就多一次模型调用：更慢，也和这个模型的其他用法一样计费。消息和候选记忆会发给这个模型的提供方。调用失败或太慢时，照没打开这项那样给出记忆块。第二个块不检查，memgate_search 也不检查。需要 modules.autoRecall。"
+              "zh": "本轮记忆块提供之前，由一个模型查看用户消息和候选记忆，挑出“了解用户的朋友会想到”的几条，仅这几条进入记忆块。每轮只要有候选记忆，回复前就多一次模型调用：速度更慢，并与该模型的其他用途一样计费。消息和候选记忆会发送给该模型的提供方。调用失败或过慢时，按未开启本项的方式提供记忆块。第二个块和 memgate_search 不做筛选。需要 modules.autoRecall。"
             },
             "experimental": true
           },
@@ -748,11 +748,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "label": {
               "en": "Provider of the model that picks",
-              "zh": "挑选用的模型的提供方"
+              "zh": "筛选模型的提供方"
             },
             "help": {
               "en": "Together with the model setting: names another provider and model for the check, for example a cheaper one. Both empty means the model of the conversation. Only one of the two set counts as both empty.",
-              "zh": "和“挑选用的模型”一起填：为这一步指定另一个提供方和模型，比如便宜一点的。两项都空表示用对话本身的模型。只填其中一项等于两项都空。"
+              "zh": "与“筛选模型”一起填写：为这一步指定另一个提供方和模型，例如费用更低的。两项都留空表示使用对话本身的模型。只填其中一项等同于两项都留空。"
             }
           },
           {
@@ -767,11 +767,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "label": {
               "en": "Model that picks",
-              "zh": "挑选用的模型"
+              "zh": "筛选模型"
             },
             "help": {
               "en": "Together with the provider setting. Both empty means the model of the conversation.",
-              "zh": "和“挑选用的模型的提供方”一起填。两项都空表示用对话本身的模型。"
+              "zh": "与“筛选模型的提供方”一起填写。两项都留空表示使用对话本身的模型。"
             }
           },
           {
@@ -792,11 +792,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "label": {
               "en": "Time limit of the check (ms)",
-              "zh": "挑选的时限（毫秒）"
+              "zh": "筛选时限（毫秒）"
             },
             "help": {
               "en": "With the check on: how long the pick may take (500 to 10000 ms). A slower one is given up and the block is given as if the check were off.",
-              "zh": "打开挑选之后：这一步最多等多久（500 到 10000 毫秒）。超时就放弃，照没打开挑选那样给出记忆块。"
+              "zh": "开启筛选后：该步骤最长等待时间（500 到 10000 毫秒）。超时则放弃，按未开启筛选的方式提供记忆块。"
             }
           },
           {
@@ -805,11 +805,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             "default": false,
             "label": {
               "en": "Recall again after replying",
-              "zh": "回复之后再想一想"
+              "zh": "回复后再次召回"
             },
             "help": {
               "en": "Experimental. After each reply, look memories up once more in the background with the reply as the query, and give the ones this conversation has not had yet on the next turn, in a second block after the memory block. Costs one more lookup per turn; the added block makes the context longer, and it may hold memories unrelated to the new message. Under keyword retrieval the second lookup matches words of the reply. Needs modules.autoRecall.",
-              "zh": "实验功能。每次回复之后，在后台拿这条回复再查一次记忆，把这个对话里还没给过的记忆在下一轮放进记忆块之后的第二个块里。每轮多一次查询；多出来的块会让上下文变长，里面可能有和新消息无关的记忆。用 keyword 检索时，第二次查询匹配的是回复里的词。需要 modules.autoRecall。"
+              "zh": "实验性功能。每次回复之后，在后台以该回复为查询词再检索一次记忆，将本对话中尚未提供过的记忆，在下一轮放入记忆块之后的第二个块中。每轮多一次检索；多出的块会使上下文变长，其中可能包含与新消息无关的记忆。使用 keyword 检索时，第二次检索匹配的是回复中的词。需要 modules.autoRecall。"
             },
             "experimental": true
           },
@@ -831,11 +831,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "label": {
               "en": "Memories a second lookup may add",
-              "zh": "再想一想最多加几条"
+              "zh": "回复后再次召回的条数上限"
             },
             "help": {
               "en": "With advanced.afterthought on: the most memories one second lookup keeps for the next turn (1 to 5).",
-              "zh": "回复之后再想一想打开时：一次再查最多留几条给下一轮（1 到 5）。"
+              "zh": "开启“回复后再次召回”后：一次再次检索最多留给下一轮的记忆条数（1 到 5）。"
             }
           },
           {
@@ -848,7 +848,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "Experimental. Remember in memory what this conversation was given. When the host has compacted the history and those memory blocks are gone, give the few that were still in play once more, in a second block after the memory block. A memory stays in play for about five turns after it was given, longer when your messages or the replies of the model keep using it. The block makes the context longer and may hold memories unrelated to the new message. Nothing is written to disk. Needs modules.autoRecall.",
-              "zh": "实验功能。在内存里记住这个对话给过哪些记忆。宿主压缩了历史、那些记忆块不在了的时候，把仍在谈论中的几条再给一次，放在记忆块之后的第二个块里。一条记忆给出之后约五轮内算仍在谈论中，你的消息或模型的回复一再用到它则更久。多出来的块会让上下文变长，里面可能有和新消息无关的记忆。不写入磁盘。需要 modules.autoRecall。"
+              "zh": "实验性功能。在内存中记录本对话提供过哪些记忆。宿主压缩历史、原有记忆块消失后，将仍在讨论中的几条再提供一次，放在记忆块之后的第二个块中。一条记忆提供后约五轮内视为仍在讨论中，若你的消息或模型的回复持续用到它，则时间更长。多出的块会使上下文变长，其中可能包含与新消息无关的记忆。不写入磁盘。需要 modules.autoRecall。"
             },
             "experimental": true
           },
@@ -870,11 +870,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "label": {
               "en": "Memories the pool brings back",
-              "zh": "对话池一次带回几条"
+              "zh": "对话池每次带回的条数"
             },
             "help": {
               "en": "With advanced.conversationPool on: the most memories the pool brings back in one turn (1 to 5).",
-              "zh": "对话池打开时：一轮最多带回几条（1 到 5）。"
+              "zh": "开启“对话池”后：每轮最多带回的记忆条数（1 到 5）。"
             }
           },
           {
@@ -887,7 +887,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "Experimental. When a new conversation starts, give once, at its first turn, the memories the previous conversation was still using, in a second block after the memory block. To do that a small file (recent-pool.json) with those memories is kept in the data folder. Switching this off deletes the file. The block makes the context longer and may hold memories unrelated to the new message. Needs modules.autoRecall.",
-              "zh": "实验功能。新的对话开始时，在它的第一轮把上一个对话还在用的记忆给一次，放在记忆块之后的第二个块里。为此要在数据文件夹里放一个小文件（recent-pool.json），里面是这几条记忆。关掉这项会删除这个文件。多出来的块会让上下文变长，里面可能有和新消息无关的记忆。需要 modules.autoRecall。"
+              "zh": "实验性功能。新对话开始时，在其第一轮提供一次上一个对话仍在使用的记忆，放在记忆块之后的第二个块中。为此会在数据文件夹中保存一个小文件（recent-pool.json），内含这几条记忆。关闭本项会删除该文件。多出的块会使上下文变长，其中可能包含与新消息无关的记忆。需要 modules.autoRecall。"
             },
             "experimental": true
           },
@@ -909,11 +909,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "label": {
               "en": "Memories the recent pool carries",
-              "zh": "近期池一次带上几条"
+              "zh": "近期池每次带入的条数"
             },
             "help": {
               "en": "With advanced.recentPool on: the most memories carried into a new conversation (1 to 5).",
-              "zh": "近期池打开时：带进新对话的记忆最多几条（1 到 5）。"
+              "zh": "开启“近期池”后：带入新对话的记忆最多条数（1 到 5）。"
             }
           },
           {
@@ -934,11 +934,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "label": {
               "en": "Days the recent pool is kept",
-              "zh": "近期池保留几天"
+              "zh": "近期池保留天数"
             },
             "help": {
               "en": "With advanced.recentPool on: a saved conversation older than this many days is not carried into a new one (1 to 30).",
-              "zh": "近期池打开时：保存下来的对话超过这么多天，就不再带进新对话（1 到 30）。"
+              "zh": "开启“近期池”后：保存的对话超过该天数，就不再带入新对话（1 到 30）。"
             }
           },
           {
@@ -950,14 +950,14 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
                 "value": "broad",
                 "label": {
                   "en": "broad: more memories per turn, misses less, more noise",
-                  "zh": "broad：每轮条数多，漏得少，杂讯也多"
+                  "zh": "broad：每轮条数较多，遗漏少，噪声多"
                 }
               },
               {
                 "value": "precise",
                 "label": {
                   "en": "precise: about one memory per turn, closer matches, misses more",
-                  "zh": "precise：每轮约一条，更贴题，漏得也多"
+                  "zh": "precise：每轮约一条，更贴题，遗漏较多"
                 }
               }
             ],
@@ -967,7 +967,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "How strict the gateway is about what counts as related. The memory block stays in the conversation, so broad makes the context grow faster.",
-              "zh": "网关判断“相关”的严格程度。记忆块会留在对话里，broad 会让上下文涨得更快。"
+              "zh": "网关判断“相关”的严格程度。记忆块会保留在对话中，broad 会使上下文增长更快。"
             }
           },
           {
@@ -992,7 +992,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "Most memories the gateway accepts per day; 0 means no cap. The count starts again whenever the gateway restarts.",
-              "zh": "网关每天最多收下几条记忆；0 表示不限。网关重启后重新计数。"
+              "zh": "网关每天最多接收的记忆条数；0 表示不限。网关重启后重新计数。"
             }
           },
           {
@@ -1001,11 +1001,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             "default": true,
             "label": {
               "en": "Redact secrets",
-              "zh": "去掉秘密"
+              "zh": "屏蔽敏感信息"
             },
             "help": {
               "en": "Remove secrets such as keys, tokens and passwords from memories when they are saved and when they are recalled.",
-              "zh": "保存和召回记忆时去掉密钥、令牌、密码这类秘密。"
+              "zh": "保存和召回记忆时，清除其中的密钥、令牌、密码等敏感信息。"
             },
             "needs": {
               "key": "gateway.mode",
@@ -1020,11 +1020,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             "default": true,
             "label": {
               "en": "Newer first",
-              "zh": "新的优先"
+              "zh": "较新的优先"
             },
             "help": {
               "en": "Among nearly equal matches, put newer memories first.",
-              "zh": "相关度差不多时，较新的记忆排在前面。"
+              "zh": "相关度相近时，较新的记忆排在前面。"
             },
             "needs": {
               "key": "gateway.mode",
@@ -1043,7 +1043,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             },
             "help": {
               "en": "Memories unused for a long time rank lower and are eventually archived and removed (at most a few per day). Archived memories stay in the data folder for 90 days.",
-              "zh": "很久没用到的记忆排得更靠后，最终存档并删除（每天最多几条）。存档的记忆在数据文件夹里保留 90 天。"
+              "zh": "长期未被使用的记忆排名靠后，最终会被存档并删除（每天最多几条）。存档的记忆在数据文件夹中保留 90 天。"
             },
             "needs": {
               "key": "gateway.mode",
@@ -1299,35 +1299,35 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         'tab.changelog': 'Changelog',
         tabsLabel: 'Sections of the settings',
         tabEdited: 'has unsaved changes',
-        'overview.head.ready': 'Memory is working',
-        'overview.head.busy': 'Getting memory ready',
-        'overview.head.asleep': 'Memory is resting',
-        'overview.head.trouble': 'Memory needs a hand',
+        'overview.head.ready': 'Memory is running',
+        'overview.head.busy': 'Starting',
+        'overview.head.asleep': 'Memory is not running',
+        'overview.head.trouble': 'Needs attention',
         'overview.head.loading': 'Reading the status',
-        'overview.head.unknown': 'The status is out of reach',
-        'overview.line.loading': 'One moment.',
-        'overview.line.unknown': 'The plugin did not answer ({code}). It may still be starting; the page asks again by itself.',
-        'overview.ready.keyword': 'The bundled gateway is running and finds memories by shared words.',
-        'overview.ready.local': 'The bundled gateway is running and finds memories by meaning, with {model} on this computer.',
-        'overview.ready.local.hybrid': 'The bundled gateway is running and finds memories by meaning and by shared words, with {model} on this computer.',
-        'overview.ready.endpoint': 'The bundled gateway is running and finds memories by meaning, through your embeddings endpoint.',
-        'overview.ready.endpoint.hybrid': 'The bundled gateway is running and finds memories by meaning and by shared words, through your embeddings endpoint.',
-        'overview.ready.external': 'Connected to the gateway you run yourself.',
-        'overview.busy.gateway': 'The bundled gateway is starting. Memories arrive from the next turn on.',
+        'overview.head.unknown': 'Status unavailable',
+        'overview.line.loading': 'Please wait.',
+        'overview.line.unknown': 'The plugin did not respond ({code}). It may still be starting; the page retries automatically.',
+        'overview.ready.keyword': 'The bundled gateway is running, using keyword retrieval.',
+        'overview.ready.local': 'The bundled gateway is running, using {model} on this computer for semantic retrieval.',
+        'overview.ready.local.hybrid': 'The bundled gateway is running, using {model} on this computer for hybrid retrieval (semantic plus keyword).',
+        'overview.ready.endpoint': 'The bundled gateway is running, using your embeddings endpoint for semantic retrieval.',
+        'overview.ready.endpoint.hybrid': 'The bundled gateway is running, using your embeddings endpoint for hybrid retrieval (semantic plus keyword).',
+        'overview.ready.external': 'Connected to the external gateway you run yourself.',
+        'overview.busy.gateway': 'The bundled gateway is starting. Memories are available from the next turn.',
         'overview.busy.model': 'Loading the embedding model {model}.',
         'overview.busy.copy': 'Copying memories into the vector store: {copied} of {total}. Recall already works.',
         'overview.asleep.off': 'The bundled gateway is switched off.',
         'overview.asleep.stopped': 'The bundled gateway is stopped.',
-        'overview.asleep.unused': 'No feature that needs memory is on, so nothing is running. Switch one on under Features.',
-        'overview.trouble.python': 'No Python 3.11 or newer was found, and the bundled gateway needs one. Install Python, or name one under Advanced, Gateway.',
+        'overview.asleep.unused': 'No feature that needs memory is turned on, so the gateway is not running. Turn one on under Features.',
+        'overview.trouble.python': 'No Python 3.11 or newer was found, and the bundled gateway needs one. Install Python, or specify a path under Advanced › Gateway.',
         'overview.trouble.failed': 'The bundled gateway stopped after failing several times. Its log is in the data folder; saving any setting starts it again.',
-        'overview.trouble.incomplete': 'The external gateway needs an address and a client token. Fill them in under Advanced, Gateway.',
+        'overview.trouble.incomplete': 'The external gateway needs an address and a client token. Set them under Advanced › Gateway.',
         'overview.fact.count': '{count} memories',
-        'overview.fact.tier.keyword': 'By shared words',
-        'overview.fact.tier.local': 'By meaning, local model',
-        'overview.fact.tier.local.hybrid': 'Meaning and words, local model',
-        'overview.fact.tier.endpoint': 'By meaning, endpoint',
-        'overview.fact.tier.endpoint.hybrid': 'Meaning and words, endpoint',
+        'overview.fact.tier.keyword': 'Keyword retrieval',
+        'overview.fact.tier.local': 'Semantic retrieval, local model',
+        'overview.fact.tier.local.hybrid': 'Hybrid retrieval, local model',
+        'overview.fact.tier.endpoint': 'Semantic retrieval, endpoint',
+        'overview.fact.tier.endpoint.hybrid': 'Hybrid retrieval, endpoint',
         'overview.fact.managed': 'Bundled gateway',
         'overview.fact.external': 'External gateway',
         'overview.fact.embedError': 'Embedding add-on reports an error',
@@ -1339,16 +1339,16 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         'mascot.nag': 'The mascot points at a little black cat asleep on the floor and tells it to hurry up with the update.',
         'feedback.nag': 'Update now!',
         detailsTitle: 'Details',
-        detailsHint: 'What the plugin reports about itself. No secret, address of the add-on or memory is shown here.',
+        detailsHint: 'Runtime information of the plugin. It contains no keys, add-on address or memory content.',
         experimental: 'Experimental',
         stepDown: 'Less',
         stepUp: 'More',
         unsaved: '{count} unsaved changes',
         unsavedOne: '1 unsaved change',
-        fixFirst: 'A value marked in red cannot be saved yet.',
+        fixFirst: 'A setting marked in red has an invalid format and cannot be saved.',
         discard: 'Discard',
         saveChanges: 'Save changes',
-        changelogIntro: 'What each update changed, newest first.',
+        changelogIntro: 'What changed in each version, newest first.',
         changelogInstalled: 'Installed',
         footDocs: 'Documentation',
         footSource: 'Source',
@@ -1386,7 +1386,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         'feedback.howDirect': 'Send posts your feedback and the environment details listed above to the project’s feedback service. Only the maintainers can read it; it is not published. Leave out keys and tokens.',
         changedCount: '{count} changed',
         modelsTitle: 'Local embedding models',
-        modelsIntro: 'Optional. With a local model, memory is recalled by meaning rather than by shared words, on this computer. Nothing is downloaded or installed until you press a button.',
+        modelsIntro: 'Optional. With a local model, memories are retrieved by meaning rather than by keywords, entirely on this computer. Nothing is downloaded or installed until you click a button.',
         modelsLink: 'Measured retrieval quality of each tier',
         modelsLoading: 'Reading the model list…',
         modelsFailed: 'The model list is unavailable ({code}).',
@@ -1399,14 +1399,14 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         acceptLabel: 'I have read and accept the {name}',
         confirmAddon: 'This installs the plugin dsh-feiyu-memgate-embed from npm through the DSH plugin manager (it checks that the plugin supports this DSH first), then downloads {model} ({size}) and enables it. The plugin adds a dependency with a native binary (node-llama-cpp): about 90 MB on disk for the CPU build, up to about 740 MB on Windows and Linux x64, where pnpm also fetches the GPU builds. The model runs on the CPU only. On Windows the engine needs the Microsoft Visual C++ 2015-2022 runtime (x64), which most Windows installations already have.',
         confirmYes: 'Install', confirmNo: 'Cancel',
-        declined: 'Nothing was installed. Press the button again when you want it.',
+        declined: 'Nothing was installed. Click the button again when needed.',
         todo: 'What to do:',
         'phase.addon': 'Installing the embedding add-on…',
         'phase.addon-starting': 'The embedding add-on is installed; waiting for it to start…',
         'phase.model': 'Downloading {model}…',
         'phase.modelPercent': 'Downloading {model}: {percent}%',
         'phase.activating': 'Enabling {model}…',
-        'phase.done': '{model} is in use; the retrieval tier follows it (see the status above).',
+        'phase.done': '{model} is enabled; the retrieval tier follows it (see the status above).',
         'installState.installing': 'The host is installing it',
         'installState.applying': 'The host is starting it',
         'installState.cancelling': 'Cancelling',
@@ -1419,22 +1419,22 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
       zh: {
         summary: '通过 feiyu-memgate 网关使用长期记忆：自动召回、记忆工具和多种检索方式。',
         changelogTitle: '更新日志',
-        changelogChinese: '这些条目是用中文写的。',
+        changelogChinese: '条目以中文撰写。',
         changelogLoading: '正在读取更新日志…',
-        changelogFailed: '更新日志现在无法显示。',
+        changelogFailed: '无法显示更新日志。',
         refresh: '刷新',
         statusLoading: '正在读取状态…',
         statusFailed: '状态不可用（{code}）。',
         gateway: '网关', python: 'Python', retrieval: '检索', store: '存储', embed: '向量插件',
         migration: '从关键词存储复制',
-        managed: '自带', external: '外部',
+        managed: '内置', external: '外部',
         'state.idle': '未启动', 'state.starting': '启动中', 'state.running': '运行中', 'state.restarting': '重启中',
         'state.off': '关闭', 'state.failed': '多次失败后已停止', 'state.stopped': '已停止',
-        'state.unused': '没有运行（没有开启需要记忆的功能）', 'state.configured': '已配置',
+        'state.unused': '未运行（未开启需要记忆的功能）', 'state.configured': '已配置',
         'state.incomplete': '需要地址和令牌', 'state.ready': '就绪', 'state.loading': '加载中',
-        'state.no-model': '没有安装模型', 'state.error': '出错', 'state.done': '完成', 'state.partial': '进行中',
+        'state.no-model': '未安装模型', 'state.error': '出错', 'state.done': '完成', 'state.partial': '进行中',
         'state.running-copy': '复制中',
-        pythonNone: '没有找到（需要 3.11 或更新）',
+        pythonNone: '未找到（需要 3.11 或更高版本）',
         pythonUnknown: '未检查',
         retrievalExternal: '由外部网关决定',
         hybridWord: '关键词（混合）',
@@ -1442,15 +1442,15 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         memories: '{count} 条记忆',
         countUnknown: '条数未知',
         progress: '已复制 {copied} / {total}',
-        refusedCount: '向量模型拒收 {count} 条',
-        relevance: '回复前的挑选',
-        relevanceRow: '调用 {calls} 次 · 留下 {kept} 条 · 去掉 {rejected} 条',
+        refusedCount: '向量模型拒绝 {count} 条',
+        relevance: '相关性检查',
+        relevanceRow: '调用 {calls} 次 · 保留 {kept} 条 · 排除 {rejected} 条',
         relevanceSkipped: '跳过 {count} 次（{kinds}）',
         approximate: '分数未校准',
         saving: '正在保存…', saved: '已保存。',
-        saveFailed: '宿主没有接受这次修改，什么都没有保存。',
-        readOnly: '这个部署的设置是只读的。',
-        unavailable: '宿主现在没有提供这个插件的设置表单。所有设置仍然可以在对话里用 /memgate set 修改。',
+        saveFailed: '宿主未接受此次修改，未保存任何内容。',
+        readOnly: '当前部署的设置为只读。',
+        unavailable: '宿主暂未提供此插件的设置表单。仍可在对话中使用 /memgate set 修改所有设置项。',
         loading: '正在加载设置…',
         overridden: '已修改', reset: '恢复',
         invalidInteger: '{min} 到 {max} 之间的整数。',
@@ -1461,41 +1461,41 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         // the page: tabs, the summary at the top, rows, the save bar, the footer, the feedback tab
         'tab.overview': '概览',
         'tab.changelog': '更新日志',
-        tabsLabel: '设置的各个部分',
+        tabsLabel: '设置分区',
         tabEdited: '有未保存的修改',
-        'overview.head.ready': '记忆在正常工作',
-        'overview.head.busy': '正在准备记忆',
-        'overview.head.asleep': '记忆在休息',
-        'overview.head.trouble': '记忆需要你帮个忙',
+        'overview.head.ready': '记忆运行正常',
+        'overview.head.busy': '正在启动',
+        'overview.head.asleep': '记忆未运行',
+        'overview.head.trouble': '需要处理',
         'overview.head.loading': '正在读取状态',
-        'overview.head.unknown': '读不到状态',
-        'overview.line.loading': '稍等一下。',
-        'overview.line.unknown': '插件没有应答（{code}）。它可能还在启动，页面会自己再问。',
-        'overview.ready.keyword': '自带网关在运行，按字面找记忆。',
-        'overview.ready.local': '自带网关在运行，用这台电脑上的 {model} 按意思找记忆。',
-        'overview.ready.local.hybrid': '自带网关在运行，用这台电脑上的 {model} 按意思找记忆，同时也按字面找。',
-        'overview.ready.endpoint': '自带网关在运行，通过你的向量接口按意思找记忆。',
-        'overview.ready.endpoint.hybrid': '自带网关在运行，通过你的向量接口按意思找记忆，同时也按字面找。',
-        'overview.ready.external': '已连接到你自己运行的网关。',
-        'overview.busy.gateway': '自带网关正在启动，下一轮对话起就有记忆。',
+        'overview.head.unknown': '无法读取状态',
+        'overview.line.loading': '请稍候。',
+        'overview.line.unknown': '插件未响应（{code}）。可能仍在启动，页面会自动重试。',
+        'overview.ready.keyword': '内置网关运行中，使用关键词检索。',
+        'overview.ready.local': '内置网关运行中，使用本机的 {model} 进行语义检索。',
+        'overview.ready.local.hybrid': '内置网关运行中，使用本机的 {model} 进行混合检索（语义加关键词）。',
+        'overview.ready.endpoint': '内置网关运行中，通过你的向量接口进行语义检索。',
+        'overview.ready.endpoint.hybrid': '内置网关运行中，通过你的向量接口进行混合检索（语义加关键词）。',
+        'overview.ready.external': '已连接到你自行运行的外部网关。',
+        'overview.busy.gateway': '内置网关正在启动，下一轮对话起可使用记忆。',
         'overview.busy.model': '正在加载向量模型 {model}。',
-        'overview.busy.copy': '正在把记忆复制到向量存储：{copied} / {total}。这期间照常能召回。',
-        'overview.asleep.off': '自带网关已关闭。',
-        'overview.asleep.stopped': '自带网关已停止。',
-        'overview.asleep.unused': '没有开启需要记忆的功能，所以什么都没有运行。到“功能”里打开一项就行。',
-        'overview.trouble.python': '没有找到 Python 3.11 或更新的版本，自带网关需要它。装一个 Python，或者到“高级 › 网关”里指定一个。',
-        'overview.trouble.failed': '自带网关连续失败几次之后停下了。日志在数据文件夹里；保存任意一项设置会让它重新启动。',
-        'overview.trouble.incomplete': '外部网关还缺地址和客户端令牌。到“高级 › 网关”里填上。',
+        'overview.busy.copy': '正在把记忆复制到向量存储：{copied} / {total}。复制期间仍可召回。',
+        'overview.asleep.off': '内置网关已关闭。',
+        'overview.asleep.stopped': '内置网关已停止。',
+        'overview.asleep.unused': '未开启任何需要记忆的功能，网关未运行。可在“功能”中开启。',
+        'overview.trouble.python': '未找到 Python 3.11 或更高版本，内置网关无法运行。请安装 Python，或在“高级 › 网关”中指定路径。',
+        'overview.trouble.failed': '内置网关连续失败多次后已停止。日志位于数据文件夹；保存任意设置项会重新启动网关。',
+        'overview.trouble.incomplete': '外部网关缺少地址和客户端令牌。请在“高级 › 网关”中填写。',
         'overview.fact.count': '{count} 条记忆',
-        'overview.fact.tier.keyword': '按字面检索',
-        'overview.fact.tier.local': '按意思检索 · 本地模型',
-        'overview.fact.tier.local.hybrid': '意思加字面 · 本地模型',
-        'overview.fact.tier.endpoint': '按意思检索 · 向量接口',
-        'overview.fact.tier.endpoint.hybrid': '意思加字面 · 向量接口',
-        'overview.fact.managed': '自带网关',
+        'overview.fact.tier.keyword': '关键词检索',
+        'overview.fact.tier.local': '语义检索 · 本地模型',
+        'overview.fact.tier.local.hybrid': '混合检索 · 本地模型',
+        'overview.fact.tier.endpoint': '语义检索 · 向量接口',
+        'overview.fact.tier.endpoint.hybrid': '混合检索 · 向量接口',
+        'overview.fact.managed': '内置网关',
         'overview.fact.external': '外部网关',
-        'overview.fact.embedError': '向量插件报告了错误',
-        'overview.fact.refused': '向量模型拒收了 {count} 条记忆',
+        'overview.fact.embedError': '向量插件报告错误',
+        'overview.fact.refused': '向量模型拒绝了 {count} 条记忆',
         'mascot.ready': '吉祥物举着一块发光的拼图。',
         'mascot.busy': '吉祥物抱着一摞拼图。',
         'mascot.asleep': '吉祥物睡着了。',
@@ -1503,16 +1503,16 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         'mascot.nag': '吉祥物指着在地上睡觉的小黑猫，催它快点更新。',
         'feedback.nag': '快更新！',
         detailsTitle: '详细信息',
-        detailsHint: '插件对自己的描述。这里不显示任何密钥、向量插件的地址或记忆内容。',
-        experimental: '实验',
+        detailsHint: '插件的运行信息。不包含密钥、向量插件地址和记忆内容。',
+        experimental: '实验性',
         stepDown: '减少',
         stepUp: '增加',
         unsaved: '{count} 项修改未保存',
         unsavedOne: '1 项修改未保存',
-        fixFirst: '标红的那一项现在还不能保存。',
+        fixFirst: '标红的设置项格式有误，无法保存。',
         discard: '放弃修改',
         saveChanges: '保存修改',
-        changelogIntro: '每次更新改了什么，新的在前。',
+        changelogIntro: '各版本的更新内容，按时间倒序排列。',
         changelogInstalled: '当前安装',
         footDocs: '文档',
         footSource: '源代码',
@@ -1548,37 +1548,37 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         'feedback.failed': '提交失败（{code}），已填写的内容仍保留。请重试，或使用以下方式：',
         'feedback.failedBusy': '提交过于频繁，请一分钟后重试，或使用以下方式：',
         'feedback.howDirect': '提交后，反馈内容和上方列出的运行环境信息将发送至项目的反馈服务，仅维护者可见，不会公开。请勿填写密钥、令牌等敏感信息。',
-        changedCount: '已改 {count} 项',
+        changedCount: '已修改 {count} 项',
         modelsTitle: '本地向量模型',
-        modelsIntro: '可选。有了本地模型，记忆按意思而不是按字面找回，全部在这台电脑上完成。按下按钮之前不会下载或安装任何东西。',
-        modelsLink: '各档位的实测检索效果',
+        modelsIntro: '可选。使用本地模型后，将按语义而非关键词检索记忆，全部在本机完成。点击按钮前不会下载或安装任何内容。',
+        modelsLink: '各检索方式的实测效果',
         modelsLoading: '正在读取模型列表…',
         modelsFailed: '模型列表不可用（{code}）。',
-        colSize: '下载', colMemory: '运行内存', colLanguages: '语言', colLicence: '许可',
-        memoryAbout: '约 {mb} MB', memoryUnknown: '未测',
+        colSize: '下载', colMemory: '运行内存', colLanguages: '语言', colLicence: '许可证',
+        memoryAbout: '约 {mb} MB', memoryUnknown: '未测量',
         'language.zh': '中文', 'language.en': '英文', 'language.multilingual': '多语言',
         unverified: '尚未测试',
         actInstall: '下载并启用', actDownloading: '下载中 {percent}%', actDownloadingPlain: '下载中…',
         actCancel: '取消', actUse: '启用', actActive: '使用中', actLoading: '加载中…', actRemove: '删除',
         acceptLabel: '我已阅读并同意 {name}',
-        confirmAddon: '这会通过 DSH 的插件管理器从 npm 安装插件 dsh-feiyu-memgate-embed（先检查它是否支持当前 DSH），然后下载 {model}（{size}）并启用。这个插件会带来一个含原生二进制的依赖（node-llama-cpp）：CPU 版约占 90 MB 磁盘；在 Windows 和 Linux x64 上 pnpm 还会取 GPU 版本，最多约 740 MB。模型只在 CPU 上运行。在 Windows 上，引擎需要 Microsoft Visual C++ 2015-2022 运行库（x64），大多数 Windows 已经装有。',
+        confirmAddon: '将通过 DSH 的插件管理器从 npm 安装插件 dsh-feiyu-memgate-embed（先检查其是否支持当前 DSH），然后下载 {model}（{size}）并启用。该插件依赖含原生二进制文件的 node-llama-cpp：CPU 版本约占用 90 MB 磁盘；在 Windows 和 Linux x64 上，pnpm 还会获取 GPU 版本，最多约 740 MB。模型仅使用 CPU 运行。在 Windows 上，引擎需要 Microsoft Visual C++ 2015-2022 运行库（x64），大多数 Windows 系统已自带。',
         confirmYes: '安装', confirmNo: '取消',
-        declined: '没有安装任何东西。想装的时候再按一次按钮。',
-        todo: '怎么办：',
+        declined: '未安装任何内容。需要时可再次点击按钮。',
+        todo: '处理方法：',
         'phase.addon': '正在安装向量插件…',
-        'phase.addon-starting': '向量插件已安装，等待它启动…',
+        'phase.addon-starting': '向量插件已安装，等待其启动…',
         'phase.model': '正在下载 {model}…',
         'phase.modelPercent': '正在下载 {model}：{percent}%',
         'phase.activating': '正在启用 {model}…',
-        'phase.done': '{model} 正在使用，检索方式随之切换（见上面的状态）。',
+        'phase.done': '{model} 已启用，检索方式随之切换（见上方状态）。',
         'installState.installing': '宿主正在安装',
-        'installState.applying': '宿主正在启动它',
+        'installState.applying': '宿主正在启动',
         'installState.cancelling': '正在取消',
         actResume: '继续下载',
-        'phase.paused': '{model} 的下载中断了（DSH 重启过），已下载的部分还在。',
-        'phase.builds': '安装在等你决定：',
+        'phase.paused': '{model} 的下载已中断（DSH 已重启），已下载的部分会保留。',
+        'phase.builds': '安装等待你的决定：',
         buildsAllow: '允许脚本并继续', buildsDeny: '不允许',
-        pinned: '向量插件的设置里指定了它',
+        pinned: '已在向量插件的设置中指定',
       },
     }
 
@@ -2065,10 +2065,10 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         sections: [
           {
             id: 'recall',
-            label: { en: 'Recall', zh: '回忆' },
+            label: { en: 'Recall', zh: '召回' },
             help: {
-              en: 'What the model is given without asking: related memories each turn, and a short note on how to treat them.',
-              zh: '不用模型开口就给它的东西：每一轮的相关记忆，以及怎么对待这些记忆的一小段说明。',
+              en: 'What is provided without a model request: related memories each turn, and a note on how to use them.',
+              zh: '无需模型请求即可提供的内容：每轮对话的相关记忆，以及记忆的使用说明。',
             },
             fields: ['modules.autoRecall', 'modules.promptSection'],
           },
@@ -2076,8 +2076,8 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             id: 'tools',
             label: { en: 'Tools', zh: '工具' },
             help: {
-              en: 'What the model and you can do on your own initiative.',
-              zh: '模型和你可以主动做的事。',
+              en: 'What the model and you can use on your own initiative.',
+              zh: '模型和你可以主动使用的功能。',
             },
             fields: ['modules.rememberTool', 'modules.searchTool', 'modules.commands'],
           },
@@ -2086,7 +2086,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             label: { en: 'Capture', zh: '记录' },
             help: {
               en: 'Saving what you say without the model deciding.',
-              zh: '不经过模型判断，直接把你说的话记下来。',
+              zh: '不经模型判断，直接保存用户发送的消息。',
             },
             fields: ['modules.autoCapture', 'advanced.captureMinChars'],
           },
@@ -2098,10 +2098,10 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         sections: [
           {
             id: 'tier',
-            label: { en: 'How memories are found', zh: '怎么找记忆' },
+            label: { en: 'Retrieval method', zh: '检索方式' },
             help: {
               en: 'Each way keeps its own store file: memories saved under one are not searched under another unless they were copied, and switching back finds them again.',
-              zh: '每种方式各用一个存储文件：在一种方式下记的内容，换成另一种方式后不会被查到，除非已经复制过去；切回来还能找到。',
+              zh: '各检索方式分别使用独立的存储文件：在一种方式下记录的记忆，切换方式后不会被检索到，除非已复制过去；切换回来后仍可找到。',
             },
             fields: [
               'retrieval.tier', 'retrieval.url', 'retrieval.model', 'retrieval.apiKey',
@@ -2120,15 +2120,15 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         id: 'advanced',
         label: { en: 'Advanced', zh: '高级' },
         note: {
-          en: 'The defaults suit most conversations. Each group opens on its own and says how many of its settings were changed.',
-          zh: '默认值适合大多数对话。每一组可以单独展开，组名右边会标出里面改过几项。',
+          en: 'The defaults suit most conversations. Each group opens on its own and shows how many of its settings were changed.',
+          zh: '默认值适用于大多数对话。各组可单独展开，组名右侧显示已修改的设置项数量。',
         },
         collapsible: true,
         sections: [
           {
             id: 'tuning',
             label: { en: 'Recall details', zh: '召回细节' },
-            help: { en: 'How many memories a turn gets and how strict the match is.', zh: '每轮给几条记忆，以及匹配有多严格。' },
+            help: { en: 'How many memories a turn gets and how strict the match is.', zh: '每轮提供的记忆条数，以及匹配的严格程度。' },
             fields: [
               'advanced.recallLimit', 'advanced.profile', 'advanced.maxNewPerTurn', 'advanced.recallTimeoutMs',
               'advanced.linkedRecall', 'advanced.skipRepeats',
@@ -2137,15 +2137,15 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
           {
             id: 'block',
             label: { en: 'Memory block', zh: '记忆块' },
-            help: { en: 'How the recalled memories are presented to the model.', zh: '召回的记忆以什么样子交给模型。' },
+            help: { en: 'How the recalled memories are presented to the model.', zh: '召回的记忆交给模型时的呈现方式。' },
             fields: ['advanced.language', 'advanced.blockTone', 'advanced.showAge', 'advanced.failureNote'],
           },
           {
             id: 'experiments',
-            label: { en: 'Experiments', zh: '实验功能' },
+            label: { en: 'Experimental features', zh: '实验性功能' },
             help: {
-              en: 'Measured offline only, not yet in everyday chats. All off by default; each says what it costs.',
-              zh: '只做过离线测量，还没有在日常聊天里验证。默认全部关闭，每一项都写了它的代价。',
+              en: 'Measured offline only, not yet verified in everyday chats. All off by default; each states its cost.',
+              zh: '仅做过离线测量，尚未在日常对话中验证。默认全部关闭，每项都注明了代价。',
             },
             fields: [
               'advanced.relevanceCheck', 'advanced.relevanceProvider', 'advanced.relevanceModel', 'advanced.relevanceTimeoutMs',
@@ -2158,8 +2158,8 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
             id: 'gateway',
             label: { en: 'Gateway', zh: '网关' },
             help: {
-              en: 'Where memories are kept: the gateway that ships with the plugin, or one you run yourself.',
-              zh: '记忆放在哪里：插件自带的网关，或你自己运行的网关。',
+              en: 'Where memories are kept: the gateway bundled with the plugin, or an external one you run yourself.',
+              zh: '记忆的存放位置：插件内置的网关，或你自己运行的外部网关。',
             },
             fields: [
               'gateway.mode', 'gateway.python', 'gateway.dataDir', 'external.url', 'external.token',

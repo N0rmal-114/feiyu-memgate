@@ -198,7 +198,7 @@ test('advanced.linkedRecall: a boolean, on by default, right after skipRepeats, 
   assert.equal(field.kind, 'boolean')
   assert.equal(field.default, true)
   assert.equal(field.label.en, 'Recall linked memories')
-  assert.equal(field.label.zh, '顺带想起相连的记忆')
+  assert.equal(field.label.zh, '召回相关联的记忆')
   for (const language of ['en', 'zh']) {
     assert.match(field.help[language], /advanced\.recallLimit/)
     assert.match(field.help[language], /retrieval\.hybrid/)
@@ -222,11 +222,11 @@ test('retrieval.hybrid: a boolean, off by default, right after the tier, with he
   assert.equal(field.kind, 'boolean')
   assert.equal(field.default, false)
   assert.equal(field.label.en, 'Combine with keyword search (hybrid)')
-  assert.equal(field.label.zh, '同时用关键词检索（混合）')
+  assert.equal(field.label.zh, '同时使用关键词检索（混合检索）')
   assert.match(field.help.en, /vector tiers/)
   assert.match(field.help.en, /under keyword it does nothing/)
   assert.match(field.help.en, /loses no memory/)
-  assert.match(field.help.zh, /不会丢记忆/)
+  assert.match(field.help.zh, /不会丢失记忆/)
   assert.equal(readConfig({ retrieval: { hybrid: true } }).retrieval.hybrid, true)
   assert.equal(readConfig({ retrieval: { hybrid: 'on' } }).retrieval.hybrid, false, 'only a real boolean counts')
 })
@@ -238,9 +238,9 @@ test('the prototype settings: afterthought and conversationPool are off, the two
     assert.equal(field.default, false, key)
     assert.ok(field.label.en && field.label.zh && field.help.en && field.help.zh, key)
   }
-  assert.deepEqual([SETTING_KEYS['advanced.afterthought'].label.zh, SETTING_KEYS['advanced.afterthought'].label.en], ['回复之后再想一想', 'Recall again after replying'])
+  assert.deepEqual([SETTING_KEYS['advanced.afterthought'].label.zh, SETTING_KEYS['advanced.afterthought'].label.en], ['回复后再次召回', 'Recall again after replying'])
   assert.deepEqual([SETTING_KEYS['advanced.conversationPool'].label.zh, SETTING_KEYS['advanced.conversationPool'].label.en], ['对话池', 'Conversation pool'])
-  const counts = [['advanced.afterthoughtMax', 2, '再想一想最多加几条', 'Memories a second lookup may add'], ['advanced.poolSize', 3, '对话池一次带回几条', 'Memories the pool brings back']]
+  const counts = [['advanced.afterthoughtMax', 2, '回复后再次召回的条数上限', 'Memories a second lookup may add'], ['advanced.poolSize', 3, '对话池每次带回的条数', 'Memories the pool brings back']]
   for (const [key, value, zh, en] of counts) {
     const field = SETTING_KEYS[key]
     assert.deepEqual([field.kind, field.default, field.min, field.max, field.label.zh, field.label.en], ['integer', value, 1, 5, zh, en], key)
@@ -273,9 +273,9 @@ test('the recent pool settings: a switch that is off, a count of 1 to 5 and a nu
   assert.match(pool.help.en, /recent-pool\.json/)
   assert.match(pool.help.zh, /recent-pool\.json/)
   const size = SETTING_KEYS['advanced.recentSize']
-  assert.deepEqual([size.kind, size.default, size.min, size.max, size.label.zh, size.label.en], ['integer', 3, 1, 5, '近期池一次带上几条', 'Memories the recent pool carries'])
+  assert.deepEqual([size.kind, size.default, size.min, size.max, size.label.zh, size.label.en], ['integer', 3, 1, 5, '近期池每次带入的条数', 'Memories the recent pool carries'])
   const days = SETTING_KEYS['advanced.recentDays']
-  assert.deepEqual([days.kind, days.default, days.min, days.max, days.label.zh, days.label.en], ['integer', 7, 1, 30, '近期池保留几天', 'Days the recent pool is kept'])
+  assert.deepEqual([days.kind, days.default, days.min, days.max, days.label.zh, days.label.en], ['integer', 7, 1, 30, '近期池保留天数', 'Days the recent pool is kept'])
   for (const field of [pool, size, days]) assert.ok(field.help.en && field.help.zh)
   assert.equal(readConfig({ advanced: { recentDays: 31 } }).advanced.recentDays, 7)
   assert.equal(readConfig({ advanced: { recentDays: 30 } }).advanced.recentDays, 30)
@@ -290,12 +290,12 @@ test('the recent pool settings: a switch that is off, a count of 1 to 5 and a nu
 
 test('the block wording and the cap on new memories: a choice that is normal and a count from 0 to 5, with help in both languages', () => {
   const tone = SETTING_KEYS['advanced.blockTone']
-  assert.deepEqual([tone.kind, tone.default, tone.options.map((o) => o.value), tone.label.zh, tone.label.en], ['choice', 'normal', ['normal', 'strict'], '记忆块的说明', 'Wording of the memory block'])
+  assert.deepEqual([tone.kind, tone.default, tone.options.map((o) => o.value), tone.label.zh, tone.label.en], ['choice', 'normal', ['normal', 'strict'], '记忆块说明', 'Wording of the memory block'])
   for (const option of tone.options) assert.ok(option.label.en && option.label.zh)
   assert.ok(tone.help.en && tone.help.zh)
   assert.match(tone.help.en, /memgate_search/)
   const cap = SETTING_KEYS['advanced.maxNewPerTurn']
-  assert.deepEqual([cap.kind, cap.default, cap.min, cap.max, cap.label.zh, cap.label.en], ['integer', 0, 0, 5, '每轮最多新给几条', 'New memories per turn'])
+  assert.deepEqual([cap.kind, cap.default, cap.min, cap.max, cap.label.zh, cap.label.en], ['integer', 0, 0, 5, '每轮新增记忆上限', 'New memories per turn'])
   assert.ok(cap.help.en && cap.help.zh)
   assert.equal(readConfig({ advanced: { blockTone: 'strict' } }).advanced.blockTone, 'strict')
   assert.equal(readConfig({ advanced: { blockTone: 'loud' } }).advanced.blockTone, 'normal')
@@ -313,7 +313,7 @@ test('the block wording and the cap on new memories: a choice that is normal and
 
 test('the relevance check: a switch that is off, a provider and a model that are empty and a time limit from 500 to 10000, with help in both languages', () => {
   const on = SETTING_KEYS['advanced.relevanceCheck']
-  assert.deepEqual([on.kind, on.default, on.label.zh, on.label.en], ['boolean', false, '回复前让模型先挑一遍', 'Let a model pick the related memories first'])
+  assert.deepEqual([on.kind, on.default, on.label.zh, on.label.en], ['boolean', false, '回复前由模型筛选记忆', 'Let a model pick the related memories first'])
   for (const key of ['relevanceCheck', 'relevanceProvider', 'relevanceModel', 'relevanceTimeoutMs']) {
     const field = SETTING_KEYS[`advanced.${key}`]
     assert.ok(field.label.en && field.label.zh && field.help.en && field.help.zh, key)

@@ -141,7 +141,7 @@ export function embedKey(embed) {
 export const TIERS = Object.freeze({
   // Keyword search over SQLite, inside the gateway. Needs no model and no network.
   keyword: Object.freeze({
-    label: { en: 'keyword (SQLite, no model)', zh: '关键词（SQLite，不需要模型）' },
+    label: { en: 'keyword (SQLite, no model)', zh: '关键词检索（SQLite，无需模型）' },
     needs: { en: 'nothing; always available', zh: '无，始终可用' },
     vector: false,
     missing: () => [],
@@ -156,7 +156,7 @@ export const TIERS = Object.freeze({
     label: { en: 'embeddings endpoint (OpenAI-compatible)', zh: '向量接口（OpenAI 兼容）' },
     needs: {
       en: 'retrieval.url and retrieval.model (and retrieval.apiKey when the endpoint wants one)',
-      zh: 'retrieval.url 和 retrieval.model（接口需要密钥时还要 retrieval.apiKey）',
+      zh: 'retrieval.url 和 retrieval.model（接口要求密钥时另需 retrieval.apiKey）',
     },
     vector: true,
     missing: (retrieval) => [!retrieval.url && 'retrieval.url', !retrieval.model && 'retrieval.model'].filter(Boolean),
@@ -171,10 +171,10 @@ export const TIERS = Object.freeze({
   // Semantic search with a model the dsh-feiyu-memgate-embed add-on runs on this machine and serves
   // on a loopback address.
   local: Object.freeze({
-    label: { en: 'local model (dsh-feiyu-memgate-embed add-on)', zh: '本地模型（dsh-feiyu-memgate-embed 插件）' },
+    label: { en: 'local model (dsh-feiyu-memgate-embed add-on)', zh: '本地向量模型（dsh-feiyu-memgate-embed 插件）' },
     needs: {
       en: 'the dsh-feiyu-memgate-embed add-on, installed, switched on and with a model ready',
-      zh: '安装并启用 dsh-feiyu-memgate-embed 插件，并且模型已就绪',
+      zh: '已安装并启用 dsh-feiyu-memgate-embed 插件，且模型已就绪',
     },
     vector: true,
     missing: (retrieval, facts) => (embedReady(facts?.embed) ? [] : ['dsh-feiyu-memgate-embed (ready)']),

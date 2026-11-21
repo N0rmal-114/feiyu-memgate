@@ -776,7 +776,7 @@ test('/memgate models, install, use, remove and cancel call the same functions a
   assert.match(list, /部署档位/)
   const confirm = await run(host, `install ${SMALL}`)
   assert.match(confirm.text, /--confirm$/)
-  assert.match(confirm.text, /只在 CPU 上运行/)
+  assert.match(confirm.text, /仅使用 CPU 运行/)
   const started = await run(host, `install ${SMALL} --confirm`)
   assert.equal(started.kind, 'success')
   assert.match(started.text, /插件管理器/)

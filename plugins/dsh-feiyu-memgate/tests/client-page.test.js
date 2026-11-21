@@ -129,7 +129,7 @@ test('the page script carries advanced.linkedRecall right after skipRepeats: a s
   const keys = advanced.map((f) => f.key)
   assert.equal(keys[keys.indexOf('skipRepeats') + 1], 'linkedRecall')
   const row = advanced.find((f) => f.key === 'linkedRecall')
-  assert.deepEqual([row.kind, row.default, row.label.en, row.label.zh], ['boolean', true, 'Recall linked memories', '顺带想起相连的记忆'])
+  assert.deepEqual([row.kind, row.default, row.label.en, row.label.zh], ['boolean', true, 'Recall linked memories', '召回相关联的记忆'])
   const { en, zh } = plain(load().internals.dictionaries())
   assert.equal(en['f.advanced.linkedRecall'], row.label.en)
   assert.equal(zh['f.advanced.linkedRecall'], row.label.zh)
@@ -385,7 +385,7 @@ test('status rows: the relevance check appears only while it is on, with its cou
   assert.ok(!rows({ relevance: { enabled: false, calls: 3, kept: 1, rejected: 2, skipped: {} } }, 'en').some(([label]) => label === 'Relevance check'))
   assert.deepEqual(rows({ relevance: { enabled: true, calls: 5, kept: 7, rejected: 9, skipped: {} } }, 'en').at(-1), ['Relevance check', '5 calls · 7 kept · 9 left out'])
   assert.deepEqual(rows({ relevance: { enabled: true, calls: 5, kept: 7, rejected: 9, skipped: { timeout: 2, unusable: 1 } } }, 'en').at(-1), ['Relevance check', '5 calls · 7 kept · 9 left out · 3 skipped (timeout 2, unusable 1)'])
-  assert.deepEqual(rows({ relevance: { enabled: true, calls: 1, kept: 0, rejected: 2, skipped: {} } }, 'zh').at(-1), ['回复前的挑选', '调用 1 次 · 留下 0 条 · 去掉 2 条'])
+  assert.deepEqual(rows({ relevance: { enabled: true, calls: 1, kept: 0, rejected: 2, skipped: {} } }, 'zh').at(-1), ['相关性检查', '调用 1 次 · 保留 0 条 · 排除 2 条'])
 })
 
 test('status rows: managed and external, in the page language', async () => {
@@ -963,7 +963,7 @@ test('a folding group says how many of its settings are changed and marks unsave
 
 test('the Retrieval tab places the model list after the rows of its section', () => {
   const tree = renderTab('retrieval')
-  assert.deepEqual(withClass(tree, 'fmg-section__title').map(textOf), ['How memories are found', 'Local embedding models'])
+  assert.deepEqual(withClass(tree, 'fmg-section__title').map(textOf), ['Retrieval method', 'Local embedding models'])
   assert.ok(textOf(tree).includes(tr('en')('modelsIntro')))
 })
 
@@ -1077,7 +1077,7 @@ test('Hero: when a drawing cannot be loaded the card simply has none, and one th
   const failing = load({ states: (init) => (init && typeof init === 'object' && 'failed' in init ? { loaded: {}, failed: true } : init) })
   const tree = expand(failing.internals.Hero({ t: tr('en'), summary }))
   assert.equal(findAll(tree, (n) => n.type === 'img').length, 0)
-  assert.ok(textOf(tree).includes('Memory is working'))
+  assert.ok(textOf(tree).includes('Memory is running'))
   const arrived = load({ states: (init) => (init && typeof init === 'object' && 'failed' in init ? { loaded: { ready: true }, failed: false } : init) })
   const shown = expand(arrived.internals.Hero({ t: tr('en'), summary }))
   assert.equal(findAll(shown, (n) => n.type === 'img')[0].props['data-shown'], 'true')
@@ -1287,7 +1287,7 @@ test('ChangelogTab: loading, a failure and no entries each show one quiet line, 
     }
   }
   assert.equal(textOf(line('en', { loading: true, data: null })), 'Reading the changelog…')
-  assert.equal(textOf(line('zh', { loading: false, data: null })), '更新日志现在无法显示。')
+  assert.equal(textOf(line('zh', { loading: false, data: null })), '无法显示更新日志。')
 })
 
 // ------------------------------------------------------------------ the Markdown subset
@@ -1420,7 +1420,7 @@ test('the chain line says where the setup stands, in the page language', () => {
   assert.equal(at('addon', { installState: { phase: 'installing' } }), 'Installing the embedding add-on… · The host is installing it')
   assert.equal(at('model', { percent: 37 }), 'Downloading bge-m3: 37%')
   assert.equal(at('activating'), 'Enabling bge-m3…')
-  assert.match(at('done'), /^bge-m3 is in use/)
+  assert.match(at('done'), /^bge-m3 is enabled/)
   assert.equal(I.pickText({ en: 'a', zh: '乙' }, 'zh'), '乙')
   assert.equal(I.formatSize(1157671200), '1.2 GB')
   // One failure reported both by the click's answer and by the chain's stored state is shown once.

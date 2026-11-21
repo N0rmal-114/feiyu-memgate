@@ -108,19 +108,19 @@ export const CATALOGUE = deepFreeze([
 export const TIER_NOTES = deepFreeze({
   lightest: {
     en: 'Smallest download, Chinese only: recall by meaning instead of shared words, at the lowest cost.',
-    zh: '下载最小，只支持中文：按意思而不是按字面找回记忆，代价最低。',
+    zh: '下载最小，仅支持中文：使用语义检索而非关键词检索，开销最低。',
   },
   light: {
     en: 'Chinese only, a larger model than the lightest tier for steadier Chinese recall.',
-    zh: '只支持中文，比最轻档更大的模型，中文召回更稳。',
+    zh: '仅支持中文，模型比最轻档更大，中文召回更稳定。',
   },
   'upper-middle': {
     en: 'Multilingual with long inputs: a balance of size and quality for mixed Chinese and English memories.',
-    zh: '多语言、可处理长内容：中英文混合的记忆在大小和效果之间取得平衡。',
+    zh: '支持多语言和长文本：兼顾体积与效果，适合中英文混合的记忆。',
   },
   top: {
     en: 'Multilingual with long inputs: the largest download and the strongest recall of the list.',
-    zh: '多语言、可处理长内容：下载最大，召回效果在列表中最强。',
+    zh: '支持多语言和长文本：下载最大，召回效果为列表中最好。',
   },
 })
 
