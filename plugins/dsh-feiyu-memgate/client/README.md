@@ -220,8 +220,12 @@ node scripts/preview-client.mjs --react <a node_modules folder with react and re
 ```
 
 Run it in `plugins/dsh-feiyu-memgate`, then open `http://127.0.0.1:47931/` and pick a scenario, a theme, a
-language, the state of the settings form and a column width in the bar on top. The page script is
-assembled from `client/src` on every request, so a reload shows an edit.
+language, the state of the settings form, a column width and how feedback is received in the bar on top.
+The page script is assembled from `client/src` on every request, so a reload shows an edit.
+
+The Feedback choice decides where Send goes. "As shipped" leaves it to `FEEDBACK_ENDPOINT`: with an address
+there, Send really sends a report to the project's receiver. "No receiver" hides Send. The three made-up
+receivers (takes it, fails, is busy) are a route of the preview server that reads nothing of what is posted.
 
 What is real: the page script, its stylesheet, the drawings of `client/art`, the changelog (read from
 `CHANGELOG.md` like the host half does). What is made up: the status and the model list
