@@ -1,8 +1,11 @@
 import threading
 import unittest
+from unittest import mock
 
 from feiyu_memgate import registry
 from feiyu_memgate.backends.inmemory import InMemoryBackend
+from feiyu_memgate.core.tidy import index_grams
+from feiyu_memgate.errors import BackendError
 
 
 class InMemoryBackendTest(unittest.TestCase):
@@ -139,6 +142,74 @@ class InMemoryBackendTest(unittest.TestCase):
         self.assertEqual(be._frequency["茶"], 1)
         self.assertTrue(be.delete("a"))
         self.assertEqual(dict(be._frequency), {})
+
+
+class AtomicRememberTest(unittest.TestCase):
+    """A write of several messages is all or nothing."""
+
+    MESSAGES = [{"role": "user", "content": "memory number %d about tea" % i} for i in range(5)]
+
+    def setUp(self):
+        self.be = InMemoryBackend(memories=["an older memory about tea"])
+
+    def snapshot(self):
+        return (sorted(self.be.refs()), dict(self.be._items), dict(self.be._frequency),
+                [h.ref for h in self.be.find("tea", 20)])
+
+    def test_a_failure_in_the_middle_stores_nothing(self):
+        before = self.snapshot()
+        real = index_grams
+        calls = []
+
+        def build(*args, **kw):
+            calls.append(1)
+            if len(calls) == 3:
+                raise ValueError("cannot index the third message")
+            return real(*args, **kw)
+
+        with mock.patch("feiyu_memgate.backends.inmemory.index_grams", build):
+            with self.assertRaises(ValueError):
+                self.be.remember(self.MESSAGES)
+        self.assertEqual(self.snapshot(), before)
+
+    def test_a_message_the_store_rejects_stores_nothing(self):
+        before = self.snapshot()
+        with self.assertRaises(Exception):
+            self.be.remember(self.MESSAGES[:2] + [{"role": "user", "content": 3}] + self.MESSAGES[3:])
+        self.assertEqual(self.snapshot(), before)
+
+    def test_a_cancelled_call_stores_nothing(self):
+        class Cancelled:
+            cancelled = True
+
+        before = self.snapshot()
+        with self.assertRaises(BackendError):
+            self.be.remember(self.MESSAGES, ctl=Cancelled())
+        self.assertEqual(self.snapshot(), before)
+
+    def test_the_cancel_flag_is_read_once_right_before_the_commit(self):
+        reads = []
+
+        class Ctl:
+            @property
+            def cancelled(self):
+                reads.append(1)
+                return False
+
+        self.assertIsNotNone(self.be.remember(self.MESSAGES, ctl=Ctl()))
+        self.assertEqual(len(reads), 1)
+
+    def test_a_normal_call_stores_every_message(self):
+        messages = self.MESSAGES[:2] + [{"role": "assistant", "content": "not kept"}] + self.MESSAGES[2:]
+        receipt = self.be.remember(messages)
+        refs = sorted(self.be.receipt_refs(receipt))
+        self.assertEqual(refs, sorted("%s-%d" % (receipt, i) for i in (0, 1, 3, 4, 5)))
+        self.assertEqual(self.be.read(receipt + "-3"), "memory number 2 about tea")
+        self.assertEqual(len(self.be.refs()), 6)
+
+    def test_nothing_kept_gives_no_receipt(self):
+        self.assertIsNone(self.be.remember([{"role": "assistant", "content": "x"}]))
+        self.assertEqual(len(self.be.refs()), 1)
 
 
 if __name__ == "__main__":

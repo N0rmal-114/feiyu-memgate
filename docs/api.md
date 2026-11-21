@@ -288,7 +288,7 @@ Authorization: Bearer <令牌>
 | 429 | `daily_limit` | 今天的写入次数用完了（`daily_cap` 守卫） |
 | 500 | `internal` | 网关内部出错。**不确定**写没写进去 |
 | 500 | `guard_error` | 一块写入守卫出错：没写，已经做过的守卫都撤回了 |
-| 502 | `backend_unavailable` | 存储出错或超时。**可能已经写进去了，也可能没有** |
+| 502 | `backend_unavailable` | 存储出错或超时。**可能已经写进去了，也可能没有**；除 `openviking` 外不会只写进去一部分（见 [backends.md](backends.md#一次写入几条消息)） |
 | 503 | `busy` | 工作线程、租户名额或连接数满了，什么都没做 |
 | 4xx、5xx | 守卫自己给的 `code` | 自己写的守卫抛 `WriteRejected` 时，按它的状态码和错误码回答（见[扩展接口](#write_guardwriteguard)） |
 
@@ -386,7 +386,7 @@ Authorization: Bearer <令牌>
 | `daily_limit` | 429 | 今天的写入次数用完了 |
 | `internal` | 500 | 网关内部出错（日志里有错误类型）。写入时**不确定**写没写进去 |
 | `guard_error` | 500 | 一块写入守卫出错：没写，已经做过的守卫都撤回了 |
-| `backend_unavailable` | 502 | 写入时存储出错或超时。**可能已经写进去了，也可能没有** |
+| `backend_unavailable` | 502 | 写入时存储出错或超时。**可能已经写进去了，也可能没有**；除 `openviking` 外不会只写进去一部分 |
 | `busy` | 503 | 工作线程、租户名额或连接数满了，什么都没做，可以稍后重试 |
 | `unavailable` | 503 | 召回时要搜的存储都没查成 |
 | `stage_error` | 503 | 一块召回步骤在整理全部候选时出错，这次不返回任何结果 |
@@ -821,7 +821,7 @@ class MemoryBackend(abc.ABC):
 | `write_state(receipt, timeout=None)` | `"saved"`、`"empty"` 或 `None`（还没完） | 只在 `tracks_writes` 为 `True` 时用。基类返回 `"saved"` |
 | `close()` | | 释放文件、连接 |
 
-`timeout` 是这次调用的总秒数，`None` 是后端自己的默认。`ctl` 是取消句柄：`attach(sock)`、`detach()`、`on_cancel(fn)`、`cancelled`；不开连接的后端可以不管它，自己直接调用后端时传 `NULL_CTL`。出错抛异常（推荐 `BackendError`），错误信息里不要带记忆内容和密钥。
+`timeout` 是这次调用的总秒数，`None` 是后端自己的默认。`ctl` 是取消句柄：`attach(sock)`、`detach()`、`on_cancel(fn)`、`cancelled`，还有 `note(词)`（给这次请求的访问日志留一个词，只写原因，不写内容；用 `getattr` 取，调用方给的对象可能没有它）；不开连接的后端可以不管它，自己直接调用后端时传 `NULL_CTL`。出错抛异常（推荐 `BackendError`），错误信息里不要带记忆内容和密钥。
 
 可选的能力（基类没有定义，没有就不能被遗忘管理）：`refs()` 返回所有记忆的 `(ref, date 或 None)`；`delete(ref)` 返回 `True` 表示这条存在、现在没了；`put(text, ref=None, date=None)` 返回 `ref`；`receipt_refs(receipt)` 返回这次写入产生的 `ref` 列表，不知道时返回 `None`。`put` 也是 `feiyu-memgate eval` 灌数据时用的。
 

@@ -114,13 +114,15 @@ class HybridFusionTest(unittest.TestCase):
         self.assertEqual(len(hits), 1)
         self.assertEqual(hits[0].text, "the text")
 
-    def test_each_child_is_asked_for_three_times_the_limit_with_a_split_budget(self):
+    def test_each_child_is_asked_for_three_times_the_limit_with_the_whole_budget(self):
         a, b = ScriptedChild(), ScriptedChild()
         hybrid_of(a, b).find("q", 4, timeout=2.0)
         self.assertEqual(a.asked[0][1], 12)
         self.assertEqual(b.asked[0][1], 12)
-        self.assertLessEqual(a.asked[0][2], 1.0)
+        self.assertLessEqual(a.asked[0][2], 2.0)
         self.assertLessEqual(b.asked[0][2], 2.0)
+        self.assertGreater(a.asked[0][2], 1.9)
+        self.assertGreater(b.asked[0][2], 1.9)
 
     def test_meta_carries_child_scores(self):
         if "meta" not in getattr(Hit, "__dataclass_fields__", {}):
@@ -470,6 +472,232 @@ class HybridRealNeighboursTest(HybridCase):
         self.assertNotIn("tea", [h.ref for h in hits])
         self.assertEqual(be.neighbours("nothing", 5), [])
         self.assertFalse(hasattr(be.children[0], "neighbours"))
+
+
+class GateChild(ScriptedChild):
+    """A child that can wait for the test: `entered` is set when its find starts, `release` lets it go.
+    A cancelled call is released too (through its own control object), as a real child would stop."""
+
+    def __init__(self, hits=(), wait_for=None, set_on_done=None, hold=False):
+        super().__init__(hits)
+        self.entered = threading.Event()
+        self.release = threading.Event()
+        self.wait_for, self.set_on_done, self.hold = wait_for, set_on_done, hold
+        self.ctls = []
+        self.cancel_seen = False
+
+    def find(self, query, limit, timeout=None, ctl=None):
+        self.asked.append((query, limit, timeout))
+        self.ctls.append(ctl)
+        on_cancel = getattr(ctl, "on_cancel", None)
+        if callable(on_cancel):
+            on_cancel(self.release.set)
+        self.entered.set()
+        if self.wait_for is not None:
+            if not self.wait_for.wait(10):
+                raise RuntimeError("the other child never started")
+        if self.hold:
+            self.release.wait(10)
+            self.cancel_seen = bool(getattr(ctl, "cancelled", False))
+        if self.set_on_done is not None:
+            self.set_on_done.set()
+        return list(self.hits)
+
+
+def child_threads():
+    return [t for t in threading.enumerate() if t.name.startswith("hybrid-")]
+
+
+class HybridConcurrentTest(unittest.TestCase):
+    def test_both_children_are_in_flight_at_the_same_time(self):
+        a, b = GateChild([Hit("x", 0.5)]), GateChild([Hit("y", 0.5)])
+        a.wait_for, b.wait_for = b.entered, a.entered  # each only answers once the other has started
+        start = time.monotonic()
+        hits = hybrid_of(a, b).find("q", 5, timeout=5.0)
+        self.assertLess(time.monotonic() - start, 4.0)
+        self.assertEqual(sorted(h.ref for h in hits), ["x", "y"])
+
+    def test_a_slow_child_does_not_delay_the_answer_beyond_the_budget(self):
+        slow, quick = GateChild([Hit("x", 0.9)], hold=True), ScriptedChild([Hit("y", 0.5)])
+        be = hybrid_of(slow, quick)
+        start = time.monotonic()
+        hits = be.find("q", 5, timeout=0.3)
+        self.assertLess(time.monotonic() - start, 3.0)
+        self.assertEqual([h.ref for h in hits], ["y"])
+        self.assertEqual(be.child_failures, [1, 0])
+        self.assertTrue(slow.release.wait(5))  # the slow child was cancelled, so it winds down
+        be.close()
+        self.assertEqual(child_threads(), [])
+
+    def test_the_result_does_not_depend_on_who_answers_first(self):
+        hits_a = [Hit("x", 0.6, "tx", "2025-01-01"), Hit("y", 0.4, "ty")]
+        hits_b = [Hit("x", 0.5, "", None), Hit("z", 0.7, "tz")]
+        expected = [(h.ref, h.score, h.text, h.date, getattr(h, "meta", None))
+                    for h in hybrid_of(ScriptedChild(hits_a), ScriptedChild(hits_b)).find("q", 5)]
+        for a_first in (True, False):
+            with self.subTest(a_first=a_first):
+                a, b = GateChild(hits_a), GateChild(hits_b)
+                late, early = (b, a) if a_first else (a, b)
+                late.wait_for = threading.Event()  # the early child opens it once it is done
+                early.set_on_done = late.wait_for
+                got = hybrid_of(a, b).find("q", 5, timeout=5.0)
+                self.assertEqual([(h.ref, h.score, h.text, h.date, getattr(h, "meta", None)) for h in got],
+                                 expected)
+
+    def test_neighbours_ask_together_and_merge_the_same_way(self):
+        class Gated(NeighbourChild):
+            def __init__(self, answers, gate, mine):
+                super().__init__(answers)
+                self.gate, self.mine = gate, mine
+
+            def neighbours(self, ref, limit, timeout=None, ctl=None):
+                self.mine.set()
+                if not self.gate.wait(5):
+                    raise RuntimeError("the other child never started")
+                return super().neighbours(ref, limit, timeout=timeout, ctl=ctl)
+
+        ea, eb = threading.Event(), threading.Event()
+        a = Gated({"m": [Hit("x", 0.6)]}, gate=eb, mine=ea)
+        b = Gated({"m": [Hit("x", 0.8), Hit("z", 0.5)]}, gate=ea, mine=eb)
+        be = hybrid_of(a, b)
+        self.assertEqual([(h.ref, h.score) for h in be.neighbours("m", 5, timeout=5.0)], [("x", 0.8), ("z", 0.5)])
+        self.assertEqual(be.child_failures, [0, 0])
+        self.assertIsNot(a.calls[0][3], b.calls[0][3])  # each child has its own control object
+
+    def test_a_failing_child_raises_its_counter_and_the_note(self):
+        from feiyu_memgate.core.pool import Task
+        be = hybrid_of(ScriptedChild(fail_find=True), ScriptedChild([Hit("x", 0.7)]))
+        task = Task(lambda t: None)
+        self.assertEqual([h.ref for h in be.find("q", 5, ctl=task)], ["x"])
+        self.assertEqual(be.child_failures, [1, 0])
+        self.assertEqual(task.notes, ["child-failed"])
+        be.find("q", 5, ctl=task)
+        self.assertEqual(be.child_failures, [2, 0])
+        self.assertEqual(task.notes, ["child-failed"])  # one word, once
+        be.find("q", 5)  # a caller without ctl, or with an object that cannot note, is fine
+        be.find("q", 5, ctl=FakeCtl())
+        self.assertEqual(be.child_failures, [4, 0])
+
+    def test_every_child_failing_still_raises_and_counts(self):
+        be = hybrid_of(ScriptedChild(fail_find=True), ScriptedChild(fail_find=True))
+        with self.assertRaises(BackendError):
+            be.find("q", 5)
+        self.assertEqual(be.child_failures, [1, 1])
+
+    def test_a_failure_of_a_neighbours_child_is_counted_too(self):
+        be = hybrid_of(NeighbourChild(fail=True), NeighbourChild({"m": [Hit("x", 0.7)]}))
+        self.assertEqual([h.ref for h in be.neighbours("m", 5)], ["x"])
+        self.assertEqual(be.child_failures, [1, 0])
+
+    def test_cancelling_the_parent_cancels_both_children(self):
+        from feiyu_memgate.core.pool import Task
+        a, b = GateChild(hold=True), GateChild(hold=True)
+        be = hybrid_of(a, b)
+        task = Task(lambda t: None)
+        caller = threading.Thread(target=lambda: be.find("q", 5, timeout=10.0, ctl=task))
+        caller.start()
+        self.assertTrue(a.entered.wait(5) and b.entered.wait(5))
+        self.assertIsNot(a.ctls[0], b.ctls[0])
+        self.assertFalse(a.ctls[0].cancelled or b.ctls[0].cancelled)
+        task.cancel()
+        caller.join(5)
+        self.assertFalse(caller.is_alive())
+        self.assertTrue(a.cancel_seen and b.cancel_seen)
+        self.assertEqual(be.child_failures, [0, 0])  # the caller gave up: no child is blamed
+
+    def test_a_cancelled_parent_cancels_children_started_after_it(self):
+        from feiyu_memgate.core.pool import Task
+        seen = []
+
+        class Watching(ScriptedChild):
+            def find(self, query, limit, timeout=None, ctl=None):
+                seen.append(ctl.cancelled)
+                return []
+
+        task = Task(lambda t: None)
+        task.cancel()
+        hybrid_of(Watching(), Watching()).find("q", 5, ctl=task)
+        self.assertEqual(seen, [True, True])
+
+    def test_each_child_has_a_socket_slot_of_its_own(self):
+        from feiyu_memgate.core.pool import Task
+
+        class Sock:
+            def __init__(self):
+                self.shut = False
+
+            def shutdown(self, how):
+                self.shut = True
+
+        socks = [Sock(), Sock()]
+        ready = threading.Barrier(3)
+        go = threading.Event()
+
+        class Holding(ScriptedChild):
+            def __init__(self, sock):
+                super().__init__()
+                self.sock = sock
+
+            def find(self, query, limit, timeout=None, ctl=None):
+                ctl.attach(self.sock)
+                ready.wait(5)
+                go.wait(5)
+                ctl.detach()
+                return []
+
+        be = hybrid_of(Holding(socks[0]), Holding(socks[1]))
+        task = Task(lambda t: None)
+        caller = threading.Thread(target=lambda: be.find("q", 5, timeout=10.0, ctl=task))
+        caller.start()
+        ready.wait(5)  # both children hold a socket now
+        task.cancel()
+        self.assertEqual([s.shut for s in socks], [True, True])  # one shared slot would have shut only one
+        go.set()
+        caller.join(5)
+
+    def test_no_thread_is_left_after_a_find_or_after_close(self):
+        before = set(threading.enumerate())
+        a, b = GateChild([Hit("x", 0.5)]), GateChild(hold=True)
+        be = hybrid_of(a, b)
+        be.find("q", 3, timeout=0.2)  # b is cancelled by the budget and winds down alone
+        self.assertTrue(b.release.wait(5))
+        be.close()
+        self.assertEqual(child_threads(), [])
+        self.assertEqual(set(threading.enumerate()) - before, set())
+        be.close()  # twice is fine
+
+    def test_a_find_after_close_fails_without_starting_threads(self):
+        be = hybrid_of(ScriptedChild([Hit("x", 0.5)]), ScriptedChild([Hit("y", 0.5)]))
+        be.close()
+        with self.assertRaises(BackendError):
+            be.find("q", 3)
+        self.assertEqual(child_threads(), [])
+
+
+class HybridFailureReachesTheAccessLogTest(unittest.TestCase):
+    def gateway(self, be):
+        from feiyu_memgate.gateway.app import Gateway
+        from feiyu_memgate.model import ClientPolicy
+        gw = Gateway({"private": be}, {"owner": ClientPolicy("owner", recall=("private",))}, {"owner": TOKEN},
+                     log=lambda line: None)
+        self.addCleanup(gw.close)
+        return gw
+
+    def test_the_note_reaches_the_reply_and_recall_still_answers(self):
+        be = hybrid_of(ScriptedChild(fail_find=True), ScriptedChild([Hit("x", 0.95, "the only text", "2025-01-01")]),
+                       writable=False)
+        reply = self.gateway(be).recall("owner", {"query": "anything at all"})
+        self.assertEqual(reply.status, 200, reply.body)
+        self.assertEqual([r["text"] for r in reply.body["results"]], ["the only text"])
+        self.assertIn("child-failed", reply.note.split(","))
+        self.assertEqual(be.child_failures, [1, 0])
+        self.assertNotIn("anything", reply.note)
+
+    def test_a_healthy_search_has_no_note(self):
+        be = hybrid_of(ScriptedChild([Hit("x", 0.95, "t")]), ScriptedChild(), writable=False)
+        reply = self.gateway(be).recall("owner", {"query": "q"})
+        self.assertEqual(reply.status, 200)
+        self.assertNotIn("child-failed", reply.note)
 
 
 if __name__ == "__main__":

@@ -697,5 +697,285 @@ class NeighboursTest(EmbeddingTestBase):
         self.assertEqual(len(be.neighbours("tea", 3, ctl=None)), 3)
 
 
+class SearchesDoNotWaitForWritesTest(EmbeddingTestBase):
+    """Reads use reader connections of their own: a held write lock or a running load blocks no search."""
+
+    TEXTS = ["alpha beta gamma %d" % i for i in range(12)]
+
+    def filled(self, load=True, **options):
+        be = self.open(**options)
+        be.put_many(self.TEXTS)
+        if load:
+            be.find(self.TEXTS[0], 3)
+        return be
+
+    def while_write_lock_is_held(self, be, call, wait=3.0):
+        """Run `call()` in a thread while the test holds the backend's own write lock; (finished in time, result)."""
+        box = {}
+
+        def run():
+            try:
+                box["value"] = call()
+            except BaseException as error:  # noqa: BLE001
+                box["error"] = error
+
+        thread = threading.Thread(target=run, daemon=True)
+        with be._lock:
+            thread.start()
+            thread.join(wait)
+            done = not thread.is_alive()
+        thread.join(30)  # the lock is free again: a blocked call ends now (and the test fails below)
+        if "error" in box:
+            raise box["error"]
+        return done, box.get("value")
+
+    def test_a_search_completes_while_a_writer_holds_the_write_lock(self):
+        for loaded in (True, False):
+            with self.subTest(cache_loaded=loaded):
+                be = self.filled(load=loaded)
+                done, hits = self.while_write_lock_is_held(be, lambda: be.find(self.TEXTS[3], 3))
+                self.assertTrue(done, "the search waited for the write lock")
+                self.assertEqual(hits[0].text, self.TEXTS[3])
+                be.close()
+
+    def test_a_cold_store_loads_while_the_write_lock_is_held(self):
+        self.filled(load=False).close()
+        be = self.open()  # a new backend on the same file: the first search has to load
+        self.assertIsNone(be._vectors)
+        done, hits = self.while_write_lock_is_held(be, lambda: be.find(self.TEXTS[5], 1))
+        self.assertTrue(done, "the load waited for the write lock")
+        self.assertEqual(hits[0].text, self.TEXTS[5])
+
+    def test_neighbours_count_refs_items_read_and_receipt_refs_do_not_wait_either(self):
+        be = self.filled()
+        receipt = be.remember([{"role": "user", "content": "kept through a receipt"}])
+        ref = be.receipt_refs(receipt)[0]
+        calls = {
+            "count": lambda: be.count(),
+            "refs": lambda: list(be.refs()),
+            "items": lambda: list(be.items()),
+            "read": lambda: be.read(ref),
+            "receipt_refs": lambda: be.receipt_refs(receipt),
+            "neighbours": lambda: be.neighbours(ref, 3),
+            "health": lambda: be.health(),
+        }
+        for name, call in calls.items():
+            with self.subTest(call=name):
+                done, value = self.while_write_lock_is_held(be, call)
+                self.assertTrue(done, "%s waited for the write lock" % name)
+        self.assertEqual(self.while_write_lock_is_held(be, calls["count"])[1], len(self.TEXTS) + 1)
+        self.assertEqual(self.while_write_lock_is_held(be, calls["read"])[1], "kept through a receipt")
+        self.assertTrue(self.while_write_lock_is_held(be, calls["health"])[1])
+
+    def test_an_in_memory_store_keeps_one_connection(self):
+        be = self.open(":memory:")
+        self.assertIsNone(be._readers)
+        be.put("kept in memory", ref="m")
+        be.put("kept in memory too", ref="n")
+        self.assertEqual(be.count(), 2)
+        self.assertEqual(be.read("m"), "kept in memory")
+        self.assertEqual(be.find("kept in memory", 1)[0].ref, "m")
+        self.assertEqual(be.neighbours("m", 1)[0].ref, "n")
+
+    def test_two_searches_during_a_load_load_once_and_agree(self):
+        self.filled(load=False).close()
+        be = self.open()
+        entered, release = threading.Event(), threading.Event()
+        decoded = []
+        real = embedding_module._blob_to_vector
+
+        def slow_decode(blob):
+            decoded.append(1)
+            if len(decoded) == 1:
+                entered.set()
+                release.wait(10)
+            return real(blob)
+
+        results = {}
+
+        def search(name):
+            results[name] = [(h.ref, h.score, h.text) for h in be.find(self.TEXTS[2], 5)]
+
+        with mock.patch.object(embedding_module, "_blob_to_vector", slow_decode):
+            first = threading.Thread(target=search, args=("first",))
+            first.start()
+            self.assertTrue(entered.wait(10), "the first search never started loading")
+            second = threading.Thread(target=search, args=("second",))
+            second.start()
+            second.join(0.3)
+            waited = second.is_alive()
+            release.set()
+            first.join(30)
+            second.join(30)
+        self.assertTrue(waited, "the second search did not wait for the load")
+        self.assertEqual(len(decoded), len(self.TEXTS), "the vectors were decoded more than once")
+        after = [(h.ref, h.score, h.text) for h in be.find(self.TEXTS[2], 5)]
+        self.assertEqual(results["first"], after)
+        self.assertEqual(results["second"], after)
+
+    def test_a_load_does_not_block_a_write(self):
+        self.filled(load=False).close()
+        be = self.open()
+        entered, release = threading.Event(), threading.Event()
+        real = embedding_module._blob_to_vector
+        state = {"n": 0}
+
+        def slow_decode(blob):
+            state["n"] += 1
+            if state["n"] == 1:
+                entered.set()
+                release.wait(10)
+            return real(blob)
+
+        found = {}
+        with mock.patch.object(embedding_module, "_blob_to_vector", slow_decode):
+            searcher = threading.Thread(target=lambda: found.setdefault("hits", be.find(self.TEXTS[0], 3)))
+            searcher.start()
+            self.assertTrue(entered.wait(10))
+            writer = threading.Thread(target=lambda: found.setdefault("ref", be.put("written during the load", ref="w")))
+            writer.start()
+            writer.join(5)
+            wrote_during_load = not writer.is_alive()
+            release.set()
+            searcher.join(30)
+            writer.join(30)
+        self.assertTrue(wrote_during_load, "the write waited for the load")
+        self.assertEqual(found["ref"], "w")
+        self.assertEqual(be.find("written during the load", 1)[0].ref, "w")  # the load did not hide the write
+        self.assertEqual(len(be._vectors), len(self.TEXTS) + 1)
+
+    def test_read_your_writes_after_remember_and_delete_without_a_reload(self):
+        be = self.filled()
+        decoded = []
+        real = embedding_module._blob_to_vector
+
+        def counting(blob):
+            decoded.append(1)
+            return real(blob)
+
+        with mock.patch.object(embedding_module, "_blob_to_vector", counting):
+            receipt = be.remember([{"role": "user", "content": "a brand new memory about otters"}])
+            ref = be.receipt_refs(receipt)[0]
+            self.assertEqual(be.find("a brand new memory about otters", 1)[0].ref, ref)
+            self.assertEqual(be.read(ref), "a brand new memory about otters")
+            self.assertTrue(be.delete(ref))
+            self.assertNotIn(ref, [h.ref for h in be.find("a brand new memory about otters", 5)])
+            with self.assertRaises(KeyError):
+                be.read(ref)
+            self.assertFalse(be.delete(ref))
+        self.assertEqual(decoded, [], "our own writes reloaded the cache")
+        self.assertEqual(len(be._vectors), be.count())
+
+    def test_a_write_by_another_backend_is_seen_and_our_own_writes_after_it_are_not_reloads(self):
+        a = self.open()
+        b = self.open()
+        a.put("first memory here", ref="a")
+        a.find("first memory here", 3)
+        b.put("second memory there", ref="b")
+        decoded = []
+        real = embedding_module._blob_to_vector
+
+        def counting(blob):
+            decoded.append(1)
+            return real(blob)
+
+        with mock.patch.object(embedding_module, "_blob_to_vector", counting):
+            self.assertEqual(a.find("second memory there", 3)[0].ref, "b")
+            self.assertEqual(len(decoded), 2)  # one reload of two vectors
+            a.put("third memory again", ref="c")
+            self.assertEqual(a.find("third memory again", 1)[0].ref, "c")
+            self.assertEqual(len(decoded), 2)  # our own write did not reload
+            b.delete("a")
+            self.assertNotIn("a", [h.ref for h in a.find("first memory here", 5)])
+        self.assertEqual(len(decoded), 2 + 2)  # b's delete: one more reload of the two that are left
+
+    def test_many_readers_and_one_writer_end_consistent(self):
+        be = self.filled()
+        readers, rounds, written = 5, 12, 25
+        seed = next(iter(be.refs()))[0]
+        barrier = threading.Barrier(readers + 1)
+        errors = []
+
+        def reader(n):
+            try:
+                barrier.wait(30)
+                for i in range(rounds):
+                    be.find(self.TEXTS[(n + i) % len(self.TEXTS)], 3)
+                    be.count()
+                    list(be.refs())
+                    be.read(seed)
+            except Exception as error:  # noqa: BLE001
+                errors.append(error)
+
+        def writer():
+            try:
+                barrier.wait(30)
+                for i in range(written):
+                    be.put("written while reading %d" % i, ref="w%d" % i)
+                    if i % 5 == 0:
+                        be.delete("w%d" % i)
+            except Exception as error:  # noqa: BLE001
+                errors.append(error)
+
+        threads = [threading.Thread(target=reader, args=(n,)) for n in range(readers)]
+        threads.append(threading.Thread(target=writer))
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(60)
+        self.assertEqual([t for t in threads if t.is_alive()], [])
+        self.assertEqual(errors, [])
+        self.assertEqual(be.count(), len(self.TEXTS) + written - 5)
+        self.assertEqual(len(be._vectors), be.count())
+        expected = {"w%d" % i for i in range(written) if i % 5}
+        self.assertEqual({r for r, _ in be.refs() if r.startswith("w")}, expected)
+
+    def test_close_closes_every_connection(self):
+        be = self.filled(max_readers=4)
+        barrier = threading.Barrier(4)
+
+        def work():
+            barrier.wait(30)
+            for _ in range(5):
+                be.count()
+                list(be.refs())
+
+        threads = [threading.Thread(target=work) for _ in range(4)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(30)
+        be.close()
+        be.close()  # twice is fine
+        for suffix in ("", "-wal", "-shm"):
+            if os.path.exists(self.path + suffix):
+                os.remove(self.path + suffix)  # Windows refuses while a connection is still open
+        self.assertFalse(os.path.exists(self.path))
+        with self.assertRaises(Exception):
+            be.count()
+        self.assertFalse(be.health())
+
+    def test_a_reader_in_use_when_the_store_closes_is_closed_on_release(self):
+        be = self.filled()
+        inside, go = threading.Event(), threading.Event()
+
+        def hold():
+            with be._read() as db:
+                inside.set()
+                go.wait(10)
+                db.execute("SELECT 1").fetchone()
+
+        thread = threading.Thread(target=hold)
+        thread.start()
+        self.assertTrue(inside.wait(10))
+        be.close()
+        go.set()
+        thread.join(30)
+        for suffix in ("", "-wal", "-shm"):
+            if os.path.exists(self.path + suffix):
+                os.remove(self.path + suffix)
+        self.assertFalse(os.path.exists(self.path))
+
+
 if __name__ == "__main__":
     unittest.main()

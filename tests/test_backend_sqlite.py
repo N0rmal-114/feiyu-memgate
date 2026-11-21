@@ -1,5 +1,6 @@
 import os
 import random
+import sqlite3
 import tempfile
 import threading
 import time
@@ -479,6 +480,107 @@ class SQLiteBenchmarkTest(unittest.TestCase):
             times.append(time.perf_counter() - started)
         times.sort()
         return times[int(0.95 * (n - 1))]
+
+
+class AtomicRememberTest(unittest.TestCase):
+    """A write of several messages is all or nothing."""
+
+    MESSAGES = [{"role": "user", "content": "memory number %d about tea" % i} for i in range(5)]
+
+    def setUp(self):
+        self.be = SQLiteBackend(":memory:")
+        self.addCleanup(self.be.close)
+        self.be.put("an older memory about tea", ref="old")
+
+    def snapshot(self):
+        return list(self.be.refs()), list(self.be.items()), [h.ref for h in self.be.find("tea", 20)]
+
+    @staticmethod
+    def failing_third():
+        real = index_grams
+        calls = []
+
+        def build(*args, **kw):
+            calls.append(1)
+            if len(calls) == 3:
+                raise ValueError("cannot index the third message")
+            return real(*args, **kw)
+
+        return build
+
+    def test_a_failure_in_the_middle_stores_nothing(self):
+        before = self.snapshot()
+        with mock.patch("feiyu_memgate.backends.sqlite.index_grams", self.failing_third()):
+            with self.assertRaises(ValueError):
+                self.be.remember(self.MESSAGES)
+        self.assertEqual(self.snapshot(), before)
+
+    def test_a_failure_while_writing_rolls_the_whole_write_back(self):
+        before = self.snapshot()
+        real = self.be._db
+
+        class Failing:
+            """Passes everything on; the INSERT of the third memory fails."""
+
+            def __init__(self):
+                self.inserts = 0
+
+            def __getattr__(self, name):
+                return getattr(real, name)
+
+            def __enter__(self):
+                return real.__enter__()
+
+            def __exit__(self, *exc):
+                return real.__exit__(*exc)
+
+            def execute(self, sql, *args):
+                if sql.startswith("INSERT OR REPLACE INTO memories"):
+                    self.inserts += 1
+                    if self.inserts == 3:
+                        raise sqlite3.OperationalError("disk I/O error")
+                return real.execute(sql, *args)
+
+        self.be._db = Failing()
+        try:
+            with self.assertRaises(sqlite3.OperationalError):
+                self.be.remember(self.MESSAGES)
+        finally:
+            self.be._db = real
+        self.assertEqual(self.snapshot(), before)
+
+    def test_a_cancelled_call_stores_nothing(self):
+        class Cancelled:
+            cancelled = True
+
+        before = self.snapshot()
+        with self.assertRaises(BackendError):
+            self.be.remember(self.MESSAGES, ctl=Cancelled())
+        self.assertEqual(self.snapshot(), before)
+
+    def test_the_cancel_flag_is_read_once_right_before_the_commit(self):
+        reads = []
+
+        class Ctl:
+            @property
+            def cancelled(self):
+                reads.append(1)
+                return False
+
+        self.assertIsNotNone(self.be.remember(self.MESSAGES, ctl=Ctl()))
+        self.assertEqual(len(reads), 1)
+
+    def test_a_normal_call_stores_every_message(self):
+        messages = self.MESSAGES[:2] + [{"role": "assistant", "content": "not kept"}] + self.MESSAGES[2:]
+        receipt = self.be.remember(messages)
+        refs = sorted(self.be.receipt_refs(receipt))
+        self.assertEqual(refs, sorted("%s-%d" % (receipt, i) for i in (0, 1, 3, 4, 5)))
+        self.assertEqual(self.be.count(), 6)
+        self.assertEqual(self.be.read(receipt + "-3"), "memory number 2 about tea")
+
+    def test_nothing_kept_gives_no_receipt(self):
+        self.assertIsNone(self.be.remember([{"role": "assistant", "content": "x"}]))
+        self.assertEqual(self.be.count(), 1)
 
 
 if __name__ == "__main__":

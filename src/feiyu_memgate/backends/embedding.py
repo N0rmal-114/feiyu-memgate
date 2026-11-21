@@ -44,8 +44,22 @@ no redirects (any non-2xx answer is a failure), the response size is bounded, on
 deadline per call, the socket is attached to `ctl` so the gateway can cut a late call.
 Errors are BackendError and never carry upstream text, memory text or the key.
 
-Thread safety: one SQLite connection shared by all threads under a lock; HTTP calls use a
-connection each and run outside the lock.
+Thread safety: one writer connection under a lock (`_lock`), and a bounded pool of read-only reader
+connections (`max_readers`) for everything that reads, so a search never waits for a write (file
+databases use WAL; a ":memory:" database cannot be shared between connections and keeps the one
+connection under the lock). The vectors are loaded on a reader connection without the writer's lock; only
+the swap of the in-memory cache is guarded (`_cache_lock`), and one search loads while the others wait for
+it. HTTP calls use a connection each and run outside every lock. close() closes every connection.
+
+How a change is noticed: the `info` table holds a write counter, `gen`, that every write of this backend
+raises by one inside its own transaction (the transaction takes the file's write lock first, so the number
+read there is exact). The cache remembers the `gen` it was loaded at, and a load reads it in the same read
+transaction as the vectors. A search reads `gen` on a reader connection; the cache is used when it is the
+same and reloaded when it is not. A write of this backend applies itself to the cache and moves the cache's
+`gen` forward when the cache was current, so a search right after remember() needs no reload; a write of
+another backend object or process (to the same file) raises `gen` and is noticed by the next search. (SQLite's
+`PRAGMA data_version` is not used: it is per connection and counts every other connection's commits, the
+backend's own writer included, so it cannot be compared between pooled readers.)
 """
 import array
 import collections
@@ -65,7 +79,7 @@ from ..core.pool import _NoCtl
 from ..errors import BackendError
 from ..registry import register
 from . import _sqlfile
-from ._sqlfile import SCAN_BATCH
+from ._sqlfile import SCAN_BATCH, Readers
 from .base import (DEFAULT_BUDGET, MemoryBackend, as_roles, clamp01, kept_messages, make_hit, new_receipt,  # noqa: F401
                    parse_item, receipt_ref, require_writable)
 from .base import today as _today
@@ -104,6 +118,7 @@ _warned = set()  # model names already warned about in this process
 
 MAX_RESPONSE = 16 * 1024 * 1024  # a batch of 32 vectors of 3072 floats is about 2 MB of JSON
 QUERY_CACHE = 256
+MAX_READERS = 8  # read connections of one store (default of the max_readers option)
 MAX_PREFIX = 512  # characters; the longest recommended instruction is about 100
 SCORE_CHECK_EVERY = 256  # vectors scored between two deadline checks
 
@@ -131,6 +146,12 @@ def _unit(values):
     if not math.isfinite(norm) or norm == 0.0:
         raise BackendError("unusable embedding")
     return array.array("f", [v / norm for v in values])
+
+
+def _generation(db):
+    """The write counter of the store as `db` sees it (0 for a store nothing has written to yet)."""
+    row = db.execute("SELECT value FROM info WHERE key = 'gen'").fetchone()
+    return int(row[0]) if row else 0
 
 
 def _blob_to_vector(blob):
@@ -244,7 +265,7 @@ class EmbeddingBackend(MemoryBackend):
     request, default 32), floor and ceil (the cosine range mapped to scores 0..1), query_prefix and
     document_prefix (text put before every query / every stored text when it is embedded). floor, ceil
     and both prefixes default to the preset of the model (PRESETS), or to 0.40, 0.80 and no prefix with a
-    warning for a model that has none."""
+    warning for a model that has none. max_readers (read connections, default 8)."""
 
     tracks_writes = False  # a write is final as soon as remember() returns
     # Scores are floor/ceil-mapped relevance: with floor 0.40 and ceil 0.80 a min_score of 0.50 is a cosine
@@ -259,7 +280,8 @@ class EmbeddingBackend(MemoryBackend):
     broad_relative_ratio = GENERIC["broad_ratio"]
 
     def __init__(self, path, url, model, key=None, writable=True, roles=("user",), timeout=10.0,
-                 batch=32, floor=None, ceil=None, query_prefix=None, document_prefix=None):
+                 batch=32, floor=None, ceil=None, query_prefix=None, document_prefix=None,
+                 max_readers=MAX_READERS):
         roles = as_roles(roles)
         if not isinstance(model, str) or not model:
             raise ValueError("model must be a non-empty string")
@@ -295,13 +317,19 @@ class EmbeddingBackend(MemoryBackend):
         self._query_prefix, self._doc_prefix = query_prefix, document_prefix
         self._http = _Http(url, model, key or None, timeout)
         self._path = str(path)
-        self._lock = threading.Lock()
+        self._shared = self._path == ":memory:"  # one connection for everything
+        self._lock = threading.Lock()  # the writer (and, for ":memory:", every reader)
         self._closed = False
         self._dim = None
-        # Scan cache: ref -> float32 unit vector, loaded on the first search, then kept in step
-        # with our own writes. PRAGMA data_version tells when another connection wrote.
+        # Scan cache: ref -> float32 unit vector, loaded on the first search, then kept in step with our
+        # own writes. `_generation` is the write counter (see the module docstring) the cache is current at.
+        # `_cache_lock` guards `_vectors` and `_generation` (held for a swap or a copy, never for a load);
+        # `_load_lock` lets one search load at a time. Order: _lock, then _cache_lock; _load_lock is taken
+        # alone (a ":memory:" load takes _lock inside it).
         self._vectors = None
-        self._data_version = None
+        self._generation = None
+        self._cache_lock = threading.Lock()
+        self._load_lock = threading.Lock()
         self._qcache = collections.OrderedDict()
         self._qlock = threading.Lock()
         self._db = _sqlfile.open_store(self._path, _SCHEMA)
@@ -310,6 +338,7 @@ class EmbeddingBackend(MemoryBackend):
         except Exception:
             self._db.close()
             raise
+        self._readers = None if self._shared else Readers(lambda: _sqlfile.open_reader(self._path), max_readers)
 
     @staticmethod
     def _warn_unknown(model):
@@ -397,31 +426,58 @@ class EmbeddingBackend(MemoryBackend):
         if not rows:
             return []
         vectors = self._embed([r[0] for r in rows], timeout, ctl, self._doc_prefix)
+        self._store([(ref, text, date, vec) for (text, ref, date), vec in zip(rows, vectors)])
+        return [r[1] for r in rows]
+
+    def _store(self, rows):
+        """Write `rows` ((ref, text, date, vector), at least one) in one transaction and bring the cache along."""
         now = int(time.time())
-        refs = []
         with self._lock:
-            self._bind_dim(len(vectors[0]))
-            with self._db:
-                for (text, ref, date), vec in zip(rows, vectors):
+            self._db.execute("BEGIN IMMEDIATE")  # the file's write lock: the counter read below is exact
+            try:
+                self._bind_dim(len(rows[0][3]))
+                before = _generation(self._db)
+                self._db.execute("INSERT OR REPLACE INTO info (key, value) VALUES ('gen', ?)", (str(before + 1),))
+                for ref, text, date, vec in rows:
                     self._db.execute(
                         "INSERT OR REPLACE INTO memories (ref, text, created_at, date, vector) VALUES (?, ?, ?, ?, ?)",
                         (ref, text, now, date, vec.tobytes()),
                     )
-                    refs.append(ref)
-            if self._vectors is not None:
-                for (text, ref, date), vec in zip(rows, vectors):
+                self._db.commit()
+            except BaseException:
+                self._db.rollback()
+                raise
+            self._apply(before, [(ref, vec) for ref, _, _, vec in rows], ())
+
+    def _apply(self, before, upserts, removed):
+        """Bring the cache along with a write that took the counter from `before` to `before + 1`. A cache
+        that was not at `before` (not loaded, or behind another writer) is left for the next search to reload."""
+        with self._cache_lock:
+            if self._vectors is not None and self._generation == before:
+                for ref, vec in upserts:
                     self._vectors[ref] = vec
-        return refs
+                for ref in removed:
+                    self._vectors.pop(ref, None)
+                self._generation = before + 1
 
     def delete(self, ref):
         """Remove one memory. True when it existed."""
         require_writable(self)
         with self._lock:
-            with self._db:
+            self._db.execute("BEGIN IMMEDIATE")
+            try:
+                before = _generation(self._db)
                 cur = self._db.execute("DELETE FROM memories WHERE ref = ?", (ref,))
-            if self._vectors is not None:
-                self._vectors.pop(ref, None)
-            return cur.rowcount > 0
+                deleted = cur.rowcount > 0
+                if deleted:
+                    self._db.execute("INSERT OR REPLACE INTO info (key, value) VALUES ('gen', ?)", (str(before + 1),))
+                self._db.commit()
+            except BaseException:
+                self._db.rollback()
+                raise
+            if deleted:
+                self._apply(before, (), (ref,))
+            return deleted
 
     def remember(self, messages, timeout=None, ctl=None):
         """Keep the messages whose role is in `roles`. Returns a receipt id, or None when
@@ -436,27 +492,33 @@ class EmbeddingBackend(MemoryBackend):
         if any(not isinstance(t, str) or not t.strip() for t in texts):
             raise ValueError("a memory text must be a non-empty string")
         vectors = self._embed(texts, timeout, ctl, self._doc_prefix)
-        now = int(time.time())
-        with self._lock:
-            self._bind_dim(len(vectors[0]))
-            with self._db:
-                for (index, content, date), vec in zip(kept, vectors):
-                    self._db.execute(
-                        "INSERT OR REPLACE INTO memories (ref, text, created_at, date, vector) VALUES (?, ?, ?, ?, ?)",
-                        (receipt_ref(receipt, index), content, now, date, vec.tobytes()),
-                    )
-            if self._vectors is not None:
-                for (index, _, _), vec in zip(kept, vectors):
-                    self._vectors[receipt_ref(receipt, index)] = vec
+        self._store([(receipt_ref(receipt, index), content, date, vec)
+                     for (index, content, date), vec in zip(kept, vectors)])
         return receipt
 
     # ------------------------------------------------------------ reading
 
     @contextlib.contextmanager
-    def _read(self):
-        """The one connection, used under the lock until the block ends."""
-        with self._lock:
-            yield self._db
+    def _read(self, deadline=None):
+        """A connection to read with, used by this thread alone until the block ends: a pooled reader, or
+        for ":memory:" the one connection under the lock. Never waits for a write on a file database."""
+        if deadline is None:
+            deadline = time.monotonic() + DEFAULT_BUDGET
+        if self._closed:
+            raise BackendError("the store is closed")
+        if self._shared:
+            if not self._lock.acquire(timeout=max(0.0, deadline - time.monotonic())):
+                raise BackendError("the store is busy")
+            try:
+                yield self._db
+            finally:
+                self._lock.release()
+            return
+        conn = self._readers.acquire(deadline)
+        try:
+            yield conn
+        finally:
+            self._readers.release(conn)
 
     def count(self):
         return _sqlfile.count(self._read)
@@ -467,7 +529,7 @@ class EmbeddingBackend(MemoryBackend):
 
     def refs(self):
         """Iterate (ref, date or None) over every memory, ordered by ref, without texts or vectors.
-        Read in batches by key with the lock released in between, so deleting while iterating is safe."""
+        Read in batches by key with the connection released in between, so deleting while iterating is safe."""
         yield from _sqlfile.iter_refs(self._read, SCAN_BATCH)
 
     def receipt_refs(self, receipt):
@@ -475,23 +537,45 @@ class EmbeddingBackend(MemoryBackend):
         return _sqlfile.receipt_refs(self._read, receipt)
 
     def read(self, ref, timeout=None, ctl=None):
-        with self._lock:
-            row = self._db.execute("SELECT text FROM memories WHERE ref = ?", (ref,)).fetchone()
+        with self._read() as db:
+            row = db.execute("SELECT text FROM memories WHERE ref = ?", (ref,)).fetchone()
         if row is None:
             raise KeyError(ref)
         return row[0]
 
-    def _snapshot(self):
-        """[(ref, vector)] of the whole store. Loads the cache on first use and again when
-        another connection has written since."""
-        with self._lock:
-            version = self._db.execute("PRAGMA data_version").fetchone()[0]
-            if self._vectors is None or version != self._data_version:
-                self._vectors = {
-                    ref: _blob_to_vector(blob) for ref, blob in self._db.execute("SELECT ref, vector FROM memories")
-                }
-                self._data_version = version
-            return list(self._vectors.items())
+    def _current(self, generation):
+        """[(ref, vector)] from the cache when it is at `generation` or newer, else None."""
+        with self._cache_lock:
+            if self._vectors is not None and self._generation >= generation:
+                return list(self._vectors.items())
+        return None
+
+    def _snapshot(self, deadline=None):
+        """[(ref, vector)] of the whole store. Loads the cache on first use and again when another writer
+        has written since (see the module docstring); the load runs on a reader connection, without the
+        writer's lock, and one search loads while the others wait for it."""
+        with self._read(deadline) as db:
+            generation = _generation(db)
+        found = self._current(generation)
+        if found is not None:
+            return found
+        with self._load_lock:
+            found = self._current(generation)  # the search that held the load lock did it
+            if found is not None:
+                return found
+            with self._read(deadline) as db:
+                db.execute("BEGIN")  # one snapshot for the counter and the vectors
+                try:
+                    loaded_at = _generation(db)
+                    loaded = {ref: _blob_to_vector(blob) for ref, blob in db.execute("SELECT ref, vector FROM memories")}
+                finally:
+                    db.rollback()
+            with self._cache_lock:
+                if self._closed:
+                    raise BackendError("the store is closed")
+                if self._vectors is None or loaded_at > self._generation:
+                    self._vectors, self._generation = loaded, loaded_at
+                return list(self._vectors.items())
 
     def _score(self, cosine):
         return clamp01((cosine - self.floor) / (self.ceil - self.floor))
@@ -504,7 +588,7 @@ class EmbeddingBackend(MemoryBackend):
         if not isinstance(query, str) or not query.strip() or limit < 1:
             return []
         qvec = self._query_vector(query, total, ctl)
-        snapshot = self._snapshot()
+        snapshot = self._snapshot(deadline)
         if snapshot and len(snapshot[0][1]) != len(qvec):
             raise BackendError("embedding size differs from the store")
         scored = []
@@ -513,7 +597,7 @@ class EmbeddingBackend(MemoryBackend):
                 raise BackendError("deadline exceeded")
             for ref, vec in snapshot[start:start + SCORE_CHECK_EVERY]:
                 scored.append((_sumprod(qvec, vec), ref))
-        return self._top_hits(scored, limit)
+        return self._top_hits(scored, limit, deadline)
 
     def neighbours(self, ref, limit, timeout=None, ctl=None):
         """Up to `limit` memories most similar to the stored memory `ref`, best first, never `ref` itself.
@@ -534,7 +618,7 @@ class EmbeddingBackend(MemoryBackend):
                 raise BackendError("cancelled")
 
         check()
-        snapshot = self._snapshot()
+        snapshot = self._snapshot(deadline)
         own = next((vec for key, vec in snapshot if key == ref), None)
         if own is None:
             return []
@@ -544,12 +628,12 @@ class EmbeddingBackend(MemoryBackend):
             for key, vec in snapshot[start:start + SCORE_CHECK_EVERY]:
                 if key != ref and len(vec) == len(own):
                     scored.append((_sumprod(own, vec), key))
-        return self._top_hits(scored, limit)
+        return self._top_hits(scored, limit, deadline)
 
-    def _top_hits(self, scored, limit):
+    def _top_hits(self, scored, limit, deadline=None):
         """The `limit` best of `scored` ([(cosine, ref)]) above the floor, as hits with their text."""
         best = [(c, r) for c, r in heapq.nlargest(limit, scored) if self._score(c) > 0.0]
-        texts = self._texts([r for _, r in best])
+        texts = self._texts([r for _, r in best], deadline)
         hits = []
         for cosine, ref in best:
             if ref in texts:  # deleted by another connection between scan and fetch: skip
@@ -557,12 +641,12 @@ class EmbeddingBackend(MemoryBackend):
                 hits.append(make_hit(ref, self._score(cosine), text, date, {"cosine": cosine}))
         return hits
 
-    def _texts(self, refs):
+    def _texts(self, refs, deadline=None):
         out = {}
-        with self._lock:
+        with self._read(deadline) as db:
             for start in range(0, len(refs), SCAN_BATCH):
                 chunk = refs[start:start + SCAN_BATCH]
-                for ref, text, date in self._db.execute(
+                for ref, text, date in db.execute(
                     "SELECT ref, text, date FROM memories WHERE ref IN (%s)" % ",".join("?" * len(chunk)), chunk
                 ):
                     out[ref] = (text, date)
@@ -573,12 +657,8 @@ class EmbeddingBackend(MemoryBackend):
     def health(self, timeout=2.0):
         """True when the store is open and readable. The embeddings endpoint is not called."""
         try:
-            if not self._lock.acquire(timeout=max(0.0, float(timeout))):
-                return False
-            try:
-                return not self._closed and self._db.execute("SELECT 1").fetchone()[0] == 1
-            finally:
-                self._lock.release()
+            with self._read(time.monotonic() + max(0.0, float(timeout))) as db:
+                return not self._closed and db.execute("SELECT 1").fetchone()[0] == 1
         except Exception:  # noqa: BLE001 - health never raises
             return False
 
@@ -587,5 +667,8 @@ class EmbeddingBackend(MemoryBackend):
             if self._closed:
                 return
             self._closed = True
-            self._vectors = None
             self._db.close()
+        with self._cache_lock:
+            self._vectors = None
+        if self._readers is not None:
+            self._readers.close()

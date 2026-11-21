@@ -337,8 +337,13 @@ def find_all(stores, query, fetch, ctx):
         out[source] = []
         if task is None:
             busy += 1
-        elif not task.wait(ctx.find_deadline - ctx.clock()):
+            continue
+        finished = task.wait(ctx.find_deadline - ctx.clock())
+        if not finished:
             task.cancel()
+        for word in task.notes:  # what the store itself reported (for example a failed child)
+            ctx.note(word)
+        if not finished:
             failed += 1
         elif not task.ok():
             ctx.fault(None, "store=%s where=find error=%s" % (source, type(task.error).__name__))

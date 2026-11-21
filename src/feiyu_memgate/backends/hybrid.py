@@ -20,8 +20,16 @@ keyword child adds little there and the line it forces up costs delivered hits.
 `Hit.meta` (when Hit has it) carries each child's own score under "child_scores" (None where
 a child did not return the memory) and the vector child's raw cosine.
 
-Failure handling: a child that raises during a search is skipped for that search; only when
-every child fails is it an error. A write is all or nothing: if any child fails, the memories
+Concurrency: `find` and `neighbours` ask every child at the same time, each with the whole budget
+(one thread per child per call, owned here; the call waits for them until the budget is spent. A
+child that has not answered by then is cancelled through its own control object and winds down alone;
+`close()` cancels and joins such threads). The answers are ordered by child index before fusing, so the
+result does not depend on which child was faster. With a single child the call runs inline with the
+caller's own `ctl`.
+
+Failure handling: a child that raises or does not answer in time during a search is skipped for that
+search and recorded: `child_failures` (a list of ints, one per child, never reset) and the word
+`child-failed` through the caller's `ctl.note` (the access log). Only when every child fails is it an error. A write is all or nothing: if any child fails, the memories
 are deleted again from every child (best effort; replacing an existing ref and failing
 removes it, so re-put it). Children must be able to `put(text, ref=..., date=...)` and
 `delete` when the hybrid is writable.
@@ -32,6 +40,8 @@ environment, the same way.
 """
 import inspect
 import os
+import socket
+import threading
 import time
 
 from .. import registry
@@ -42,6 +52,7 @@ from .base import (DEFAULT_BUDGET, MemoryBackend, as_roles, clamp01, kept_messag
 from .base import today as _today
 
 OVERFETCH = 3  # each child is asked for limit * 3 hits so that fusion has material to rank
+CLOSE_WAIT = 2.0  # seconds close() waits for cancelled child calls to wind down
 
 
 def _resolve_env(spec, where):
@@ -76,6 +87,114 @@ def _extras(fn, timeout, ctl):
     return extra
 
 
+class _ChildCtl:
+    """The control object of ONE child call: what children use of a `Task` (attach, detach, on_cancel,
+    cancelled) with a socket slot of its own, so two children never share the parent's single slot.
+    It is cancelled when the parent is, or by the hybrid when the child ran out of time.
+
+    A parent that cannot register cancel hooks (no `on_cancel`: a plain object with attach/detach, as
+    older callers pass) has no other way to reach the socket, so for it attach and detach are forwarded
+    as well; the own slot stays the one that cancels."""
+
+    def __init__(self, parent):
+        self._forward = None
+        self._forward_detach = None
+        self._lock = threading.Lock()
+        self._sock = None
+        self._cancelled = False
+        self._finished = False
+        self._hooks = []
+        hook = getattr(parent, "on_cancel", None)
+        if callable(hook):
+            hook(self.cancel)
+        else:
+            self._forward = getattr(parent, "attach", None)
+            self._forward_detach = getattr(parent, "detach", None)
+
+    @property
+    def cancelled(self):
+        with self._lock:
+            return self._cancelled
+
+    def attach(self, sock):
+        with self._lock:
+            if self._cancelled:
+                self._kill(sock)
+                raise BackendError("cancelled")
+            self._sock = sock
+        if callable(self._forward):
+            self._forward(sock)
+
+    def detach(self):
+        with self._lock:
+            self._sock = None
+        if callable(self._forward_detach):
+            self._forward_detach()
+
+    def on_cancel(self, fn):
+        with self._lock:
+            if self._finished:
+                return
+            if not self._cancelled:
+                self._hooks.append(fn)
+                return
+        self._quietly(fn)
+
+    def cancel(self):
+        with self._lock:
+            self._cancelled = True
+            sock = self._sock
+            hooks, self._hooks = self._hooks, []
+        if sock is not None:
+            self._kill(sock)
+        for fn in hooks:
+            self._quietly(fn)
+
+    def finish(self):
+        with self._lock:
+            self._finished = True
+            self._hooks = []
+
+    @staticmethod
+    def _kill(sock):
+        try:
+            sock.shutdown(socket.SHUT_RDWR)
+        except OSError:
+            pass
+
+    @staticmethod
+    def _quietly(fn):
+        try:
+            fn()
+        except Exception:  # noqa: BLE001 - a failing hook must not stop the canceller
+            pass
+
+
+class _Run:
+    """One child call on its own thread: its answer or its error, and its control object."""
+
+    def __init__(self, index, fn, timeout, parent):
+        self.index = index
+        self.ctl = _ChildCtl(parent)
+        self.done = threading.Event()
+        self.thread = None
+        self.on_exit = None
+        self.result = None
+        self.error = None
+        self._fn, self._timeout = fn, timeout
+
+    def run(self):
+        try:
+            self.result = self._fn(self._timeout, self.ctl)
+        except BaseException as err:  # noqa: BLE001 - recorded here, the hybrid decides
+            self.error = err
+        finally:
+            self.ctl.finish()
+            self.done.set()
+            if self.on_exit is not None:
+                self.on_exit(self)
+
+
 @register("backend", "hybrid")
 class HybridBackend(MemoryBackend):
     """Options: children (a list of backend specs, each a table with a `type`), weights (a
@@ -106,6 +225,10 @@ class HybridBackend(MemoryBackend):
         self.writable = bool(writable)
         self.roles = tuple(roles)
         self._timeout = float(timeout)
+        self._state = threading.Lock()
+        self._live = {}  # thread -> its _Run, for every child call that has not been reaped yet
+        self._closed = False
+        self._failures = [0] * len(children)
         self.children = []
         try:
             for i, spec in enumerate(children):
@@ -196,18 +319,93 @@ class HybridBackend(MemoryBackend):
 
     # ------------------------------------------------------------ reading
 
+    @property
+    def child_failures(self):
+        """How many searches each child failed (raised, or did not answer in time), in child order, never reset."""
+        with self._state:
+            return list(self._failures)
+
+    def _record_failed(self, indexes, ctl):
+        """Count failed children and say so for the access log."""
+        if not indexes:
+            return
+        with self._state:
+            for index in indexes:
+                self._failures[index] += 1
+        if getattr(ctl, "cancelled", False):
+            return  # the caller gave up: its doing, not the children's
+        note = getattr(ctl, "note", None)
+        if callable(note):
+            try:
+                note("child-failed")
+            except Exception:  # noqa: BLE001 - a note must never fail a search
+                pass
+
+    def _forget(self, run):
+        with self._state:
+            self._live.pop(run.thread, None)
+
+    def _start(self, run):
+        """Start the thread of one child call; False when none could be started."""
+        thread = threading.Thread(target=run.run, name="hybrid-child", daemon=True)
+        with self._state:
+            if self._closed:
+                return False
+            self._live[thread] = run
+        run.thread = thread
+        run.on_exit = self._forget
+        try:
+            thread.start()
+        except Exception:  # noqa: BLE001 - no thread to run it on: the child fails
+            with self._state:
+                self._live.pop(thread, None)
+            return False
+        return True
+
+    def _gather(self, jobs, total, ctl):
+        """Run `jobs` ((child index, fn(timeout, ctl))) at the same time, each with the whole budget `total`.
+        Returns (answers ordered by child index, failed child indexes). A child that has not answered when
+        the budget is spent is cancelled and counts as failed."""
+        answers, failed = [], []
+        if len(jobs) == 1:  # nothing to run beside it: inline, with the caller's own ctl
+            index, fn = jobs[0]
+            try:
+                answers.append((index, fn(total, ctl)))
+            except Exception:  # noqa: BLE001 - one failing child must not silence the others
+                failed.append(index)
+            self._record_failed(failed, ctl)
+            return answers, failed
+        end = time.monotonic() + total
+        runs = [_Run(index, fn, total, ctl) for index, fn in jobs]
+        for run in runs:
+            if not self._start(run):
+                run.error = BackendError("no thread for the child call")
+                run.ctl.finish()
+                run.done.set()
+        for run in runs:
+            run.done.wait(max(end - time.monotonic(), 0.0))
+        for run in runs:  # runs are in child order
+            if not run.done.is_set():
+                run.ctl.cancel()
+                failed.append(run.index)
+            elif run.error is not None:
+                if not isinstance(run.error, Exception):
+                    raise run.error  # KeyboardInterrupt and the like belong to the caller
+                failed.append(run.index)
+            else:
+                answers.append((run.index, run.result))
+            if run.thread is not None and run.done.is_set():
+                run.thread.join()  # it only has to leave its function: instant
+        self._record_failed(failed, ctl)
+        return answers, failed
+
     def find(self, query, limit, timeout=None, ctl=None):
         total = self._timeout if timeout is None else max(0.0, float(timeout))
-        end = time.monotonic() + total
         ask = max(1, int(limit)) * OVERFETCH
-        answers, failures = [], 0
-        for index, child in enumerate(self.children):
-            left = max(0.0, end - time.monotonic()) / (len(self.children) - index)
-            try:
-                answers.append((index, child.find(query, ask, timeout=left, ctl=ctl)))
-            except Exception:  # noqa: BLE001 - one failing child must not silence the others
-                failures += 1
-        if failures == len(self.children):
+        jobs = [(index, lambda left, cctl, c=child: c.find(query, ask, timeout=left, ctl=cctl))
+                for index, child in enumerate(self.children)]
+        answers, failed = self._gather(jobs, total, ctl)
+        if len(failed) == len(self.children):
             raise BackendError("every child failed")
         return self._fuse(answers)[:limit]
 
@@ -255,17 +453,18 @@ class HybridBackend(MemoryBackend):
         the answers are merged by ref (the higher score wins) and cut to `limit`, best first. A child that
         fails is skipped; with no child that has the method (or none that answers) the answer is []."""
         total = self._timeout if timeout is None else max(0.0, float(timeout))
-        end = time.monotonic() + total
-        capable = [child for child in self.children if callable(getattr(child, "neighbours", None))]
+        capable = [(index, child) for index, child in enumerate(self.children)
+                   if callable(getattr(child, "neighbours", None))]
+
+        def rows_of(child, left, cctl):
+            hits = child.neighbours(ref, limit, **_extras(child.neighbours, left, cctl))
+            return [(h.ref, clamp01(float(h.score)), h) for h in hits]
+
+        jobs = [(index, lambda left, cctl, c=child: rows_of(c, left, cctl)) for index, child in capable]
         # ref -> [highest score, its hit, first text found, first date found]
         best = {}
-        for index, child in enumerate(capable):
-            left = max(0.0, end - time.monotonic()) / (len(capable) - index)
-            try:
-                hits = child.neighbours(ref, limit, **_extras(child.neighbours, left, ctl))
-                rows = [(h.ref, clamp01(float(h.score)), h) for h in hits]
-            except Exception:  # noqa: BLE001 - one failing child must not silence the others
-                continue
+        answers = self._gather(jobs, total, ctl)[0] if jobs else []
+        for _, rows in answers:
             for hit_ref, score, hit in rows:
                 if hit_ref == ref:
                     continue
@@ -307,6 +506,17 @@ class HybridBackend(MemoryBackend):
             return False
 
     def close(self):
+        """Cancel and wait for child calls still winding down, then close the children."""
+        with self._state:
+            self._closed = True
+            live = list(self._live.items())
+        for _, run in live:
+            run.ctl.cancel()
+        end = time.monotonic() + CLOSE_WAIT
+        for thread, _ in live:
+            thread.join(max(end - time.monotonic(), 0.0))
+        with self._state:
+            self._live.clear()
         for child in self.children:
             try:
                 child.close()
