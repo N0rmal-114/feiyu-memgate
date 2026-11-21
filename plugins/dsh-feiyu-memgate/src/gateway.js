@@ -224,7 +224,8 @@ export function gatewayConfig({ port, dataDir, settings, facts = {}, utcOffsetHo
   const guards = []
   if (policy.redaction) guards.push('redact')
   if (policy.dailyWrites > 0) guards.push({ type: 'daily_cap', utc_offset_hours: utcOffsetHours })
-  const client = { token_env: TOKEN_ENV, recall: [STORE_NAME], write: STORE_NAME }
+  // explain: the settings page's trial bench (POST /v1/explain). The managed client is the owner's.
+  const client = { token_env: TOKEN_ENV, recall: [STORE_NAME], write: STORE_NAME, explain: true }
   if (policy.dailyWrites > 0) client.daily_writes = policy.dailyWrites
 
   const lines = [

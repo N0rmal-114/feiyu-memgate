@@ -82,3 +82,47 @@ export const USER_SETTINGS = {
   advanced: { recallLimit: 7, afterthought: true },
   retrieval: { hybrid: true },
 }
+
+/** The trial modes of the preview (address option trial=): found, empty, unsupported, norecall, fails. */
+export const TRIAL_MODES = ['found', 'empty', 'unsupported', 'norecall', 'fails']
+
+const candidate = (id, outcome, found, score, extra = {}) => ({
+  source: 'memories', id, found, score, outcome, stage: null, addedBy: null, ...extra,
+})
+
+/**
+ * What the try route answers in a mode, as { status, body }. The memories are invented: tea, a cat, a
+ * move to Hangzhou. The `found` answer shows every kind of row the panel draws.
+ */
+export function trialFor(mode) {
+  if (mode === 'fails') return { status: 500, body: { code: 'preview' } }
+  if (mode === 'unsupported') return { status: 200, body: { ok: false, code: 'unsupported' } }
+  if (mode === 'norecall') return { status: 200, body: { ok: false, code: 'no-recall' } }
+  const stages = ['min_score', 'relative_score', 'fill_text', 'dedupe', 'budget']
+  if (mode === 'empty') return { status: 200, body: { ok: true, stages, candidates: [], more: 0, failed: 0, busy: 0, cut: false, limit: 5 } }
+  return {
+    status: 200,
+    body: {
+      ok: true,
+      stages,
+      candidates: [
+        candidate('m-12', 'delivered', 0.71, 0.71, { text: '早上习惯喝一杯乌龙茶，不加糖。', date: '2026-11-01' }),
+        candidate('m-31', 'delivered', 0.64, 0.58, { text: '上个月搬到了杭州，住在西湖附近。', date: '2026-10-20' }),
+        candidate('m-07', 'delivered', 0.52, 0.52, { text: '下午偶尔换成龙井，觉得清爽一些。' }),
+        candidate('m-45', 'delivered', 0.47, 0.47, { text: '家里的黑猫叫煤球，喜欢睡在窗台上。', date: '2026-09-12', addedBy: 'linked' }),
+        candidate('m-71', 'dropped', 0.55, 0.55, { stage: 'fill_text' }),
+        candidate('m-50', 'dropped', 0.49, 0.49, { stage: 'dedupe', text: '早上习惯喝一杯乌龙茶。', date: '2026-07-04' }),
+        candidate('m-09', 'deferred', 0.5, 0.48, { stage: 'budget', text: '煤球今年做了绝育手术，恢复得很好。'.repeat(2), date: '2026-06-15' }),
+        candidate('m-63', 'over_limit', 0.44, 0.44, { text: '搬家时把茶具单独打包，没有托运。', date: '2026-10-18' }),
+        candidate('m-18', 'dropped', 0.34, 0.34, { stage: 'relative_score', text: '杭州的春天比较潮湿，需要常带伞。' }),
+        candidate('m-22', 'dropped', 0.21, 0.21, { stage: 'min_score', text: '周末会去茶馆坐一会儿。', date: '2026-08-30' }),
+        candidate('m-70', 'dropped', 0.18, 0.18, { stage: 'min_score', text: '尝试过一次花茶，不太习惯。'.repeat(40).slice(0, 300), cut: true }),
+      ],
+      more: 2,
+      failed: 0,
+      busy: 0,
+      cut: false,
+      limit: 4,
+    },
+  }
+}

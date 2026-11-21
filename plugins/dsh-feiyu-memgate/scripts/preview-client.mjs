@@ -13,7 +13,8 @@
 // (scripts/preview/scenarios.mjs), the settings form (kept in the page), and the host's style
 // variables (scripts/preview/host-tokens.css, copied values). So the preview shows layout, texts,
 // states and both themes; it does not show the page inside the real Plugins page. The feedback
-// receiver is made up as well (POST /preview-feedback answers without reading what was posted).
+// receiver is made up as well (POST /preview-feedback answers without reading what was posted), and so is
+// the answer of the recall trial (POST /feiyu-memgate/try; the address option trial= picks it).
 //
 // The server listens on 127.0.0.1 only and serves nothing but the files named here.
 import fs from 'node:fs'
@@ -22,7 +23,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { bundle, collect } from './build-client.mjs'
 import { releasedEntries } from '../src/changelog.js'
-import { SCENARIOS, USER_SETTINGS, modelsFor } from './preview/scenarios.mjs'
+import { SCENARIOS, USER_SETTINGS, modelsFor, trialFor } from './preview/scenarios.mjs'
 
 const here = (relative) => fileURLToPath(new URL(relative, import.meta.url))
 const argument = (name, fallback) => {
@@ -107,6 +108,13 @@ const server = http.createServer((req, res) => {
       return json(200, modelsFor(scenario))
     }
     if (url.pathname === '/feiyu-memgate/changelog') return json(200, changelog())
+    // The recall trial: the sentence is not read, the answer is the mode's made-up one, after a short wait.
+    if (url.pathname === '/feiyu-memgate/try') {
+      if (req.method !== 'POST') return json(405, { code: 'method-not-allowed' })
+      req.resume()
+      const answer = trialFor(url.searchParams.get('trial') || 'found')
+      return void setTimeout(() => json(answer.status, answer.body), 600)
+    }
     // A stand-in for the feedback receiver: it reads nothing of what is posted and files nothing.
     if (url.pathname === '/preview-feedback') {
       req.resume()

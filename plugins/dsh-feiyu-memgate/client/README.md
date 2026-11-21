@@ -48,7 +48,7 @@ Ids are paths relative to `client/src`.
 | `fields.cjs` | **generated** by `npm run sync-client` from `src/config.js`: `FIELDS` and `INDEX` |
 | `layout.cjs` | where each setting sits: `TABS` → sections → setting keys, and `placedKeys()` |
 | `i18n.cjs` | the `UI` dictionary (en, zh) and `dictionaries()`, which adds the texts of the field table |
-| `net.cjs` | `fetchStatus`, `fetchChangelog`, `fetchModels`, `postModels`, over one `getJson` / `postJson` pair; and `sendFeedback`, the one call that leaves the host |
+| `net.cjs` | `fetchStatus`, `fetchChangelog`, `fetchModels`, `postModels`, `tryRecall`, over one `getJson` / `postJson` pair; and `sendFeedback`, the one call that leaves the host |
 | `clipboard.cjs` | `copyText`: the one place that touches the clipboard, and says whether the text arrived |
 
 **Logic, `model/`** (pure: no React, no DOM)
@@ -62,12 +62,13 @@ Ids are paths relative to `client/src`.
 | `model/models.cjs` | the local model list as data: `pickText`, `formatSize`, `memoryText`, `modelActions`, `chainLine`, `sameProblem` |
 | `model/changelog.cjs` | the changelog answer as a list of releases: `entryDate`, `releases` |
 | `model/feedback.cjs` | a feedback report and the address that hands it to GitHub: `KINDS`, `environment`, `safe`, `titleOf`, `bodyOf`, `compose`, `reportText`, with the limits `MAX_TEXT` and `MAX_URL`; and for the receiver `payload`, `usableEndpoint`. Also loaded by the host half (see below) |
+| `model/trial.cjs` | the answer of the try route as what the panel shows: `rows`, `summary`, `score`, `usable`, `errorKey` |
 
 **Hooks**
 
 | module | holds |
 |---|---|
-| `hooks.cjs` | `useStatus` (polled), `useChangelog` (read once), `useModels` (polled, and the clicks of the model list), `useCopy` (the clipboard, and what became of the last copy), `useSend` (a report posted to the receiver, and what became of it); they own the timers and the "still mounted" flag |
+| `hooks.cjs` | `useStatus` (polled), `useChangelog` (read once), `useModels` (polled, and the clicks of the model list), `useCopy` (the clipboard, and what became of the last copy), `useTrial` (one trial recall at a time, and what became of the last), `useSend` (a report posted to the receiver, and what became of it); they own the timers and the "still mounted" flag |
 
 **Theme, `theme/`**
 
@@ -88,13 +89,14 @@ Ids are paths relative to `client/src`.
 
 | module | holds |
 |---|---|
-| `view/page.cjs` | `SettingsPage` (the slot entry), `SettingsBody` (summary, tabs, panel, save bar, footer; keeps the tab, the staged edits, the phase of a save, the open groups and the feedback being written), `SaveBar`, `Footer` |
+| `view/page.cjs` | `SettingsPage` (the slot entry), `SettingsBody` (summary, tabs, panel, save bar, footer; keeps the tab, the staged edits, the phase of a save, the open groups, the feedback being written and the recall trial), `SaveBar`, `Footer` |
 | `view/hero.cjs` | `Hero`: the headline, the line and the facts of the summary, with the mascot's drawing |
 | `view/settings-tab.cjs` | `SettingsTab`: the sections of one settings tab, sub-rows inside a `Reveal`, folding groups in the Advanced tab |
 | `view/field-row.cjs` | `FieldRow`: one setting as one row, with the control that fits its kind; `fieldId` |
 | `view/tabs.cjs` | `OverviewTab` and `ChangelogTab`, two of the tabs without settings |
 | `view/feedback.cjs` | `FeedbackTab`, the third, and `Nag` (the fifth drawing, `mascot-nag.webp`, with its speech bubble, beside the title; none if it cannot be loaded): what it is about, the text, the environment lines, Send, the link out to GitHub and the copy button; `emptyFeedback` |
 | `view/models.cjs` | `ModelsPanel` and `ModelRow`: the local embedding models and their one button |
+| `view/trial.cjs` | `TrialPanel` and `TrialRow`: the recall trial of the Retrieval tab, one line to type a sentence and the memories the gateway looked at, each with its score and, if left out, the step that removed it |
 | `view/markdown.cjs` | the changelog Markdown subset, text in and React elements out: `inlineMarkdown`, `joinLines`, `renderMarkdown` |
 
 ## The page
@@ -230,6 +232,11 @@ The Feedback choice decides where Send goes. "As shipped" leaves it to `FEEDBACK
 there, Send really sends a report to the project's receiver. "No receiver" hides Send. The three made-up
 receivers (takes it, fails, is busy) are a route of the preview server that reads nothing of what is posted.
 
+The Recall trial choice (`trial=` in the address) decides what the try route answers: it finds memories (every
+kind of row: delivered, linked, left out at each step, a moved score, a cut text, a missing text), finds
+nothing, the gateway is too old, no recall is made for the sentence, or the lookup fails. The sentence typed
+is not read; the memories are invented.
+
 What is real: the page script, its stylesheet, the drawings of `client/art`, the changelog (read from
 `CHANGELOG.md` like the host half does). What is made up: the status and the model list
 (`scripts/preview/scenarios.mjs`), the settings form (kept in the page), and the host's style variables
@@ -257,3 +264,4 @@ Run them in `plugins/dsh-feiyu-memgate`.
 | `tests/client-modules.test.js` | the pure modules on their own, the rules above (headers, imports, layers, the layout table), the stylesheet against the class names the modules use, the dictionary against the keys they ask for |
 | `tests/client-page.test.js` | the assembled file: what it asks of the host, `apply`, and the page drawn with a small stand-in for React (`tests/helpers/client-harness.js`); fails when either generated file is stale |
 | `tests/client-preview.test.js` | the preview's made-up answers against the page |
+| `tests/trial.test.js` | the recall trial: the model, the call, the panel, its place in the page and the preview's answers for it |

@@ -104,6 +104,8 @@ def describe(gateway):
             line += "；租户绑定 request（租户号由请求自报）"
             warnings.append("  提醒：%s 的租户号由调用方自报：令牌只交给一个可信的进程用没问题；"
                             "令牌要交给别的程序时，改用 tenant_binding = \"token\"" % name)
+        if policy.explain:
+            line += "；可以查看召回的解释"
         lines.append(line)
     lines.extend(warnings)
     lines.append("召回阶段（按顺序）：" + (" -> ".join(_piece_name("recall_stage", s) for s in gateway.stages) or "（没有）"))

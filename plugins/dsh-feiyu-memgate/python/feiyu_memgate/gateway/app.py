@@ -429,6 +429,20 @@ class Gateway:
                 if not getattr(self.stores[policy.write], "writable", False):
                     raise ConfigError("%s.write names the read-only store %r" % (where, policy.write))
             self._check_audience(where, policy)
+            self._check_explain(where, policy)
+
+    @staticmethod
+    def _check_explain(where, policy):
+        """An explained recall shows what a recall left out, so only a client that recalls and
+        shows its answer to no one but the owner may have it."""
+        if not policy.explain:
+            return
+        if not policy.can_recall:
+            raise ConfigError("%s.explain needs recall: there is nothing to explain for a client that may not recall"
+                              % where)
+        if policy.reach != "owner":
+            raise ConfigError("%s.explain is for owner-level clients: it shows the candidates a recall left out, "
+                              "with their scores (the client's audience is \"%s\")" % (where, policy.reach))
 
     @staticmethod
     def _check_binding(where, policy):
@@ -545,8 +559,8 @@ class Gateway:
 
     def admit(self, name, action, bound_tenant=None):
         """The checks that need no request body: rate limits, then permission.
-        `action` is "recall", "used" (both need the right to recall) or "remember"; bound_tenant is
-        as for recall(). Returns a Reply to refuse, None to go on.
+        `action` is "recall", "used" (both need the right to recall), "explain" (needs that and the
+        client's explain setting) or "remember"; bound_tenant is as for recall(). Returns a Reply to refuse, None to go on.
 
         A tenant-bound client's whole rate limiting happens here, per tenant and in total, because
         its tenant is known before the body is read; a caller that skips admit() (an in-process call
@@ -574,7 +588,10 @@ class Gateway:
             limit = policy.total_rate_limit if policy.tenants is not None else policy.rate_limit
             if not self.limiter.allow(name, limit):
                 return error_reply(429, "rate_limited", "rate limited")
-        allowed = policy.can_write if action == "remember" else policy.can_recall
+        if action == "remember":
+            allowed = policy.can_write
+        else:
+            allowed = policy.can_recall and (action != "explain" or policy.explain)
         if not allowed:
             return error_reply(403, "forbidden", "forbidden")
         return None
@@ -663,7 +680,18 @@ class Gateway:
         bound_tenant: the tenant a tenant-bound client's token names (see identify), else None."""
         return self._guarded(self._recall, name, body, bound_tenant)
 
-    def _recall(self, name, body, bound_tenant):
+    def explain(self, name, body, bound_tenant=None):
+        """Like recall(), and the answer also says what became of every candidate: "stages" and
+        "candidates" (see core.recall.Trace). Only for a client whose policy has explain. It counts
+        as no use: the stages' finish() does not run."""
+        return self._guarded(self._explain, name, body, bound_tenant)
+
+    def _explain(self, name, body, bound_tenant):
+        if not self.clients[name].explain:
+            return error_reply(403, "forbidden", "forbidden")
+        return self._recall(name, body, bound_tenant, trace=True)
+
+    def _recall(self, name, body, bound_tenant, trace=False):
         policy = self.clients[name]
         if not policy.can_recall:
             return error_reply(403, "forbidden", "forbidden")
@@ -685,7 +713,8 @@ class Gateway:
             self.recall_busy.record()
             return error_reply(503, "busy", "busy", "tenant-budget")
         try:
-            return self._search(policy, tenant_id, tenant_store, query, max(1, min(limit, MAX_LIMIT)), context)
+            return self._search(policy, tenant_id, tenant_store, query, max(1, min(limit, MAX_LIMIT)), context,
+                                trace)
         finally:
             if key:
                 self.tenant_budget.release(key)
@@ -701,15 +730,15 @@ class Gateway:
                 stores[name] = self.stores[name]
         return stores
 
-    def _search(self, policy, tenant_id, tenant_store, query, limit, context):
+    def _search(self, policy, tenant_id, tenant_store, query, limit, context, trace=False):
         stores = self._recall_stores(policy, tenant_store)
-        notes = []
+        notes = ["explain"] if trace else []
         deadline_s = self.recall_deadline_now() if stores else self.recall_deadline
         ctx = RecallContext(query, limit, pool=self.pool, clock=self.clock, deadline=self.clock() + deadline_s,
                             public=policy.public, redact=self._redactor(policy), client=policy.name,
                             tenant_id=tenant_id, notes=notes, context=context, log=self._log,
                             tenant_source=policy.tenants if TENANT_STORE in policy.recall else None,
-                            slots=self.store_slots, keep=self._keep(policy), audience=policy.reach)
+                            slots=self.store_slots, keep=self._keep(policy), audience=policy.reach, trace=trace)
         try:
             out = recall(stores, self.stages, ctx)
         except StageError:

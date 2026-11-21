@@ -196,6 +196,14 @@ test('the gateway accepts every generated configuration', { skip }, async (t) =>
   }
 })
 
+test('the managed client may explain recalls (the trial bench)', { skip }, async () => {
+  const { text } = gatewayConfig({ port: 4321, dataDir: path.join(os.tmpdir(), 'dsh-memgate-explain'), settings: readConfig({}) })
+  const all = text.split('\n')
+  const rest = all.slice(all.indexOf('[clients.dsh]') + 1)
+  const lines = rest.slice(0, rest.indexOf(''))
+  assert.ok(lines.includes('explain = true'), text)
+})
+
 test('a hybrid store is written as a children array of inline tables, backslash paths included', { skip }, async () => {
   const dataDir = String.raw`D:\data\feiyu data\store`
   const settings = readConfig({ retrieval: { tier: 'endpoint', hybrid: true, url: 'http://127.0.0.1:9/v1', model: 'bge-m3', apiKey: 'fake-embeddings-key' } })

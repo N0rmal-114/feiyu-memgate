@@ -7,6 +7,7 @@
 //   phase   idle | saving | saved | failed, the life of one save
 //   open    which folding groups of the Advanced tab are open
 //   report  the feedback a person is writing (view/feedback.cjs), kept while they look at other tabs
+//   trial   the sentence being tried and the last answer (view/trial.cjs), kept the same way
 //
 // The page keeps its shape whatever the settings form is doing. While the form is loading,
 // unavailable (the host serves no settings for this row) or read-only, the summary, the model list,
@@ -27,6 +28,7 @@ const { emptyFeedback, FeedbackTab } = require('./feedback.cjs')
 const { Hero } = require('./hero.cjs')
 const { ModelsPanel } = require('./models.cjs')
 const { SettingsTab } = require('./settings-tab.cjs')
+const { TrialPanel } = require('./trial.cjs')
 const { OverviewTab, ChangelogTab } = require('./tabs.cjs')
 
 /**
@@ -82,6 +84,7 @@ function SettingsBody(props) {
   const [phase, setPhase] = useState('idle')
   const [open, setOpen] = useState({})
   const [report, setReport] = useState(emptyFeedback)
+  const [trial, setTrial] = useState(() => ({ text: '', result: null }))
   const status = useStatus(fetchImpl)
   const changelog = useChangelog(fetchImpl)
 
@@ -143,8 +146,13 @@ function SettingsBody(props) {
     if (button) button.focus()
   }
 
-  // The model list does not depend on the settings form: it is built once and placed by the layout.
-  const panels = { models: h(ModelsPanel, { t, lang, fetch: fetchImpl, onChange: status.refreshSoon }) }
+  // The model list and the recall trial do not depend on the settings form: they are built once and placed by the layout.
+  const panels = { models: h(ModelsPanel, { t, lang, fetch: fetchImpl, onChange: status.refreshSoon }),
+    trial: h(TrialPanel, {
+      t, fetch: fetchImpl, text: trial.text, result: trial.result,
+      onText: (text) => setTrial((previous) => Object.assign({}, previous, { text })),
+      onResult: (result) => setTrial((previous) => Object.assign({}, previous, { result })),
+    }) }
   let content
   if (tab === 'overview') content = h(OverviewTab, { t, status })
   else if (tab === 'changelog') content = h(ChangelogTab, { t, state: changelog })

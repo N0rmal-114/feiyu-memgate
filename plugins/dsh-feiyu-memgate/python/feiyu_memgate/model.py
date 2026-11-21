@@ -76,6 +76,9 @@ class ClientPolicy:
     audience    who sees what this client shows: "owner", "group" or "public" (see AUDIENCES). None
                 means "not declared": see reach. A client may only recall from stores at least as
                 wide as its audience.
+    explain     True when this client may ask for an explained recall (POST /v1/explain): the
+                candidates a recall left out, with their scores and the step that removed them.
+                Off by default; only for owner-level clients.
     """
     name: str
     recall: tuple | None = None
@@ -90,6 +93,7 @@ class ClientPolicy:
     tenant_binding: str = "request"
     tenant_token_generation: int = 1
     audience: str | None = None
+    explain: bool = False
 
     @property
     def reach(self):

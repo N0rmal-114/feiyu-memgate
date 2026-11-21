@@ -16,7 +16,7 @@ MAX_BODY = 64 * 1024
 MAX_CONNECTIONS = 32
 READ_DEADLINE = 10.0
 ROUTES = {("GET", "/healthz"): None, ("POST", "/v1/recall"): "recall", ("POST", "/v1/remember"): "remember",
-          ("POST", "/v1/used"): "used"}
+          ("POST", "/v1/used"): "used", ("POST", "/v1/explain"): "explain"}
 ROUTE_PATHS = {path for _, path in ROUTES}
 BUSY_BODY = json.dumps({"error": "busy", "code": "busy"}).encode("utf-8")
 
@@ -178,7 +178,8 @@ class Handler(BaseHTTPRequestHandler):
         body = self._read_json()
         if body is None:
             return name
-        reply = {"recall": gw.recall, "remember": gw.remember, "used": gw.used}[action](name, body, bound_tenant)
+        reply = {"recall": gw.recall, "remember": gw.remember, "used": gw.used,
+                 "explain": gw.explain}[action](name, body, bound_tenant)
         self._note = reply.note
         self._reply(reply.status, reply.body)
         return name

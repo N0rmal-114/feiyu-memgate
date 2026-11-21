@@ -34,6 +34,8 @@ test('constants: the routes, names and addresses the page and the host half agre
     MODELS_ROUTE: 'feiyu-memgate/models',
     MODELS_POLL_MS: 10000,
     MODELS_BUSY_POLL_MS: 1500,
+    TRY_ROUTE: 'feiyu-memgate/try',
+    TRIAL_MAX_CHARS: 500,
     ART_ROUTE: 'feiyu-memgate/art/',
     SAVED_NOTE_MS: 2600,
     FEEDBACK_ENDPOINT: c.FEEDBACK_ENDPOINT,
@@ -500,9 +502,9 @@ test('layout: every label, help and note has English and Chinese text', () => {
 
 test('layout: a panel is a name the page provides, and a section with one may hold no settings', () => {
   const { TABS } = load('layout.cjs')
-  const PROVIDED = ['models']
+  const PROVIDED = ['models', 'trial']
   const withPanel = TABS.flatMap((tab) => tab.sections).filter((section) => section.panel)
-  assert.deepEqual(withPanel.map((section) => section.panel), ['models'])
+  assert.deepEqual(withPanel.map((section) => section.panel), ['models', 'trial'])
   for (const section of withPanel) assert.ok(PROVIDED.includes(section.panel), section.id)
   assert.ok(read('view/page.cjs').includes('const panels = { models:'), 'view/page.cjs builds the panel the layout names')
   for (const section of TABS.flatMap((tab) => tab.sections).filter((s) => !s.panel)) assert.ok(section.fields.length > 0, `section ${section.id} is empty`)

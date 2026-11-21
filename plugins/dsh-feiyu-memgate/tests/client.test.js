@@ -483,3 +483,75 @@ test('an invalid context is dropped with one warning that does not show it, and 
     assert.ok(log.lines[1].startsWith('memory remember: context dropped'))
     assert.ok(!log.lines.join(String.fromCharCode(10)).includes(secret))
   }))
+
+// ------------------------------------------------------------------ explainRecall (the trial bench)
+
+const GOOD = { source: 'memories', id: 'm-12', found: 0.612, score: 0.58, outcome: 'delivered', stage: null, added_by: null, text: 'likes oolong', date: '2026-11-01' }
+
+test('explainRecall: POST /v1/explain with the query, the limit and the context; the answer is cleaned and renamed', () =>
+  withServer((req, res) => json(res, 200, {
+    results: [], more: 2, failed: 1, busy: 0.5, stages: ['min_score', 7, 'dedupe'], candidates_cut: true,
+    candidates: [
+      GOOD,
+      { source: 'memories', id: 'm-40', found: 0.21, score: 0.21, outcome: 'dropped', stage: 'min_score', added_by: 'linked', text: 'x', cut: true },
+      { source: 'memories', id: 'm-41', found: 0.2, score: 0.2, outcome: 'over_limit', stage: 5, added_by: 3, text: 9, date: 4, cut: false },
+      // not well formed: dropped
+      null, 'text', [], { ...GOOD, source: 1 }, { ...GOOD, id: undefined }, { ...GOOD, found: '0.5' }, { ...GOOD, score: NaN },
+      { ...GOOD, outcome: 'gone' }, { ...GOOD, outcome: undefined },
+    ],
+  }), async (client, server) => {
+    const answer = await client.explainRecall('我喜欢喝什么茶？', { context: { channel: 'dsh', via: 'trial' } })
+    assert.deepEqual(answer, {
+      ok: true,
+      stages: ['min_score', 'dedupe'],
+      candidates: [
+        { source: 'memories', id: 'm-12', found: 0.612, score: 0.58, outcome: 'delivered', stage: null, addedBy: null, text: 'likes oolong', date: '2026-11-01' },
+        { source: 'memories', id: 'm-40', found: 0.21, score: 0.21, outcome: 'dropped', stage: 'min_score', addedBy: 'linked', text: 'x', cut: true },
+        { source: 'memories', id: 'm-41', found: 0.2, score: 0.2, outcome: 'over_limit', stage: null, addedBy: null },
+      ],
+      more: 2, failed: 1, busy: 0, cut: true,
+    })
+    const [req] = server.requests
+    assert.equal(req.method, 'POST')
+    assert.equal(req.url, '/v1/explain')
+    assert.equal(req.headers.authorization, `Bearer ${TOKEN}`)
+    assert.deepEqual(req.json, { query: '我喜欢喝什么茶？', limit: 5, context: { channel: 'dsh', via: 'trial' } })
+  }))
+
+test('explainRecall: the limit option wins over the client limit; no context means none is sent', () =>
+  withServer((req, res) => json(res, 200, { candidates: [] }), async (client, server) => {
+    assert.deepEqual(await client.explainRecall('hello there', { limit: 2 }), { ok: true, stages: [], candidates: [], more: 0, failed: 0, busy: 0, cut: false })
+    await client.explainRecall('hello there')
+    assert.deepEqual(server.requests.map((r) => r.json), [{ query: 'hello there', limit: 2 }, { query: 'hello there', limit: 3 }])
+  }, { recallLimit: 3 }))
+
+test('explainRecall: 403, 404 and 405 are unsupported; other failures are failed; it never throws', async () => {
+  for (const [status, code] of [[403, 'unsupported'], [404, 'unsupported'], [405, 'unsupported'], [401, 'failed'], [400, 'failed'], [500, 'failed'], [503, 'failed']]) {
+    await withServer((req, res) => json(res, status, { error: 'x', code: 'forbidden' }), async (client) => {
+      assert.deepEqual(await client.explainRecall('hello there'), { ok: false, code }, String(status))
+    })
+  }
+  // an answer without candidates, a body that is not JSON, a server that drops the connection
+  await withServer((req, res) => json(res, 200, { results: [] }), async (client) => {
+    assert.deepEqual(await client.explainRecall('hello there'), { ok: false, code: 'failed' })
+  })
+  await withServer((req, res) => json(res, 200, 'not json'), async (client) => {
+    assert.deepEqual(await client.explainRecall('hello there'), { ok: false, code: 'failed' })
+  })
+  await withServer((req, res) => req.socket.destroy(), async (client) => {
+    assert.deepEqual(await client.explainRecall('hello there'), { ok: false, code: 'failed' })
+  })
+  const gone = createClient({ url: 'http://127.0.0.1:9', token: TOKEN })
+  assert.deepEqual(await gone.explainRecall('hello there', { timeoutMs: 500 }), { ok: false, code: 'failed' })
+  assert.deepEqual(await createClient({}).explainRecall('hello there'), { ok: false, code: 'failed' })
+})
+
+test('explainRecall: an empty or over-long query is not sent, and the log shows no query or memory text', () =>
+  withServer((req, res) => json(res, 200, { candidates: [{ ...GOOD, text: 'secret memory text' }] }), async (client, server, log) => {
+    assert.deepEqual(await client.explainRecall('   '), { ok: false, code: 'failed' })
+    assert.deepEqual(await client.explainRecall(5), { ok: false, code: 'failed' })
+    assert.deepEqual(await client.explainRecall('a'.repeat(501)), { ok: false, code: 'failed' })
+    assert.equal(server.requests.length, 0)
+    assert.ok((await client.explainRecall('a'.repeat(500))).ok)
+    assert.ok(!log.lines.join('\n').includes('secret memory text'))
+  }))

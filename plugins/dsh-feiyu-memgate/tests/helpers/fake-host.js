@@ -322,9 +322,10 @@ export function preStepPayload({ text = 'What tea do I like in the morning?', me
  * handler can be replaced; calls are recorded for assertions.
  */
 export function fakeClients(handlers = {}) {
-  const calls = { created: [], recall: [], remember: [], rememberMessages: [] }
+  const calls = { created: [], recall: [], explain: [], remember: [], rememberMessages: [] }
   const h = {
     recall: async () => ({ results: [], more: 0, failed: 0, busy: 0 }),
+    explain: async () => ({ ok: true, stages: [], candidates: [], more: 0, failed: 0, busy: 0, cut: false }),
     remember: async () => 'saved',
     rememberMessages: async () => 'saved',
     ...handlers,
@@ -336,6 +337,10 @@ export function fakeClients(handlers = {}) {
       recallDetail: (query, opts) => {
         calls.recall.push({ query, opts, limit: options.recallLimit })
         return h.recall(query, opts)
+      },
+      explainRecall: (query, opts) => {
+        calls.explain.push({ query, opts, limit: options.recallLimit })
+        return h.explain(query, opts)
       },
       rememberStatus: (text, opts) => {
         calls.remember.push({ text, opts })

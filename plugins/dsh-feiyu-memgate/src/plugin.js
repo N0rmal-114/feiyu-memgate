@@ -100,6 +100,9 @@ export const STATUS_PATH = '/feiyu-memgate/status'
 export const MODELS_PATH = '/feiyu-memgate/models'
 // The released sections of the package's own CHANGELOG.md, for the settings page (src/changelog.js). Owner only too.
 export const CHANGELOG_PATH = '/feiyu-memgate/changelog'
+// The trial bench of the settings page: POST { query } explains a recall (the candidates, their scores,
+// the step that left one out) without changing anything. Owner only; reads no conversation state.
+export const TRY_PATH = '/feiyu-memgate/try'
 const CHANGELOG_FILE = new URL('../CHANGELOG.md', import.meta.url)
 // The mascot's drawings on the settings page (the four moods of the summary and the one of the Feedback tab): GET <ART_PATH><name>, one exact route per file of client/art.
 // Owner only like the other routes of the page: nothing here is secret, but the plugin serves nothing
@@ -110,6 +113,7 @@ const ART_DIR = new URL('../client/art/', import.meta.url)
 // A drawing is about 30 KB; a file far beyond that is not one of ours and is not served.
 const MAX_ART_BYTES = 512 * 1024
 const MAX_ACTION_BYTES = 8 * 1024
+const TRIAL_MAX_CHARS = 500 // the gateway's query limit
 const MODEL_ACTIONS = new Set(['install', 'builds', 'cancel', 'use', 'remove'])
 // Actions that can make the host install a package: only with `confirmed: true`, which the page sends
 // after its own confirmation step (a direct plugin manager call shows no host dialog).
@@ -243,6 +247,7 @@ const REQUEST_CONTEXT = Object.freeze({
   followup: Object.freeze({ channel: 'dsh', via: 'followup' }),
   tool: Object.freeze({ channel: 'dsh', via: 'tool' }),
   capture: Object.freeze({ channel: 'dsh', via: 'capture' }),
+  trial: Object.freeze({ channel: 'dsh', via: 'trial' }),
 })
 
 const pad = (n, width = 2) => String(n).padStart(width, '0')
@@ -1477,8 +1482,8 @@ export function createPlugin(ctx, config, deps = {}) {
     }
   }
 
-  // A small JSON body, or a reason to refuse it: too large, not JSON, not an object.
-  async function readAction(req) {
+  // A small JSON body, or a reason to refuse it: wrong content type, too large, not JSON.
+  async function readJson(req) {
     const type = String(req.headers?.['content-type'] ?? '').split(';', 1)[0].trim().toLowerCase()
     if (type !== 'application/json') return { status: 415, code: 'unsupported-media-type' }
     const chunks = []
@@ -1488,12 +1493,18 @@ export function createPlugin(ctx, config, deps = {}) {
       if (size > MAX_ACTION_BYTES) return { status: 413, code: 'too-large' }
       chunks.push(chunk)
     }
-    let body
     try {
-      body = JSON.parse(Buffer.concat(chunks).toString('utf8'))
+      return { json: JSON.parse(Buffer.concat(chunks).toString('utf8')) }
     } catch {
       return { status: 400, code: 'bad-json' }
     }
+  }
+
+  // The body of a model-list click, or a reason to refuse it.
+  async function readAction(req) {
+    const read = await readJson(req)
+    if (!('json' in read)) return read
+    const body = read.json
     if (!body || typeof body !== 'object' || !MODEL_ACTIONS.has(body.action)) return { status: 400, code: 'bad-action' }
     if (CONFIRMED_ACTIONS.has(body.action) && body.confirmed !== true) return { status: 400, code: 'confirm-required' }
     if (body.action === 'builds' && typeof body.allow !== 'boolean') return { status: 400, code: 'bad-decision' }
@@ -1537,6 +1548,43 @@ export function createPlugin(ctx, config, deps = {}) {
         } catch (error) {
           log.warn(`feiyu-memgate: model list unavailable (${kindOf(error)})`)
           if (!res.headersSent) send(500, { code: 'models-unavailable' })
+          else res.end()
+        }
+      },
+    }
+  }
+
+  // The trial bench of the settings page: one sentence in, the gateway's explanation of its recall out.
+  // Owner only, POST only. It touches no conversation state (the lists of memories already given, the
+  // pools, the relevance check, the counters of the status) and logs neither the sentence nor a result.
+  function tryRoute() {
+    return {
+      kind: 'exact',
+      auth: 'required',
+      path: TRY_PATH,
+      handler: async (req, res, peer) => {
+        const send = (code, body, extra = {}) => {
+          res.writeHead(code, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...extra })
+          res.end(JSON.stringify(body))
+        }
+        try {
+          const refused = admission(req, peer)
+          if (refused !== null) return send(refused, { code: refused === 403 ? 'forbidden' : 'unauthorized', message: 'owner access required' })
+          if (req.method !== 'POST') return send(405, { code: 'method-not-allowed' }, { allow: 'POST' })
+          const read = await readJson(req)
+          if (!('json' in read)) return send(read.status, { code: read.code })
+          const text = read.json?.query
+          if (typeof text !== 'string' || !pyStrip(text) || codePointLength(text) > TRIAL_MAX_CHARS) return send(400, { code: 'bad-query' })
+          const query = buildQuery(text, null)
+          if (query === null) return send(200, { ok: false, code: 'no-recall' })
+          const limit = settings().advanced.recallLimit
+          const c = client(limit)
+          if (!c) return send(200, { ok: false, code: 'unavailable' })
+          const result = await c.explainRecall(query, { context: REQUEST_CONTEXT.trial })
+          send(200, result?.ok === true ? { ...result, limit } : { ok: false, code: result?.code === 'unsupported' ? 'unsupported' : 'failed' })
+        } catch (error) {
+          log.warn(`feiyu-memgate: trial recall failed (${kindOf(error)})`)
+          if (!res.headersSent) send(200, { ok: false, code: 'failed' })
           else res.end()
         }
       },
@@ -1831,6 +1879,7 @@ export function createPlugin(ctx, config, deps = {}) {
         const fiber = ctx.inject(['webServer'], (scoped) => {
           scoped.effect(() => scoped.webServer.register(statusRoute()))
           scoped.effect(() => scoped.webServer.register(modelsRoute()))
+          scoped.effect(() => scoped.webServer.register(tryRoute()))
           scoped.effect(() => scoped.webServer.register(changelogRoute()))
           for (const name of ART_FILES) scoped.effect(() => scoped.webServer.register(artRoute(name)))
         })

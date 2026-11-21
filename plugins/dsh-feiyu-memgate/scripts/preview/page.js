@@ -2,7 +2,7 @@
 // It gives the page script what the host would: a module loader with React in it, a translate
 // function from the page's own dictionaries, a settings form, and a fetch that reaches the preview
 // server's made-up routes. Everything is driven by the address:
-//   ?scenario=&theme=&lang=&form=&width=&feedback=   what the toolbar sets
+//   ?scenario=&theme=&lang=&form=&width=&feedback=&trial=   what the toolbar sets
 //   &tab=features|retrieval|advanced|changelog   open that tab after loading
 //   &open=all                                    open every folding group of the tab
 // The last two exist so that one address shows one state (a screenshot, a link in a review).
@@ -16,6 +16,7 @@
   const formMode = option('form', 'ready') // ready | readonly | loading | unavailable
   const width = option('width', '')
   const feedbackMode = option('feedback', 'shipped') // shipped | link | direct | fails | busy
+  const trialMode = option('trial', 'found') // found | empty | unsupported | norecall | fails
 
   if (option('theme', 'light') === 'dark') document.body.setAttribute('data-ds-dark-theme', '')
 
@@ -44,6 +45,7 @@
   control('form', 'Settings form', [['ready', 'ready'], ['readonly', 'read-only'], ['loading', 'loading'], ['unavailable', 'unavailable']], formMode)
   control('width', 'Column', [['', 'full'], ['640', '640px'], ['380', '380px']], width)
   control('feedback', 'Feedback', [['shipped', 'as shipped'], ['link', 'no receiver'], ['direct', 'made-up receiver takes it'], ['fails', 'made-up receiver fails'], ['busy', 'made-up receiver is busy']], feedbackMode)
+  control('trial', 'Recall trial', [['found', 'finds memories'], ['empty', 'finds nothing'], ['unsupported', 'gateway too old'], ['norecall', 'no recall for the sentence'], ['fails', 'lookup fails']], trialMode)
   if (width) document.querySelector('.host-column').style.maxWidth = width + 'px'
 
   // ---- the page script, loaded the way the host loads it
@@ -82,7 +84,7 @@
   form.state.value = JSON.parse(JSON.stringify(window.PREVIEW_USER_SETTINGS))
   form.state.user = JSON.parse(JSON.stringify(window.PREVIEW_USER_SETTINGS))
 
-  const routed = (route, init) => fetch(route + '?scenario=' + encodeURIComponent(scenario), init)
+  const routed = (route, init) => fetch(route + '?scenario=' + encodeURIComponent(scenario) + '&trial=' + encodeURIComponent(trialMode), init)
   const root = ReactDOM.createRoot(document.getElementById('slot'))
   function render() {
     // "As shipped" leaves the address to the package (constants.cjs FEEDBACK_ENDPOINT): a real

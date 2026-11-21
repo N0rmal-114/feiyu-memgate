@@ -1158,6 +1158,59 @@
   color: var(--fmg-ink-2);
 }
 
+/* The recall trial: one line to type a sentence, then the memories the gateway looked at. */
+.fmg-trial {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fmg-trial__form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fmg-trial__form .fmg-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+}
+
+.fmg-trial__form .fmg-button {
+  flex: none;
+}
+
+.fmg-trial__row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+}
+
+.fmg-trial__text {
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.fmg-trial__row[data-left='true'] .fmg-trial__text {
+  color: var(--fmg-ink-2);
+}
+
+.fmg-trial__facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  color: var(--fmg-ink-2);
+  font-size: 12px;
+}
+
+.fmg-trial__reason {
+  overflow-wrap: anywhere;
+}
+
 /* ------------------------------------------------------------------ narrow columns and calm motion */
 
 @container (max-width: 520px) {
@@ -1204,6 +1257,20 @@
 
   .fmg-model {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fmg-trial__form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fmg-trial__form .fmg-input {
+    flex: none;
+    width: 100%;
+  }
+
+  .fmg-trial__row {
+    padding: 12px;
   }
 }
 

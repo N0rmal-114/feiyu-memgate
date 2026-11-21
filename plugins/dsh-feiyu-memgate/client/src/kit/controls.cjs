@@ -53,9 +53,10 @@ function Switch(props) {
 }
 
 /**
- * A line of text. `onChange` gets the text, not the event.
+ * A line of text. `onChange` gets the text, not the event. `label` names it for a screen reader when
+ * no visible label points at it.
  * @param {{ id: string, value: string, type?: string, invalid?: boolean, disabled?: boolean, maxLength?: number,
- *   placeholder?: string, describedBy?: string, autoComplete?: string, onChange: (text: string) => void }} props
+ *   placeholder?: string, label?: string, describedBy?: string, autoComplete?: string, onChange: (text: string) => void }} props
  */
 function TextInput(props) {
   return h('input', {
@@ -68,6 +69,7 @@ function TextInput(props) {
     autoComplete: props.autoComplete || 'off',
     spellCheck: false,
     disabled: props.disabled || undefined,
+    'aria-label': props.label,
     'aria-invalid': props.invalid ? 'true' : undefined,
     'aria-describedby': props.describedBy,
     onChange: (event) => props.onChange(event.target.value),

@@ -71,6 +71,12 @@ const TABS = [
         panel: 'models',
         fields: [],
       },
+      {
+        id: 'trial',
+        label: { en: 'Try a recall', zh: '试一下召回' },
+        panel: 'trial',
+        fields: [],
+      },
     ],
   },
   {

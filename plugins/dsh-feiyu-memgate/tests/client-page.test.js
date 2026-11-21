@@ -965,9 +965,9 @@ test('a folding group says how many of its settings are changed and marks unsave
   assert.ok(bad.props.className.includes('fmg-mark--invalid'))
 })
 
-test('the Retrieval tab places the model list after the rows of its section', () => {
+test('the Retrieval tab places the model list after the rows of its section, and the recall trial last', () => {
   const tree = renderTab('retrieval')
-  assert.deepEqual(withClass(tree, 'fmg-section__title').map(textOf), ['Retrieval method', 'Local embedding models'])
+  assert.deepEqual(withClass(tree, 'fmg-section__title').map(textOf), ['Retrieval method', 'Local embedding models', 'Try a recall'])
   assert.ok(textOf(tree).includes(tr('en')('modelsIntro')))
 })
 

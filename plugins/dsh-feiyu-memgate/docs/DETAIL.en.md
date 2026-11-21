@@ -102,6 +102,17 @@ Measured basis, in the gateway's own benchmark with bge-m3 (nothing was measured
 | `followup` | the second lookup after a reply |
 | `tool` | the `memgate_remember` tool |
 | `capture` | automatic capture |
+| `trial` | "Try a recall" in the settings page |
+
+## Trying a recall
+
+The last section of the Retrieval tab, **Try a recall**, shows what a sentence would recall: type a sentence and press **Try**. The page lists the memories the gateway found for it with their scores, and for each one left out the step that removed it (below the score line, too far below the best match, its text could not be read, too long, nothing left after redaction, duplicate of one above, over the length budget, carries the exclusion marker, past the limit per recall, out of time).
+
+- The sentence goes to the gateway's `POST /v1/explain`, a request like a recall, with `via` set to `trial` in the label. The gateway must support `explain` and have it turned on for this client: the plugin turns it on for the bundled gateway; for an external gateway add `explain = true` to this client in its configuration, or the page says it is not supported.
+- A trial changes no memory and does not count as a use. It does not touch the conversation's state: the memories already given, the pools, the relevance check and the counters of the status stay as they are.
+- The sentence is first handled the way automatic recall handles it. One that is too short or only an acknowledgement is not recalled for in a conversation, and the page says so.
+- Memory texts are shown only in the owner's settings page and are not logged.
+- The page shows the gateway's result, not what the plugin does after the gateway answers: in a conversation the plugin also skips memories already given in the history (`advanced.skipRepeats`), caps the new memories per turn with `advanced.maxNewPerTurn`, and, with the relevance check (experimental) on, has a model filter the rest. So what a conversation actually gets can be less than what is shown as delivered here.
 
 ## Limits
 

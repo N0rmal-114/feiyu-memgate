@@ -13,6 +13,10 @@ const CHANGELOG_ROUTE = 'feiyu-memgate/changelog'
 const MODELS_ROUTE = 'feiyu-memgate/models'
 const MODELS_POLL_MS = 10000
 const MODELS_BUSY_POLL_MS = 1500
+// The trial recall (Retrieval tab): POST { query }, the host half asks the gateway to explain a recall (src/plugin.js).
+const TRY_ROUTE = 'feiyu-memgate/try'
+// How long a sentence to try may be (the gateway's limit for a query).
+const TRIAL_MAX_CHARS = 500
 // The mascot's drawings: GET <ART_ROUTE><mood>.webp (src/plugin.js serves the files of client/art).
 const ART_ROUTE = 'feiyu-memgate/art/'
 // How long a confirmation ("Saved", "Copied") stays before it goes away.
@@ -34,6 +38,6 @@ const LINKS = {
 }
 
 module.exports = {
-  NS, ROW_KEY, STATUS_ROUTE, STATUS_POLL_MS, CHANGELOG_ROUTE, MODELS_ROUTE, MODELS_POLL_MS, MODELS_BUSY_POLL_MS,
+  NS, ROW_KEY, STATUS_ROUTE, STATUS_POLL_MS, CHANGELOG_ROUTE, MODELS_ROUTE, MODELS_POLL_MS, MODELS_BUSY_POLL_MS, TRY_ROUTE, TRIAL_MAX_CHARS,
   ART_ROUTE, SAVED_NOTE_MS, FEEDBACK_ENDPOINT, FEEDBACK_TIMEOUT_MS, ID_PREFIX, LINKS,
 }

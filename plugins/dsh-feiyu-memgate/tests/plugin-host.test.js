@@ -6,10 +6,10 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { ART_FILES, ART_PATH, CHANGELOG_PATH, MODELS_PATH, ROW_ID, STATUS_PATH, applyPlugin } from '../src/plugin.js'
+import { ART_FILES, ART_PATH, CHANGELOG_PATH, MODELS_PATH, ROW_ID, STATUS_PATH, TRY_PATH, applyPlugin } from '../src/plugin.js'
 import { migrationStateFile } from '../src/migrate.js'
 import { EMBED_SERVICE, EMBEDDINGS_KEY_ENV, keywordIndexFile } from '../src/tiers.js'
-import { OWNER, callRoute, createFakeHost, fakeClients, fakeConnection, fakeManagers, tick, volatile } from './helpers/fake-host.js'
+import { OWNER, callRoute, createFakeHost, fakeClients, fakeConnection, fakeManagers, preStepPayload, tick, volatile } from './helpers/fake-host.js'
 
 const PYTHON = Object.freeze({ executable: 'python-for-tests', argv: ['python-for-tests'], version: '3.12.4', source: 'path' })
 const ADDON_KEY = 'fake-addon-key-0123'
@@ -332,11 +332,129 @@ test('the page routes come and go with the web server', async () => {
   const { host } = setup()
   assert.equal(host.routes.size, 0)
   host.useWebServer()
-  const all = [CHANGELOG_PATH, MODELS_PATH, STATUS_PATH, ...ART_FILES.map((name) => ART_PATH + name)]
+  const all = [CHANGELOG_PATH, MODELS_PATH, STATUS_PATH, TRY_PATH, ...ART_FILES.map((name) => ART_PATH + name)]
   assert.deepEqual([...host.routes.keys()].sort(), all.sort())
   host.unprovide('webServer')
   host.useWebServer()
   assert.equal(host.routes.size, all.length, 'registered again, not twice')
+})
+
+// ------------------------------------------------------------------ the trial bench route
+
+const EXTERNAL = { url: 'http://127.0.0.1:9', token: 'fake-token-for-tests-only' }
+const EXPLAINED = { ok: true, stages: ['min_score'], candidates: [{ source: 'memories', id: 'm-1', found: 0.6, score: 0.6, outcome: 'delivered', stage: null, addedBy: null, text: 'Drinks oolong', date: '2026-11-01' }], more: 0, failed: 0, busy: 0, cut: false }
+
+function trialSetup({ handlers, values } = {}) {
+  const clients = fakeClients(handlers)
+  const made = setup({
+    services: ['webServer'],
+    values: { gateway: { mode: 'external' }, external: EXTERNAL, ...values },
+    deps: { createClient: clients.createClient },
+  })
+  return { ...made, clients, route: made.host.routes.get(TRY_PATH) }
+}
+const ask = (route, query, extra = {}) => callRoute(route, { method: 'POST', peer: OWNER, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query }), ...extra })
+
+test('the trial route: owner only, POST only, JSON only, 8 KiB at most, never cached', async () => {
+  const { route, clients } = trialSetup()
+  assert.equal(route.kind, 'exact')
+  assert.equal(route.auth, 'required')
+  assert.equal(route.path, '/feiyu-memgate/try')
+  const guest = await ask(route, 'What tea do I like in the morning?', { peer: { principal: { kind: 'guest' } } })
+  assert.equal(guest.status, 403)
+  assert.deepEqual(JSON.parse(guest.body), { code: 'forbidden', message: 'owner access required' })
+  assert.equal((await ask(route, 'What tea do I like in the morning?', { peer: undefined })).status, 503)
+  for (const method of ['GET', 'HEAD', 'PUT', 'DELETE']) {
+    const refused = await callRoute(route, { method, peer: OWNER })
+    assert.equal(refused.status, 405, method)
+    assert.equal(refused.headers.allow, 'POST')
+    assert.equal(refused.headers['cache-control'], 'no-store')
+  }
+  const wrongType = await callRoute(route, { method: 'POST', peer: OWNER, headers: { 'content-type': 'text/plain' }, body: '{}' })
+  assert.deepEqual([wrongType.status, JSON.parse(wrongType.body).code], [415, 'unsupported-media-type'])
+  const big = await callRoute(route, { method: 'POST', peer: OWNER, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query: 'a'.repeat(9000) }) })
+  assert.deepEqual([big.status, JSON.parse(big.body).code], [413, 'too-large'])
+  const broken = await callRoute(route, { method: 'POST', peer: OWNER, headers: { 'content-type': 'application/json' }, body: '{nope' })
+  assert.deepEqual([broken.status, JSON.parse(broken.body).code], [400, 'bad-json'])
+  assert.equal(clients.calls.explain.length, 0, 'no refusal reached the gateway')
+  const ok = await ask(route, 'What tea do I like in the morning?')
+  assert.equal(ok.headers['cache-control'], 'no-store')
+  assert.equal(ok.headers['content-type'], 'application/json; charset=utf-8')
+})
+
+test('the trial route: a query that is not a string, is empty or is over 500 characters is a 400 bad-query', async () => {
+  const { route, clients } = trialSetup()
+  const bodies = [{}, { query: 5 }, { query: null }, { query: ['tea'] }, { query: '' }, { query: '  \n ' }, { query: 'a'.repeat(501) }, { query: '茶'.repeat(501) }, [], 'tea', null, 7]
+  for (const body of bodies) {
+    const response = await callRoute(route, { method: 'POST', peer: OWNER, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+    assert.equal(response.status, 400, JSON.stringify(body))
+    assert.deepEqual(JSON.parse(response.body), { code: 'bad-query' })
+  }
+  assert.equal(clients.calls.explain.length, 0)
+  assert.equal((await ask(route, '茶'.repeat(500))).status, 200, '500 code points are fine')
+  assert.equal((await ask(route, '😀'.repeat(20) + '喜欢喝茶')).status, 200, 'code points, not UTF-16 units')
+})
+
+test('the trial route: a sentence the plugin would make no recall for answers no-recall, without asking the gateway', async () => {
+  const { route, clients } = trialSetup()
+  for (const text of ['嗯', '/compact', 'ok']) {
+    const response = await ask(route, text)
+    assert.equal(response.status, 200, text)
+    assert.deepEqual(JSON.parse(response.body), { ok: false, code: 'no-recall' }, text)
+  }
+  assert.equal(clients.calls.explain.length, 0)
+})
+
+test('the trial route: no gateway answers unavailable; unsupported and failed pass through; an exception is failed and logs only its kind', async () => {
+  const none = setup({ services: ['webServer'], values: { gateway: { mode: 'external' }, external: { url: '', token: '' } }, deps: { createClient: fakeClients().createClient } })
+  assert.deepEqual(JSON.parse((await ask(none.host.routes.get(TRY_PATH), 'What tea do I like in the morning?')).body), { ok: false, code: 'unavailable' })
+
+  const unsupported = trialSetup({ handlers: { explain: async () => ({ ok: false, code: 'unsupported' }) } })
+  assert.deepEqual(JSON.parse((await ask(unsupported.route, 'What tea do I like in the morning?')).body), { ok: false, code: 'unsupported' })
+  const failed = trialSetup({ handlers: { explain: async () => ({ ok: false, code: 'failed' }) } })
+  assert.deepEqual(JSON.parse((await ask(failed.route, 'What tea do I like in the morning?')).body), { ok: false, code: 'failed' })
+
+  const secret = 'What secret tea do I like in the morning?'
+  const broken = trialSetup({ handlers: { explain: async () => { throw new TypeError(`broke on ${secret}`) } } })
+  const response = await ask(broken.route, secret)
+  assert.equal(response.status, 200)
+  assert.deepEqual(JSON.parse(response.body), { ok: false, code: 'failed' })
+  const warned = broken.host.logs.filter((l) => l.level === 'warn').map((l) => l.text)
+  assert.equal(warned.length, 1)
+  assert.match(warned[0], /trial/)
+  assert.ok(!warned[0].includes('secret'), warned[0])
+})
+
+test('the trial route: a good answer passes through with the limit, the built query, the trial label and nothing logged', async () => {
+  const { route, clients, host } = trialSetup({ handlers: { explain: async () => EXPLAINED }, values: { advanced: { language: 'en', recallLimit: 3 } } })
+  const response = await ask(route, 'What tea do I like in the morning?')
+  assert.equal(response.status, 200)
+  assert.deepEqual(JSON.parse(response.body), { ...EXPLAINED, limit: 3 })
+  assert.equal(clients.calls.explain.length, 1)
+  assert.equal(clients.calls.explain[0].query, 'What tea do I like in the morning?')
+  assert.equal(clients.calls.explain[0].limit, 3, 'the client made for the recall limit setting')
+  assert.deepEqual(clients.calls.explain[0].opts, { context: { channel: 'dsh', via: 'trial' } })
+  assert.equal(host.logs.length, 0, 'nothing about the query or the result is logged')
+})
+
+test('the trial route: a turn after a trial behaves as if the trial had not happened', async () => {
+  const found = { results: [{ text: 'Drinks oolong every morning', source: 'memories', id: 'm1', score: 0.9 }], more: 0, failed: 0, busy: 0 }
+  const turns = []
+  for (const withTrial of [false, true]) {
+    const { host, clients, route, plugin } = trialSetup({ handlers: { recall: async () => found, explain: async () => EXPLAINED } })
+    await plugin.settled()
+    const before = JSON.stringify(await (await callRoute(host.routes.get(STATUS_PATH), { peer: OWNER })).body)
+    if (withTrial) {
+      for (let i = 0; i < 3; i += 1) await ask(route, 'What tea do I like in the morning?')
+      assert.equal(JSON.stringify(await (await callRoute(host.routes.get(STATUS_PATH), { peer: OWNER })).body), before, 'the status counters did not move')
+    }
+    const decision = await host.preStep(preStepPayload())
+    turns.push({ recalls: clients.calls.recall.map((c) => c.query), block: decision.messages.map((m) => m.content?.map?.((b) => b.text).join('')), explain: clients.calls.explain.length })
+  }
+  assert.equal(turns[1].explain, 3)
+  assert.deepEqual({ ...turns[1], explain: 0 }, { ...turns[0], explain: 0 })
+  assert.equal(turns[1].recalls.length, 1)
+  assert.ok(turns[1].block.some((t) => t?.includes('Drinks oolong every morning')), 'the memory is still given: a trial did not mark it as already given')
 })
 
 test('a broken probe or count degrades to unknown values', async () => {

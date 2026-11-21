@@ -61,7 +61,7 @@ from .model import AUDIENCES, TENANT_BINDINGS, ClientPolicy
 SERVER_DEFAULTS = {"host": "127.0.0.1", "port": 8080}
 _POLICY_KEYS = {"token_env", "recall", "write", "tenants", "public", "daily_writes", "daily_writes_total",
                 "rate_limit", "rate_limit_total", "pin_writes", "tenant_binding", "tenant_token_generation",
-                "audience"}
+                "audience", "explain"}
 _TOP_KEYS = {"server", "stores", "tenants", "clients", "recall", "write", "redaction", "forgetting"}
 
 # What each fixed section may hold: key -> checker(where, value). "stages"/"guards" are piece lists.
@@ -194,7 +194,7 @@ def client_policy(name, spec):
         if not isinstance(recall, list) or not all(isinstance(s, str) for s in recall):
             raise ConfigError("%s.recall must be a list of store names" % where)
         recall = tuple(recall)
-    for key, kind in (("write", str), ("tenants", str), ("public", bool), ("pin_writes", bool)):
+    for key, kind in (("write", str), ("tenants", str), ("public", bool), ("pin_writes", bool), ("explain", bool)):
         value = spec.get(key)
         if value is not None and not isinstance(value, kind):
             raise ConfigError("%s.%s must be %s" % (where, key, kind.__name__))
@@ -225,7 +225,7 @@ def client_policy(name, spec):
         public=public, audience=audience, daily_writes=spec.get("daily_writes"),
         daily_writes_total=spec.get("daily_writes_total"), rate_limit=spec.get("rate_limit", 60),
         rate_limit_total=spec.get("rate_limit_total"), pin_writes=spec.get("pin_writes", False),
-        tenant_binding=binding, tenant_token_generation=spec.get("tenant_token_generation", 1),
+        explain=spec.get("explain", False), tenant_binding=binding, tenant_token_generation=spec.get("tenant_token_generation", 1),
     )
 
 

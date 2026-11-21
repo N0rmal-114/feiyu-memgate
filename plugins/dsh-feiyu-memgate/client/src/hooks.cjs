@@ -1,8 +1,9 @@
 'use strict'
 
 // The React hooks that talk to the host half: useStatus (polled), useChangelog (read once) and
-// useModels (polled, plus the clicks of the model list); useCopy, which talks to the clipboard; and
-// useSend, which posts a feedback report to the project's receiver.
+// useModels (polled, plus the clicks of the model list); useCopy, which talks to the clipboard;
+// useSend, which posts a feedback report to the project's receiver; and useTrial, which asks for one
+// recall to be explained.
 // They own the timers and the "still mounted" flag; they know nothing about how the data is drawn.
 
 const { useEffect, useRef, useState } = require('./react.cjs')
@@ -173,4 +174,47 @@ function useSend(endpoint, fetchImpl) {
   return { phase: state.phase, code: state.code, send }
 }
 
-module.exports = { useChangelog, useStatus, useModels, useCopy, useSend }
+/**
+ * One trial recall at a time, with what became of the last: { state, answer, code, start }.
+ *   state   'idle' | 'busy' | 'done' | 'failed'
+ *   answer  the host half's answer while `state` is 'done'
+ *   code    why it failed ('unavailable', 'unsupported', 'no-recall', 'failed', 'network'), or null
+ *   start   try a sentence; a second call while one is on its way does nothing
+ * What became of a trial is also handed to `remember`, so that the page can keep it while a person
+ * looks at another tab; `saved` is what it kept.
+ * @param {(query: string) => Promise<object>} run asks the host half (the panel passes net.cjs tryRecall)
+ * @param {{ state: string, answer: object | null, code: string | null }} [saved]
+ * @param {(result: { state: string, answer: object | null, code: string | null }) => void} [remember]
+ */
+function useTrial(run, saved, remember) {
+  const [result, setResult] = useState(saved || { state: 'idle', answer: null, code: null })
+  const busy = useRef(false)
+  const start = (query) => {
+    if (busy.current) return Promise.resolve(false)
+    busy.current = true
+    setResult({ state: 'busy', answer: null, code: null })
+    const finish = (next) => {
+      busy.current = false
+      setResult(next)
+      if (remember) remember(next)
+      return next.state === 'done'
+    }
+    let asked
+    try {
+      asked = Promise.resolve(run(query))
+    } catch (error) {
+      asked = Promise.reject(error)
+    }
+    return asked.then(
+      (answer) => {
+        if (answer && answer.ok === true) return finish({ state: 'done', answer, code: null })
+        return finish({ state: 'failed', answer: null, code: answer && typeof answer.code === 'string' ? answer.code : 'failed' })
+      },
+      // A refusal of the route reads as a failed lookup; a call that did not arrive as a network error.
+      (error) => finish({ state: 'failed', answer: null, code: error && typeof error.code === 'string' && error.code.indexOf('HTTP') === 0 ? 'failed' : 'network' }),
+    )
+  }
+  return { state: result.state, answer: result.answer, code: result.code, start }
+}
+
+module.exports = { useChangelog, useStatus, useModels, useCopy, useSend, useTrial }

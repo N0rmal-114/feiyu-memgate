@@ -2,13 +2,13 @@
 
 // The page's calls, over a `fetch` passed in by the caller (so tests can fake it).
 //
-// Three go to the host half: the routes are document-relative and owner-only (src/plugin.js). A failed
+// Four go to the host half: the routes are document-relative and owner-only (src/plugin.js). A failed
 // answer becomes an Error whose `.code` is 'HTTP <status>'; a network failure rejects as it comes.
 //
 // One goes outside the host: sendFeedback posts a report to the project's feedback receiver, and only
 // when a person pressed Send. It carries no cookie, no credential and no referrer. No React, no DOM.
 
-const { STATUS_ROUTE, CHANGELOG_ROUTE, MODELS_ROUTE, FEEDBACK_TIMEOUT_MS } = require('./constants.cjs')
+const { STATUS_ROUTE, CHANGELOG_ROUTE, MODELS_ROUTE, TRY_ROUTE, FEEDBACK_TIMEOUT_MS } = require('./constants.cjs')
 
 /** GET a route and read its JSON; `name` labels the Error of a failed answer. */
 async function getJson(fetchImpl, route, name) {
@@ -54,6 +54,11 @@ function postModels(fetchImpl, body) {
   return postJson(fetchImpl, MODELS_ROUTE, 'models', body)
 }
 
+/** A trial recall: the sentence goes to the host half, which answers { ok, ... } as src/plugin.js describes. */
+function tryRecall(query, fetchImpl) {
+  return postJson(fetchImpl, TRY_ROUTE, 'try', { query })
+}
+
 // Why a report was not sent, as an Error the page can tell from any other.
 function notSent(code) {
   const error = new Error('feedback')
@@ -93,4 +98,4 @@ async function sendFeedback(fetchImpl, endpoint, report) {
   }
 }
 
-module.exports = { getJson, postJson, fetchStatus, fetchChangelog, fetchModels, postModels, sendFeedback }
+module.exports = { getJson, postJson, fetchStatus, fetchChangelog, fetchModels, postModels, tryRecall, sendFeedback }

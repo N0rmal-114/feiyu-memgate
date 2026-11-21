@@ -112,6 +112,27 @@ function cleanMessages(messages) {
   return clean
 }
 
+const OUTCOMES = new Set(['delivered', 'dropped', 'deferred', 'over_limit', 'not_reached'])
+
+// One entry of an explained recall as the page may rely on it, or null when it is not well formed.
+function cleanCandidate(c) {
+  if (!isObject(c) || typeof c.source !== 'string' || typeof c.id !== 'string') return null
+  if (!Number.isFinite(c.found) || !Number.isFinite(c.score) || !OUTCOMES.has(c.outcome)) return null
+  const out = {
+    source: c.source,
+    id: c.id,
+    found: c.found,
+    score: c.score,
+    outcome: c.outcome,
+    stage: typeof c.stage === 'string' ? c.stage : null,
+    addedBy: typeof c.added_by === 'string' ? c.added_by : null,
+  }
+  if (typeof c.text === 'string') out.text = c.text
+  if (typeof c.date === 'string') out.date = c.date
+  if (c.cut === true) out.cut = true
+  return out
+}
+
 function normaliseBase(url) {
   if (typeof url !== 'string') return null
   const trimmed = pyStrip(url).replace(/\/+$/, '')
@@ -191,7 +212,7 @@ export function createClient({ url, token, fetch: fetchImpl = globalThis.fetch, 
     return { ...body, context: { ...context } }
   }
 
-  // One request until an absolute deadline (timeoutMs from now). Returns [object|null, outcome].
+  // One request until an absolute deadline (timeoutMs from now). Returns [object|null, outcome, status]; status is the HTTP status of an error answer, else absent.
   async function request(method, path, payload, timeoutMs, what, signal, withToken) {
     if (!base || (withToken && !secret)) return [null, NOT_SENT]
     if (!(Number.isFinite(timeoutMs) && timeoutMs > 0)) {
@@ -238,7 +259,7 @@ export function createClient({ url, token, fetch: fetchImpl = globalThis.fetch, 
         const shown = code !== null && /^[a-z0-9_]{1,40}$/.test(code) ? code : '-'
         warn(`memory ${what} failed: http ${response.status} ${shown}`)
         await response.body?.cancel().catch(() => {})
-        return [null, failure(response.status, code)]
+        return [null, failure(response.status, code), response.status]
       }
       // One deadline for the whole call: the abort signal also ends a body that drips in slowly.
       const data = JSON.parse(new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(await readBody(response, MAX_RESPONSE_BYTES)))
@@ -274,6 +295,33 @@ export function createClient({ url, token, fetch: fetchImpl = globalThis.fetch, 
       }
     } catch {
       return null
+    }
+  }
+
+  // POST /v1/explain: a recall with the reasons. { ok: true, stages, candidates, more, failed, busy,
+  // cut } or { ok: false, code }: 'unsupported' when the gateway answers 403, 404 or 405 (an older
+  // gateway, or explain is off for this client), 'failed' for anything else.
+  async function explainRecall(query, { timeoutMs = 8500, signal, context, limit = recallLimit } = {}) {
+    try {
+      if (typeof query !== 'string' || !pyStrip(query)) return { ok: false, code: 'failed' }
+      if (codePointLength(query) > MAX_QUERY_CHARS) {
+        warn(`memory explain not sent: query over ${MAX_QUERY_CHARS} characters`)
+        return { ok: false, code: 'failed' }
+      }
+      const [data, , status] = await request('POST', '/v1/explain', withContext({ query, limit }, context, 'explain'), timeoutMs, 'explain', signal, true)
+      if (status === 403 || status === 404 || status === 405) return { ok: false, code: 'unsupported' }
+      if (!data || !Array.isArray(data.candidates)) return { ok: false, code: 'failed' }
+      return {
+        ok: true,
+        stages: Array.isArray(data.stages) ? data.stages.filter((s) => typeof s === 'string') : [],
+        candidates: data.candidates.map(cleanCandidate).filter((c) => c !== null),
+        more: count(data.more),
+        failed: count(data.failed),
+        busy: count(data.busy),
+        cut: data.candidates_cut === true,
+      }
+    } catch {
+      return { ok: false, code: 'failed' }
     }
   }
 
@@ -334,5 +382,5 @@ export function createClient({ url, token, fetch: fetchImpl = globalThis.fetch, 
     }
   }
 
-  return { configured, recallDetail, rememberStatus, rememberMessages, reportUsed, health }
+  return { configured, recallDetail, explainRecall, rememberStatus, rememberMessages, reportUsed, health }
 }

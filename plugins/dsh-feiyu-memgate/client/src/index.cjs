@@ -4,14 +4,15 @@
 // the settings page in the Plugins page's row slot, and exposes `internals` for tests. Wiring only;
 // no page logic here.
 
-const { NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE, ART_ROUTE } = require('./constants.cjs')
+const { NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE, TRY_ROUTE, TRIAL_MAX_CHARS, ART_ROUTE } = require('./constants.cjs')
 const { FIELDS, INDEX } = require('./fields.cjs')
 const { dictionaries } = require('./i18n.cjs')
 const { TABS, placedKeys } = require('./layout.cjs')
-const { fetchChangelog, fetchStatus, fetchModels, postModels, sendFeedback } = require('./net.cjs')
+const { fetchChangelog, fetchStatus, fetchModels, postModels, tryRecall, sendFeedback } = require('./net.cjs')
 const { copyText } = require('./clipboard.cjs')
 const { entryDate, releases } = require('./model/changelog.cjs')
 const feedback = require('./model/feedback.cjs')
+const trial = require('./model/trial.cjs')
 const { fieldView, buildOps, saveDraft, checkText } = require('./model/form.cjs')
 const { pickText, formatSize, memoryText, modelActions, chainLine, sameProblem } = require('./model/models.cjs')
 const { formatCount, summarise } = require('./model/overview.cjs')
@@ -26,6 +27,7 @@ const { inlineMarkdown, renderMarkdown } = require('./view/markdown.cjs')
 const { ModelRow, ModelsPanel } = require('./view/models.cjs')
 const { Footer, SaveBar, SettingsBody, SettingsPage } = require('./view/page.cjs')
 const { SettingsTab } = require('./view/settings-tab.cjs')
+const { TrialPanel, TrialRow } = require('./view/trial.cjs')
 const { ChangelogTab, OverviewTab } = require('./view/tabs.cjs')
 
 const name = 'dsh-feiyu-memgate'
@@ -51,17 +53,17 @@ module.exports = {
   // For tests and the preview (scripts/preview-client.mjs): the page's pure parts and its components.
   internals: {
     // tables and names
-    FIELDS, INDEX, TABS, NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE, ART_ROUTE, STYLE_ID,
+    FIELDS, INDEX, TABS, NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE, TRY_ROUTE, TRIAL_MAX_CHARS, ART_ROUTE, STYLE_ID,
     dictionaries, placedKeys,
     // calls to the host half
-    fetchStatus, fetchChangelog, fetchModels, postModels, sendFeedback,
+    fetchStatus, fetchChangelog, fetchModels, postModels, tryRecall, sendFeedback,
     // logic
     fieldView, buildOps, saveDraft, checkText, splitOption, isMet, sectionView, pageView, savable,
     statusRows, summarise, formatCount, entryDate, releases,
     pickText, formatSize, memoryText, modelActions, chainLine, sameProblem, stepText, fieldId, artUrl,
-    feedback, emptyFeedback, copyText,
+    feedback, trial, emptyFeedback, copyText,
     // view
     installStyles, inlineMarkdown, renderMarkdown,
-    Hero, FieldRow, SettingsTab, OverviewTab, ChangelogTab, FeedbackTab, Nag, ModelRow, ModelsPanel, SaveBar, Footer, SettingsBody, SettingsPage,
+    Hero, FieldRow, SettingsTab, OverviewTab, ChangelogTab, FeedbackTab, Nag, ModelRow, ModelsPanel, TrialPanel, TrialRow, SaveBar, Footer, SettingsBody, SettingsPage,
   },
 }
