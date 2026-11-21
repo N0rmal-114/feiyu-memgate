@@ -66,6 +66,7 @@ import { countMemories, createGatewayManager, findPython, resolveDataDir } from 
 import { runMigration } from './migrate.js'
 import * as pool from './pool.js'
 import { buildQuery, codePointLength, meaningful, pyStrip } from './query.js'
+import { readRecent, removeRecent, writeRecent } from './recent.js'
 import { createModelSetup, describeFailure } from './setup.js'
 import { EMBED_SERVICE, EMBED_UPDATE_EVENT, effectiveTier, embedKey, readEmbed, resolveStore, TIER_NAMES, TIERS } from './tiers.js'
 
@@ -342,6 +343,8 @@ export function createPlugin(ctx, config, deps = {}) {
   const chat = pool.createPool() // session id -> what the conversation was given and what a second lookup found
   const lookups = new Map() // session id -> AbortController of the second lookup that is running
   let replyWarned = false
+  const recentWarned = new Set() // kinds of recent pool failure already logged
+  let lastRecent = null // advanced.recentPool as the last reconcile saw it
   const counts = new Map() // store file -> { at, value }: memory counts for the status, briefly cached
   const watchers = [] // disposers of start()
   let userMessage = typeof deps.createUserMessage === 'function' ? deps.createUserMessage : null
@@ -712,18 +715,72 @@ export function createPlugin(ctx, config, deps = {}) {
     const s = settings()
     const afterthought = s.modules.autoRecall && s.advanced.afterthought
     const pooled = s.modules.autoRecall && s.advanced.conversationPool
+    const recent = s.modules.autoRecall && s.advanced.recentPool
+    const tracking = pooled || recent // the items, their strengths and the mention rule
     const id = sessionIdOf(payload.agent?.session)
     if (id === undefined) return null
-    if (!afterthought && !pooled) {
+    if (!afterthought && !tracking) {
       chat.drop(id) // a feature that was switched off leaves nothing behind
       return null
     }
     const state = chat.touch(id)
-    pool.advance(state, { decay: pooled, message: plan.current })
-    if (!pooled) state.items.clear()
+    pool.advance(state, { decay: tracking, message: plan.current })
+    if (!tracking) state.items.clear()
     state.open = true
     const later = pool.takePending(state)
-    return { s, state, afterthought, pooled, later: afterthought ? later : [] }
+    // Only the first planned turn of a session in this process may carry memories of the one before.
+    const carried = recent && state.turn === 1 ? carriedFor(id, s) : []
+    return { s, state, afterthought, pooled, tracking, later: afterthought ? later : [], carried }
+  }
+
+  // ---------------------------------------------------------------- recent pool (advanced.recentPool)
+
+  const dataDirOf = (s) => resolveDataDir(s.gateway.dataDir, env)
+  const nowMs = () => asDate(clock())?.getTime()
+
+  // A failure of the file is logged by kind, once per kind: it never reaches the turn.
+  function recentFailed(kind) {
+    if (recentWarned.has(kind)) return
+    recentWarned.add(kind)
+    log.warn(`feiyu-memgate: recent pool unavailable (${kind})`)
+  }
+
+  // The memories the last other conversation left in the file, for the first turn of session `id`.
+  function carriedFor(id, s) {
+    try {
+      const now = nowMs()
+      if (now === undefined) return []
+      const read = readRecent(dataDirOf(s))
+      if (!read.ok) {
+        recentFailed(read.kind)
+        return []
+      }
+      return pool.carry(read.saved, { session: String(id), now, days: s.advanced.recentDays, size: s.advanced.recentSize })
+    } catch (error) {
+      recentFailed(kindOf(error))
+      return []
+    }
+  }
+
+  // At the end of a turn: save what the session was still using. A session with nothing to save only
+  // replaces a file of its own (pool.planSave).
+  function saveRecent(id, state, s) {
+    try {
+      const fresh = pool.snapshot(state, { session: String(id), now: nowMs() })
+      if (!fresh) return
+      const dir = dataDirOf(s)
+      let existing = null
+      if (!fresh.items.length) {
+        const read = readRecent(dir)
+        existing = read.ok ? read.saved : null
+      }
+      const out = pool.planSave(fresh, existing)
+      if (!out) return
+      const written = writeRecent(dir, out)
+      if (!written.ok) recentFailed(written.kind)
+    } catch (error) {
+      recentFailed(kindOf(error))
+    }
   }
 
   /**
@@ -750,6 +807,7 @@ export function createPlugin(ctx, config, deps = {}) {
     if (turn.afterthought) {
       for (const memory of turn.later.slice(0, s.advanced.afterthoughtMax)) add(memory)
     }
+    for (const memory of turn.carried) add(memory)
     if (turn.pooled) {
       for (const memory of pool.pick(state, { limit: s.advanced.poolSize, skip: (text) => skip(text) || taken.has(text) })) add(memory)
     }
@@ -760,7 +818,7 @@ export function createPlugin(ctx, config, deps = {}) {
       const at = main ? out.indexOf(main) : -1
       out = at >= 0 ? [...out.slice(0, at + 1), message, ...out.slice(at + 1)] : insertAfterUser(out, message)
     }
-    if (turn.pooled) pool.enter(state, block ? [...delivered, ...chosen] : delivered)
+    if (turn.tracking) pool.enter(state, block ? [...delivered, ...chosen] : delivered)
     return out
   }
 
@@ -1079,8 +1137,9 @@ export function createPlugin(ctx, config, deps = {}) {
       state.open = false
       const s = settings()
       const afterthought = s.modules.autoRecall && s.advanced.afterthought
-      const pooled = s.modules.autoRecall && s.advanced.conversationPool
-      if (!afterthought && !pooled) return
+      const tracking = s.modules.autoRecall && (s.advanced.conversationPool || s.advanced.recentPool)
+      const recent = s.modules.autoRecall && s.advanced.recentPool
+      if (!afterthought && !tracking) return
       const ended = event.data?.reason?.kind
       if (ended === 'aborted' || ended === 'error' || ended === 'interrupted') return // no whole reply
       const reply = replyOf(historyOf(session))
@@ -1090,7 +1149,8 @@ export function createPlugin(ctx, config, deps = {}) {
         return
       }
       // What the reply used gets stronger first: the pool is settled before a second lookup starts.
-      if (pooled && reply) pool.reinforce(state, reply)
+      if (tracking && reply) pool.reinforce(state, reply)
+      if (recent) saveRecent(id, state, s)
       const query = afterthought ? buildQuery(reply, null) : null
       if (query) startSecondLookup(id, state, session, query, s)
     } catch (error) {
@@ -1426,7 +1486,18 @@ export function createPlugin(ctx, config, deps = {}) {
     // the way a module switch does.
     if (active.has('promptSection') && promptLanguage !== resolveLanguage(s.advanced.language, deps.locale)) setModule('promptSection', false)
     for (const name of MODULE_NAMES) setModule(name, s.modules[name])
-    setModule('recallState', s.modules.autoRecall && (s.advanced.afterthought || s.advanced.conversationPool))
+    setModule('recallState', s.modules.autoRecall && (s.advanced.afterthought || s.advanced.conversationPool || s.advanced.recentPool))
+    // Switching the recent pool off deletes its file (the only thing that does: a plugin that is disposed or
+    // an autoRecall that is off leaves it, so it survives a restart).
+    if (lastRecent === true && !s.advanced.recentPool) {
+      try {
+        const removed = removeRecent(dataDirOf(s))
+        if (!removed.ok) recentFailed(removed.kind)
+      } catch (error) {
+        recentFailed(kindOf(error))
+      }
+    }
+    lastRecent = s.advanced.recentPool
     if (!(s.modules.autoRecall && s.advanced.afterthought)) {
       // The second lookup is off: abandon a running one and drop what it left.
       stopLookups()

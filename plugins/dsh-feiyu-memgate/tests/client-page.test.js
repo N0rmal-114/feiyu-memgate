@@ -150,6 +150,20 @@ test('the page script carries the four prototype settings, off by default, with 
   }
 })
 
+test('the page script carries the three recent pool settings with both languages', () => {
+  const advanced = plain(load().internals.FIELDS).find((g) => g.group === 'advanced').fields
+  const row = (key) => advanced.find((f) => f.key === key)
+  assert.deepEqual([row('recentPool').kind, row('recentPool').default], ['boolean', false])
+  assert.deepEqual([row('recentSize').default, row('recentSize').min, row('recentSize').max], [3, 1, 5])
+  assert.deepEqual([row('recentDays').default, row('recentDays').min, row('recentDays').max], [7, 1, 30])
+  const { en, zh } = plain(load().internals.dictionaries())
+  for (const key of ['recentPool', 'recentSize', 'recentDays']) {
+    assert.equal(en[`f.advanced.${key}`], row(key).label.en)
+    assert.equal(zh[`f.advanced.${key}`], row(key).label.zh)
+    assert.equal(zh[`h.advanced.${key}`], row(key).help.zh)
+  }
+})
+
 test('apply registers both dictionaries and the page under <package name>#<row id>', () => {
   const { exports, internals } = load()
   const calls = { effects: [], locale: [], slots: [] }

@@ -15,7 +15,7 @@ test('defaults', () => {
     external: { url: '', token: '' },
     advanced: {
       recallLimit: 5, recallTimeoutMs: 4000, language: 'auto', skipRepeats: true, linkedRecall: true, showAge: true, failureNote: true, captureMinChars: 4,
-      afterthought: false, afterthoughtMax: 2, conversationPool: false, poolSize: 3,
+      afterthought: false, afterthoughtMax: 2, conversationPool: false, poolSize: 3, recentPool: false, recentSize: 3, recentDays: 7,
       profile: 'broad', dailyWrites: 50, redaction: true, newerFirst: true, forgetting: false,
     },
   })
@@ -157,7 +157,7 @@ test('the chat settings: three switches that are on and a character count of 4, 
   const group = FIELDS.find((g) => g.group === 'advanced')
   assert.deepEqual(group.fields.map((f) => f.key), [
     'recallLimit', 'recallTimeoutMs', 'language', 'skipRepeats', 'linkedRecall', 'showAge', 'failureNote', 'captureMinChars',
-    'afterthought', 'afterthoughtMax', 'conversationPool', 'poolSize',
+    'afterthought', 'afterthoughtMax', 'conversationPool', 'poolSize', 'recentPool', 'recentSize', 'recentDays',
     'profile', 'dailyWrites', 'redaction', 'newerFirst', 'forgetting',
   ])
   for (const key of ['advanced.skipRepeats', 'advanced.showAge', 'advanced.failureNote']) {
@@ -264,4 +264,26 @@ test('the prototype settings: afterthought and conversationPool are off, the two
   const schema = buildConfigSchema(recordingSchema())
   const dict = schema.dict.advanced.dict
   assert.deepEqual([dict.afterthoughtMax.meta.min, dict.afterthoughtMax.meta.max, dict.poolSize.meta.min, dict.poolSize.meta.max], [1, 5, 1, 5])
+})
+
+test('the recent pool settings: a switch that is off, a count of 1 to 5 and a number of days from 1 to 30, with help in both languages', () => {
+  const pool = SETTING_KEYS['advanced.recentPool']
+  assert.deepEqual([pool.kind, pool.default, pool.label.zh, pool.label.en], ['boolean', false, '近期池', 'Recent pool'])
+  assert.match(pool.help.en, /Experimental/)
+  assert.match(pool.help.en, /recent-pool\.json/)
+  assert.match(pool.help.zh, /recent-pool\.json/)
+  const size = SETTING_KEYS['advanced.recentSize']
+  assert.deepEqual([size.kind, size.default, size.min, size.max, size.label.zh, size.label.en], ['integer', 3, 1, 5, '近期池一次带上几条', 'Memories the recent pool carries'])
+  const days = SETTING_KEYS['advanced.recentDays']
+  assert.deepEqual([days.kind, days.default, days.min, days.max, days.label.zh, days.label.en], ['integer', 7, 1, 30, '近期池保留几天', 'Days the recent pool is kept'])
+  for (const field of [pool, size, days]) assert.ok(field.help.en && field.help.zh)
+  assert.equal(readConfig({ advanced: { recentDays: 31 } }).advanced.recentDays, 7)
+  assert.equal(readConfig({ advanced: { recentDays: 30 } }).advanced.recentDays, 30)
+  assert.equal(readConfig({ advanced: { recentDays: 0 } }).advanced.recentDays, 7)
+  assert.equal(readConfig({ advanced: { recentSize: 6 } }).advanced.recentSize, 3)
+  assert.equal(readConfig({ advanced: { recentPool: 'on' } }).advanced.recentPool, false)
+  assert.deepEqual(parseSetting(days, '30'), { ok: true, value: 30 })
+  for (const bad of ['0', '31', '1.5', 'week', '']) assert.equal(parseSetting(days, bad).ok, false, bad)
+  const dict = buildConfigSchema(recordingSchema()).dict.advanced.dict
+  assert.deepEqual([dict.recentSize.meta.min, dict.recentSize.meta.max, dict.recentDays.meta.min, dict.recentDays.meta.max], [1, 5, 1, 30])
 })

@@ -3,7 +3,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  DECAY, FORGET_BELOW, MAX_ITEMS, MAX_SESSIONS, PICK_FROM, advance, createPool, enter, mentions, offer, pick, reinforce, takePending,
+  DECAY, FORGET_BELOW, MAX_ITEMS, MAX_SESSIONS, PICK_FROM, RECENT_FROM, RECENT_MAX_ITEMS, RECENT_VERSION, advance, carry, parseSaved, planSave, snapshot, createPool, enter, mentions, offer, pick, reinforce, takePending,
 } from '../src/pool.js'
 
 const memory = (text, extra = {}) => ({ text, ...extra })
@@ -238,4 +238,101 @@ test('reinforce uses the same mention rule: a common word is not a use', () => {
   enter(state, [memory('The user drinks oolong tea')])
   reinforce(state, 'The user said that you can do what you like')
   assert.equal(state.items.get('The user drinks oolong tea').strength, 1)
+})
+
+// ---------------------------------------------------------------- the recent pool (pure parts)
+
+const NOW = Date.UTC(2026, 10, 18, 9, 0, 0)
+const DAY_MS = 24 * 60 * 60 * 1000
+const stateWith = (...entries) => {
+  const state = fresh()
+  for (const [text, strength, extra] of entries) {
+    enter(state, [memory(text, extra)])
+    state.items.get(text).strength = strength
+  }
+  return state
+}
+
+test('snapshot: items of strength 0.5 or more, strongest first, with nothing but text, date, source and strength', () => {
+  const state = stateWith(['weak', 0.49], ['edge', 0.5, { source: 'memories' }], ['strong', 2.5, { date: '2026-11-01', source: 'memories' }], ['mid', 1])
+  const snap = snapshot(state, { session: 'chat-a', now: NOW })
+  assert.deepEqual(Object.keys(snap), ['version', 'saved', 'session', 'items'])
+  assert.deepEqual([snap.version, snap.session, snap.saved], [RECENT_VERSION, 'chat-a', '2026-11-18T09:00:00.000Z'])
+  assert.deepEqual(snap.items, [
+    { text: 'strong', date: '2026-11-01', source: 'memories', strength: 2.5 },
+    { text: 'mid', strength: 1 },
+    { text: 'edge', source: 'memories', strength: 0.5 },
+  ])
+  assert.equal(RECENT_FROM, 0.5)
+})
+
+test('snapshot: at most 12 items, the strongest; of equal strength the one given last, then the first entered', () => {
+  const entries = Array.from({ length: 15 }, (_, i) => [`memory ${i}`, 1 + i / 100])
+  const snap = snapshot(stateWith(...entries), { session: 's', now: NOW })
+  assert.equal(snap.items.length, RECENT_MAX_ITEMS)
+  assert.deepEqual(snap.items.map((i) => i.text).slice(0, 2), ['memory 14', 'memory 13'])
+  assert.ok(!snap.items.some((i) => i.text === 'memory 0'))
+  const tie = stateWith(['first', 1], ['second', 1])
+  tie.items.get('second').turn = 5
+  assert.deepEqual(snapshot(tie, { session: 's', now: NOW }).items.map((i) => i.text), ['second', 'first'])
+})
+
+test('snapshot: nothing without a usable session id or time; an empty state gives an empty list', () => {
+  assert.equal(snapshot(fresh(), { session: '', now: NOW }), null)
+  assert.equal(snapshot(fresh(), { session: undefined, now: NOW }), null)
+  assert.equal(snapshot(fresh(), { session: 's', now: undefined }), null)
+  assert.equal(snapshot(fresh(), { session: 's', now: Number.NaN }), null)
+  assert.deepEqual(snapshot(fresh(), { session: 's', now: NOW }).items, [])
+})
+
+test('planSave: a snapshot with items is written; an empty one only replaces a file of the same session', () => {
+  const full = snapshot(stateWith(['a', 1]), { session: 'one', now: NOW })
+  const empty = snapshot(fresh(), { session: 'one', now: NOW })
+  const other = parseSaved(snapshot(stateWith(['b', 1]), { session: 'two', now: NOW }))
+  assert.equal(planSave(full, null), full)
+  assert.equal(planSave(full, other), full)
+  assert.equal(planSave(empty, null), null)
+  assert.equal(planSave(empty, other), null, 'another session\'s file is left alone')
+  assert.equal(planSave(empty, { ...other, session: 'one' }), empty, 'its own file becomes an empty list')
+  assert.equal(planSave(null, other), null)
+})
+
+test('parseSaved: a good object passes, a bad item is left out, anything else is refused', () => {
+  const good = { version: 1, saved: '2026-11-18T09:00:00.000Z', session: 's', items: [{ text: 'a', strength: 1, date: '2026-11-01', source: 'memories' }, { text: '', strength: 1 }, { text: 'b' }, { text: 'c', strength: 'x' }, null, { text: 'd', strength: 0.7, extra: 'dropped' }] }
+  assert.deepEqual(parseSaved(good), { version: 1, saved: good.saved, session: 's', items: [{ text: 'a', strength: 1, date: '2026-11-01', source: 'memories' }, { text: 'd', strength: 0.7 }] })
+  for (const bad of [null, undefined, 5, 'text', [], {}, { ...good, version: 2 }, { ...good, version: undefined }, { ...good, session: '' }, { ...good, session: 5 }, { ...good, saved: 'yesterday' }, { ...good, saved: 5 }, { ...good, items: 'no' }, { ...good, items: undefined }]) {
+    assert.equal(parseSaved(bad), null, JSON.stringify(bad))
+  }
+  assert.equal(parseSaved({ ...good, session: 'x'.repeat(201) }), null)
+})
+
+test('carry: items of strength 0.5 or more of another session, strongest first, at most the size', () => {
+  const saved = parseSaved({ version: 1, saved: new Date(NOW - DAY_MS).toISOString(), session: 'old', items: [
+    { text: 'low', strength: 0.4 }, { text: 'b', strength: 1 }, { text: 'a', strength: 3, date: '2026-11-01', source: 'memories' }, { text: 'c', strength: 1 }, { text: 'd', strength: 0.5 },
+  ] })
+  assert.deepEqual(carry(saved, { session: 'new', now: NOW, days: 7, size: 3 }), [
+    { text: 'a', date: '2026-11-01', source: 'memories' }, { text: 'b', date: undefined, source: undefined }, { text: 'c', date: undefined, source: undefined },
+  ])
+  assert.equal(carry(saved, { session: 'new', now: NOW, days: 7, size: 1 }).length, 1)
+  assert.equal(carry(saved, { session: 'new', now: NOW, days: 7, size: 5 }).length, 4, 'the 0.4 item is under the line')
+  assert.deepEqual(carry(saved, { session: 'new', now: NOW, days: 7, size: 0 }), [])
+})
+
+test('carry: nothing from the same session, nothing without a file or a time', () => {
+  const saved = parseSaved({ version: 1, saved: new Date(NOW).toISOString(), session: 'same', items: [{ text: 'a', strength: 1 }] })
+  assert.deepEqual(carry(saved, { session: 'same', now: NOW, days: 7, size: 3 }), [])
+  assert.deepEqual(carry(null, { session: 'new', now: NOW, days: 7, size: 3 }), [])
+  assert.deepEqual(carry(saved, { session: 'new', now: undefined, days: 7, size: 3 }), [])
+})
+
+test('carry: expires after the days, and a file dated more than a day ahead is not trusted', () => {
+  const at = (ms) => parseSaved({ version: 1, saved: new Date(ms).toISOString(), session: 'old', items: [{ text: 'a', strength: 1 }] })
+  const n = (saved, days = 7) => carry(saved, { session: 'new', now: NOW, days, size: 3 }).length
+  assert.equal(n(at(NOW - 7 * DAY_MS)), 1, 'exactly seven days old is kept')
+  assert.equal(n(at(NOW - 7 * DAY_MS - 1)), 0)
+  assert.equal(n(at(NOW - 2 * DAY_MS), 1), 0)
+  assert.equal(n(at(NOW - 30 * DAY_MS), 30), 1)
+  assert.equal(n(at(NOW + DAY_MS)), 1, 'a day ahead is a clock difference')
+  assert.equal(n(at(NOW + DAY_MS + 1)), 0)
+  assert.equal(n(at(NOW + 400 * DAY_MS)), 0)
 })

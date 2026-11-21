@@ -301,6 +301,24 @@ test('the prototype settings are listed, set by full or bare name and reset', as
   ])
 })
 
+test('the recent pool settings are listed, set by bare name and reset', async () => {
+  const { run, writes } = harness()
+  const config = await run('config')
+  assert.ok(config.text.includes('advanced.recentPool = off  (off)'), config.text)
+  assert.ok(config.text.includes('advanced.recentSize = 3  (3)'))
+  assert.ok(config.text.includes('advanced.recentDays = 7  (7)'))
+  assert.equal((await run('set recentpool on')).text, 'Saved: advanced.recentPool = on (was off).')
+  assert.equal((await run('set advanced.recentDays 30')).text, 'Saved: advanced.recentDays = 30 (was 7).')
+  assert.match((await run('set advanced.recentDays 31')).text, /takes a whole number from 1 to 30/)
+  assert.match((await run('set recentsize 6')).text, /takes a whole number from 1 to 5/)
+  assert.equal((await run('reset advanced.recentDays')).text, 'Reset: advanced.recentDays is back to its default (7).')
+  assert.deepEqual(writes.map((ops) => [ops[0].op, ops[0].path.join('.'), ops[0].value]), [
+    ['set', 'advanced.recentPool', true],
+    ['set', 'advanced.recentDays', 30],
+    ['unset', 'advanced.recentDays', undefined],
+  ])
+})
+
 test('use chooses a tier and says when it cannot run yet', async () => {
   const { run, writes } = harness()
   const local = await run('use local')

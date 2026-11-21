@@ -2,6 +2,9 @@
 // live switches and unload. No real host, gateway or network.
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import {
   MODULE_NAMES, PROMPT_ORDER, PROMPT_SECTION, PROMPT_TEXTS, SOURCE_KIND, TOOL_REMEMBER, TOOL_SEARCH, applyPlugin, captureBatches, localDate, localTime,
 } from '../src/plugin.js'
@@ -1474,4 +1477,248 @@ test('the main block and the failure notice come out the same with both features
   }
   assert.deepEqual(seen[0], [['user', 'recall', 'context'], ['user', 'notice', 'context'], ['user', 'context'], seen[0][3]])
   assert.deepEqual(seen[1], seen[0])
+})
+
+// ---------------------------------------------------------------------------------------------
+// The recent pool: advanced.recentPool keeps what a conversation was still using in recent-pool.json in the
+// data folder, and the first turn of another conversation carries a few of those memories.
+
+const DAY = 24 * 60 * 60 * 1000
+const T0 = new Date(2026, 10, 18, 9, 0, 0).getTime()
+
+// A plugin whose data folder is a fresh temporary folder, with a clock the test moves.
+function recentSetup({ advanced = {}, handlers, dir, config = {} } = {}) {
+  const folder = dir ?? fs.mkdtempSync(path.join(os.tmpdir(), 'memgate-recent-'))
+  const clock = { at: T0 }
+  const made = setup({
+    config: { advanced: { language: 'en', recentPool: true, ...advanced }, gateway: { mode: 'external', dataDir: folder }, external: EXTERNAL, ...config },
+    handlers: handlers ?? { recall: async (query) => (query.startsWith('Tell me') ? found(M_CAT, M_BIKE) : noneFound()) },
+    now: () => clock.at,
+  })
+  const file = path.join(folder, 'recent-pool.json')
+  return {
+    ...made,
+    clock,
+    folder,
+    file,
+    saved: () => JSON.parse(fs.readFileSync(file, 'utf8')),
+    cleanup: () => fs.rmSync(folder, { recursive: true, force: true }),
+  }
+}
+
+test('recent pool: the file appears after a turn whose reply used a memory, with nothing but the saved fields', async () => {
+  const r = recentSetup()
+  const talk = conversation(r.host, { id: 'chat-a' })
+  await talk.turn('Tell me something about the cat', 'Biscuit the cat is adorable.')
+  const saved = r.saved()
+  assert.deepEqual(Object.keys(saved), ['version', 'saved', 'session', 'items'])
+  assert.deepEqual([saved.version, saved.session, saved.saved], [1, 'chat-a', new Date(T0).toISOString()])
+  assert.deepEqual(saved.items.map((i) => [i.text, i.source, i.strength]), [[M_CAT, 'memories', 2], [M_BIKE, 'memories', 1]])
+  for (const item of saved.items) assert.deepEqual(Object.keys(item).filter((k) => !['text', 'date', 'source', 'strength'].includes(k)), [])
+  assert.deepEqual(fs.readdirSync(r.folder), ['recent-pool.json'], 'no temporary file is left')
+  assert.ok(!r.host.logs.some((l) => l.text.includes(M_CAT)), 'nothing of it is logged')
+  r.cleanup()
+})
+
+test('recent pool: nothing is written for a subagent, for a turn without a planned lookup, or for a turn that ended aborted', async () => {
+  const r = recentSetup()
+  const sub = conversation(r.host, { session: fakeSession({ id: 'sub-9', header: { delegationDepth: 1 }, history: [] }) })
+  await sub.turn('Tell me something about the cat', 'Biscuit the cat is adorable.')
+  await conversation(r.host, { id: 'cmd' }).turn('/compact', 'Compacting.')
+  await conversation(r.host, { id: 'stopped' }).turn('Tell me something about the cat', 'Biscuit.', { end: END('aborted') })
+  assert.equal(fs.existsSync(r.file), false)
+  r.cleanup()
+})
+
+test('recent pool: a second write replaces the file as a whole', async () => {
+  const r = recentSetup()
+  const talk = conversation(r.host, { id: 'chat-a' })
+  await talk.turn('Tell me something about the cat', 'Noted.')
+  const first = r.saved()
+  r.clock.at = T0 + 1000
+  await talk.turn('The cat again?', 'The cat likes it.')
+  const second = r.saved()
+  assert.notEqual(second.saved, first.saved)
+  assert.ok(second.items.find((i) => i.text === M_CAT).strength > first.items.find((i) => i.text === M_CAT).strength)
+  assert.deepEqual(fs.readdirSync(r.folder), ['recent-pool.json'])
+  r.cleanup()
+})
+
+test('recent pool: another conversation\'s first turn carries the memories in the pool-form block, and its second turn does not', async () => {
+  const r = recentSetup()
+  await conversation(r.host, { id: 'chat-a' }).turn('Tell me something about the cat', 'Biscuit the cat is adorable.')
+  r.clock.at = T0 + DAY
+  const b = conversation(r.host, { id: 'chat-b' })
+  const first = await b.turn('What did we say yesterday?')
+  assert.deepEqual(shape(first), ['user', 'pool', 'context'])
+  assert.deepEqual(itemLines(secondOf(first)), [`- (memory) ${M_CAT}`, `- (memory) ${M_BIKE}`], 'strongest first')
+  assert.ok(blockOf(secondOf(first)).includes(POOL_HEAD_EN))
+  const second = await b.turn('And what else?')
+  assert.equal(secondOf(second), undefined, 'offered at the first turn only')
+  assert.equal(r.saved().session, 'chat-b', 'the new conversation is what the file holds now')
+  r.cleanup()
+})
+
+test('recent pool: recentSize limits what is carried, and a memory the history or this turn\'s own lookup shows is left out', async () => {
+  const r = recentSetup({ advanced: { recentSize: 1 } })
+  await conversation(r.host, { id: 'chat-a' }).turn('Tell me something about the cat', 'Biscuit the cat is adorable.')
+  r.clock.at = T0 + DAY
+  const first = await conversation(r.host, { id: 'chat-b' }).turn('What did we say yesterday?')
+  assert.deepEqual(itemLines(secondOf(first)), [`- (memory) ${M_CAT}`])
+  r.cleanup()
+
+  const own = recentSetup({ handlers: { recall: async (query) => (query.startsWith('Tell me') ? found(M_CAT, M_BIKE) : query.startsWith('Hello') ? found(M_CAT) : noneFound()) } })
+  await conversation(own.host, { id: 'chat-a' }).turn('Tell me something about the cat', 'Biscuit the cat is adorable.')
+  own.clock.at = T0 + DAY
+  const second = await conversation(own.host, { id: 'chat-b' }).turn('Hello there, how are things?')
+  assert.deepEqual(itemLines(mainOf(second)), [`- (memory) ${M_CAT}`])
+  assert.deepEqual(itemLines(secondOf(second)), [`- (memory) ${M_BIKE}`], 'the one this turn\'s lookup delivers is not carried again')
+  own.cleanup()
+})
+
+test('recent pool: nothing is carried into the same conversation', async () => {
+  const r = recentSetup()
+  const chat = fakeSession({ id: 'chat-a', history: [] })
+  await conversation(r.host, { session: chat }).turn('Tell me something about the cat', 'Biscuit the cat is adorable.')
+  r.host.emit('session/disposed', chat) // the plugin forgets the conversation; its next turn is a first turn again
+  r.clock.at = T0 + DAY
+  const again = await conversation(r.host, { session: fakeSession({ id: 'chat-a', history: [] }) }).turn('What did we say yesterday?')
+  assert.equal(secondOf(again), undefined)
+  r.cleanup()
+})
+
+test('recent pool: nothing is carried after recentDays, or from a file dated more than a day ahead', async () => {
+  for (const [days, shift, carried] of [[7, 6 * DAY, true], [7, 8 * DAY, false], [2, 3 * DAY, false], [30, 29 * DAY, true], [7, -2 * DAY, false], [7, -DAY / 2, true]]) {
+    const r = recentSetup({ advanced: { recentDays: days } })
+    await conversation(r.host, { id: 'chat-a' }).turn('Tell me something about the cat', 'Biscuit the cat is adorable.')
+    r.clock.at = T0 + shift
+    const first = await conversation(r.host, { id: 'chat-b' }).turn('What did we say before?')
+    assert.equal(Boolean(secondOf(first)), carried, `days ${days}, shift ${shift / DAY}`)
+    r.cleanup()
+  }
+})
+
+test('recent pool: a conversation that used nothing does not erase the file of another one, and replaces its own with an empty list', async () => {
+  const r = recentSetup()
+  await conversation(r.host, { id: 'chat-a' }).turn('Tell me something about the cat', 'Biscuit the cat is adorable.')
+  const before = fs.readFileSync(r.file, 'utf8')
+  r.clock.at = T0 + 8 * DAY // too old to carry: chat-b starts with nothing
+  await conversation(r.host, { id: 'chat-b' }).turn('Anything new today?')
+  assert.equal(fs.readFileSync(r.file, 'utf8'), before, 'the file of chat-a is left alone')
+
+  // A conversation's own file: its items fade under 0.5 after a few turns, and the file says so.
+  const own = recentSetup()
+  const talk = conversation(own.host, { id: 'chat-c' })
+  await talk.turn('Tell me something about the cat', 'Noted.')
+  assert.equal(own.saved().items.length, 2)
+  for (let i = 0; i < 4; i++) await talk.turn(`Weather ${i} today?`)
+  assert.deepEqual(own.saved().items, [])
+  assert.equal(own.saved().session, 'chat-c')
+  r.cleanup()
+  own.cleanup()
+})
+
+test('recent pool: switching it off deletes the file, and nothing else does', async () => {
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'memgate-recent-'))
+  const advanced = volatile({ language: 'en', recentPool: true })
+  const modules = volatile({ autoRecall: true })
+  const handlers = { recall: async (query) => (query.startsWith('Tell me') ? found(M_CAT) : noneFound()) }
+  const { host, plugin } = setup({ config: { advanced, modules, gateway: { mode: 'external', dataDir: folder }, external: EXTERNAL }, handlers })
+  const file = path.join(folder, 'recent-pool.json')
+  await conversation(host, { id: 'chat-a' }).turn('Tell me something about the cat', 'Biscuit the cat is adorable.')
+  assert.ok(fs.existsSync(file))
+  plugin.reconcile()
+  modules.set({ autoRecall: false })
+  plugin.reconcile()
+  assert.ok(fs.existsSync(file), 'automatic recall off: the setting is still on, the file stays')
+  modules.set({ autoRecall: true })
+  plugin.reconcile()
+  await plugin.dispose()
+  assert.ok(fs.existsSync(file), 'a disposed plugin leaves the file: it survives a restart')
+
+  const again = setup({ config: { advanced, modules, gateway: { mode: 'external', dataDir: folder }, external: EXTERNAL }, handlers })
+  advanced.set({ language: 'en', recentPool: false })
+  again.plugin.reconcile()
+  assert.equal(fs.existsSync(file), false)
+  again.plugin.reconcile() // a second reconcile with it off is quiet
+  fs.rmSync(folder, { recursive: true, force: true })
+})
+
+test('recent pool: with everything off nothing is written, read or deleted', async () => {
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'memgate-recent-'))
+  const file = path.join(folder, 'recent-pool.json')
+  fs.writeFileSync(file, '{"left":"alone"}')
+  const { host, plugin } = setup({ config: { gateway: { mode: 'external', dataDir: folder }, external: EXTERNAL }, handlers: { recall: async () => found(M_CAT) } })
+  assert.equal(host.count('session/event'), 0)
+  await conversation(host, { id: 'a' }).turn('Tell me something about the cat', 'Biscuit the cat is adorable.')
+  const next = await conversation(host, { id: 'b' }).turn('And now something else?')
+  assert.equal(secondOf(next), undefined)
+  plugin.reconcile()
+  assert.equal(fs.readFileSync(file, 'utf8'), '{"left":"alone"}')
+  assert.deepEqual(fs.readdirSync(folder), ['recent-pool.json'])
+  fs.rmSync(folder, { recursive: true, force: true })
+})
+
+test('recent pool: it alone registers the end-of-turn listener and tracks, but brings nothing back after a compaction', async () => {
+  const r = recentSetup()
+  assert.equal(r.host.count('session/event'), 1)
+  assert.equal(r.host.count('session/disposed'), 1)
+  assert.deepEqual(r.plugin.activeModules().sort(), ['autoRecall', 'commands', 'promptSection', 'recallState', 'rememberTool', 'searchTool'])
+  const talk = conversation(r.host, { id: 'chat-a' })
+  await talk.turn('Tell me something about the cat', 'Biscuit the cat is adorable.')
+  assert.equal(r.saved().items[0].strength, 2, 'the reply\'s use was counted although the conversation pool is off')
+  talk.compact()
+  const back = await talk.turn('And the cat again, please?')
+  assert.equal(secondOf(back), undefined, 'bringing items back stays tied to the conversation pool')
+  r.cleanup()
+})
+
+test('recent pool: the conversation pool and the recent pool work together, carried memories after the second lookup\'s', async () => {
+  const handlers = { recall: async (query) => (query.startsWith('Tell me') ? found(M_CAT) : query.startsWith('Biscuit') ? found(M_HARVEST) : noneFound()) }
+  const r = recentSetup({ advanced: { conversationPool: true, afterthought: true }, handlers })
+  const a = conversation(r.host, { id: 'chat-a' })
+  await a.turn('Tell me something about the cat', 'Biscuit the cat is adorable.')
+  const next = await a.turn('Anything else on your mind?')
+  assert.deepEqual(itemLines(secondOf(next)), [`- (memory) ${M_HARVEST}`], 'a second lookup\'s memory; the carried ones are for a first turn only')
+  r.clock.at = T0 + DAY
+  const b = await conversation(r.host, { id: 'chat-b' }).turn('What did we say yesterday?')
+  assert.ok(itemLines(secondOf(b)).includes(`- (memory) ${M_CAT}`))
+  r.cleanup()
+})
+
+test('recent pool: a folder that cannot be written leaves the turn alone and logs the kind once', async () => {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'memgate-recent-'))
+  const blocker = path.join(base, 'not-a-folder')
+  fs.writeFileSync(blocker, 'x') // a file where the folder should be: it cannot be created
+  const r = recentSetup({ dir: blocker })
+  const talk = conversation(r.host, { id: 'chat-a' })
+  const first = await talk.turn('Tell me something about the cat', 'Biscuit the cat is adorable.')
+  assert.deepEqual(shape(first), ['user', 'recall', 'context'])
+  await talk.turn('The cat again?', 'Yes.')
+  const lines = r.host.logs.map((l) => l.text).filter((t) => t.includes('recent pool unavailable'))
+  assert.equal(lines.length, 1, 'once')
+  assert.match(lines[0], /^feiyu-memgate: recent pool unavailable \([A-Z0-9_]+\)$/)
+  assert.ok(!r.host.logs.some((l) => l.text.includes(M_CAT)))
+  fs.rmSync(base, { recursive: true, force: true })
+})
+
+test('recent pool: a broken file carries nothing and does not stop the turn', async () => {
+  for (const content of ['not json at all', '{"version":2,"saved":"2026-11-18T00:00:00.000Z","session":"x","items":[]}', '[]', '{"version":1,"session":"x","items":[]}', '{"version":1,"saved":"yesterday","session":"x","items":[]}']) {
+    const r = recentSetup()
+    fs.writeFileSync(r.file, content)
+    const first = await conversation(r.host, { id: 'chat-b' }).turn('Tell me something about the bicycle')
+    assert.deepEqual(shape(first), ['user', 'recall', 'context'], content)
+    assert.equal(first.kind, 'enter')
+    assert.ok(r.host.logs.filter((l) => l.text.includes('recent pool unavailable (malformed)')).length <= 1)
+    assert.equal(r.saved().session, 'chat-b', 'the turn that followed wrote a good file')
+    r.cleanup()
+  }
+})
+
+test('recent pool: a first turn that finds no file carries nothing, and says nothing', async () => {
+  const r = recentSetup()
+  const first = await conversation(r.host, { id: 'chat-b' }).turn('What did we say yesterday?')
+  assert.equal(secondOf(first), undefined)
+  assert.ok(!r.host.logs.some((l) => l.text.includes('recent pool')))
+  r.cleanup()
 })

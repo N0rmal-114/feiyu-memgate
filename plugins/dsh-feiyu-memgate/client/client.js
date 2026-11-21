@@ -568,6 +568,49 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
           }
         },
         {
+          "key": "recentPool",
+          "kind": "boolean",
+          "default": false,
+          "label": {
+            "en": "Recent pool",
+            "zh": "近期池"
+          },
+          "help": {
+            "en": "Experimental. When a new conversation starts, give once, at its first turn, the memories the previous conversation was still using, in a second block after the memory block. To do that a small file (recent-pool.json) with those memories is kept in the data folder. Switching this off deletes the file. The block makes the context longer and may hold memories unrelated to the new message. Needs modules.autoRecall.",
+            "zh": "实验功能。新的对话开始时，在它的第一轮把上一个对话还在用的记忆给一次，放在记忆块之后的第二个块里。为此要在数据文件夹里放一个小文件（recent-pool.json），里面是这几条记忆。关掉这项会删除这个文件。多出来的块会让上下文变长，里面可能有和新消息无关的记忆。需要 modules.autoRecall。"
+          }
+        },
+        {
+          "key": "recentSize",
+          "kind": "integer",
+          "default": 3,
+          "min": 1,
+          "max": 5,
+          "label": {
+            "en": "Memories the recent pool carries",
+            "zh": "近期池一次带上几条"
+          },
+          "help": {
+            "en": "With advanced.recentPool on: the most memories carried into a new conversation (1 to 5).",
+            "zh": "近期池打开时：带进新对话的记忆最多几条（1 到 5）。"
+          }
+        },
+        {
+          "key": "recentDays",
+          "kind": "integer",
+          "default": 7,
+          "min": 1,
+          "max": 30,
+          "label": {
+            "en": "Days the recent pool is kept",
+            "zh": "近期池保留几天"
+          },
+          "help": {
+            "en": "With advanced.recentPool on: a saved conversation older than this many days is not carried into a new one (1 to 30).",
+            "zh": "近期池打开时：保存下来的对话超过这么多天，就不再带进新对话（1 到 30）。"
+          }
+        },
+        {
           "key": "profile",
           "kind": "choice",
           "default": "broad",

@@ -208,3 +208,91 @@ export function takePending(state) {
   state.pending = null
   return pending && pending.forTurn === state.turn ? pending.memories : []
 }
+
+// ---------------------------------------------------------------- the recent pool (advanced.recentPool)
+// What a conversation was still using is saved when a turn ends, and the first turn of the next
+// conversation may carry a few of those memories. The rules here are pure: the plugin reads and writes the
+// file (src/recent.js) and supplies the time.
+
+export const RECENT_VERSION = 1
+export const RECENT_FROM = 0.5 // an item at least this strong is saved and may be carried
+export const RECENT_MAX_ITEMS = 12 // items in the file
+export const FUTURE_SLACK_MS = 24 * 60 * 60 * 1000 // a file dated later than this ahead of now is not trusted
+const DAY_MS = 24 * 60 * 60 * 1000
+const MAX_FIELD = 4000 // longest text, date or source of a saved item (the gateway's limit per memory)
+const MAX_SESSION_ID = 200
+
+// Strongest first, then most recently given, then in the order they entered.
+function strongest(state) {
+  return [...state.items.values()].map((item, index) => ({ item, index }))
+    .filter(({ item }) => item.strength >= RECENT_FROM)
+    .sort((x, y) => y.item.strength - x.item.strength || y.item.turn - x.item.turn || x.index - y.index)
+    .map(({ item }) => item)
+}
+
+/**
+ * What to save from a session's state: { version, saved, session, items } with the items of strength
+ * RECENT_FROM or more, strongest first, at most RECENT_MAX_ITEMS, each with nothing but text, date, source and
+ * strength. `now` is a time in milliseconds; null when there is no usable time or session id.
+ */
+export function snapshot(state, { session, now }) {
+  if (typeof session !== 'string' || !session || session.length > MAX_SESSION_ID || !Number.isFinite(now)) return null
+  const items = strongest(state).slice(0, RECENT_MAX_ITEMS).map((item) => {
+    const out = { text: item.text }
+    if (typeof item.date === 'string') out.date = item.date
+    if (typeof item.source === 'string') out.source = item.source
+    out.strength = item.strength
+    return out
+  })
+  return { version: RECENT_VERSION, saved: new Date(now).toISOString(), session, items }
+}
+
+/**
+ * Whether to write `fresh` over what the file holds (`existing`, a validated object or null). A snapshot with
+ * items is always written. One without items only replaces a file of the same session: a conversation that
+ * used nothing must not erase the one before it. Returns the object to write, or null for no write.
+ */
+export function planSave(fresh, existing) {
+  if (!fresh) return null
+  if (fresh.items.length) return fresh
+  return existing && existing.session === fresh.session ? fresh : null
+}
+
+/**
+ * A loaded value checked and cleaned, or null when it is not a saved recent pool: wrong version, no usable
+ * session id or time, no items array. Items that do not have a text and a strength are left out.
+ */
+export function parseSaved(value) {
+  if (!isObject(value) || value.version !== RECENT_VERSION) return null
+  const { session, saved, items } = value
+  if (typeof session !== 'string' || !session || session.length > MAX_SESSION_ID) return null
+  if (typeof saved !== 'string' || !Number.isFinite(Date.parse(saved))) return null
+  if (!Array.isArray(items)) return null
+  const clean = []
+  for (const raw of items) {
+    if (!isObject(raw) || typeof raw.text !== 'string' || !raw.text || raw.text.length > MAX_FIELD) continue
+    if (typeof raw.strength !== 'number' || !Number.isFinite(raw.strength)) continue
+    const item = { text: raw.text, strength: raw.strength }
+    if (typeof raw.date === 'string' && raw.date.length <= MAX_FIELD) item.date = raw.date
+    if (typeof raw.source === 'string' && raw.source.length <= MAX_FIELD) item.source = raw.source
+    clean.push(item)
+  }
+  return { version: RECENT_VERSION, saved, session, items: clean }
+}
+
+/**
+ * The memories a new conversation `session` carries from what was saved (`parseSaved` output), given the time
+ * `now` (ms), the days it is kept and the most to carry. Nothing from the same conversation, from a file older
+ * than `days` days or dated more than a day ahead of now. Items of strength RECENT_FROM or more, strongest
+ * first (the order of the file for equal strength), at most `size`, as { text, date, source }.
+ */
+export function carry(saved, { session, now, days, size }) {
+  if (!saved || saved.session === session || !Number.isFinite(now)) return []
+  const at = Date.parse(saved.saved)
+  if (!Number.isFinite(at) || now - at > days * DAY_MS || at - now > FUTURE_SLACK_MS) return []
+  return saved.items.map((item, index) => ({ item, index }))
+    .filter(({ item }) => item.strength >= RECENT_FROM)
+    .sort((x, y) => y.item.strength - x.item.strength || x.index - y.index)
+    .slice(0, Math.max(0, size))
+    .map(({ item }) => ({ text: item.text, date: item.date, source: item.source }))
+}
