@@ -484,6 +484,152 @@ class SourcesTest(unittest.TestCase):
         self.assertEqual(sum(sum(r["sources"].values()) for r in replay(p_engine(), "product")), 0)
 
 
+class NoiseSessionTest(unittest.TestCase):
+    """The noise filters inside the replay (their own arithmetic is tested in test_bench_chat_noise.py)."""
+
+    @staticmethod
+    def one(lines, vectors, spec, new_at=None):
+        turns = [turn("continue", line, None, [], new=(i == new_at)) for i, line in enumerate(lines)]
+        return replay(engine_of([{"id": "n", "turns": turns}], vectors), spec)
+
+    def test_defaults_reproduce_the_product_exactly(self):
+        product = replay(s_engine(), "product", S_REPLIES, trace=True)
+        for spec in ("noise", "noise:", "noise:hub=0", "noise:each=-100", "noise:top=-100", "noise:lead=0.0001",
+                     "noise:cap=100", "noise:hub=0,top=-100,each=-100,lead=0.0001,cap=100"):
+            self.assertEqual(replay(s_engine(), spec, S_REPLIES, trace=True), product, spec)
+        variant = replay(s_engine(), "after:max=2;pool:size=2;compact:every=2", S_REPLIES, trace=True)
+        self.assertEqual(replay(s_engine(), "after:max=2;pool:size=2;compact:every=2;noise:hub=0,cap=100", S_REPLIES,
+                                trace=True), variant)
+
+    def test_the_spec_part(self):
+        self.assertIsNone(session_lab.parse_spec("noise")["noise"])
+        config = session_lab.parse_spec("noise:cap=2;compact:every=3")
+        self.assertEqual(config["noise"], dict(session_lab.noise_lab.DEFAULTS, cap=2))
+        self.assertEqual(session_lab.spec_label(config), "noise:cap=2;compact:every=3")
+        self.assertEqual(session_lab.spec_label(session_lab.parse_spec("noise:hub=1,k=5;rules")),
+                         "rules:from=1.0,decay=0.8,used=none,score=off;noise:hub=1.0,k=5")
+        everything = "after:max=1;noise:hub=0.5,k=3,top=2.0,each=1.0,lead=0.9,cap=2;compact:every=3"
+        self.assertEqual(session_lab.spec_label(session_lab.parse_spec(everything)),
+                         "after:max=1;noise:hub=0.5,k=3,top=2.0,each=1.0,lead=0.9,cap=2;compact:every=3")
+        self.assertEqual(session_lab.parse_spec(session_lab.spec_label(session_lab.parse_spec(everything))),
+                         session_lab.parse_spec(everything))
+        self.assertEqual(session_lab.spec_label(session_lab.reference_config(session_lab.parse_spec(
+            "noise:cap=1;compact:every=3"))), "compact:every=3")
+
+    def test_bad_noise_values(self):
+        for text in ("noise:hub=-1", "noise:hub=x", "noise:k=0", "noise:k=1.5", "noise:top=nan", "noise:each=inf",
+                     "noise:lead=0", "noise:lead=-0.5", "noise:cap=0", "noise:cap=x", "noise:nope=1", "noise:top",
+                     "noise:cap=1;noise:cap=2"):
+            with self.assertRaises(SystemExit, msg=text):
+                session_lab.parse_spec(text)
+
+    def test_top_silences_a_lookup_that_has_no_standout(self):
+        # eight orthogonal memories, a query of m1 alone: z of m1 is (1 - .125) / .3307 = 2.646
+        lines, vectors = ["chat one alpha"], {"chat one alpha": {"m1": 1}}
+        self.assertEqual(ids(self.one(lines, vectors, "noise:top=2.5"), "main"), [["m1"]])
+        self.assertEqual(ids(self.one(lines, vectors, "noise:top=2.7"), "main"), [[]])
+
+    def test_each_keeps_only_the_memories_that_stand_out(self):
+        # q = {m1: 1, m2: .8}: z of m1 is 1.97 and of m2 1.46
+        lines, vectors = ["chat one alpha"], {"chat one alpha": {"m1": 1, "m2": 0.8}}
+        self.assertEqual(ids(self.one(lines, vectors, "product"), "main"), [["m1", "m2"]])
+        self.assertEqual(ids(self.one(lines, vectors, "noise:each=1.5"), "main"), [["m1"]])
+        self.assertEqual(ids(self.one(lines, vectors, "noise:each=2.5"), "main"), [[]])
+
+    def test_the_second_lookup_is_filtered_too(self):
+        replies = {"w/s1/2": "reply two"}
+        records = replay(s_engine(), "after:max=2;noise:top=100", replies)
+        self.assertEqual(ids(records, "extra"), [[]] * 6)
+        self.assertEqual([r["left"] for r in records], [[]] * 6)
+        self.assertEqual(ids(replay(s_engine(), "after:max=2", replies), "extra")[2], ["m3", "m4"])
+        # reply two = {m3: 1, m4: .8}: z 1.97 and 1.46, so each=1.5 leaves m3 alone
+        self.assertEqual(ids(replay(s_engine(), "after:max=2;noise:each=1.5", replies), "extra")[2], ["m3"])
+
+    def test_hub_acts_through_the_found_cache_and_changes_nothing_in_an_orthogonal_world(self):
+        engine = s_engine()
+        plain = engine.found("chat two alpha")
+        self.assertEqual(engine.found("chat two alpha", session_lab.parse_spec("noise:hub=1")["noise"]), plain)
+        self.assertEqual(len(engine._found), 2)  # one entry per set of lookup filters
+
+    def test_lead_when_the_conversation_continues_what_the_model_has(self):
+        lines = ["chat one alpha", "chat two alpha", "chat three alpha"]
+        vectors = {"chat one alpha": {"m1": 1}, "chat two alpha": {"m1": 1, "m2": 0.8},
+                   "chat three alpha": {"m3": 1, "m4": 0.8}}
+        # t2: the best memory m1 is in front already; m2 scores .625 against .781, a ratio of .80
+        self.assertEqual(ids(self.one(lines, vectors, "product"), "main"), [["m1"], ["m2"], ["m3", "m4"]])
+        self.assertEqual(ids(self.one(lines, vectors, "noise:lead=0.7"), "main"), [["m1"], ["m2"], ["m3", "m4"]])
+        self.assertEqual(ids(self.one(lines, vectors, "noise:lead=0.9"), "main"), [["m1"], [], ["m3", "m4"]])
+        # a ratio above 1 keeps nothing new while the best memory is shown, and never touches a turn whose best is new
+        self.assertEqual(ids(self.one(lines, vectors, "noise:lead=1.01"), "main"), [["m1"], [], ["m3", "m4"]])
+
+    def test_lead_after_a_compaction_sees_the_emptied_history(self):
+        lines = ["chat one alpha", "chat two alpha"]
+        vectors = {"chat one alpha": {"m1": 1}, "chat two alpha": {"m1": 1, "m2": 0.8}}
+        records = self.one(lines, vectors, "noise:lead=1.01;compact:every=1")
+        self.assertEqual(ids(records, "main"), [["m1"], ["m1", "m2"]])  # m1 is no longer shown: the best is new
+
+    def test_cap_spares_the_first_turn_of_a_conversation_and_counts_new_memories_only(self):
+        lines = ["chat one alpha", "chat two alpha", "chat three alpha"]
+        vectors = {"chat one alpha": {"m1": 1, "m2": 0.8, "m3": 0.7}, "chat two alpha": {"m4": 1, "m5": 0.8, "m6": 0.7},
+                   "chat three alpha": {"m1": 1, "m2": 0.8, "m3": 0.7}}
+        product = [["m1", "m2", "m3"], ["m4", "m5", "m6"], ["m1", "m2", "m3"]]
+        self.assertEqual(ids(self.one(lines, vectors, "product", new_at=2), "main"), product)
+        self.assertEqual(ids(self.one(lines, vectors, "noise:cap=1", new_at=2), "main"),
+                         [["m1", "m2", "m3"], ["m4"], ["m1", "m2", "m3"]])  # turns 1 and 3 open a conversation
+        self.assertEqual(ids(self.one(lines, vectors, "noise:cap=2", new_at=2), "main")[1], ["m4", "m5"])
+        # without a new conversation the third turn is capped as well; m1 to m3 are not yet shown at turn 3? they are
+        self.assertEqual(ids(self.one(lines, vectors, "noise:cap=1"), "main"), [["m1", "m2", "m3"], ["m4"], []])
+
+    def test_the_cap_follows_skip_repeats(self):
+        lines = ["chat one alpha", "chat two alpha"]
+        vectors = {"chat one alpha": {"m1": 1}, "chat two alpha": {"m1": 1, "m2": 0.8, "m3": 0.7}}
+        # t2 finds m1 (shown), m2, m3: the first new one is m2, not m1
+        self.assertEqual(ids(self.one(lines, vectors, "noise:cap=1"), "main"), [["m1"], ["m2"]])
+
+    def test_the_order_hub_lookup_top_each_then_skip_lead_cap(self):
+        lines = ["chat one alpha", "chat two alpha"]
+        vectors = {"chat one alpha": {"m1": 1}, "chat two alpha": {"m1": 1, "m2": 0.8, "m3": 0.7}}
+        # z at t2: m1 1.67, m2 1.19, m3 .95. each=1 drops m3 inside the lookup, then m1 is skipped (shown), then lead .75
+        # (m2 scores .548 against .685: .80, kept) and cap 1: m2
+        records = self.one(lines, vectors, "noise:each=1.0,lead=0.75,cap=1")
+        self.assertEqual(ids(records, "main"), [["m1"], ["m2"]])
+        self.assertEqual(ids(self.one(lines, vectors, "noise:each=1.0,lead=0.85,cap=1"), "main"), [["m1"], []])
+        self.assertEqual(ids(self.one(lines, vectors, "noise:each=1.5"), "main"), [["m1"], []])  # m2 under 1.5
+
+    def test_the_report_has_the_unrelated_arrivals(self):
+        base = session_lab.run_variant([s_engine()], session_lab.parse_spec("product"), S_REPLIES)
+        variant = session_lab.run_variant([s_engine()], session_lab.parse_spec("after:max=2"), S_REPLIES)
+        self.assertEqual(base["summary"]["all"]["unrelated_per_turn"], 0.0)
+        self.assertAlmostEqual(variant["summary"]["all"]["unrelated_per_turn"], 4 / 6)
+        text = "\n".join(session_lab.report_lines(variant, [("product", base)]))
+        self.assertIn("unrelated arrived (product) | unrelated arrived (variant) |", text)
+        self.assertIn("| 100.0 | 0.00 | 0.67 |", text)
+
+    def test_noise_removes_arrivals_and_the_report_counts_the_turns_it_lost(self):
+        engine = s_engine()
+        base = session_lab.run_variant([engine], session_lab.parse_spec("product"), {})
+        quiet = session_lab.run_variant([engine], session_lab.parse_spec("noise:top=100"), {})
+        self.assertEqual(quiet["summary"]["all"]["arrived_per_turn"], 0.0)
+        self.assertEqual(quiet["summary"]["all"]["nothing"], 1.0)
+        found = session_lab.flips(base["records"], quiet["records"])
+        self.assertEqual((found["gained"], found["lost"]), (0, 5))  # all five turns with a direct memory lose it
+        self.assertEqual(found["kinds"]["continue"], [0, 3])
+        text = "\n".join(session_lab.report_lines(quiet, [("product", base)]))
+        self.assertIn("| continue | 0 | 3 |", text)
+        self.assertIn("| all | 0 | 5 |", text)
+
+    def test_the_noise_grid(self):
+        specs = session_lab.grid_noise()
+        self.assertEqual(len(specs), 12 + 5 + 4 + 5 + 3)
+        self.assertEqual(specs[:3], ["noise:hub=0.25,k=5", "noise:hub=0.25,k=10", "noise:hub=0.25,k=20"])
+        self.assertEqual(specs[12:17], ["noise:top=%s" % t for t in (1.5, 2.0, 2.5, 3.0, 3.5)])
+        self.assertEqual(specs[17:21], ["noise:each=%s" % z for z in (0.5, 1.0, 1.5, 2.0)])
+        self.assertEqual(specs[21:26], ["noise:lead=%s" % r for r in (0.7, 0.8, 0.9, 0.95, 1.01)])
+        self.assertEqual(specs[26:], ["noise:cap=1", "noise:cap=2", "noise:cap=3"])
+        for spec in specs:
+            self.assertEqual(len({n for n, v in session_lab.parse_spec(spec)["noise"].items() if v is not None} - {"k"}), 1)
+
+
 class PoolPortTest(unittest.TestCase):
     """The pool's rules and constants, equal to plugins/dsh-feiyu-memgate/src/pool.js."""
 
@@ -707,7 +853,7 @@ class SpecTest(unittest.TestCase):
     def test_defaults_and_round_trip(self):
         config = session_lab.parse_spec("after;pool:size=5;recent;compact:every=3")
         self.assertEqual(config, {"after": {"max": 2}, "pool": {"size": 5}, "recent": {"size": 3}, "prime": None,
-                                  "rules": None, "compact": {"every": 3}})
+                                  "rules": None, "noise": None, "compact": {"every": 3}})
         self.assertEqual(session_lab.spec_label(config), "after:max=2;pool:size=5;recent:size=3;compact:every=3")
         config = session_lab.parse_spec("rules;prime;compact:every=2")
         self.assertEqual(config["rules"], {"from": 1.0, "decay": 0.8, "used": "none", "score": "off"})
@@ -734,7 +880,7 @@ class SpecTest(unittest.TestCase):
 
     def test_the_sweep_grids_parse_into_their_family(self):
         key = {"after": "after", "pool": "pool", "recent": "recent", "rules-pool": "pool", "rules-recent": "recent",
-               "prime": "prime"}
+               "prime": "prime", "noise": "noise"}
         self.assertEqual(set(session_lab.GRIDS), set(key))
         for family, grid in session_lab.GRIDS.items():
             specs = grid()
@@ -933,6 +1079,39 @@ class MainTest(unittest.TestCase):
         with self.assertRaises(SystemExit) as context:
             session_lab.main(["--split", self.split, "--cache", self.cache, "--run", "pool:size=2;rules:used=reply"])
         self.assertIn("reply", str(context.exception))
+
+    def test_the_noise_sweep_and_diagnosing_refuse_the_test_split(self):
+        folder = os.path.join(self.root, "test")
+        os.makedirs(folder)
+        for extra in ([], ["--final"]):
+            with self.assertRaises(SystemExit) as context:
+                session_lab.main(["--split", folder, "--cache", self.cache, "--sweep", "noise"] + extra)
+            self.assertIn("--sweep", str(context.exception))
+        self.assertFalse(os.path.exists(self.cache))
+
+    def test_the_noise_sweep_prints_one_row_per_setting_in_grid_order(self):
+        self.fill_cache(session_lab.grid_noise())
+        code, text = self.call(["--split", self.split, "--cache", self.cache, "--sweep", "noise"])
+        self.assertEqual(code, 0)
+        tables = [block for block in text.split("\n\n") if block.startswith("| variant |")]
+        self.assertEqual(len(tables), 1)
+        rows = tables[0].split("\n")
+        self.assertEqual(len(rows), 2 + 1 + 29)
+        self.assertTrue(all(row.count("|") == rows[0].count("|") for row in rows))
+        self.assertEqual([row.split(" | ")[0][2:] for row in rows[3:]], session_lab.grid_noise())
+        for wanted in ("sweep noise:", "lost (open)", "lost (named)", "lost (continue)", "lost (return)", "lost (nextday)",
+                       "main related %", "arrived per turn", "unrelated arrived per turn", "idle: nothing arrived %",
+                       "memories in front at the end", "in front % (nextday)", "in front % (return)"):
+            self.assertIn(wanted, rows[0] + "\n" + text)
+
+    def test_a_noise_run_prints_its_report(self):
+        specs = ["noise:cap=1;compact:every=2"]
+        self.fill_cache(specs)
+        code, text = self.call(["--split", self.split, "--cache", self.cache, "--run", specs[0]])
+        self.assertEqual(code, 0)
+        for wanted in ("variant: noise:cap=1;compact:every=2", "in front % (compact:every=2 only)",
+                       "unrelated arrived (variant)", "nothing arrived %"):
+            self.assertIn(wanted, text)
 
     def test_a_missing_vector_stops_the_run(self):
         self.fill_cache([])
