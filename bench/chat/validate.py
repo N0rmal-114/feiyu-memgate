@@ -4,7 +4,8 @@
 
 Prints one line per problem and exits 1 when there is any. The rules are the ones that make the labels
 checkable: a chain memory belongs to the cluster of a direct memory, an association remark does not
-name its cluster, a follow-up cannot be understood without its history.
+name its cluster, a follow-up cannot be understood without its history. A world may also carry multi-turn
+`sessions`; their rules are in session_problems().
 """
 import datetime
 import json
@@ -19,6 +20,12 @@ CLUSTERS = (12, 18)
 CASES = {"remark-assoc": 12, "remark-named": 6, "follow-up": 8, "quiet": 4}
 TEXT_LENGTH = (10, 70)
 FOLLOW_UP_MAX = 12  # characters of the last message of a follow-up
+# Sessions (optional): a world that has them has exactly SESSIONS, each of SESSION_TURNS turns.
+SESSIONS = 3
+SESSION_TURNS = (6, 9)
+SESSION_KINDS = ("open", "named", "continue", "idle", "return", "nextday")
+USER_LENGTH = (1, 30)
+ASSISTANT_LENGTH = (1, 50)
 
 
 def problems_of(path):
@@ -147,7 +154,182 @@ def problems_of(path):
     for kind, wanted in CASES.items():
         if counts[kind] != wanted:
             bad("%d cases of type %s, expected %d" % (counts[kind], kind, wanted))
+    if "sessions" in world:
+        session_problems(world["sessions"], clusters, memories, bad)
     return out
+
+
+def _terms(clusters, cid):
+    """The terms of a cluster as a list of strings (a malformed cluster has none: its own check reports it)."""
+    terms = clusters.get(cid, {}).get("terms") if isinstance(clusters.get(cid), dict) else None
+    return [t for t in terms if isinstance(t, str) and t] if isinstance(terms, list) else []
+
+
+def session_problems(sessions, clusters, memories, bad):
+    """The rules of the multi-turn sessions of a world; every violation goes to bad() as one line."""
+    if not isinstance(sessions, list):
+        bad("sessions must be a list")
+        return
+    if len(sessions) != SESSIONS:
+        bad("a world with sessions has exactly %d of them, found %d" % (SESSIONS, len(sessions)))
+    seen = set()
+    used = {}  # cluster -> the first session that has a turn about it
+    for number, session in enumerate(sessions, 1):
+        sid = session.get("id") if isinstance(session, dict) else None
+        name = sid if isinstance(sid, str) and sid else "#%d" % number
+
+        def flag(message, turn=None, name=name):
+            bad("session %s%s: %s" % (name, "" if turn is None else " turn %d" % turn, message))
+
+        if not isinstance(session, dict):
+            flag("is not an object")
+            continue
+        if not isinstance(sid, str) or not sid:
+            flag("needs an id")
+        elif sid in seen:
+            flag("id is used twice")
+        seen.add(sid)
+        turns = session.get("turns")
+        if not isinstance(turns, list):
+            flag("turns must be a list")
+            continue
+        if not SESSION_TURNS[0] <= len(turns) <= SESSION_TURNS[1]:
+            flag("%d turns, a session has %d to %d" % (len(turns), SESSION_TURNS[0], SESSION_TURNS[1]))
+
+        kinds = []
+        about = []          # the cluster of each turn, None for none or for an unusable one
+        conversation = set()  # clusters of the conversation so far
+        before = set()      # clusters of the conversation before the current one
+        nextday_at = None
+        for index, turn in enumerate(turns, 1):
+            if not isinstance(turn, dict):
+                flag("is not an object", index)
+                kinds.append(None)
+                about.append(None)
+                continue
+            kind = turn.get("kind")
+            if kind not in SESSION_KINDS:
+                flag("unknown kind %r" % (kind,), index)
+                kind = None
+            kinds.append(kind)
+            user, assistant = turn.get("user"), turn.get("assistant")
+            if not isinstance(user, str) or not USER_LENGTH[0] <= len(user) <= USER_LENGTH[1]:
+                flag("user must have %d to %d characters" % USER_LENGTH, index)
+                user = ""
+            if assistant is None:
+                if index != len(turns):
+                    flag("needs an assistant line (only the last turn may go without)", index)
+            elif not isinstance(assistant, str) or not ASSISTANT_LENGTH[0] <= len(assistant) <= ASSISTANT_LENGTH[1]:
+                flag("assistant must have %d to %d characters" % ASSISTANT_LENGTH, index)
+                turn = dict(turn, assistant=None)
+
+            cid = turn.get("cluster")
+            if cid is not None and cid not in clusters:
+                flag("unknown cluster %r" % (cid,), index)
+                cid = None
+            about.append(cid)
+            labels = {}
+            for key in ("direct", "also_ok"):
+                value = turn.get(key)
+                if not isinstance(value, list) or any(not isinstance(m, str) or m not in memories for m in value):
+                    flag("%s must be a list of known memories" % key, index)
+                    value = []
+                labels[key] = value
+            direct, also = labels["direct"], labels["also_ok"]
+            if set(direct) & set(also):
+                flag("a memory is in both direct and also_ok", index)
+            if len(set(direct)) != len(direct) or len(set(also)) != len(also):
+                flag("a memory is listed twice", index)
+
+            # a new conversation starts here
+            fresh = turn.get("new_conversation")
+            gap = turn.get("gap_days")
+            if fresh is not None and fresh is not True:
+                flag("new_conversation is true or absent", index)
+            if fresh is True:
+                if not isinstance(gap, int) or isinstance(gap, bool) or gap < 1:
+                    flag("a new conversation needs gap_days, an integer of at least 1", index)
+                if index == 1:
+                    flag("the first turn cannot start a new conversation", index)
+                else:
+                    before, conversation = conversation, set()
+            elif gap is not None:
+                flag("gap_days only goes with new_conversation", index)
+            if fresh is True and kind != "nextday":
+                flag("only the nextday turn starts a new conversation", index)
+            if kind == "nextday":
+                if fresh is not True:
+                    flag("a nextday turn must carry new_conversation", index)
+                if nextday_at is None:
+                    nextday_at = index
+
+            members = [m for m in direct if m in memories]
+            outside = [m for m in members if memories[m].get("cluster") != cid]
+            terms = _terms(clusters, cid) if cid else []
+            named = any(term in user for term in terms)
+            previous = about[-2] if index > 1 else None
+            if kind == "idle":
+                if cid is not None or direct or also:
+                    flag("an idle turn has no cluster and no memories", index)
+            elif kind is not None:
+                if cid is None:
+                    flag("a %s turn needs a cluster" % kind, index)
+                else:
+                    if kind in ("open", "continue", "return", "nextday") and named:
+                        flag("the line names the cluster %s" % cid, index)
+                    if kind == "named":
+                        if not named:
+                            flag("the line names no term of the cluster %s" % cid, index)
+                        if not direct or outside:
+                            flag("direct must be non-empty and all of cluster %s" % cid, index)
+                    elif kind == "open":
+                        facts = [m for m in memories if memories[m].get("cluster") == cid and memories[m].get("role") == "fact"]
+                        if direct != facts:
+                            flag("direct must be exactly the fact of cluster %s" % cid, index)
+                    else:
+                        if not 1 <= len(direct) <= 2 or outside:
+                            flag("direct must be 1 or 2 memories of cluster %s" % cid, index)
+                    if kind == "continue" and (index == 1 or previous != cid):
+                        flag("the turn before must be about the same cluster %s" % cid, index)
+                    if kind == "return":
+                        if cid not in conversation:
+                            flag("cluster %s did not appear earlier in this conversation" % cid, index)
+                        if index > 1 and previous == cid:
+                            flag("the turn before must have another cluster or none", index)
+                    if kind == "nextday" and cid not in before:
+                        flag("cluster %s did not appear in the conversation before" % cid, index)
+            if cid is not None:
+                conversation.add(cid)
+                if used.setdefault(cid, name) != name:
+                    flag("cluster %s is also used by session %s" % (cid, used[cid]), index)
+
+        for kind in ("open", "continue", "idle", "return"):
+            if kind not in kinds:
+                flag("has no %s turn" % kind)
+        if kinds.count("nextday") != 1:
+            flag("needs exactly one nextday turn, has %d" % kinds.count("nextday"))
+        if kinds and kinds[0] not in ("open", "named"):
+            flag("the first turn must be open or named", 1)
+        if len({c for c in about if c}) < 2:
+            flag("needs at least two different clusters")
+        if nextday_at is not None:
+            if len(turns) - nextday_at > 2:
+                flag("at most two turns may follow the nextday turn", nextday_at + 3)
+            for index in range(nextday_at + 1, len(turns) + 1):
+                if kinds[index - 1] not in ("continue", "idle", "named", "open"):
+                    flag("after the nextday turn only continue, idle, named or open", index)
+
+        # a scripted reply must not hand the name of the topic to a later lookup
+        for index, turn in enumerate(turns, 1):
+            line = turn.get("assistant") if isinstance(turn, dict) else None
+            if not isinstance(line, str):
+                continue
+            for later in range(index, len(turns) + 1):
+                cid = about[later - 1]
+                hit = [t for t in _terms(clusters, cid) if t in line] if cid else []
+                if hit:
+                    flag("the assistant line contains the term %r of cluster %s (turn %d)" % (hit[0], cid, later), index)
+                    break
 
 
 def world_files(arguments):

@@ -4,7 +4,7 @@
 // to "local tier active", the install-script gate as the host's plugin manager source handles it,
 // every failure state the page explains, resumption after a reload or a host restart, and that
 // nothing the model can reach starts an installation.
-import test from 'node:test'
+import test, { after } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import os from 'node:os'
@@ -14,6 +14,12 @@ import { MODELS_PATH, TOOL_REMEMBER, TOOL_SEARCH, applyPlugin } from '../src/plu
 import { SETUP_FILE, addonBundle, addonFailureOf, enableFailureOf, failureOf, readJob, readList } from '../src/setup.js'
 import { EMBED_SERVICE, EMBEDDINGS_KEY_ENV } from '../src/tiers.js'
 import { OWNER, callRoute, createFakeHost, fakeClients, fakeConnection, fakeManagers, tick, volatile } from './helpers/fake-host.js'
+
+// Helper processes are unref'd on purpose (they must never keep a host alive). In a test file nothing else
+// holds the event loop open while one is awaited, and Node 22 then ends the file with "Promise resolution
+// is still pending" (Node 24 waits). This timer stands in for the host.
+const keepAlive = setInterval(() => {}, 60000)
+after(() => clearInterval(keepAlive))
 
 const PYTHON = Object.freeze({ executable: 'python-for-tests', argv: ['python-for-tests'], version: '3.12.4', source: 'path' })
 const ADDON_KEY = 'fake-addon-key-0456'

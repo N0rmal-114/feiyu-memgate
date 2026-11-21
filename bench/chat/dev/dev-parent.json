@@ -950,5 +950,293 @@
    "chain": [],
    "also_ok": []
   }
+ ],
+ "sessions": [
+  {
+   "id": "s01",
+   "turns": [
+    {
+     "kind": "open",
+     "user": "今天俩孩子在家憋了一整天",
+     "assistant": "憋久了确实容易闹腾。",
+     "cluster": "c02",
+     "direct": [
+      "m003"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "说起来，上回那事我心疼死了",
+     "assistant": "听着就让人心疼。",
+     "cluster": "c02",
+     "direct": [
+      "m017"
+     ],
+     "also_ok": [
+      "m041"
+     ]
+    },
+    {
+     "kind": "named",
+     "user": "老公今天又说要晚点回",
+     "assistant": "那晚饭你们先吃吧。",
+     "cluster": "c05",
+     "direct": [
+      "m009"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "idle",
+     "user": "刚路过一家店在放老歌，挺好听",
+     "assistant": "老歌是挺有味道的。",
+     "cluster": null,
+     "direct": [],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "暑假想带孩子去个远点的海边",
+     "assistant": "听起来不错，有想好去哪吗？",
+     "cluster": "c13",
+     "direct": [
+      "m032"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "return",
+     "user": "对了，那个小家伙今天又闹着要下楼",
+     "assistant": "精力真旺盛呀。",
+     "cluster": "c02",
+     "direct": [
+      "m003"
+     ],
+     "also_ok": [
+      "m041",
+      "m017"
+     ]
+    },
+    {
+     "kind": "nextday",
+     "new_conversation": true,
+     "gap_days": 1,
+     "user": "昨天说的出远门的事，越想越紧张",
+     "assistant": "紧张是正常的，慢慢来。",
+     "cluster": "c13",
+     "direct": [
+      "m032"
+     ],
+     "also_ok": [
+      "m058",
+      "m046"
+     ]
+    },
+    {
+     "kind": "continue",
+     "user": "光是想想就心里发毛",
+     "cluster": "c13",
+     "direct": [
+      "m032"
+     ],
+     "also_ok": [
+      "m046",
+      "m058"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s02",
+   "turns": [
+    {
+     "kind": "open",
+     "user": "抱着小的转了一天，右手都使不上劲了",
+     "assistant": "辛苦了，先歇会儿吧。",
+     "cluster": "c10",
+     "direct": [
+      "m022"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上回人家怎么交代的来着，我又没听进去",
+     "assistant": "那得多注意休息啊。",
+     "cluster": "c10",
+     "direct": [
+      "m035"
+     ],
+     "also_ok": [
+      "m022"
+     ]
+    },
+    {
+     "kind": "named",
+     "user": "婆婆这周末要来住几天",
+     "assistant": "有人搭把手挺好的。",
+     "cluster": "c04",
+     "direct": [
+      "m006"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "idle",
+     "user": "窗外有只鸟一直在叫",
+     "assistant": "挺有精神的鸟。",
+     "cluster": null,
+     "direct": [],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "大女儿同学明天办生日会，听说有好多吃的",
+     "assistant": "孩子们肯定很开心。",
+     "cluster": "c01",
+     "direct": [
+      "m001"
+     ],
+     "also_ok": [
+      "m043"
+     ]
+    },
+    {
+     "kind": "return",
+     "user": "对了，刚才那只手，晚上还得再弄一下",
+     "assistant": "记得早点休息。",
+     "cluster": "c10",
+     "direct": [
+      "m022"
+     ],
+     "also_ok": [
+      "m035"
+     ]
+    },
+    {
+     "kind": "nextday",
+     "new_conversation": true,
+     "gap_days": 2,
+     "user": "前天说的那个生日会，还是有点不放心",
+     "assistant": "那你打算怎么办？",
+     "cluster": "c01",
+     "direct": [
+      "m001"
+     ],
+     "also_ok": [
+      "m014",
+      "m037"
+     ]
+    },
+    {
+     "kind": "continue",
+     "user": "上回的事我可不想再来一次",
+     "cluster": "c01",
+     "direct": [
+      "m014"
+     ],
+     "also_ok": [
+      "m001",
+      "m037"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s03",
+   "turns": [
+    {
+     "kind": "open",
+     "user": "周末早上就想吃点热乎的带劲的",
+     "assistant": "听着就暖和，早上吃点热的舒服。",
+     "cluster": "c09",
+     "direct": [
+      "m033"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上回那一幕，现在想起来还想笑",
+     "assistant": "哈哈，那场面一定很有意思。",
+     "cluster": "c09",
+     "direct": [
+      "m051"
+     ],
+     "also_ok": [
+      "m018"
+     ]
+    },
+    {
+     "kind": "named",
+     "user": "小黄鸭今天又被她穿出门了",
+     "assistant": "她一定特别喜欢吧。",
+     "cluster": "c11",
+     "direct": [
+      "m026"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "idle",
+     "user": "对面楼的灯一晚上都没关",
+     "assistant": "可能是忘了吧。",
+     "cluster": null,
+     "direct": [],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "最近每天都困得睁不开眼",
+     "assistant": "那得想办法多补补觉。",
+     "cluster": "c03",
+     "direct": [
+      "m020"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "有时候真想试试能不能一觉到天亮",
+     "assistant": "听上去你真的太累了。",
+     "cluster": "c03",
+     "direct": [
+      "m005"
+     ],
+     "also_ok": [
+      "m020",
+      "m040"
+     ]
+    },
+    {
+     "kind": "return",
+     "user": "对了，她那件宝贝衣服，下回出门前我得好好检查",
+     "assistant": "提前看看总是好的。",
+     "cluster": "c11",
+     "direct": [
+      "m055"
+     ],
+     "also_ok": [
+      "m026",
+      "m036"
+     ]
+    },
+    {
+     "kind": "nextday",
+     "new_conversation": true,
+     "gap_days": 3,
+     "user": "前几天说想吃的那个，这回一定去",
+     "cluster": "c09",
+     "direct": [
+      "m033"
+     ],
+     "also_ok": [
+      "m018",
+      "m051"
+     ]
+    }
+   ]
+  }
  ]
 }

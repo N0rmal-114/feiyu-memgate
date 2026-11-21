@@ -33,6 +33,7 @@ from feiyu_memgate.gateway import server as http_server
 from feiyu_memgate.model import ClientPolicy
 from feiyu_memgate.tenants.base import TenantProvider
 from feiyu_memgate.tools import tenants as tenant_tools
+from tests.waiting import wait_until
 
 SECRET = "fake-minting-secret-bot-".ljust(40, "0")  # usable, but `check` calls it weak: 40 characters
 SECRET_OTHER = "fake-minting-secret-other-".ljust(40, "1")
@@ -595,7 +596,7 @@ class HttpTests(HttpCase):
                                  mint("10001"))
         self.assertEqual(status, 403)
         self.assertEqual(self.gw.tenants["group"].store("10002").count(), 0)
-        self.assertTrue(any("/v1/recall 403 client=bot" in line and "tenant-mismatch" in line for line in self.logs))
+        self.assertTrue(wait_until(lambda: any("/v1/recall 403 client=bot" in line and "tenant-mismatch" in line for line in self.logs)))
 
     def test_an_unregistered_tenant_is_403_and_removing_a_tenant_cuts_it_off(self):
         self.assertEqual(self.request("/v1/recall", {"query": "x"}, mint("30003"))[1]["code"], "unknown_tenant")

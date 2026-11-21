@@ -968,5 +968,260 @@
    "chain": [],
    "also_ok": []
   }
+ ],
+ "sessions": [
+  {
+   "id": "s01",
+   "turns": [
+    {
+     "kind": "open",
+     "user": "今天太阳真好，院门口暖烘烘的",
+     "assistant": "这样的天气，待着都舍不得动。",
+     "cluster": "c01",
+     "direct": [
+      "m001"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "它上回闯的祸，我现在想想还好笑",
+     "assistant": "是吗，快说说。",
+     "cluster": "c01",
+     "direct": [
+      "m010"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "idle",
+     "user": "邮箱里又塞满了没用的通知",
+     "assistant": "清理起来真烦人。",
+     "cluster": null,
+     "direct": [],
+     "also_ok": []
+    },
+    {
+     "kind": "named",
+     "user": "昨晚山那边打雷了，我一夜没睡好",
+     "assistant": "山里的夜晚确实不安生。",
+     "cluster": "c12",
+     "direct": [
+      "m037"
+     ],
+     "also_ok": [
+      "m025"
+     ]
+    },
+    {
+     "kind": "return",
+     "user": "对了，最开头说的那位，今天看着有点蔫",
+     "assistant": "是不是哪里不舒服？",
+     "cluster": "c01",
+     "direct": [
+      "m001",
+      "m026"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "nextday",
+     "new_conversation": true,
+     "gap_days": 1,
+     "user": "昨天说的那位小门神，一早又跑出去了",
+     "assistant": "它大概自己有安排吧。",
+     "cluster": "c01",
+     "direct": [
+      "m001",
+      "m045"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "还好中午自己晃回来了",
+     "cluster": "c01",
+     "direct": [
+      "m045",
+      "m001"
+     ],
+     "also_ok": []
+    }
+   ]
+  },
+  {
+   "id": "s02",
+   "turns": [
+    {
+     "kind": "open",
+     "user": "秋天一到，又有熟面孔要回来住了",
+     "assistant": "熟人回来，一定很热闹。",
+     "cluster": "c08",
+     "direct": [
+      "m013"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上次他走的时候可真是匆忙",
+     "assistant": "怎么个匆忙法？",
+     "cluster": "c08",
+     "direct": [
+      "m036"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "idle",
+     "user": "刚才路过一家新开的理发店",
+     "assistant": "新店开张都爱搞活动。",
+     "cluster": null,
+     "direct": [],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "刚起床，脑子还懵，得来点提神的",
+     "assistant": "早上总得有样东西唤醒一下。",
+     "cluster": "c02",
+     "direct": [
+      "m002"
+     ],
+     "also_ok": [
+      "m023"
+     ]
+    },
+    {
+     "kind": "return",
+     "user": "对了，今年他要是又来，房间得提前留好",
+     "assistant": "是该早点安排。",
+     "cluster": "c08",
+     "direct": [
+      "m013"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "nextday",
+     "new_conversation": true,
+     "gap_days": 2,
+     "user": "昨天说的那位熟客，刚发消息说下周到",
+     "assistant": "那可要准备起来了。",
+     "cluster": "c08",
+     "direct": [
+      "m013"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "还说要比去年起得更早，真是拼",
+     "cluster": "c08",
+     "direct": [
+      "m053"
+     ],
+     "also_ok": [
+      "m013"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s03",
+   "turns": [
+    {
+     "kind": "open",
+     "user": "一睁眼，微信里又躺着一条问候",
+     "assistant": "每天都有人惦记，挺好的。",
+     "cluster": "c16",
+     "direct": [
+      "m039"
+     ],
+     "also_ok": [
+      "m011"
+     ]
+    },
+    {
+     "kind": "continue",
+     "user": "上回那篇害我白费了半天口舌",
+     "assistant": "听起来挺折腾的。",
+     "cluster": "c16",
+     "direct": [
+      "m059"
+     ],
+     "also_ok": [
+      "m047"
+     ]
+    },
+    {
+     "kind": "named",
+     "user": "今晚堂屋的火塘该生起来了",
+     "assistant": "天凉了，围着坐最暖和。",
+     "cluster": "c05",
+     "direct": [
+      "m007"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "idle",
+     "user": "我在想要不要换个新的钱包",
+     "assistant": "旧的用着不顺手吗？",
+     "cluster": null,
+     "direct": [],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "肚子饿了，想吃口热乎的，带点酸辣的",
+     "assistant": "热乎的最治饿了。",
+     "cluster": "c10",
+     "direct": [
+      "m019"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "return",
+     "user": "对了，今晚人多的话，板凳得再搬几条出来",
+     "assistant": "要不要我提醒你？",
+     "cluster": "c05",
+     "direct": [
+      "m007"
+     ],
+     "also_ok": [
+      "m044"
+     ]
+    },
+    {
+     "kind": "nextday",
+     "new_conversation": true,
+     "gap_days": 1,
+     "user": "昨天吐槽的那件事，今天又来了个新花样",
+     "assistant": "这回又是什么内容？",
+     "cluster": "c16",
+     "direct": [
+      "m039",
+      "m059"
+     ],
+     "also_ok": [
+      "m047"
+     ]
+    },
+    {
+     "kind": "continue",
+     "user": "这次我干脆不回了",
+     "cluster": "c16",
+     "direct": [
+      "m039",
+      "m047"
+     ],
+     "also_ok": [
+      "m059"
+     ]
+    }
+   ]
+  }
  ]
 }

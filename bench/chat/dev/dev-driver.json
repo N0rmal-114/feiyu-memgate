@@ -964,5 +964,256 @@
    "chain": [],
    "also_ok": []
   }
+ ],
+ "sessions": [
+  {
+   "id": "s01",
+   "turns": [
+    {
+     "kind": "open",
+     "user": "坐了一天，后背一大片都是僵的",
+     "assistant": "辛苦了，一直坐着是挺累人的。",
+     "cluster": "c02",
+     "direct": [
+      "m002"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上回跑完那趟远路，我站都站不稳",
+     "assistant": "那次听着就难受，后来缓过来了吗？",
+     "cluster": "c02",
+     "direct": [
+      "m016"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "idle",
+     "user": "小区里的树叶都黄了",
+     "assistant": "秋天到了，是挺好看的。",
+     "cluster": null,
+     "direct": [],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "这几天一早就饿得慌，出门都发虚",
+     "assistant": "早上不吃东西确实顶不住。",
+     "cluster": "c05",
+     "direct": [
+      "m007"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上回那碗特别足，一天都有精神",
+     "assistant": "遇到实在的人，心情也好。",
+     "cluster": "c05",
+     "direct": [
+      "m021"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "return",
+     "user": "对了，座位上垫着的那个破了，得换个新的",
+     "assistant": "破了还是换新的舒服些。",
+     "cluster": "c02",
+     "direct": [
+      "m038"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "nextday",
+     "new_conversation": true,
+     "gap_days": 1,
+     "user": "昨天说的身上那个老毛病，今天又犯了",
+     "cluster": "c02",
+     "direct": [
+      "m002"
+     ],
+     "also_ok": [
+      "m016"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s02",
+   "turns": [
+    {
+     "kind": "open",
+     "user": "一个人在家，总得有点动静才不闷",
+     "assistant": "家里太安静确实有点闷。",
+     "cluster": "c12",
+     "direct": [
+      "m036"
+     ],
+     "also_ok": [
+      "m001",
+      "m011"
+     ]
+    },
+    {
+     "kind": "continue",
+     "user": "有一回后半宿它猛地来一嗓子，吓死我",
+     "assistant": "那一下肯定吓得不轻。",
+     "cluster": "c12",
+     "direct": [
+      "m049"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "idle",
+     "user": "今天太阳挺好的，晒着舒服",
+     "assistant": "晒晒太阳人也精神。",
+     "cluster": null,
+     "direct": [],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "这天儿热得，真想吃口凉的带劲的",
+     "assistant": "热天就想吃点爽口的。",
+     "cluster": "c09",
+     "direct": [
+      "m031"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上回那顿少了样东西，吃得不得劲",
+     "assistant": "少了点什么就是不一样啊。",
+     "cluster": "c09",
+     "direct": [
+      "m051"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "手机里那玩意儿一响我就心烦",
+     "assistant": "老被打断确实烦。",
+     "cluster": "c07",
+     "direct": [
+      "m012"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "return",
+     "user": "对了，家里那位换了新窝，闹脾气呢",
+     "assistant": "换了环境是会不适应。",
+     "cluster": "c12",
+     "direct": [
+      "m057"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "nextday",
+     "new_conversation": true,
+     "gap_days": 2,
+     "user": "前天说想吃的那个，我今天去解决了",
+     "cluster": "c09",
+     "direct": [
+      "m031"
+     ],
+     "also_ok": []
+    }
+   ]
+  },
+  {
+   "id": "s03",
+   "turns": [
+    {
+     "kind": "open",
+     "user": "快四点了，我得赶紧过去",
+     "assistant": "那你快去吧，路上慢点。",
+     "cluster": "c03",
+     "direct": [
+      "m014"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上回那次他来得太晚，我腿都站麻了",
+     "assistant": "站那么久肯定累，后来怎么样了？",
+     "cluster": "c03",
+     "direct": [
+      "m004"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "idle",
+     "user": "隔壁装修，电钻响了一上午",
+     "assistant": "那声音听着就头疼。",
+     "cluster": null,
+     "direct": [],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "路边那家的拿铁闻着真香",
+     "assistant": "闻着香是挺馋人的。",
+     "cluster": "c11",
+     "direct": [
+      "m022"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "那回我可是遭了大罪",
+     "assistant": "听着就难受，现在还怕吗？",
+     "cluster": "c11",
+     "direct": [
+      "m035"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "return",
+     "user": "对了，他家那喜事，真替他高兴",
+     "assistant": "听着是件好事。",
+     "cluster": "c03",
+     "direct": [
+      "m047"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "nextday",
+     "new_conversation": true,
+     "gap_days": 1,
+     "user": "昨天说的路边那杯，后来我没敢买",
+     "assistant": "没买也行，下回再说。",
+     "cluster": "c11",
+     "direct": [
+      "m022"
+     ],
+     "also_ok": [
+      "m054"
+     ]
+    },
+    {
+     "kind": "named",
+     "user": "等活儿的时候又跟老赵杀了两盘",
+     "cluster": "c14",
+     "direct": [
+      "m034"
+     ],
+     "also_ok": []
+    }
+   ]
+  }
  ]
 }

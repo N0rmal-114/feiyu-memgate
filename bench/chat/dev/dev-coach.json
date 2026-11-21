@@ -967,5 +967,291 @@
    "chain": [],
    "also_ok": []
   }
+ ],
+ "sessions": [
+  {
+   "id": "s01",
+   "turns": [
+    {
+     "kind": "open",
+     "user": "家里掉了好多黑毛，衣服上全是",
+     "assistant": "毛一掉起来真是没完没了。",
+     "cluster": "c01",
+     "direct": [
+      "m001"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "有一回真把我吓坏了，一直没见它的影子",
+     "assistant": "后来找回来了吗？",
+     "cluster": "c01",
+     "direct": [
+      "m010"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "idle",
+     "user": "路边的桂花开了，挺香的",
+     "assistant": "桂花香起来真舒服。",
+     "cluster": null,
+     "direct": [],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "同事周末想请大家喝杨枝甘露",
+     "assistant": "听起来是个甜甜的聚会。",
+     "cluster": "c14",
+     "direct": [
+      "m033"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上回糊里糊涂喝下去，难受死了",
+     "assistant": "后来好点了吗？",
+     "cluster": "c14",
+     "direct": [
+      "m058"
+     ],
+     "also_ok": [
+      "m048"
+     ]
+    },
+    {
+     "kind": "named",
+     "user": "今早地铁又挤得我喘不过气",
+     "assistant": "早高峰真是考验人。",
+     "cluster": "c11",
+     "direct": [
+      "m021"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "return",
+     "user": "对了，开头聊的那个，昨晚又被它闹醒了",
+     "assistant": "听着真让人哭笑不得。",
+     "cluster": "c01",
+     "direct": [
+      "m045"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "nextday",
+     "new_conversation": true,
+     "gap_days": 1,
+     "user": "昨天说的同事请客那事，我想了想还是推了",
+     "assistant": "这样也好，自己舒服最重要。",
+     "cluster": "c14",
+     "direct": [
+      "m033"
+     ],
+     "also_ok": [
+      "m038"
+     ]
+    },
+    {
+     "kind": "continue",
+     "user": "省得又像上回那样难受",
+     "cluster": "c14",
+     "direct": [
+      "m058"
+     ],
+     "also_ok": [
+      "m048"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s02",
+   "turns": [
+    {
+     "kind": "open",
+     "user": "镜子里的肌肉线条还是不够清楚啊",
+     "assistant": "天天练着，会有变化的。",
+     "cluster": "c05",
+     "direct": [
+      "m007"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上次人家一桌好菜，我只能干看着",
+     "assistant": "那确实挺难熬的。",
+     "cluster": "c05",
+     "direct": [
+      "m017"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "idle",
+     "user": "今天路过一家新开的花店",
+     "assistant": "新店开张总有点新鲜感。",
+     "cluster": null,
+     "direct": [],
+     "also_ok": []
+    },
+    {
+     "kind": "named",
+     "user": "今晚燃脂操团课要上了",
+     "assistant": "加油，晚上别太累。",
+     "cluster": "c08",
+     "direct": [
+      "m013"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上回突然出岔子，我硬扛了一节课",
+     "assistant": "后来顺利收场了吗？",
+     "cluster": "c08",
+     "direct": [
+      "m026"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "明天周日，早上总算不用赶了",
+     "assistant": "周末的早晨最舒服了。",
+     "cluster": "c09",
+     "direct": [
+      "m028"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "return",
+     "user": "对了，开头说的事，我去现场看过别人的，越想越觉得得再狠一点",
+     "assistant": "也别逼自己太紧。",
+     "cluster": "c05",
+     "direct": [
+      "m031"
+     ],
+     "also_ok": [
+      "m049"
+     ]
+    },
+    {
+     "kind": "nextday",
+     "new_conversation": true,
+     "gap_days": 1,
+     "user": "昨天说的周日那顿，我去了，又被挤得够呛",
+     "assistant": "周末人多，也是没办法。",
+     "cluster": "c09",
+     "direct": [
+      "m015"
+     ],
+     "also_ok": [
+      "m028"
+     ]
+    },
+    {
+     "kind": "continue",
+     "user": "又有人端着新鲜点心晃到桌边，我又没忍住",
+     "cluster": "c09",
+     "direct": [
+      "m039"
+     ],
+     "also_ok": []
+    }
+   ]
+  },
+  {
+   "id": "s03",
+   "turns": [
+    {
+     "kind": "open",
+     "user": "站了一天课，脚底板一阵阵地刺疼",
+     "assistant": "站一天确实累人。",
+     "cluster": "c07",
+     "direct": [
+      "m011"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上回我忘了带那东西，那天真是难熬",
+     "assistant": "后来是怎么熬过去的？",
+     "cluster": "c07",
+     "direct": [
+      "m022"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "named",
+     "user": "阿俊今天又只练胸",
+     "assistant": "他倒是有自己的想法。",
+     "cluster": "c03",
+     "direct": [
+      "m018"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "continue",
+     "user": "上次我硬拉着他试了一回，他记仇到现在",
+     "assistant": "他后来肯了吗？",
+     "cluster": "c03",
+     "direct": [
+      "m004"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "idle",
+     "user": "窗台上的绿萝又长长了一截",
+     "assistant": "绿萝长得快。",
+     "cluster": null,
+     "direct": [],
+     "also_ok": []
+    },
+    {
+     "kind": "open",
+     "user": "这几天一进屋，墙上亮晶晶的全是水珠",
+     "assistant": "那样子确实让人头疼。",
+     "cluster": "c12",
+     "direct": [
+      "m042"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "return",
+     "user": "对了，开头聊的那个，我今天去店里转了转",
+     "assistant": "有看中的吗？",
+     "cluster": "c07",
+     "direct": [
+      "m035"
+     ],
+     "also_ok": []
+    },
+    {
+     "kind": "nextday",
+     "new_conversation": true,
+     "gap_days": 2,
+     "user": "昨天聊的那个学员，今天又发动态了",
+     "cluster": "c03",
+     "direct": [
+      "m040"
+     ],
+     "also_ok": [
+      "m018"
+     ]
+    }
+   ]
+  }
  ]
 }

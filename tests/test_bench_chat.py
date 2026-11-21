@@ -779,5 +779,347 @@ class ValidatorTest(unittest.TestCase):
             self.assertIn("cannot read", validate.problems_of(path)[0])
 
 
+def sessions_world(world):
+    """The fixture world with two more clusters (six in all) and three valid sessions, two clusters each."""
+    world = copy.deepcopy(world)
+    world["clusters"]["c05"] = {"entity": "吉他", "terms": ["吉他"]}
+    world["clusters"]["c06"] = {"entity": "自行车", "terms": ["自行车"]}
+    world["memories"].update({
+        "m013": {"text": "主人会弹吉他，大学的时候参加过乐队", "date": "2026-07-05", "cluster": "c05", "role": "fact"},
+        "m014": {"text": "主人上个月给吉他换了一套新琴弦", "date": "2026-10-01", "cluster": "c05", "role": "episode"},
+        "m015": {"text": "主人每天骑自行车上班，已经骑了快五年了", "date": "2026-07-09", "cluster": "c06", "role": "fact"},
+        "m016": {"text": "主人的自行车上周被人偷了，后来又找了回来", "date": "2026-10-14", "cluster": "c06", "role": "episode"},
+    })
+
+    def t(kind, user, assistant, cluster, direct, **extra):
+        found = {"kind": kind, "user": user, "cluster": cluster, "direct": direct, "also_ok": []}
+        if assistant is not None:
+            found["assistant"] = assistant
+        found.update(extra)
+        return found
+
+    world["sessions"] = [
+        {"id": "s01", "turns": [
+            t("open", "最近天气有点热", "是啊，这几天热得人没精神。", "c01", ["m001"]),
+            t("continue", "上回那次真是可惜", "哪一次呀？", "c01", ["m002"]),
+            t("idle", "楼下又在修路了", "修路是挺吵的。", None, []),
+            t("named", "年糕今天又挠沙发了", "它又调皮了。", "c02", ["m003"]),
+            t("return", "对了，刚才说到吃的那个，我想好了", "想好什么了？", "c01", ["m001"]),
+            t("nextday", "昨天说的那个还是没买成", None, "c01", ["m001"], new_conversation=True, gap_days=1)]},
+        {"id": "s02", "turns": [
+            t("named", "咖啡机今天又响了", "它怎么了？", "c03", ["m006", "m007"]),
+            t("continue", "后来有没有再坏过", "好像没有。", "c03", ["m007"]),
+            t("idle", "今天的云真好看", "是呀，像棉花糖。", None, []),
+            t("open", "晚饭吃得有点撑", "那是该动一动。", "c04", ["m008"]),
+            t("return", "刚才说的那台机器，我又想了想", "你想怎么办？", "c03", ["m006"]),
+            t("nextday", "昨晚说的那个习惯今天又犯懒了", "懒一天也没事。", "c04", ["m008"],
+              new_conversation=True, gap_days=1),
+            t("idle", "今天早饭吃得晚", None, None, [])]},
+        {"id": "s03", "turns": [
+            t("open", "好久没碰过那种有弦的东西了", "是吗，什么时候的事？", "c05", ["m013"]),
+            t("continue", "上个月刚换过一套", "换得顺手吗？", "c05", ["m014"]),
+            t("idle", "今天风有点大", "风大记得多穿点。", None, []),
+            t("named", "自行车今天爆胎了", "那可真麻烦。", "c06", ["m015"]),
+            t("return", "刚才说的那个，我是不是该再练练", "你想练就练。", "c05", ["m013"]),
+            t("nextday", "昨天说的那个后来找着了", None, "c06", ["m016"], new_conversation=True, gap_days=2)]},
+    ]
+    return world
+
+
+class SessionValidatorTest(unittest.TestCase):
+    """The rules of the sessions of a world, one failing case each."""
+
+    @classmethod
+    def setUpClass(cls):
+        with open(os.path.join(FIXTURES, "fixture-world.json"), encoding="utf-8") as handle:
+            cls.world = sessions_world(json.load(handle))
+
+    def problems(self, mutate=None):
+        world = copy.deepcopy(self.world)
+        if mutate:
+            mutate(world["sessions"])
+        with tempfile.TemporaryDirectory() as folder:
+            path = os.path.join(folder, "w.json")
+            with open(path, "w", encoding="utf-8") as handle:
+                json.dump(world, handle, ensure_ascii=False)
+            found = validate.problems_of(path)
+        return [line for line in found if "expected" not in line]  # the counts belong to a full world
+
+    def test_a_valid_set_of_sessions_passes_and_a_world_without_sessions_still_does(self):
+        self.assertEqual(self.problems(), [])
+        world = copy.deepcopy(self.world)
+        del world["sessions"]
+        with tempfile.TemporaryDirectory() as folder:
+            path = os.path.join(folder, "w.json")
+            with open(path, "w", encoding="utf-8") as handle:
+                json.dump(world, handle, ensure_ascii=False)
+            self.assertEqual([l for l in validate.problems_of(path) if "expected" not in l], [])
+
+    def test_a_problem_names_the_session_and_the_turn(self):
+        found = self.problems(lambda s: s[0]["turns"][1].update(user=""))
+        self.assertTrue(any(line == "w.json: session s01 turn 2: user must have 1 to 30 characters" for line in found), found)
+
+    def test_each_rule_rejects_what_it_is_for(self):
+        def turns(s, n):
+            return s[n]["turns"]
+
+        def two_sessions(s):
+            del s[2]
+
+        def repeated_id(s):
+            s[1]["id"] = "s01"
+
+        def five_turns(s):
+            del turns(s, 1)[2:3]
+            del turns(s, 1)[2:3]
+
+        def ten_turns(s):
+            turns(s, 0)[-1]["assistant"] = "好的。"
+            turns(s, 0).extend({"kind": "idle", "user": "嗯", "assistant": "嗯。", "cluster": None, "direct": [],
+                                "also_ok": []} for _ in range(4))
+
+        def unknown_kind(s):
+            turns(s, 0)[2]["kind"] = "chat"
+
+        def user_too_long(s):
+            turns(s, 0)[2]["user"] = "楼" * 31
+
+        def assistant_missing(s):
+            del turns(s, 0)[2]["assistant"]
+
+        def assistant_too_long(s):
+            turns(s, 0)[2]["assistant"] = "好" * 51
+
+        def unknown_cluster(s):
+            turns(s, 0)[1]["cluster"] = "c99"
+
+        def unknown_memory(s):
+            turns(s, 0)[1]["direct"] = ["m999"]
+
+        def both_lists(s):
+            turns(s, 0)[1]["also_ok"] = ["m002"]
+
+        def open_not_the_fact(s):
+            turns(s, 0)[0]["direct"] = ["m001", "m002"]
+
+        def open_names_cluster(s):
+            turns(s, 0)[0]["user"] = "最近冰淇淋有点好吃"
+
+        def named_without_term(s):
+            turns(s, 0)[3]["user"] = "今天又在闹"
+
+        def named_direct_elsewhere(s):
+            turns(s, 0)[3]["direct"] = ["m001"]
+
+        def continue_after_other_cluster(s):
+            turns(s, 0)[1].update(cluster="c02", direct=["m003"])
+
+        def continue_names_cluster(s):
+            turns(s, 0)[1]["user"] = "那个冰淇淋真可惜"
+
+        def continue_three_memories(s):
+            turns(s, 0)[1]["direct"] = ["m001", "m002", "m001"]
+
+        def idle_with_cluster(s):
+            turns(s, 0)[2].update(cluster="c01", direct=["m001"])
+
+        def return_not_seen_before(s):
+            turns(s, 0)[4].update(cluster="c03", direct=["m006"])
+
+        def return_right_after(s):
+            turns(s, 0)[3].update(kind="named", user="冰淇淋我也想吃", cluster="c01", direct=["m001"])
+
+        def nextday_without_flag(s):
+            del turns(s, 0)[5]["new_conversation"]
+            del turns(s, 0)[5]["gap_days"]
+
+        def nextday_without_gap(s):
+            del turns(s, 0)[5]["gap_days"]
+
+        def gap_of_zero(s):
+            turns(s, 0)[5]["gap_days"] = 0
+
+        def gap_without_new_conversation(s):
+            turns(s, 0)[2]["gap_days"] = 1
+
+        def new_conversation_elsewhere(s):
+            turns(s, 0)[3].update(new_conversation=True, gap_days=1)
+
+        def nextday_unseen_cluster(s):
+            turns(s, 0)[5].update(cluster="c03", direct=["m006"])
+
+        def no_nextday(s):
+            turns(s, 0)[5].update(kind="idle", cluster=None, direct=[])
+            del turns(s, 0)[5]["new_conversation"]
+            del turns(s, 0)[5]["gap_days"]
+
+        def two_nextdays(s):
+            turns(s, 1)[6].update(kind="nextday", user="那个习惯还是犯懒", cluster="c04", direct=["m008"],
+                                  new_conversation=True, gap_days=1)
+
+        def first_turn_idle(s):
+            turns(s, 0)[0].update(kind="idle", cluster=None, direct=[])
+
+        def no_return(s):
+            turns(s, 0)[4].update(kind="idle", cluster=None, direct=[])
+
+        def one_cluster_only(s):
+            turns(s, 0)[3].update(kind="named", user="冰淇淋又想吃了", cluster="c01", direct=["m001"])
+
+        def three_after_nextday(s):
+            turns(s, 0)[-1]["assistant"] = "好的。"
+            turns(s, 0).extend({"kind": "idle", "user": "嗯", "assistant": "嗯。", "cluster": None, "direct": [],
+                                "also_ok": []} for _ in range(3))
+
+        def return_after_nextday(s):
+            turns(s, 1)[6].update(kind="return", user="那个再说吧", cluster="c03", direct=["m006"])
+
+        def assistant_names_own_cluster(s):
+            turns(s, 0)[0]["assistant"] = "是啊，冰淇淋也该吃了。"
+
+        def assistant_names_later_cluster(s):
+            turns(s, 0)[0]["assistant"] = "是啊，年糕也热坏了。"
+
+        def cluster_in_two_sessions(s):
+            turns(s, 2)[3].update(user="咖啡机又坏了", cluster="c03", direct=["m006"])
+
+        rules = [
+            (two_sessions, "exactly 3"), (repeated_id, "id is used twice"), (five_turns, "a session has 6 to 9"),
+            (ten_turns, "a session has 6 to 9"), (unknown_kind, "unknown kind"), (user_too_long, "user must have"),
+            (assistant_missing, "needs an assistant line"), (assistant_too_long, "assistant must have"),
+            (unknown_cluster, "unknown cluster"), (unknown_memory, "direct must be a list of known"),
+            (both_lists, "both direct and also_ok"), (open_not_the_fact, "exactly the fact"),
+            (open_names_cluster, "names the cluster"), (named_without_term, "names no term"),
+            (named_direct_elsewhere, "non-empty and all of cluster"),
+            (continue_after_other_cluster, "turn before must be about the same cluster"),
+            (continue_names_cluster, "names the cluster"), (continue_three_memories, "1 or 2 memories"),
+            (idle_with_cluster, "idle turn has no cluster"), (return_not_seen_before, "did not appear earlier"),
+            (return_right_after, "must have another cluster or none"), (nextday_without_flag, "must carry new_conversation"),
+            (nextday_without_gap, "needs gap_days"), (gap_of_zero, "needs gap_days"),
+            (gap_without_new_conversation, "gap_days only goes with"),
+            (new_conversation_elsewhere, "only the nextday turn starts"),
+            (nextday_unseen_cluster, "did not appear in the conversation before"), (no_nextday, "exactly one nextday"),
+            (two_nextdays, "exactly one nextday"), (first_turn_idle, "first turn must be open or named"),
+            (no_return, "has no return turn"), (one_cluster_only, "at least two different clusters"),
+            (three_after_nextday, "at most two turns may follow"), (return_after_nextday, "after the nextday turn only"),
+            (assistant_names_own_cluster, "assistant line contains the term"),
+            (assistant_names_later_cluster, "assistant line contains the term"),
+            (cluster_in_two_sessions, "is also used by session"),
+        ]
+        for mutate, expected in rules:
+            with self.subTest(rule=mutate.__name__):
+                found = self.problems(mutate)
+                self.assertTrue(any(expected in line for line in found), (expected, found))
+
+    def test_sessions_that_are_not_a_list(self):
+        world = copy.deepcopy(self.world)
+        world["sessions"] = {"id": "s01"}
+        with tempfile.TemporaryDirectory() as folder:
+            path = os.path.join(folder, "w.json")
+            with open(path, "w", encoding="utf-8") as handle:
+                json.dump(world, handle, ensure_ascii=False)
+            self.assertTrue(any("sessions must be a list" in line for line in validate.problems_of(path)))
+
+    def test_the_later_term_rule_reaches_across_the_nextday_turn(self):
+        found = self.problems(lambda s: s[0]["turns"][1].update(assistant="听起来像年糕的事。"))
+        self.assertTrue(any("turn 2: the assistant line contains the term" in line and "(turn 4)" in line for line in found), found)
+
+
+class SessionsToolTest(unittest.TestCase):
+    """bench/chat/sessions_tool.py: show hides what an author must not copy, set writes and checks."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tool = _load("sessions_tool")
+        with open(os.path.join(FIXTURES, "fixture-world.json"), encoding="utf-8") as handle:
+            cls.world = sessions_world(json.load(handle))
+
+    def run_tool(self, *arguments):
+        stream = io.TextIOWrapper(io.BytesIO(), encoding="utf-8")
+        with contextlib.redirect_stdout(stream):
+            code = self.tool.main(list(arguments))
+        stream.flush()
+        return code, stream.buffer.getvalue().decode("utf-8")
+
+    def write(self, folder, name, document, **dump):
+        path = os.path.join(folder, name)
+        with open(path, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write(json.dumps(document, ensure_ascii=False, **dump) + "\n")
+        return path
+
+    def test_show_prints_the_world_but_neither_cases_nor_sessions(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = self.write(folder, "w.json", self.world, indent=1)
+            code, printed = self.run_tool("show", path)
+        self.assertEqual(code, 0)
+        self.assertIn(self.world["persona"], printed)
+        self.assertIn("c02  entity: 年糕  terms: 年糕, 橘猫", printed)
+        self.assertIn("m003  fact", printed)
+        self.assertIn(self.world["memories"]["m004"]["text"], printed)
+        self.assertIn("fillers", printed)
+        self.assertIn(self.world["memories"]["m010"]["text"], printed)
+        for case in self.world["cases"]:
+            self.assertNotIn(case["message"], printed)
+            self.assertNotIn(case["why"], printed)
+        for session in self.world["sessions"]:
+            for turn in session["turns"]:
+                self.assertNotIn(turn["user"], printed)
+                self.assertNotIn(turn.get("assistant", "\0"), printed)
+
+    def test_set_writes_the_world_in_its_style_and_reports(self):
+        sessions = copy.deepcopy(self.world["sessions"])
+        # an old list sits before the cases: it is replaced and the key ends up last
+        world = {k: v for k, v in self.world.items() if k not in ("sessions", "cases")}
+        world["sessions"] = [{"id": "old", "turns": []}]
+        world["cases"] = copy.deepcopy(self.world["cases"])
+        with tempfile.TemporaryDirectory() as folder:
+            path = self.write(folder, "w.json", world, indent=1)
+            given = self.write(folder, "sessions.json", sessions)
+            counts = dict(MEMORIES=len(world["memories"]), CLUSTERS=(6, 18),
+                          CASES={"remark-assoc": 3, "remark-named": 2, "follow-up": 2, "quiet": 1})
+            with mock.patch.object(self.tool, "_validator", return_value=validate), \
+                    mock.patch.multiple(validate, **counts):
+                code, printed = self.run_tool("set", path, given)
+            with open(path, "rb") as handle:
+                raw = handle.read()
+        self.assertEqual((code, printed), (0, "fixture-demo: 3 sessions, 19 turns, 0 problem(s)\n"))
+        self.assertNotIn(b"\r", raw)
+        self.assertTrue(raw.endswith(b"}\n") and not raw.endswith(b"\n\n"))
+        text = raw.decode("utf-8")
+        self.assertIn("楼下又在修路了", text)  # characters as they are, not escaped
+        self.assertNotIn("\\u", text)
+        document = json.loads(text)
+        self.assertEqual(list(document), ["world", "persona", "clusters", "memories", "cases", "sessions"])
+        self.assertEqual(document["sessions"], sessions)
+        self.assertEqual(text, json.dumps(document, ensure_ascii=False, indent=1) + "\n")
+
+    def test_set_prints_the_problems_exits_1_and_still_writes(self):
+        sessions = copy.deepcopy(self.world["sessions"])
+        sessions[0]["turns"][1]["user"] = ""
+        with tempfile.TemporaryDirectory() as folder:
+            path = self.write(folder, "w.json", {k: v for k, v in self.world.items() if k != "sessions"}, indent=1)
+            given = self.write(folder, "sessions.json", sessions)
+            code, printed = self.run_tool("set", path, given)
+            with open(path, encoding="utf-8") as handle:
+                written = json.load(handle)
+        self.assertEqual(code, 1)
+        self.assertIn("w.json: session s01 turn 2: user must have 1 to 30 characters", printed)
+        self.assertTrue(printed.strip().split("\n")[-1].endswith("problem(s)"))
+        self.assertNotIn(", 0 problem(s)", printed)
+        self.assertEqual(written["sessions"], sessions)
+
+    def test_set_refuses_a_file_that_is_not_a_list_and_a_bad_command_line(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = self.write(folder, "w.json", self.world, indent=1)
+            given = self.write(folder, "sessions.json", {"id": "s01"})
+            with open(path, "rb") as handle:
+                before = handle.read()
+            code, _ = self.run_tool("set", path, given)
+            self.assertEqual(code, 2)
+            with open(path, "rb") as handle:
+                self.assertEqual(handle.read(), before)
+        self.assertEqual(self.run_tool("show")[0], 2)
+
+
 if __name__ == "__main__":
     unittest.main()
