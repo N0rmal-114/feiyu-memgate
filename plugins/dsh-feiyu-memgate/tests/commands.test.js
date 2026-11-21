@@ -42,7 +42,7 @@ function applyOps(config, ops) {
   }
 }
 
-function harness({ lang = 'en', values = {}, status, write } = {}) {
+function harness({ lang = 'en', values = {}, status, write, changelog } = {}) {
   const config = structuredClone(values)
   const writes = []
   const command = createMemgateCommand({
@@ -54,6 +54,7 @@ function harness({ lang = 'en', values = {}, status, write } = {}) {
       applyOps(config, ops)
       return { ok: true }
     }),
+    changelog,
   })
   const run = (rawInput) => command.handler({ rawInput, attachments: [], signal: new AbortController().signal })
   return { command, run, writes, config }
@@ -317,6 +318,32 @@ test('the recent pool settings are listed, set by bare name and reset', async ()
     ['set', 'advanced.recentDays', 30],
     ['unset', 'advanced.recentDays', undefined],
   ])
+})
+
+test('changelog prints the newest released entry as plain text, in both languages', async () => {
+  const entries = [
+    { version: '0.3.2', title: '0.3.2', body: '日期：2026-11-18。\n\n### 新增\n\n- 新设置 `advanced.linkedRecall`，**默认开**，见 [说明](https://example.org/a)。\n  - 子项' },
+    { version: '0.3.1', title: '0.3.1', body: 'older' },
+  ]
+  const en = await harness({ changelog: () => ({ version: '0.3.2', entries }) }).run('changelog')
+  assert.equal(en.kind, 'success')
+  assert.match(en.text, /^Changelog 0\.3\.2 \(written in Chinese\)\n\n日期：2026-11-18。/)
+  assert.ok(en.text.includes('新增\n'))
+  assert.ok(en.text.includes('- 新设置 advanced.linkedRecall，默认开，见 说明 (https://example.org/a)。'), en.text)
+  assert.ok(!en.text.includes('**') && !en.text.includes('`') && !en.text.includes('###'))
+  assert.ok(!en.text.includes('older'), 'only the newest')
+  const zh = await harness({ lang: 'zh', changelog: () => ({ version: '0.3.2', entries }) }).run('changelog')
+  assert.match(zh.text, /^更新日志 0\.3\.2\n\n/)
+  assert.match((await harness({ changelog: () => ({ version: '0.3.2', entries }) }).run('changelog now')).text, /takes no arguments/)
+})
+
+test('changelog says so when there is nothing to show, and is in the usage', async () => {
+  assert.equal((await harness({ changelog: () => ({ version: '0.3.2', entries: [] }) }).run('changelog')).text, 'The changelog could not be shown.')
+  assert.equal((await harness().run('changelog')).text, 'The changelog could not be shown.', 'no source at all')
+  assert.equal((await harness({ lang: 'zh', changelog: () => ({ entries: [] }) }).run('changelog')).text, '更新日志现在无法显示。')
+  assert.ok((await harness().run('')).text.includes('changelog'))
+  assert.ok((await harness({ lang: 'zh' }).run('')).text.includes('changelog'))
+  assert.ok(harness().command.input.hint.includes('changelog'))
 })
 
 test('use chooses a tier and says when it cannot run yet', async () => {

@@ -3,7 +3,10 @@
 // changing in place, going away) and the copy into a new vector store. Fakes only: no gateway process.
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { MODELS_PATH, ROW_ID, STATUS_PATH, applyPlugin } from '../src/plugin.js'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { CHANGELOG_PATH, MODELS_PATH, ROW_ID, STATUS_PATH, applyPlugin } from '../src/plugin.js'
 import { migrationStateFile } from '../src/migrate.js'
 import { EMBED_SERVICE, EMBEDDINGS_KEY_ENV, keywordIndexFile } from '../src/tiers.js'
 import { OWNER, callRoute, createFakeHost, fakeClients, fakeConnection, fakeManagers, tick, volatile } from './helpers/fake-host.js'
@@ -174,6 +177,74 @@ test('the status route: owner only, GET and HEAD, no secret, removed on unload',
   assert.equal(host.routes.size, 0)
 })
 
+const PACKAGE_VERSION = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version
+
+test('the changelog route: owner only, GET and HEAD, the released entries of the package file, removed on unload', async () => {
+  const { host, plugin } = setup({ services: ['webServer'] })
+  await plugin.settled()
+  const route = host.routes.get(CHANGELOG_PATH)
+  assert.ok(route, 'registered next to the status route')
+  assert.equal(CHANGELOG_PATH, '/feiyu-memgate/changelog')
+  assert.deepEqual([route.kind, route.auth], ['exact', 'required'])
+  assert.equal((await callRoute(route, { peer: undefined })).status, 503)
+  assert.equal((await callRoute(route, { peer: { principal: { kind: 'guest' } } })).status, 403)
+  const post = await callRoute(route, { method: 'POST', peer: OWNER })
+  assert.equal(post.status, 405)
+  assert.equal(post.headers.allow, 'GET, HEAD')
+  const head = await callRoute(route, { method: 'HEAD', peer: OWNER })
+  assert.equal(head.status, 200)
+  assert.equal(head.body, '')
+  const ok = await callRoute(route, { peer: OWNER })
+  assert.equal(ok.status, 200)
+  assert.equal(ok.headers['cache-control'], 'no-store')
+  const body = JSON.parse(ok.body)
+  assert.deepEqual(Object.keys(body), ['version', 'entries'])
+  assert.equal(body.version, PACKAGE_VERSION)
+  assert.ok(body.entries.length >= 1)
+  assert.equal(body.entries[0].version, PACKAGE_VERSION, 'the newest released entry is this version')
+  assert.deepEqual(Object.keys(body.entries[0]), ['version', 'title', 'body'])
+  assert.ok(!body.entries.some((e) => e.version === null || e.title === '未发布'))
+  await host.unload()
+  assert.equal(host.routes.size, 0)
+})
+
+test('the changelog route: 0.2.2-rc.1 asks connection.admit() like the status route', async () => {
+  const { host, plugin } = setup({ services: ['webServer'] })
+  await plugin.settled()
+  const route = host.routes.get(CHANGELOG_PATH)
+  host.provide('connection', fakeConnection({ peer: OWNER }))
+  assert.equal((await callRoute(route)).status, 200)
+  host.provide('connection', fakeConnection({ rejection: 401 }))
+  assert.equal((await callRoute(route)).status, 401)
+  host.provide('connection', fakeConnection({ peer: { principal: { kind: 'guest' } } }))
+  assert.equal((await callRoute(route)).status, 403)
+  await host.unload()
+})
+
+test('the changelog route: a missing or unreadable file answers no entries, never an error or a path; a changed file is read again', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'memgate-changelog-'))
+  const file = path.join(dir, 'CHANGELOG.md')
+  const { host, plugin } = setup({ services: ['webServer'], deps: { changelogFile: file } })
+  await plugin.settled()
+  const route = host.routes.get(CHANGELOG_PATH)
+  const missing = await callRoute(route, { peer: OWNER })
+  assert.equal(missing.status, 200)
+  assert.deepEqual(JSON.parse(missing.body), { version: PACKAGE_VERSION, entries: [] })
+  assert.ok(!missing.body.includes(dir))
+
+  fs.writeFileSync(file, `## 99.0.0\n\nfuture\n\n## 未发布\n\nnot yet\n\n## ${PACKAGE_VERSION}\n\n日期：2026-11-18。\n\n- one\n\n## 0.0.1\n\nfirst\n`)
+  const first = JSON.parse((await callRoute(route, { peer: OWNER })).body)
+  assert.deepEqual(first.entries.map((e) => e.version), [PACKAGE_VERSION, '0.0.1'], 'a newer version and 未发布 are left out')
+  fs.writeFileSync(file, `## ${PACKAGE_VERSION}\n\nchanged and longer\n`)
+  const second = JSON.parse((await callRoute(route, { peer: OWNER })).body)
+  assert.deepEqual(second.entries.map((e) => e.body), ['changed and longer'])
+
+  fs.rmSync(file)
+  fs.mkdirSync(file) // a folder where the file should be: reading fails
+  assert.deepEqual(JSON.parse((await callRoute(route, { peer: OWNER })).body).entries, [])
+  fs.rmSync(dir, { recursive: true, force: true })
+})
+
 test('0.2.2-rc.1: without a Peer the route asks connection.admit() and follows its answer', async () => {
   const { host, plugin } = setup({ services: ['webServer'] })
   await plugin.settled()
@@ -201,10 +272,10 @@ test('the page routes come and go with the web server', async () => {
   const { host } = setup()
   assert.equal(host.routes.size, 0)
   host.useWebServer()
-  assert.deepEqual([...host.routes.keys()].sort(), [MODELS_PATH, STATUS_PATH].sort())
+  assert.deepEqual([...host.routes.keys()].sort(), [CHANGELOG_PATH, MODELS_PATH, STATUS_PATH].sort())
   host.unprovide('webServer')
   host.useWebServer()
-  assert.equal(host.routes.size, 2, 'registered again, not twice')
+  assert.equal(host.routes.size, 3, 'registered again, not twice')
 })
 
 test('a broken probe or count degrades to unknown values', async () => {

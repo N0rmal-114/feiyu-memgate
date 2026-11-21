@@ -9,7 +9,7 @@ import fs from 'node:fs'
 import vm from 'node:vm'
 import { render } from '../scripts/sync-client.mjs'
 import { FIELDS } from '../src/config.js'
-import { MODELS_PATH, STATUS_PATH } from '../src/plugin.js'
+import { CHANGELOG_PATH, MODELS_PATH, STATUS_PATH } from '../src/plugin.js'
 import { ADDON_CONFIRM } from '../src/setup.js'
 
 const SOURCE = fs.readFileSync(new URL('../client/client.js', import.meta.url), 'utf8')
@@ -162,6 +162,121 @@ test('the page script carries the three recent pool settings with both languages
     assert.equal(zh[`f.advanced.${key}`], row(key).label.zh)
     assert.equal(zh[`h.advanced.${key}`], row(key).help.zh)
   }
+})
+
+// ------------------------------------------------------------------ the changelog section
+
+const changelogT = (lang) => translator(plain(load().internals.dictionaries())[lang])
+const entriesFor = (...entries) => ({ version: '0.3.2', entries })
+const mdText = (body) => textOf(expand(load().internals.renderMarkdown(body)))
+const mdTree = (body) => expand(load().internals.renderMarkdown(body))
+
+test('the changelog section reads the host route, document-relative, and sits below the rest of the page', () => {
+  const { internals } = load()
+  assert.equal(internals.CHANGELOG_ROUTE, CHANGELOG_PATH.slice(1))
+  assert.equal(CHANGELOG_PATH, '/feiyu-memgate/changelog')
+  const tree = expand(internals.SettingsBody({ t: changelogT('en'), form: { state: { status: 'unavailable' } }, fetch: async () => ({ ok: false, status: 503 }) }))
+  const sections = findAll(tree, (n) => n.type === 'section')
+  assert.equal(sections.at(-1).props['aria-label'], 'Changelog', 'the last section of the page')
+  assert.equal(textOf(sections.at(-1)).split('\n')[0], 'Changelog')
+})
+
+test('fetchChangelog asks the route with the same credentials as the status and fails with the HTTP code', async () => {
+  const { internals } = load()
+  const calls = []
+  const data = await internals.fetchChangelog(async (url, options) => { calls.push([url, options]); return { ok: true, json: async () => ({ version: '1', entries: [] }) } })
+  assert.deepEqual(plain(data), { version: '1', entries: [] })
+  assert.deepEqual(plain(calls), [['feiyu-memgate/changelog', { headers: { accept: 'application/json' }, credentials: 'same-origin' }]])
+  await assert.rejects(internals.fetchChangelog(async () => ({ ok: false, status: 403 })), (error) => error.code === 'HTTP 403')
+})
+
+test('the changelog section: the newest entry is open, the others closed, each titled with its version and date', () => {
+  const { internals } = load()
+  const view = (lang, state) => expand(internals.ChangelogView({ t: changelogT(lang), state }))
+  const data = entriesFor(
+    { version: '0.3.2', title: '0.3.2', body: '日期：2026-11-18。\n\n### 新增\n\n- one' },
+    { version: '0.3.1', title: '0.3.1', body: '日期：2026-11-17。\n\ntwo' },
+    { version: '0.3.0', title: '0.3.0', body: 'no date here' },
+  )
+  const tree = view('en', { loading: false, data })
+  const details = findAll(tree, (n) => n.type === 'details')
+  assert.deepEqual(details.map((d) => d.props.open), [true, false, false])
+  const summaries = findAll(tree, (n) => n.type === 'summary').map((n) => textOf(n))
+  assert.deepEqual(summaries, ['0.3.2 · 2026-11-18', '0.3.1 · 2026-11-17', '0.3.0'])
+  const text = textOf(tree)
+  assert.ok(text.includes('Installed version 0.3.2.'))
+  assert.ok(text.includes('The entries are written in Chinese.'), 'English page: one line about the language')
+  assert.ok(!textOf(view('zh', { loading: false, data })).includes('用中文写的'), 'Chinese page: no such line')
+  assert.ok(textOf(view('zh', { loading: false, data })).includes('当前版本 0.3.2。'))
+  assert.equal(findAll(tree, (n) => n.type === 'section')[0].props['aria-label'], 'Changelog')
+})
+
+test('the changelog section: loading, a failure and no entries each show one quiet line, with no code or path', () => {
+  const { internals } = load()
+  const line = (lang, state) => textOf(expand(internals.ChangelogView({ t: changelogT(lang), state }))).split('\n').slice(1).join('\n')
+  assert.equal(line('en', { loading: true, data: null }), 'Reading the changelog…')
+  assert.equal(line('en', { loading: false, data: null }), 'The changelog could not be shown.')
+  assert.equal(line('en', { loading: false, data: { version: '1', entries: [] } }), 'The changelog could not be shown.')
+  assert.equal(line('en', { loading: false, data: { version: '1', entries: 'nope' } }), 'The changelog could not be shown.')
+  assert.equal(line('zh', { loading: false, data: null }), '更新日志现在无法显示。')
+  assert.equal(line('zh', { loading: true, data: null }), '正在读取更新日志…')
+})
+
+test('the Markdown subset: headings, nested lists, paragraphs, inline code and bold', () => {
+  const tree = mdTree('日期：2026-11-18。\n\n### 新增\n\n- 第一项 `advanced.x` 和 **粗体**\n  - 子项一\n  - 子项二\n- 第二项\n  接着写\n\n另一段\n两行')
+  assert.deepEqual(plain(tree.map((n) => n.type)), ['p', 'h5', 'ul', 'p'])
+  assert.equal(textOf(tree[0]), '日期：2026-11-18。')
+  assert.equal(textOf(tree[1]), '新增')
+  const items = findAll(tree[2], (n) => n.type === 'li')
+  assert.equal(items.length, 4, 'two top items and two nested')
+  assert.equal(findAll(tree[2], (n) => n.type === 'ul').length, 2, 'one nesting level')
+  assert.deepEqual(findAll(tree[2], (n) => n.type === 'code').map(textOf), ['advanced.x'])
+  assert.deepEqual(findAll(tree[2], (n) => n.type === 'strong').map(textOf), ['粗体'])
+  assert.ok(textOf(items[3]).includes('第二项接着写'), 'a continuation line joins the item, with no space between Chinese characters')
+  assert.equal(textOf(tree[3]), '另一段两行')
+  const english = mdTree('first line\nsecond line')
+  assert.equal(textOf(english[0]), 'first line second line')
+})
+
+test('the Markdown subset: HTML from the file is text, never an element', () => {
+  const body = '### <img src=x onerror=alert(1)>\n\n<script>alert(1)</script> and <b>bold</b>\n\n- <a href="https://evil.example">x</a> `<i>code</i>` **<u>b</u>**'
+  const tree = mdTree(body)
+  const types = new Set()
+  walk(tree, (node) => types.add(node.type))
+  for (const forbidden of ['script', 'img', 'b', 'u', 'i', 'a']) assert.ok(!types.has(forbidden), forbidden)
+  const text = textOf(tree)
+  for (const raw of ['<img src=x onerror=alert(1)>', '<script>alert(1)</script>', '<b>bold</b>', '<a href="https://evil.example">x</a>', '<i>code</i>', '<u>b</u>']) assert.ok(text.includes(raw), raw)
+  walk(tree, (node) => { assert.equal(node.props.dangerouslySetInnerHTML, undefined) })
+})
+
+test('the Markdown subset: only https links are links, with noopener and noreferrer; any other address shows as its text', () => {
+  const links = (body) => findAll(mdTree(body), (n) => n.type === 'a')
+  const [good] = links('see [the design](https://github.com/N0rmal-114/feiyu-memgate/blob/main/docs/x.md) now')
+  assert.equal(good.props.href, 'https://github.com/N0rmal-114/feiyu-memgate/blob/main/docs/x.md')
+  assert.equal(good.props.target, '_blank')
+  assert.equal(good.props.rel, 'noopener noreferrer')
+  assert.equal(textOf(good), 'the design')
+  for (const url of ['javascript:alert(1)', 'JavaScript:alert(1)', 'http://example.org', 'data:text/html,x', '//example.org', 'ftp://x.org', 'docs/design/x.md', '#anchor', 'mailto:someone']) {
+    assert.equal(links(`a [click here](${url}) b`).length, 0, url)
+    assert.ok(mdText(`a [click here](${url}) b`).split('\n').join('').startsWith('a click here'), url) // the text stays; a stray closing bracket after an address with its own brackets is only text
+  }
+  assert.equal(links('[HTTPS](HTTPS://example.org/a)').length, 1, 'the scheme is case-insensitive')
+})
+
+test('the Markdown subset: odd input never throws', () => {
+  for (const odd of [undefined, null, '', '   ', '###', '- ', '[](', '`', '**', '[a](', '- - -\n  - x', '\r\n- a\r\n  - b\r\n', 5, {}]) {
+    assert.doesNotThrow(() => mdTree(odd), String(odd))
+  }
+  assert.deepEqual(plain(mdTree('')), [])
+  assert.equal(mdText('- a\r\n- b'), 'a\nb')
+})
+
+test('the real CHANGELOG.md of the package renders without any element outside the subset', () => {
+  const real = fs.readFileSync(new URL('../CHANGELOG.md', import.meta.url), 'utf8')
+  const tree = mdTree(real.split(/^## /m).slice(1).join('\n'))
+  const types = new Set()
+  walk(tree, (node) => types.add(node.type))
+  for (const type of types) assert.ok(['p', 'h5', 'ul', 'li', 'code', 'strong', 'a'].includes(type), type)
 })
 
 test('apply registers both dictionaries and the page under <package name>#<row id>', () => {

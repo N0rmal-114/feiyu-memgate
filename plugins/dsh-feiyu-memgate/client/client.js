@@ -25,6 +25,11 @@
  * pages' host routes), which the host half serves to the owner only. It shows no secret, address or
  * memory: secrets arrive as booleans.
  *
+ * Changelog. The last section of the page reads GET feiyu-memgate/changelog (owner only, like the status):
+ * the released entries of the package's CHANGELOG.md. Their Markdown is drawn by a small subset written
+ * here that builds React elements from text (headings, lists, paragraphs, code, bold, https links), so no
+ * HTML from the file can reach the page.
+ *
  * The host half never depends on this file: without it every setting still works, through /memgate and
  * the profile's patch file.
  */
@@ -702,6 +707,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
   const ROW_KEY = 'dsh-feiyu-memgate#feiyu-memgate'
   const STATUS_ROUTE = 'feiyu-memgate/status'
   const STATUS_POLL_MS = 10000
+  const CHANGELOG_ROUTE = 'feiyu-memgate/changelog'
   // The model list: GET reads it, POST is a click (install, cancel, use, remove); src/setup.js.
   const MODELS_ROUTE = 'feiyu-memgate/models'
   const MODELS_POLL_MS = 10000
@@ -713,6 +719,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
     en: {
       summary: 'Long-term memory through the feiyu-memgate gateway: automatic recall, memory tools and retrieval tiers.',
       statusTitle: 'Status',
+      changelogTitle: 'Changelog',
+      changelogCurrent: 'Installed version {version}.',
+      changelogChinese: 'The entries are written in Chinese.',
+      changelogLoading: 'Reading the changelog…',
+      changelogFailed: 'The changelog could not be shown.',
       refresh: 'Refresh',
       statusLoading: 'Reading the status…',
       statusFailed: 'Status unavailable ({code}).',
@@ -780,6 +791,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
     zh: {
       summary: '通过 feiyu-memgate 网关使用长期记忆：自动召回、记忆工具和多种检索方式。',
       statusTitle: '状态',
+      changelogTitle: '更新日志',
+      changelogCurrent: '当前版本 {version}。',
+      changelogChinese: '这些条目是用中文写的。',
+      changelogLoading: '正在读取更新日志…',
+      changelogFailed: '更新日志现在无法显示。',
       refresh: '刷新',
       statusLoading: '正在读取状态…',
       statusFailed: '状态不可用（{code}）。',
@@ -995,6 +1011,16 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
     return response.json()
   }
 
+  async function fetchChangelog(fetchImpl) {
+    const response = await fetchImpl(CHANGELOG_ROUTE, { headers: { accept: 'application/json' }, credentials: 'same-origin' })
+    if (!response.ok) {
+      const error = new Error('changelog')
+      error.code = 'HTTP ' + response.status
+      throw error
+    }
+    return response.json()
+  }
+
   async function fetchModels(fetchImpl) {
     const response = await fetchImpl(MODELS_ROUTE, { headers: { accept: 'application/json' }, credentials: 'same-origin' })
     if (!response.ok) {
@@ -1095,10 +1121,150 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
     }
   }
 
+  // ------------------------------------------------------------ changelog (Markdown subset)
+
+  const INLINE = /`([^`]+)`|\*\*([^*]+)\*\*|\[([^\]]+)\]\(([^)\s]+)\)/g
+  const CJK = /[\u2e80-\u9fff\uf900-\ufaff\uff00-\uffef]/
+
+  /** Inline marks in a line of text: `code`, **bold**, [text](https://...). Anything else, tags included, stays text. */
+  function inlineMarkdown(text) {
+    const out = []
+    let last = 0
+    let n = 0
+    let match
+    INLINE.lastIndex = 0
+    while ((match = INLINE.exec(text)) !== null) {
+      if (match.index > last) out.push(text.slice(last, match.index))
+      n += 1
+      if (match[1] !== undefined) out.push(h('code', { key: 'c' + n, style: S.code }, match[1]))
+      else if (match[2] !== undefined) out.push(h('strong', { key: 'b' + n }, match[2]))
+      else if (/^https:\/\//i.test(match[4])) out.push(h('a', { key: 'a' + n, href: match[4], target: '_blank', rel: 'noopener noreferrer', style: S.link }, match[3]))
+      else out.push(match[3]) // any other address is shown as its text, not a link
+      last = match.index + match[0].length
+    }
+    if (last < text.length) out.push(text.slice(last))
+    return out
+  }
+
+  // Lines of one paragraph joined the way they read: no space between two Chinese characters.
+  function joinLines(lines) {
+    let out = ''
+    for (const line of lines) {
+      if (out && !(CJK.test(out[out.length - 1]) && CJK.test(line[0]))) out += ' '
+      out += line
+    }
+    return out
+  }
+
+  /**
+   * A changelog body as React elements: ### headings, - list items (one nested level, by indentation),
+   * paragraphs. Text goes in as text; there is no path from the file to raw HTML.
+   */
+  function renderMarkdown(body) {
+    const lines = String(body === undefined || body === null ? '' : body).replace(/\r\n?/g, '\n').split('\n')
+    const blocks = []
+    let para = null
+    let list = null
+    let tail = null // the item (top or nested) a continuation line belongs to
+    const flushPara = () => {
+      if (para) blocks.push(h('p', { key: 'p' + blocks.length, style: S.mdP }, inlineMarkdown(joinLines(para))))
+      para = null
+    }
+    const flushList = () => {
+      if (list) {
+        const key = 'l' + blocks.length
+        const items = (entries, prefix) => entries.map((item, index) => h('li', { key: prefix + index, style: S.mdLi },
+          inlineMarkdown(item.text), item.children && item.children.length ? h('ul', { style: S.mdUl }, items(item.children, prefix + index + '.')) : null))
+        blocks.push(h('ul', { key, style: S.mdUl }, items(list, key)))
+      }
+      list = null
+      tail = null
+    }
+    for (const line of lines) {
+      let match
+      if (!line.trim()) {
+        flushPara()
+        flushList()
+      } else if ((match = /^#{1,6}[ \t]+(.+?)[ \t]*$/.exec(line))) {
+        flushPara()
+        flushList()
+        blocks.push(h('h5', { key: 'h' + blocks.length, style: S.mdH }, inlineMarkdown(match[1])))
+      } else if ((match = /^([ \t]*)[-*][ \t]+(.*)$/.exec(line))) {
+        flushPara()
+        if (!list) list = []
+        const item = { text: match[2].trim(), children: [] }
+        if (match[1].length >= 2 && list.length) list[list.length - 1].children.push(item)
+        else list.push(item)
+        tail = item
+      } else if (list && tail && /^[ \t]+\S/.test(line)) {
+        tail.text = joinLines([tail.text, line.trim()])
+      } else {
+        flushList()
+        if (!para) para = []
+        para.push(line.trim())
+      }
+    }
+    flushPara()
+    flushList()
+    return blocks
+  }
+
+  /** The date a changelog entry gives on its date line ("日期：2026-11-18"), or ''. */
+  function entryDate(body) {
+    const match = /日期[：:]\s*(\d{4}-\d{2}-\d{2})/.exec(String(body || ''))
+    return match ? match[1] : ''
+  }
+
+  function useChangelog(fetchImpl) {
+    const [state, setState] = useState({ loading: true, data: null })
+    useEffect(() => {
+      let alive = true
+      fetchChangelog(fetchImpl).then(
+        (data) => { if (alive) setState({ loading: false, data }) },
+        () => { if (alive) setState({ loading: false, data: null }) },
+      )
+      return () => { alive = false }
+    }, [])
+    return state
+  }
+
+  /** The last section of the page: what each update changed, newest first, the newest open. Reference, not a banner. */
+  function ChangelogView(props) {
+    const { t, state } = props
+    const entries = state.data && Array.isArray(state.data.entries) ? state.data.entries.filter((entry) => entry && typeof entry.body === 'string') : []
+    let body
+    if (entries.length) {
+      body = [
+        h('p', { key: 'current', style: S.note }, t('changelogCurrent', { version: String(state.data.version || '') })),
+        t('lang') === 'zh' ? null : h('p', { key: 'chinese', style: S.hint }, t('changelogChinese')),
+        h('div', { key: 'entries', style: S.changelogList }, entries.map((entry, index) => {
+          const date = entryDate(entry.body)
+          return h('details', { key: String(entry.version || entry.title || index), open: index === 0, style: S.details },
+            h('summary', { style: S.summary }, String(entry.version || entry.title || '') + (date ? ' · ' + date : '')),
+            h('div', { style: S.mdBody }, renderMarkdown(entry.body)))
+        })),
+      ]
+    } else {
+      body = h('p', { style: S.note, role: 'status' }, state.loading ? t('changelogLoading') : t('changelogFailed'))
+    }
+    return h('section', { style: S.section, 'aria-label': t('changelogTitle') },
+      h('h4', { style: S.sectionTitle }, t('changelogTitle')),
+      body)
+  }
+
   // ------------------------------------------------------------ view
 
   const S = {
     page: { display: 'flex', flexDirection: 'column', gap: '16px' },
+    changelogList: { display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' },
+    details: { padding: '8px 12px', border: '0.5px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-md)' },
+    summary: { cursor: 'pointer', fontSize: '13px', fontWeight: 500, lineHeight: 1.5, color: 'var(--dsw-alias-label-primary)' },
+    mdBody: { marginTop: '8px', fontSize: '12px', lineHeight: 1.6, color: 'var(--dsw-alias-label-primary)', overflowWrap: 'anywhere' },
+    mdP: { margin: '0 0 6px' },
+    mdH: { margin: '10px 0 4px', fontSize: '12px', fontWeight: 600, lineHeight: 1.5 },
+    mdUl: { margin: '0 0 6px', paddingLeft: '18px' },
+    mdLi: { margin: '2px 0' },
+    code: { fontFamily: 'var(--dsw-font-mono, ui-monospace, monospace)', fontSize: '11px', padding: '0 4px', borderRadius: 'var(--dsw-radius-sm)', background: 'var(--dsw-alias-bg-layer-4)' },
     status: { padding: '12px', border: '0.5px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-md)', background: 'var(--dsw-alias-bg-layer-2)' },
     statusHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' },
     title: { margin: 0, fontSize: '13px', fontWeight: 600, lineHeight: 1.5, color: 'var(--dsw-alias-label-primary)' },
@@ -1415,11 +1581,12 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
     const [phase, setPhase] = useState('idle') // idle | saving | saved | failed
     const fetchImpl = props.fetch || ((...args) => fetch(...args))
     const status = useStatus(fetchImpl)
+    const changelog = h(ChangelogView, { t, state: useChangelog(fetchImpl) })
     const state = form && form.state
     // The model list does not depend on the settings form: it shows even while the form is unavailable.
     const models = h(ModelsSection, { t, fetch: fetchImpl, onChange: status.refreshSoon })
-    if (!state || state.status === 'unavailable') return h('div', { style: S.page }, h('p', { style: S.note, role: 'status' }, t('unavailable')), models)
-    if (state.status !== 'ready') return h('div', { style: S.page }, h('p', { style: S.note, role: 'status' }, t('loading')), models)
+    if (!state || state.status === 'unavailable') return h('div', { style: S.page }, h('p', { style: S.note, role: 'status' }, t('unavailable')), models, changelog)
+    if (state.status !== 'ready') return h('div', { style: S.page }, h('p', { style: S.note, role: 'status' }, t('loading')), models, changelog)
     const secrets = status.data && status.data.secrets
     const groups = FIELDS.map((group) => ({ group, views: group.fields.map((field) => fieldView(field, group.group, state, draft, secrets)) }))
     const dirty = buildOps(draft).length > 0
@@ -1466,7 +1633,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
           phase === 'failed' ? h('p', { style: S.invalid, role: 'status' }, t('saveFailed')) : saved,
           h('button', { type: 'button', style: S.button, disabled: !dirty || invalid || disabled, onClick: save }, phase === 'saving' ? t('saving') : t('save'))))
     }
-    return h('div', { style: S.page }, h(StatusBlock, { t, status }), models, form_)
+    return h('div', { style: S.page }, h(StatusBlock, { t, status }), models, form_, changelog)
   }
 
   /** The slot entry: the one-liner for `summary`, the page for `page`. */
@@ -1496,7 +1663,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
     apply,
     // For tests: the page's pure parts and components.
     internals: {
-      FIELDS, NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, dictionaries, fieldView, buildOps, saveDraft, statusRows, checkText,
+      FIELDS, NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE, dictionaries, fetchChangelog, inlineMarkdown, renderMarkdown, entryDate, ChangelogView, fieldView, buildOps, saveDraft, statusRows, checkText,
       fetchStatus, fetchModels, postModels, pickText, formatSize, memoryText, modelActions, chainLine, sameProblem, SettingsPage, SettingsBody, ModelsSection,
       ModelRowForTests: ModelRow,
     },

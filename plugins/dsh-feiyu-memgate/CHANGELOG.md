@@ -6,10 +6,11 @@
 
 ## 未发布
 
-三项实验功能，默认关闭，只做过离线测量。设计说明和测量见 [docs/design/2026-11-18-recall-with-a-model.md](https://github.com/N0rmal-114/feiyu-memgate/blob/main/docs/design/2026-11-18-recall-with-a-model.md)。这些设置都关着（默认）时没有任何变化：不注册新的监听，不保存对话状态，不写文件，不多做查询，记忆块和失败说明和 0.3.2 一样。
+三项实验功能，默认关闭，只做过离线测量。设计说明和测量见 [docs/design/2026-11-18-recall-with-a-model.md](https://github.com/N0rmal-114/feiyu-memgate/blob/main/docs/design/2026-11-18-recall-with-a-model.md)。实验设置都关着（默认）时，对话里没有任何变化（设置页面多了一节更新日志，见下）：不注册新的监听，不保存对话状态，不写文件，不多做查询，记忆块和失败说明和 0.3.2 一样。
 
 ### 新增
 
+- 设置页面最下面多了一节“更新日志”：当前版本，以及每个已发布版本改了什么，新的在前，最新的一条展开，其余折叠。内容读自插件包里的 CHANGELOG.md（中文），通过只有所有者能访问的路由 `GET /feiyu-memgate/changelog` 提供，不联网；页面只画标题、列表、段落、代码、粗体和 https 链接，文件里的 HTML 不会进页面。`/memgate changelog` 用纯文本显示最新发布的那一条。
 - 实验设置 `advanced.afterthought`（默认关）：每次回复之后，在后台拿这条回复当查询再查一次记忆；历史里没有任何块给过的记忆，最多留 `advanced.afterthoughtMax` 条（默认 2，1 到 5），下一轮放在记忆块之后的第二个块里。回复要等一轮结束才知道，所以这些记忆晚一轮才到模型那里。
 - 实验设置 `advanced.conversationPool`（默认关）：在内存里记住这个对话给过哪些记忆；宿主压缩了历史、记忆块不在了，把仍在谈论中的几条（最多 `advanced.poolSize` 条，默认 3，1 到 5）再给一次。强度从 1 起，每轮乘 0.8，你的新消息提到它或助手的回复用到它加 1（按相同的字句判断），不低于 0.3 才会带回，所以只给过一次的记忆约五轮内算数。不写磁盘。只开 `advanced.conversationPool` 时，每轮结束也会读一次回复。
 - 实验设置 `advanced.recentPool`（默认关）：新的对话开始时，在它的第一轮把上一个对话还在用的记忆（强度不低于 0.5，最强的 `advanced.recentSize` 条，默认 3，1 到 5）在第二个块里给一次。为此，每一轮结束时把强度不低于 0.5 的记忆（最多 12 条）存到数据文件夹里的 `recent-pool.json`（文字、日期、来源标签、强度、对话编号和保存时间；原子替换，内容不进日志）。`advanced.recentDays`（默认 7，1 到 30）以前存的文件不再带。关掉这项会删除这个文件；插件停止时文件留着。记录强度的那部分（提到、用到、衰减）在 `advanced.conversationPool` 或 `advanced.recentPool` 任一打开时都运行，压缩之后带回记忆仍然只由 `advanced.conversationPool` 决定。

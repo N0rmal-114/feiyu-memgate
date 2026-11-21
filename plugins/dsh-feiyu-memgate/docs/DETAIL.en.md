@@ -61,7 +61,7 @@ Every setting can be changed in three places: this plugin's settings page on the
 | `advanced.redaction` | Remove keys, tokens and passwords when saving and recalling | on |
 | `gateway.mode` | `managed` uses the bundled gateway, `external` a gateway you run | `managed` |
 
-Subcommands of `/memgate`: `status`, `config`, `set <key> <value>`, `reset <key>`, `on <feature>`, `off <feature>`, `tiers`, `use <tier>`, and for local models `models`, `install <model> [--confirm]`, `builds allow|deny`, `use <model>`, `remove <model>`, `cancel`. The full list of settings, their values and examples are in the package's README.md.
+Subcommands of `/memgate`: `status`, `config`, `set <key> <value>`, `reset <key>`, `on <feature>`, `off <feature>`, `tiers`, `use <tier>`, and for local models `models`, `install <model> [--confirm]`, `builds allow|deny`, `use <model>`, `remove <model>`, `cancel`, and `changelog` (what the newest released version changed, as plain text; the settings page has a "Changelog" section with every version, read from the package's own CHANGELOG.md, written in Chinese). The full list of settings, their values and examples are in the package's README.md.
 
 ## Semantic search (optional)
 

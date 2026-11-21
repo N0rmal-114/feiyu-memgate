@@ -59,6 +59,7 @@ import { randomUUID } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { createFormatter } from './block.js'
+import { releasedEntries } from './changelog.js'
 import { createClient } from './client.js'
 import { createMemgateCommand } from './commands.js'
 import { readConfig, resolveLanguage } from './config.js'
@@ -80,6 +81,9 @@ export const STATUS_PATH = '/feiyu-memgate/status'
 // The local model list of the settings page: GET reads it, POST starts, cancels, switches or removes
 // (src/setup.js). Owner only, like the status.
 export const MODELS_PATH = '/feiyu-memgate/models'
+// The released sections of the package's own CHANGELOG.md, for the settings page (src/changelog.js). Owner only too.
+export const CHANGELOG_PATH = '/feiyu-memgate/changelog'
+const CHANGELOG_FILE = new URL('../CHANGELOG.md', import.meta.url)
 const MAX_ACTION_BYTES = 8 * 1024
 const MODEL_ACTIONS = new Set(['install', 'builds', 'cancel', 'use', 'remove'])
 // Actions that can make the host install a package: only with `confirmed: true`, which the page sends
@@ -325,6 +329,7 @@ export function createPlugin(ctx, config, deps = {}) {
   const migrate = deps.runMigration ?? runMigration
   const { pauseMs: migrationPauseMs = 1000, ...migrationOptions } = deps.migration ?? {}
   const embedPollMs = deps.embedPollMs ?? 30000
+  const changelogFile = deps.changelogFile ?? CHANGELOG_FILE // replaceable in tests
   const env = deps.env ?? process.env
   // The clock, read where a date is needed (never kept): today's date in a block, the time of a memory.
   const clock = () => {
@@ -1370,6 +1375,52 @@ export function createPlugin(ctx, config, deps = {}) {
     }
   }
 
+  // ---------------------------------------------------------------- changelog
+
+  let changelogCache = null // { key: 'mtime:size', entries }
+
+  /**
+   * The released entries of the package's CHANGELOG.md: read on request, parsed again only when the file's
+   * modification time or size changed. A file that is missing or cannot be read gives no entries (never an
+   * error, never a path).
+   */
+  function changelog() {
+    try {
+      const stat = fs.statSync(changelogFile)
+      const key = `${stat.mtimeMs}:${stat.size}`
+      if (changelogCache?.key !== key) changelogCache = { key, entries: releasedEntries(fs.readFileSync(changelogFile, 'utf8'), VERSION) }
+      return { version: VERSION, entries: changelogCache.entries }
+    } catch {
+      changelogCache = null
+      return { version: VERSION, entries: [] }
+    }
+  }
+
+  // What the settings page reads under "Changelog". Owner only, never cached by the browser.
+  function changelogRoute() {
+    return {
+      kind: 'exact',
+      auth: 'required',
+      path: CHANGELOG_PATH,
+      handler: async (req, res, peer) => {
+        const send = (code, body, extra = {}) => {
+          res.writeHead(code, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...extra })
+          res.end(req.method === 'HEAD' ? undefined : JSON.stringify(body))
+        }
+        try {
+          const refused = admission(req, peer)
+          if (refused !== null) return send(refused, { code: refused === 403 ? 'forbidden' : 'unauthorized', message: 'owner access required' })
+          if (req.method !== 'GET' && req.method !== 'HEAD') return send(405, { code: 'method-not-allowed' }, { allow: 'GET, HEAD' })
+          send(200, changelog())
+        } catch (error) {
+          log.warn(`feiyu-memgate: changelog unavailable (${kindOf(error)})`)
+          if (!res.headersSent) send(500, { code: 'changelog-unavailable' })
+          else res.end()
+        }
+      },
+    }
+  }
+
   // ---------------------------------------------------------------- settings writes
 
   /** Apply setting edits through the host's Settings service: persisted in the profile, applied live. */
@@ -1397,7 +1448,7 @@ export function createPlugin(ctx, config, deps = {}) {
     }
   }
 
-  const command = createMemgateCommand({ settings, language, status, write: writeSettings, models: setup })
+  const command = createMemgateCommand({ settings, language, status, write: writeSettings, models: setup, changelog })
 
   // ---------------------------------------------------------------- modules
 
@@ -1551,6 +1602,7 @@ export function createPlugin(ctx, config, deps = {}) {
         const fiber = ctx.inject(['webServer'], (scoped) => {
           scoped.effect(() => scoped.webServer.register(statusRoute()))
           scoped.effect(() => scoped.webServer.register(modelsRoute()))
+          scoped.effect(() => scoped.webServer.register(changelogRoute()))
         })
         watchers.push(() => fiber?.dispose?.())
       } catch (error) {
@@ -1593,6 +1645,8 @@ export function createPlugin(ctx, config, deps = {}) {
     command,
     statusRoute,
     modelsRoute,
+    changelogRoute,
+    changelog,
     setup,
     activeModules: () => [...active.keys()],
     gateway: () => manager,

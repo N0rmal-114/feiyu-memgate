@@ -73,7 +73,7 @@ dsh plugin --profile desktop add dsh-feiyu-memgate
 
 Every setting can be changed in three ways. They write the same values.
 
-- **The settings page.** On the Plugins page, open the row of this plugin. The page shows the settings and a status block (gateway, Python, store and memory count, retrieval tier, embedding add-on, copy progress). It depends on host interfaces that are still changing; if it does not work in your DSH version, use one of the other two ways.
+- **The settings page.** On the Plugins page, open the row of this plugin. The page shows the settings and a status block (gateway, Python, store and memory count, retrieval tier, embedding add-on, copy progress) and, at the bottom, a section "Changelog": the current version and what each released version changed, newest first, the newest open and the others folded. The entries come from this package's own `CHANGELOG.md` through an owner-only route (`GET /feiyu-memgate/changelog`, like the status route), nothing is fetched from the network, and the text is written in Chinese; the page says so when it is shown in English. Only the headings, lists, paragraphs, `code`, bold and `https://` links of the file are drawn, and no HTML from the file reaches the page. It depends on host interfaces that are still changing; if it does not work in your DSH version, use one of the other two ways.
 - **The `/memgate` chat command.** See [The /memgate command](#the-memgate-command).
 - **The profile's configuration file.** The row `feiyu-memgate` in the profile's `cordis.patch.yml`. The other two ways save their changes there. A home-level patch or a `--patch` overlay that sets the same row takes precedence, and a change they would override is refused.
 
@@ -172,6 +172,7 @@ A chat command for you, one line long. Keys are written as `group.key`; a bare k
 | `use <model>` | Switch to a downloaded model. | `/memgate use bge-m3` |
 | `remove <model>` | Delete a downloaded model that is not in use. | `/memgate remove bge-m3` |
 | `cancel` | Stop the running add-on installation or model download, or drop an unanswered install-script question. | `/memgate cancel` |
+| `changelog` | What the newest released version changed, as plain text (the changelog is written in Chinese). The settings page shows all versions. | `/memgate changelog` |
 
 The model subcommands do the same as the buttons of the settings page; see [Installing from the settings page](#installing-from-the-settings-page).
 

@@ -61,7 +61,7 @@ dsh plugin --profile <name> add dsh-feiyu-memgate
 | `advanced.redaction` | 保存和召回时去掉密钥、令牌、密码 | 开 |
 | `gateway.mode` | `managed` 用自带网关，`external` 连接你自己运行的网关 | `managed` |
 
-`/memgate` 的子命令：`status`、`config`、`set <键> <值>`、`reset <键>`、`on <功能>`、`off <功能>`、`tiers`、`use <方式>`，以及本地模型的 `models`、`install <模型> [--confirm]`、`builds allow|deny`、`use <模型>`、`remove <模型>`、`cancel`。完整的设置列表、各项的取值和例子见插件包里的 README.zh.md。
+`/memgate` 的子命令：`status`、`config`、`set <键> <值>`、`reset <键>`、`on <功能>`、`off <功能>`、`tiers`、`use <方式>`，以及本地模型的 `models`、`install <模型> [--confirm]`、`builds allow|deny`、`use <模型>`、`remove <模型>`、`cancel`，以及 `changelog`（最新发布的版本改了什么，纯文本；设置页面的“更新日志”一节显示所有版本，内容读自插件包自己的 CHANGELOG.md）。完整的设置列表、各项的取值和例子见插件包里的 README.zh.md。
 
 ## 语义检索（可选）
 

@@ -38,10 +38,12 @@ const TEXT = {
       '  use <model>         switch to a downloaded model',
       '  remove <model>      delete a downloaded model that is not in use',
       '  cancel              stop the running add-on installation or model download',
+      '  changelog           what the newest released version changed (the text is in Chinese)',
     ].join('\n'),
     oneLine: 'The command takes one line.',
     unknownSub: (w) => `Unknown subcommand${w ? ` ${w}` : ''}.`,
     noArgs: (sub) => `/memgate ${sub} takes no arguments.`,
+    noChangelog: 'The changelog could not be shown.',
     needKeyValue: 'Usage: /memgate set <key> <value>',
     needKey: (sub) => `Usage: /memgate ${sub} <key>`,
     needModule: (sub) => `Usage: /memgate ${sub} <feature>. Features: ${MODULE_KEYS.join(', ')}.`,
@@ -112,10 +114,12 @@ const TEXT = {
       '  use <模型>          切换到一个已下载的模型',
       '  remove <模型>       删除一个没在使用的已下载模型',
       '  cancel              停止正在进行的插件安装或模型下载',
+      '  changelog           最新发布的版本改了什么',
     ].join('\n'),
     oneLine: '命令只能写一行。',
     unknownSub: (w) => `没有这个子命令${w ? ` ${w}` : ''}。`,
     noArgs: (sub) => `/memgate ${sub} 不带参数。`,
+    noChangelog: '更新日志现在无法显示。',
     needKeyValue: '用法：/memgate set <键> <值>',
     needKey: (sub) => `用法：/memgate ${sub} <键>`,
     needModule: (sub) => `用法：/memgate ${sub} <功能>。功能有：${MODULE_KEYS.join('、')}。`,
@@ -189,6 +193,20 @@ export function resolveSetting(name, t = TEXT.en) {
   if (bare.length === 1) return { key: bare[0], field: SETTING_KEYS[bare[0]] }
   if (bare.length > 1) return { error: t.ambiguous(quote(name) || '…', bare) }
   return { error: t.unknownKey(quote(name)) }
+}
+
+/** One changelog entry ({ version, title, body }) as plain text: the Markdown marks are left out. */
+export function formatChangelog(entry, lang = 'en') {
+  const body = String(entry?.body ?? '')
+    .replace(/\r\n?/g, '\n')
+    .replace(/^#{1,6}[ \t]+/gm, '')
+    .replace(/\*\*([^*\n]+)\*\*/g, '$1')
+    .replace(/`([^`\n]+)`/g, '$1')
+    .replace(/\[([^\]\n]+)\]\(([^)\s]+)\)/g, '$1 ($2)')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+  const head = lang === 'zh' ? `更新日志 ${entry?.title ?? ''}` : `Changelog ${entry?.title ?? ''} (written in Chinese)`
+  return `${head.trim()}\n\n${body}`
 }
 
 /** The status object (src/plugin.js, status()) as text. */
@@ -373,7 +391,7 @@ function formatTiers(s, lang) {
  *   models      the model setup (src/setup.js): view, install, use, remove, cancel; the same
  *               functions the settings page calls
  */
-export function createMemgateCommand({ settings, language, status, write, models = null }) {
+export function createMemgateCommand({ settings, language, status, write, models = null, changelog = null }) {
   const ok = (text) => ({ kind: 'success', text })
   const fail = (text) => ({ kind: 'error', text })
   // A failure with this profile's file names filled in (the setup knows them).
@@ -485,6 +503,12 @@ export function createMemgateCommand({ settings, language, status, write, models
         case 'config':
           if (words.length) return fail(t.noArgs(sub))
           return ok(formatConfig(settings(), t))
+        case 'changelog': {
+          if (words.length) return fail(t.noArgs(sub))
+          const found = typeof changelog === 'function' ? changelog() : null
+          const entry = found?.entries?.[0]
+          return ok(entry ? formatChangelog(entry, lang) : t.noChangelog)
+        }
         case 'tiers':
           if (words.length) return fail(t.noArgs(sub))
           return ok(formatTiers(await status(), lang))
@@ -549,7 +573,7 @@ export function createMemgateCommand({ settings, language, status, write, models
   return {
     name: COMMAND_NAME,
     description: 'Long-term memory: status, settings, retrieval tiers and local models (feiyu-memgate)',
-    input: { hint: 'status | config | set <key> <value> | reset <key> | on|off <feature> | tiers | use <tier|model> | models | install <model> [--confirm] | builds allow|deny | remove <model> | cancel' },
+    input: { hint: 'status | config | set <key> <value> | reset <key> | on|off <feature> | tiers | use <tier|model> | models | install <model> [--confirm] | builds allow|deny | remove <model> | cancel | changelog' },
     // The input may hold a secret (`set external.token ...`): keep it out of the session log; the
     // reply says what changed without repeating it (commands/src/index.ts:70-75, :376).
     recordInput: false,
