@@ -25,3 +25,7 @@ bench/external/results/*/*.json
 !bench/external/results/*/*.metrics.json
 !bench/external/results/*/latency-summary.json
 !bench/external/results/*/same-stores-*.json
+
+# local state of the Cloudflare tooling (feedback-worker): account cache and local secrets
+.wrangler/
+.dev.vars
