@@ -182,8 +182,10 @@ test('what the script prints never names a text, a ref or a path', { skip, timeo
   child.stdin.write(JSON.stringify(job) + '\n')
   // The script exits when stdin closes, so stdin stays open until the last event has arrived.
   // A loaded machine can take long to start Python: wait almost as long as the test itself may run.
+  // Wait for the whole last line, not only its beginning: the output arrives in chunks, and a chunk
+  // can end in the middle of the line that says "done", which then would not parse.
   const deadline = Date.now() + 50000
-  while (!/"event": "done"/.test(out) && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 50))
+  while (!/"event": "done"[^\n]*\n/.test(out) && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 50))
   child.stdin.end()
   assert.deepEqual(out.trim().split(/\r?\n/).map((line) => JSON.parse(line).event), ['start', 'progress', 'done'])
   for (const secret of ['m-1', 'm-2', 'flowerpot', 'oolong', '西湖', dir, 'keywords.db']) assert.ok(!out.includes(secret), secret)
