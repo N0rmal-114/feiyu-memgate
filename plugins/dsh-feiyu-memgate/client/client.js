@@ -108,6 +108,12 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     const ART_ROUTE = 'feiyu-memgate/art/'
     // How long a confirmation ("Saved", "Copied") stays before it goes away.
     const SAVED_NOTE_MS = 2600
+    // The project's feedback receiver (feedback-worker/): the address the Feedback tab posts a report to
+    // when a person presses Send. Empty while none is deployed; the tab then offers the link to GitHub
+    // and the copy button only. It is the one address outside the host that the page ever calls.
+    const FEEDBACK_ENDPOINT = ''
+    // How long the page waits for the receiver before it says the report was not sent.
+    const FEEDBACK_TIMEOUT_MS = 15000
     // The prefix of every element id the page makes, so that none can meet an id of the host's page.
     const ID_PREFIX = 'feiyu-memgate'
     const LINKS = {
@@ -120,7 +126,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
 
     module.exports = {
       NS, ROW_KEY, STATUS_ROUTE, STATUS_POLL_MS, CHANGELOG_ROUTE, MODELS_ROUTE, MODELS_POLL_MS, MODELS_BUSY_POLL_MS,
-      ART_ROUTE, SAVED_NOTE_MS, ID_PREFIX, LINKS,
+      ART_ROUTE, SAVED_NOTE_MS, FEEDBACK_ENDPOINT, FEEDBACK_TIMEOUT_MS, ID_PREFIX, LINKS,
     }
   })
 
@@ -1060,13 +1066,14 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     'use strict'
 
     // The React hooks that talk to the host half: useStatus (polled), useChangelog (read once) and
-    // useModels (polled, plus the clicks of the model list); and useCopy, which talks to the clipboard.
+    // useModels (polled, plus the clicks of the model list); useCopy, which talks to the clipboard; and
+    // useSend, which posts a feedback report to the project's receiver.
     // They own the timers and the "still mounted" flag; they know nothing about how the data is drawn.
 
     const { useEffect, useRef, useState } = require('./react.cjs')
     const { STATUS_POLL_MS, MODELS_POLL_MS, MODELS_BUSY_POLL_MS, SAVED_NOTE_MS } = require('./constants.cjs')
     const { copyText } = require('./clipboard.cjs')
-    const { fetchStatus, fetchChangelog, fetchModels, postModels } = require('./net.cjs')
+    const { fetchStatus, fetchChangelog, fetchModels, postModels, sendFeedback } = require('./net.cjs')
 
     /** The changelog, read once when the page mounts: { loading, data }; data stays null when the read failed. */
     function useChangelog(fetchImpl) {
@@ -1194,7 +1201,44 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
       return { state, copy }
     }
 
-    module.exports = { useChangelog, useStatus, useModels, useCopy }
+    /**
+     * Sending a feedback report, with what became of the last one: { phase, code, send }.
+     *   phase  'ready' | 'sending' | 'sent' | 'failed'
+     *   code   why the last one failed ('HTTP 429', 'timeout', 'network', ...), or null
+     *   send   post a report (model/feedback.cjs payload()); returns the promise of whether it was taken.
+     *          A second call while one is on its way does nothing and answers false.
+     * @param {string} endpoint the receiver's address
+     * @param {Function} [fetchImpl] replaces the browser's fetch in tests and in the preview
+     */
+    function useSend(endpoint, fetchImpl) {
+      const [state, setState] = useState({ phase: 'ready', code: null })
+      const alive = useRef(true)
+      const busy = useRef(false)
+      useEffect(() => {
+        alive.current = true
+        return () => { alive.current = false }
+      }, [])
+      const send = (report) => {
+        if (busy.current || !endpoint) return Promise.resolve(false)
+        busy.current = true
+        setState({ phase: 'sending', code: null })
+        return sendFeedback(fetchImpl || ((...args) => fetch(...args)), endpoint, report).then(
+          () => {
+            busy.current = false
+            if (alive.current) setState({ phase: 'sent', code: null })
+            return true
+          },
+          (error) => {
+            busy.current = false
+            if (alive.current) setState({ phase: 'failed', code: (error && error.code) || 'network' })
+            return false
+          },
+        )
+      }
+      return { phase: state.phase, code: state.code, send }
+    }
+
+    module.exports = { useChangelog, useStatus, useModels, useCopy, useSend }
   })
 
   // i18n.cjs
@@ -1334,6 +1378,15 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         'feedback.clipped': 'This is too long for a link, so the link carries only the beginning. Pressing the button also copies the whole text: paste it into the issue on GitHub.',
         'feedback.cutNote': '(Cut here: the text was too long for a link. The whole text is on your clipboard; paste it over this.)',
         'feedback.others': 'See what others have reported',
+        'feedback.send': 'Send',
+        'feedback.sending': 'Sending…',
+        'feedback.sent': 'Received. Thank you.',
+        'feedback.failed': 'It was not sent ({code}). Try again, or use GitHub or the copy button below.',
+        'feedback.failedBusy': 'Too many reports in a short time. Try again in a minute.',
+        'feedback.contact': 'How to reach you (optional)',
+        'feedback.contact.help': 'An e-mail address or anything else, if you would like an answer. It goes to the maintainers with Send only; it is never put into the GitHub link or the copied text.',
+        'feedback.howDirect': 'Send hands what you wrote, the contact line if you gave one, and the environment lines listed above to the project’s feedback receiver. Only the maintainers can read it; it is not published.',
+        'feedback.otherWays': 'You can also take it to GitHub yourself (public, needs an account), or copy the text and send it any way you like. Leave out keys and tokens either way.',
         changedCount: '{count} changed',
         modelsTitle: 'Local embedding models',
         modelsIntro: 'Optional. With a local model, memory is recalled by meaning rather than by shared words, on this computer. Nothing is downloaded or installed until you press a button.',
@@ -1492,6 +1545,15 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         'feedback.clipped': '内容比较长，链接里只放得下开头。点提交时会同时复制全文，到 GitHub 后粘贴到正文里即可。',
         'feedback.cutNote': '（链接里放不下，这里截断了。全文已复制到剪贴板，请粘贴替换这一段。）',
         'feedback.others': '看看别人提过什么',
+        'feedback.send': '提交',
+        'feedback.sending': '正在提交…',
+        'feedback.sent': '收到了，谢谢你。',
+        'feedback.failed': '没有发出去（{code}）。可以再试一次，或者改用下面的 GitHub 或复制全文。',
+        'feedback.failedBusy': '提交得太频繁了，过一分钟再试。',
+        'feedback.contact': '联系方式（可选）',
+        'feedback.contact.help': '想收到回复的话，留一个邮箱或别的联系方式。它只随“提交”发给维护者，不会放进 GitHub 的链接和复制的全文里。',
+        'feedback.howDirect': '“提交”会把你写的内容、联系方式（如果填了）和上面列出的运行环境发给项目的反馈接收服务，只有维护者能看到，不会公开。',
+        'feedback.otherWays': '也可以自己去 GitHub 提（公开，需要账号），或者复制全文用别的方式发给我们。无论哪种方式，都不要写密钥和令牌。',
         changedCount: '已改 {count} 项',
         modelsTitle: '本地向量模型',
         modelsIntro: '可选。有了本地模型，记忆按意思而不是按字面找回，全部在这台电脑上完成。按下按钮之前不会下载或安装任何东西。',
@@ -1561,7 +1623,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     const { FIELDS, INDEX } = require('./fields.cjs')
     const { dictionaries } = require('./i18n.cjs')
     const { TABS, placedKeys } = require('./layout.cjs')
-    const { fetchChangelog, fetchStatus, fetchModels, postModels } = require('./net.cjs')
+    const { fetchChangelog, fetchStatus, fetchModels, postModels, sendFeedback } = require('./net.cjs')
     const { copyText } = require('./clipboard.cjs')
     const { entryDate, releases } = require('./model/changelog.cjs')
     const feedback = require('./model/feedback.cjs')
@@ -1607,7 +1669,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         FIELDS, INDEX, TABS, NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE, ART_ROUTE, STYLE_ID,
         dictionaries, placedKeys,
         // calls to the host half
-        fetchStatus, fetchChangelog, fetchModels, postModels,
+        fetchStatus, fetchChangelog, fetchModels, postModels, sendFeedback,
         // logic
         fieldView, buildOps, saveDraft, checkText, splitOption, isMet, sectionView, pageView, savable,
         statusRows, summarise, formatCount, entryDate, releases,
@@ -1678,7 +1740,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
 
     /**
      * A line of text. `onChange` gets the text, not the event.
-     * @param {{ id: string, value: string, type?: string, invalid?: boolean, disabled?: boolean,
+     * @param {{ id: string, value: string, type?: string, invalid?: boolean, disabled?: boolean, maxLength?: number,
      *   placeholder?: string, describedBy?: string, autoComplete?: string, onChange: (text: string) => void }} props
      */
     function TextInput(props) {
@@ -1687,6 +1749,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         className: 'fmg-input',
         type: props.type || 'text',
         value: props.value,
+        maxLength: props.maxLength,
         placeholder: props.placeholder,
         autoComplete: props.autoComplete || 'off',
         spellCheck: false,
@@ -2164,6 +2227,9 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     // Pure, and the one module of the page that the host half loads as well (src/commands.js, for
     // /memgate feedback), so that both build the same address. It requires the constants and nothing else.
     //
+    // The same report can also be posted to the project's own receiver (feedback-worker/); payload()
+    // is what is posted, and usableEndpoint() says whether an address may be posted to at all.
+    //
     // What may go into a report besides the person's own words is decided here and nowhere else:
     // environment() takes version numbers and state names from the status, and every value has to look
     // like one (SAFE) or is replaced by a question mark. So a path, an address, a file name, a count of
@@ -2177,6 +2243,8 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     const TITLE_TAGS = { idea: '[idea]', problem: '[bug]', other: '[feedback]' }
     /** The longest text the page accepts, in characters. */
     const MAX_TEXT = 4000
+    /** The longest contact line, in characters. */
+    const MAX_CONTACT = 200
     // The title is the first line of the text, up to this many characters.
     const MAX_TITLE = 60
     // The longest address that is handed to a browser. GitHub answers 414 somewhere above 8,000
@@ -2292,7 +2360,43 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
       return composed.title + '\n\n' + composed.body
     }
 
-    module.exports = { KINDS, TITLE_TAGS, MAX_TEXT, MAX_TITLE, MAX_URL, safe, environment, cleanText, titleOf, bodyOf, compose, reportText }
+    /** The contact line as it is sent: one line, trimmed, at most MAX_CONTACT characters. */
+    function cleanContact(text) {
+      const line = String(text === null || text === undefined ? '' : text).replace(LONE_SURROGATE, '\uFFFD').replace(/\s+/g, ' ').trim()
+      const points = Array.from(line)
+      return points.length > MAX_CONTACT ? points.slice(0, MAX_CONTACT).join('').trim() : line
+    }
+
+    /**
+     * What is posted to the feedback receiver (feedback-worker/worker.js reads exactly this shape).
+     * @param {{ kind?: string, text?: string, contact?: string }} draft
+     * @param {[string, string][]} rows environment(), or an empty list when it is not to be attached
+     * @returns {{ v: 1, kind: string, text: string, contact: string, environment: [string, string][] }}
+     */
+    function payload(draft, rows) {
+      const input = draft || {}
+      return {
+        v: 1,
+        kind: KINDS.includes(input.kind) ? input.kind : 'other',
+        text: cleanText(input.text),
+        contact: cleanContact(input.contact),
+        environment: Array.isArray(rows) ? rows : [],
+      }
+    }
+
+    /**
+     * The address of a receiver the page may post to, or '' when there is none: an https address, or
+     * one on this computer (the preview and tests).
+     */
+    function usableEndpoint(value) {
+      if (typeof value !== 'string' || /\s/.test(value)) return ''
+      return /^https:\/\/[^/]+(\/|$)/.test(value) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/.test(value) ? value : ''
+    }
+
+    module.exports = {
+      KINDS, TITLE_TAGS, MAX_TEXT, MAX_CONTACT, MAX_TITLE, MAX_URL,
+      safe, environment, cleanText, titleOf, bodyOf, compose, reportText, cleanContact, payload, usableEndpoint,
+    }
   })
 
   // model/form.cjs
@@ -2761,11 +2865,15 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
   define("net.cjs", function (require, module, exports) {
     'use strict'
 
-    // The page's three calls to the host half, over a `fetch` passed in by the caller (so tests can fake it).
-    // A failed answer becomes an Error whose `.code` is 'HTTP <status>'; a network failure rejects as it
-    // comes. The routes are document-relative and owner-only (src/plugin.js). No React, no DOM.
+    // The page's calls, over a `fetch` passed in by the caller (so tests can fake it).
+    //
+    // Three go to the host half: the routes are document-relative and owner-only (src/plugin.js). A failed
+    // answer becomes an Error whose `.code` is 'HTTP <status>'; a network failure rejects as it comes.
+    //
+    // One goes outside the host: sendFeedback posts a report to the project's feedback receiver, and only
+    // when a person pressed Send. It carries no cookie, no credential and no referrer. No React, no DOM.
 
-    const { STATUS_ROUTE, CHANGELOG_ROUTE, MODELS_ROUTE } = require('./constants.cjs')
+    const { STATUS_ROUTE, CHANGELOG_ROUTE, MODELS_ROUTE, FEEDBACK_TIMEOUT_MS } = require('./constants.cjs')
 
     /** GET a route and read its JSON; `name` labels the Error of a failed answer. */
     async function getJson(fetchImpl, route, name) {
@@ -2811,7 +2919,46 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
       return postJson(fetchImpl, MODELS_ROUTE, 'models', body)
     }
 
-    module.exports = { getJson, postJson, fetchStatus, fetchChangelog, fetchModels, postModels }
+    // Why a report was not sent, as an Error the page can tell from any other.
+    function notSent(code) {
+      const error = new Error('feedback')
+      error.code = code
+      error.notSent = true
+      return error
+    }
+
+    /**
+     * Posts a feedback report (model/feedback.cjs payload()) to the receiver at `endpoint`.
+     * Resolves true when the receiver took it. Otherwise rejects with an Error whose `.code` says why:
+     * 'HTTP <status>' for a refusal (429 when there were too many), 'timeout' after FEEDBACK_TIMEOUT_MS,
+     * 'network' when the receiver could not be reached at all.
+     */
+    async function sendFeedback(fetchImpl, endpoint, report) {
+      const controller = typeof AbortController === 'function' ? new AbortController() : null
+      const timer = controller ? setTimeout(() => controller.abort(), FEEDBACK_TIMEOUT_MS) : null
+      try {
+        const response = await fetchImpl(endpoint, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(report),
+          mode: 'cors',
+          credentials: 'omit',
+          referrerPolicy: 'no-referrer',
+          cache: 'no-store',
+          signal: controller ? controller.signal : undefined,
+        })
+        if (!response.ok) throw notSent('HTTP ' + response.status)
+        return true
+      } catch (error) {
+        if (error && error.notSent === true) throw error
+        // Whatever fetch threw is not passed on: an aborted call carries a numeric `code` of its own.
+        throw notSent(controller && controller.signal.aborted ? 'timeout' : 'network')
+      } finally {
+        if (timer !== null) clearTimeout(timer)
+      }
+    }
+
+    module.exports = { getJson, postJson, fetchStatus, fetchChangelog, fetchModels, postModels, sendFeedback }
   })
 
   // react.cjs
@@ -2886,23 +3033,29 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     'use strict'
     // The Feedback tab: a few words to the people who make the plugin.
     //
-    // The tab writes a report and hands it to the person's browser; it sends nothing itself. The button
-    // is a plain link to GitHub's new-issue page with the title and the text filled in
-    // (model/feedback.cjs builds the address), so the person reads the report once more on GitHub and
-    // submits it there under their own account, or closes the page and nothing has happened.
+    // A report can leave the page in three ways, and each is a click the person makes:
+    //   Send      posts it to the project's feedback receiver (feedback-worker/), where only the
+    //             maintainers can read it. Offered only when the page knows a receiver
+    //             (constants.cjs FEEDBACK_ENDPOINT); needs no account anywhere.
+    //   GitHub    a plain link to GitHub's new-issue page with the title and the text filled in
+    //             (model/feedback.cjs builds the address); the person reads it once more there and
+    //             submits it under their own account. Public.
+    //   Copy      the whole report on the clipboard, to send any other way.
+    // Nothing leaves without one of those clicks, and when Send fails the other two are still there.
     //
     // What is attached besides the person's own words is shown in full before anything leaves: the
     // environment lines are listed under the switch that attaches them, and they are the same lines that
-    // go into the report.
+    // go into the report. The contact line travels with Send only: it is never part of the public
+    // address or of the copied text.
     //
-    // The draft (kind, text, whether to attach the environment) is kept by the page (view/page.cjs), so
-    // that looking something up on another tab does not lose what was written.
+    // The draft (kind, text, contact, whether to attach the environment) is kept by the page
+    // (view/page.cjs), so that looking something up on another tab does not lose what was written.
 
     const { h } = require('../react.cjs')
-    const { ID_PREFIX, LINKS } = require('../constants.cjs')
-    const { useCopy } = require('../hooks.cjs')
-    const { KINDS, MAX_TEXT, compose, environment, reportText } = require('../model/feedback.cjs')
-    const { Button, Choices, Switch, TextArea } = require('../kit/controls.cjs')
+    const { FEEDBACK_ENDPOINT, ID_PREFIX, LINKS } = require('../constants.cjs')
+    const { useCopy, useSend } = require('../hooks.cjs')
+    const { KINDS, MAX_CONTACT, MAX_TEXT, compose, environment, payload, reportText, usableEndpoint } = require('../model/feedback.cjs')
+    const { Button, Choices, Switch, TextArea, TextInput } = require('../kit/controls.cjs')
     const { Icon } = require('../kit/icons.cjs')
     const { Facts, Group, Notice, Reveal } = require('../kit/layout.cjs')
 
@@ -2911,40 +3064,63 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
 
     /** The draft a page starts with: an idea, nothing written, the environment attached. */
     function emptyFeedback() {
-      return { kind: KINDS[0], text: '', environment: true }
+      return { kind: KINDS[0], text: '', contact: '', environment: true }
     }
 
     /**
-     * @param {{ t: Function, status: { data: object | null }, draft: { kind: string, text: string, environment: boolean },
-     *   onChange: (patch: object) => void, copy?: (text: string) => Promise<boolean> }} props
-     *   `onChange` merges a patch into the draft; `copy` replaces the clipboard in tests.
+     * @param {{ t: Function, status: { data: object | null },
+     *   draft: { kind: string, text: string, contact: string, environment: boolean },
+     *   onChange: (patch: object) => void, endpoint?: string, send?: Function,
+     *   copy?: (text: string) => Promise<boolean> }} props
+     *   `onChange` merges a patch into the draft. `endpoint` replaces the receiver's address (tests and
+     *   the preview; an empty text means there is none), `send` the browser's fetch for that one call,
+     *   `copy` the clipboard.
      */
     function FeedbackTab(props) {
       const { t, status, draft, onChange } = props
+      const endpoint = usableEndpoint(props.endpoint === undefined ? FEEDBACK_ENDPOINT : props.endpoint)
       const copier = useCopy(props.copy)
+      const sender = useSend(endpoint, props.send)
       const rows = environment(status.data)
       const attached = draft.environment && rows.length > 0
       const report = compose({ kind: draft.kind, text: draft.text, environment: attached ? rows : [], cutNote: t('feedback.cutNote') })
       const whole = reportText(report)
       const length = Array.from(draft.text).length
+      const sending = sender.phase === 'sending'
 
       const kindId = ID_PREFIX + '-feedback-kind'
       const textId = ID_PREFIX + '-feedback-text'
+      const contactId = ID_PREFIX + '-feedback-contact'
       const envId = ID_PREFIX + '-feedback-environment'
       const title = t('feedback.title')
 
-      // A link when there is something to send, a disabled button until then (a link cannot be disabled).
-      const submitText = [t('feedback.submit'), h(Icon, { key: 'icon', name: 'external', size: 13 })]
-      const submit = report.ready
+      // Send: on success the text is cleared, so the same report cannot be sent twice by a second click.
+      const send = () => {
+        sender.send(payload(draft, attached ? rows : [])).then((sent) => { if (sent) onChange({ text: '' }) })
+      }
+
+      // The way to GitHub: a link when there is something to take there, a disabled button until then
+      // (a link cannot be disabled). It is the main action only while there is no receiver.
+      const githubText = [t('feedback.submit'), h(Icon, { key: 'icon', name: 'external', size: 13 })]
+      const github = report.ready
         ? h('a', {
-          className: 'fmg-button fmg-button--primary',
+          className: endpoint ? 'fmg-button' : 'fmg-button fmg-button--primary',
           href: report.url,
           target: '_blank',
           rel: 'noreferrer noopener',
           // A report too long for an address travels by the clipboard: copy it on the way out.
           onClick: report.clipped ? () => { copier.copy(whole) } : undefined,
-        }, submitText)
-        : h(Button, { variant: 'primary', disabled: true }, submitText)
+        }, githubText)
+        : h(Button, { variant: endpoint ? undefined : 'primary', disabled: true }, githubText)
+
+      // What became of the last Send. The thanks stay until the person starts writing again.
+      let outcome = null
+      if (sender.phase === 'sent' && !report.ready) {
+        outcome = h(Notice, { role: 'status' }, h('p', { className: 'fmg-actions' }, h(Icon, { name: 'check' }), t('feedback.sent')))
+      } else if (sender.phase === 'failed') {
+        outcome = h(Notice, { tone: 'warn', role: 'alert' },
+          h('p', null, sender.code === 'HTTP 429' ? t('feedback.failedBusy') : t('feedback.failed', { code: sender.code || '' })))
+      }
 
       return h('section', { className: 'fmg-section', 'aria-label': title },
         h('div', { className: 'fmg-section__head' },
@@ -2958,6 +3134,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
               h(Choices, {
                 labelledBy: kindId + '-label',
                 value: draft.kind,
+                disabled: sending,
                 options: KINDS.map((kind) => ({ value: kind, name: t('feedback.kind.' + kind), note: t('feedback.kind.' + kind + '.note') })),
                 onChange: (kind) => onChange({ kind }),
               }))),
@@ -2966,26 +3143,36 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
               h('div', { className: 'fmg-row__label' }, h('label', { htmlFor: textId }, t('feedback.text'))),
               h('p', { className: 'fmg-row__help', id: textId + '-help' }, t('feedback.hint.' + draft.kind))),
             h('div', { className: 'fmg-row__control fmg-row__control--stack' },
-              h(TextArea, { id: textId, value: draft.text, rows: 7, maxLength: MAX_TEXT, describedBy: textId + '-help', onChange: (text) => onChange({ text }) }),
+              h(TextArea, { id: textId, value: draft.text, rows: 7, maxLength: MAX_TEXT, disabled: sending, describedBy: textId + '-help', onChange: (text) => onChange({ text }) }),
               length >= MAX_TEXT * COUNT_FROM
                 ? h('span', { className: 'fmg-quiet', role: 'status' }, t('feedback.count', { count: length, max: MAX_TEXT }))
                 : null)),
+          // The contact line has a use only where an answer cannot reach the person otherwise.
+          endpoint ? h('div', { className: 'fmg-row fmg-row--stack' },
+            h('div', { className: 'fmg-row__text' },
+              h('div', { className: 'fmg-row__label' }, h('label', { htmlFor: contactId }, t('feedback.contact'))),
+              h('p', { className: 'fmg-row__help', id: contactId + '-help' }, t('feedback.contact.help'))),
+            h('div', { className: 'fmg-row__control' },
+              h('div', { className: 'fmg-input-line' },
+                h(TextInput, { id: contactId, value: draft.contact || '', maxLength: MAX_CONTACT, disabled: sending, describedBy: contactId + '-help', onChange: (contact) => onChange({ contact }) })))) : null,
           h('div', { className: 'fmg-row' },
             h('div', { className: 'fmg-row__text' },
               h('div', { className: 'fmg-row__label' }, h('label', { htmlFor: envId }, t('feedback.env'))),
               h('p', { className: 'fmg-row__help', id: envId + '-help' }, rows.length ? t('feedback.env.help') : t('feedback.env.none'))),
             h('div', { className: 'fmg-row__control' },
               h(Switch, {
-                id: envId, checked: attached, label: t('feedback.env'), describedBy: envId + '-help', disabled: rows.length === 0,
+                id: envId, checked: attached, label: t('feedback.env'), describedBy: envId + '-help', disabled: rows.length === 0 || sending,
                 onChange: (next) => onChange({ environment: next }),
               }))),
           h(Reveal, { open: attached, id: envId + '-lines' }, h(Facts, { rows }))),
         h(Notice, { role: 'note' },
-          h('p', null, t('feedback.how')),
-          h('p', null, t('feedback.public'))),
+          h('p', null, t(endpoint ? 'feedback.howDirect' : 'feedback.how')),
+          h('p', null, t(endpoint ? 'feedback.otherWays' : 'feedback.public'))),
+        outcome,
         report.clipped ? h(Notice, { tone: 'warn', role: 'status' }, h('p', null, t('feedback.clipped'))) : null,
         h('div', { className: 'fmg-actions' },
-          submit,
+          endpoint ? h(Button, { variant: 'primary', disabled: !report.ready || sending, onClick: send }, t(sending ? 'feedback.sending' : 'feedback.send')) : null,
+          github,
           h(Button, { disabled: !report.ready, onClick: () => { copier.copy(whole) } }, t('feedback.copy')),
           copier.state ? h('span', { className: copier.state === 'copied' ? 'fmg-quiet' : 'fmg-row__error', role: 'status' },
             t(copier.state === 'copied' ? 'feedback.copied' : 'feedback.copyFailed')) : null,
@@ -3484,9 +3671,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
 
     /**
      * The page.
-     * @param {{ t: Function, form?: { state: object, mutate: Function }, fetch?: Function, copy?: Function }} props
+     * @param {{ t: Function, form?: { state: object, mutate: Function }, fetch?: Function,
+     *   feedback?: { endpoint?: string, send?: Function, copy?: Function } }} props
      *   `form` is the host's settings form for the plugin's row (absent when the host serves none);
-     *   `fetch` replaces the browser's fetch in tests and in the preview, `copy` the clipboard in tests.
+     *   `fetch` replaces the browser's fetch for the host's routes in tests and in the preview;
+     *   `feedback` does the same for the Feedback tab (view/feedback.cjs).
      */
     function SettingsBody(props) {
       const { t, form } = props
@@ -3564,7 +3753,12 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
       if (tab === 'overview') content = h(OverviewTab, { t, status })
       else if (tab === 'changelog') content = h(ChangelogTab, { t, state: changelog })
       else if (tab === 'feedback') {
-        content = h(FeedbackTab, { t, status, draft: report, copy: props.copy, onChange: (patch) => setReport((previous) => Object.assign({}, previous, patch)) })
+        // `feedback` replaces the receiver's address, its fetch and the clipboard in tests and in the preview.
+        const io = props.feedback || {}
+        content = h(FeedbackTab, {
+          t, status, draft: report, endpoint: io.endpoint, send: io.send, copy: io.copy,
+          onChange: (patch) => setReport((previous) => Object.assign({}, previous, patch)),
+        })
       }
       else if (ready) {
         content = h(SettingsTab, {
@@ -3595,7 +3789,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     function SettingsPage(props) {
       const t = typeof props.t === 'function' ? props.t : typeof props.translate === 'function' ? props.translate : (key) => key
       if (props.view === 'summary') return t('summary')
-      return h(SettingsBody, { t, form: props.form, fetch: props.fetch, copy: props.copy })
+      return h(SettingsBody, { t, form: props.form, fetch: props.fetch, feedback: props.feedback })
     }
 
     module.exports = { SaveBar, Footer, SettingsBody, SettingsPage }

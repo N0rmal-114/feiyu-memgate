@@ -1,0 +1,26 @@
+# The feedback receiver of dsh-feiyu-memgate as a Cloudflare Worker. See README.md in this folder.
+# Nothing secret belongs in this file: the token and the repository name are set as secrets
+# (`npx wrangler secret put GITHUB_TOKEN`, `npx wrangler secret put FEEDBACK_REPO`).
+name = "feiyu-memgate-feedback"
+main = "worker.js"
+compatibility_date = "2026-06-01"
+workers_dev = true
+
+# At most 3 reports a minute from one sender. `namespace_id` is any number that no other rate limit
+# of the same Cloudflare account uses. Needs wrangler 4.36.0 or later.
+[[ratelimits]]
+name = "LIMIT_PER_SENDER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 3
+  period = 60
+
+# At most 30 reports a minute from everybody together.
+[[ratelimits]]
+name = "LIMIT_ALL"
+namespace_id = "1002"
+
+  [ratelimits.simple]
+  limit = 30
+  period = 60

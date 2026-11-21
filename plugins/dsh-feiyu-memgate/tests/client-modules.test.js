@@ -36,10 +36,14 @@ test('constants: the routes, names and addresses the page and the host half agre
     MODELS_BUSY_POLL_MS: 1500,
     ART_ROUTE: 'feiyu-memgate/art/',
     SAVED_NOTE_MS: 2600,
+    FEEDBACK_ENDPOINT: c.FEEDBACK_ENDPOINT,
+    FEEDBACK_TIMEOUT_MS: 15000,
     ID_PREFIX: 'feiyu-memgate',
   })
   assert.deepEqual(Object.keys(LINKS), ['docs', 'source', 'issues', 'newIssue'])
   assert.equal(LINKS.newIssue, LINKS.issues + '/new', 'a new issue of the same repository')
+  // The one address outside the host the page may call: none, or an https address of the receiver.
+  assert.ok(c.FEEDBACK_ENDPOINT === '' || /^https:\/\/[a-z0-9.-]+(\/[\w./-]*)?$/.test(c.FEEDBACK_ENDPOINT), c.FEEDBACK_ENDPOINT)
   for (const href of Object.values(LINKS)) assert.equal(new URL(href).protocol, 'https:')
   for (const route of [c.STATUS_ROUTE, c.CHANGELOG_ROUTE, c.MODELS_ROUTE, c.ART_ROUTE]) assert.ok(!route.startsWith('/'), `${route} is document-relative`)
 })

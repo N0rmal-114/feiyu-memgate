@@ -67,9 +67,11 @@ function Footer(props) {
 
 /**
  * The page.
- * @param {{ t: Function, form?: { state: object, mutate: Function }, fetch?: Function, copy?: Function }} props
+ * @param {{ t: Function, form?: { state: object, mutate: Function }, fetch?: Function,
+ *   feedback?: { endpoint?: string, send?: Function, copy?: Function } }} props
  *   `form` is the host's settings form for the plugin's row (absent when the host serves none);
- *   `fetch` replaces the browser's fetch in tests and in the preview, `copy` the clipboard in tests.
+ *   `fetch` replaces the browser's fetch for the host's routes in tests and in the preview;
+ *   `feedback` does the same for the Feedback tab (view/feedback.cjs).
  */
 function SettingsBody(props) {
   const { t, form } = props
@@ -147,7 +149,12 @@ function SettingsBody(props) {
   if (tab === 'overview') content = h(OverviewTab, { t, status })
   else if (tab === 'changelog') content = h(ChangelogTab, { t, state: changelog })
   else if (tab === 'feedback') {
-    content = h(FeedbackTab, { t, status, draft: report, copy: props.copy, onChange: (patch) => setReport((previous) => Object.assign({}, previous, patch)) })
+    // `feedback` replaces the receiver's address, its fetch and the clipboard in tests and in the preview.
+    const io = props.feedback || {}
+    content = h(FeedbackTab, {
+      t, status, draft: report, endpoint: io.endpoint, send: io.send, copy: io.copy,
+      onChange: (patch) => setReport((previous) => Object.assign({}, previous, patch)),
+    })
   }
   else if (ready) {
     content = h(SettingsTab, {
@@ -178,7 +185,7 @@ function SettingsBody(props) {
 function SettingsPage(props) {
   const t = typeof props.t === 'function' ? props.t : typeof props.translate === 'function' ? props.translate : (key) => key
   if (props.view === 'summary') return t('summary')
-  return h(SettingsBody, { t, form: props.form, fetch: props.fetch, copy: props.copy })
+  return h(SettingsBody, { t, form: props.form, fetch: props.fetch, feedback: props.feedback })
 }
 
 module.exports = { SaveBar, Footer, SettingsBody, SettingsPage }

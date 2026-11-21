@@ -2,7 +2,7 @@
 // It gives the page script what the host would: a module loader with React in it, a translate
 // function from the page's own dictionaries, a settings form, and a fetch that reaches the preview
 // server's made-up routes. Everything is driven by the address:
-//   ?scenario=&theme=&lang=&form=&width=   what the toolbar sets
+//   ?scenario=&theme=&lang=&form=&width=&feedback=   what the toolbar sets
 //   &tab=features|retrieval|advanced|changelog   open that tab after loading
 //   &open=all                                    open every folding group of the tab
 // The last two exist so that one address shows one state (a screenshot, a link in a review).
@@ -15,6 +15,7 @@
   const lang = option('lang', 'zh')
   const formMode = option('form', 'ready') // ready | readonly | loading | unavailable
   const width = option('width', '')
+  const feedbackMode = option('feedback', 'shipped') // shipped | link | direct | fails | busy
 
   if (option('theme', 'light') === 'dark') document.body.setAttribute('data-ds-dark-theme', '')
 
@@ -42,6 +43,7 @@
   control('lang', 'Language', [['zh', '中文'], ['en', 'English']], lang)
   control('form', 'Settings form', [['ready', 'ready'], ['readonly', 'read-only'], ['loading', 'loading'], ['unavailable', 'unavailable']], formMode)
   control('width', 'Column', [['', 'full'], ['640', '640px'], ['380', '380px']], width)
+  control('feedback', 'Feedback', [['shipped', 'as shipped'], ['link', 'no receiver'], ['direct', 'made-up receiver takes it'], ['fails', 'made-up receiver fails'], ['busy', 'made-up receiver is busy']], feedbackMode)
   if (width) document.querySelector('.host-column').style.maxWidth = width + 'px'
 
   // ---- the page script, loaded the way the host loads it
@@ -83,7 +85,11 @@
   const routed = (route, init) => fetch(route + '?scenario=' + encodeURIComponent(scenario), init)
   const root = ReactDOM.createRoot(document.getElementById('slot'))
   function render() {
-    root.render(React.createElement(page.internals.SettingsPage, { view: 'page', translate: t, form: formMode === 'unavailable' ? undefined : form, fetch: routed }))
+    // "As shipped" leaves the address to the package (constants.cjs FEEDBACK_ENDPOINT): a real
+    // receiver if it names one, and Send then really sends. The other choices never leave this computer.
+    const feedback = feedbackMode === 'shipped' ? undefined
+      : { endpoint: feedbackMode === 'link' ? '' : location.origin + '/preview-feedback?mode=' + feedbackMode }
+    root.render(React.createElement(page.internals.SettingsPage, { view: 'page', translate: t, form: formMode === 'unavailable' ? undefined : form, fetch: routed, feedback }))
   }
   render()
 

@@ -12,7 +12,8 @@
 // from CHANGELOG.md like the host half does). What is made up: the status and the model list
 // (scripts/preview/scenarios.mjs), the settings form (kept in the page), and the host's style
 // variables (scripts/preview/host-tokens.css, copied values). So the preview shows layout, texts,
-// states and both themes; it does not show the page inside the real Plugins page.
+// states and both themes; it does not show the page inside the real Plugins page. The feedback
+// receiver is made up as well (POST /preview-feedback answers without reading what was posted).
 //
 // The server listens on 127.0.0.1 only and serves nothing but the files named here.
 import fs from 'node:fs'
@@ -106,6 +107,13 @@ const server = http.createServer((req, res) => {
       return json(200, modelsFor(scenario))
     }
     if (url.pathname === '/feiyu-memgate/changelog') return json(200, changelog())
+    // A stand-in for the feedback receiver: it reads nothing of what is posted and files nothing.
+    if (url.pathname === '/preview-feedback') {
+      req.resume()
+      const mode = url.searchParams.get('mode')
+      const reply = () => (mode === 'fails' ? json(502, { ok: false, code: 'upstream' }) : mode === 'busy' ? json(429, { ok: false, code: 'rate-limited' }) : json(200, { ok: true }))
+      return void setTimeout(reply, 600)
+    }
     send(404, 'text/plain; charset=utf-8', 'not found')
   } catch (error) {
     send(500, 'text/plain; charset=utf-8', String(error && error.message))

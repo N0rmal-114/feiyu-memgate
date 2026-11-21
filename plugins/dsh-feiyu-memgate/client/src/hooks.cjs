@@ -1,13 +1,14 @@
 'use strict'
 
 // The React hooks that talk to the host half: useStatus (polled), useChangelog (read once) and
-// useModels (polled, plus the clicks of the model list); and useCopy, which talks to the clipboard.
+// useModels (polled, plus the clicks of the model list); useCopy, which talks to the clipboard; and
+// useSend, which posts a feedback report to the project's receiver.
 // They own the timers and the "still mounted" flag; they know nothing about how the data is drawn.
 
 const { useEffect, useRef, useState } = require('./react.cjs')
 const { STATUS_POLL_MS, MODELS_POLL_MS, MODELS_BUSY_POLL_MS, SAVED_NOTE_MS } = require('./constants.cjs')
 const { copyText } = require('./clipboard.cjs')
-const { fetchStatus, fetchChangelog, fetchModels, postModels } = require('./net.cjs')
+const { fetchStatus, fetchChangelog, fetchModels, postModels, sendFeedback } = require('./net.cjs')
 
 /** The changelog, read once when the page mounts: { loading, data }; data stays null when the read failed. */
 function useChangelog(fetchImpl) {
@@ -135,4 +136,41 @@ function useCopy(copyImpl) {
   return { state, copy }
 }
 
-module.exports = { useChangelog, useStatus, useModels, useCopy }
+/**
+ * Sending a feedback report, with what became of the last one: { phase, code, send }.
+ *   phase  'ready' | 'sending' | 'sent' | 'failed'
+ *   code   why the last one failed ('HTTP 429', 'timeout', 'network', ...), or null
+ *   send   post a report (model/feedback.cjs payload()); returns the promise of whether it was taken.
+ *          A second call while one is on its way does nothing and answers false.
+ * @param {string} endpoint the receiver's address
+ * @param {Function} [fetchImpl] replaces the browser's fetch in tests and in the preview
+ */
+function useSend(endpoint, fetchImpl) {
+  const [state, setState] = useState({ phase: 'ready', code: null })
+  const alive = useRef(true)
+  const busy = useRef(false)
+  useEffect(() => {
+    alive.current = true
+    return () => { alive.current = false }
+  }, [])
+  const send = (report) => {
+    if (busy.current || !endpoint) return Promise.resolve(false)
+    busy.current = true
+    setState({ phase: 'sending', code: null })
+    return sendFeedback(fetchImpl || ((...args) => fetch(...args)), endpoint, report).then(
+      () => {
+        busy.current = false
+        if (alive.current) setState({ phase: 'sent', code: null })
+        return true
+      },
+      (error) => {
+        busy.current = false
+        if (alive.current) setState({ phase: 'failed', code: (error && error.code) || 'network' })
+        return false
+      },
+    )
+  }
+  return { phase: state.phase, code: state.code, send }
+}
+
+module.exports = { useChangelog, useStatus, useModels, useCopy, useSend }

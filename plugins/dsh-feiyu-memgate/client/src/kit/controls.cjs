@@ -54,7 +54,7 @@ function Switch(props) {
 
 /**
  * A line of text. `onChange` gets the text, not the event.
- * @param {{ id: string, value: string, type?: string, invalid?: boolean, disabled?: boolean,
+ * @param {{ id: string, value: string, type?: string, invalid?: boolean, disabled?: boolean, maxLength?: number,
  *   placeholder?: string, describedBy?: string, autoComplete?: string, onChange: (text: string) => void }} props
  */
 function TextInput(props) {
@@ -63,6 +63,7 @@ function TextInput(props) {
     className: 'fmg-input',
     type: props.type || 'text',
     value: props.value,
+    maxLength: props.maxLength,
     placeholder: props.placeholder,
     autoComplete: props.autoComplete || 'off',
     spellCheck: false,

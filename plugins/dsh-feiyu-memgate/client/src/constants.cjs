@@ -17,6 +17,12 @@ const MODELS_BUSY_POLL_MS = 1500
 const ART_ROUTE = 'feiyu-memgate/art/'
 // How long a confirmation ("Saved", "Copied") stays before it goes away.
 const SAVED_NOTE_MS = 2600
+// The project's feedback receiver (feedback-worker/): the address the Feedback tab posts a report to
+// when a person presses Send. Empty while none is deployed; the tab then offers the link to GitHub
+// and the copy button only. It is the one address outside the host that the page ever calls.
+const FEEDBACK_ENDPOINT = ''
+// How long the page waits for the receiver before it says the report was not sent.
+const FEEDBACK_TIMEOUT_MS = 15000
 // The prefix of every element id the page makes, so that none can meet an id of the host's page.
 const ID_PREFIX = 'feiyu-memgate'
 const LINKS = {
@@ -29,5 +35,5 @@ const LINKS = {
 
 module.exports = {
   NS, ROW_KEY, STATUS_ROUTE, STATUS_POLL_MS, CHANGELOG_ROUTE, MODELS_ROUTE, MODELS_POLL_MS, MODELS_BUSY_POLL_MS,
-  ART_ROUTE, SAVED_NOTE_MS, ID_PREFIX, LINKS,
+  ART_ROUTE, SAVED_NOTE_MS, FEEDBACK_ENDPOINT, FEEDBACK_TIMEOUT_MS, ID_PREFIX, LINKS,
 }

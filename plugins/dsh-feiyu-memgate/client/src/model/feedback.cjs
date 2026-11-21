@@ -6,6 +6,9 @@
 // Pure, and the one module of the page that the host half loads as well (src/commands.js, for
 // /memgate feedback), so that both build the same address. It requires the constants and nothing else.
 //
+// The same report can also be posted to the project's own receiver (feedback-worker/); payload()
+// is what is posted, and usableEndpoint() says whether an address may be posted to at all.
+//
 // What may go into a report besides the person's own words is decided here and nowhere else:
 // environment() takes version numbers and state names from the status, and every value has to look
 // like one (SAFE) or is replaced by a question mark. So a path, an address, a file name, a count of
@@ -19,6 +22,8 @@ const KINDS = ['idea', 'problem', 'other']
 const TITLE_TAGS = { idea: '[idea]', problem: '[bug]', other: '[feedback]' }
 /** The longest text the page accepts, in characters. */
 const MAX_TEXT = 4000
+/** The longest contact line, in characters. */
+const MAX_CONTACT = 200
 // The title is the first line of the text, up to this many characters.
 const MAX_TITLE = 60
 // The longest address that is handed to a browser. GitHub answers 414 somewhere above 8,000
@@ -134,4 +139,40 @@ function reportText(composed) {
   return composed.title + '\n\n' + composed.body
 }
 
-module.exports = { KINDS, TITLE_TAGS, MAX_TEXT, MAX_TITLE, MAX_URL, safe, environment, cleanText, titleOf, bodyOf, compose, reportText }
+/** The contact line as it is sent: one line, trimmed, at most MAX_CONTACT characters. */
+function cleanContact(text) {
+  const line = String(text === null || text === undefined ? '' : text).replace(LONE_SURROGATE, '\uFFFD').replace(/\s+/g, ' ').trim()
+  const points = Array.from(line)
+  return points.length > MAX_CONTACT ? points.slice(0, MAX_CONTACT).join('').trim() : line
+}
+
+/**
+ * What is posted to the feedback receiver (feedback-worker/worker.js reads exactly this shape).
+ * @param {{ kind?: string, text?: string, contact?: string }} draft
+ * @param {[string, string][]} rows environment(), or an empty list when it is not to be attached
+ * @returns {{ v: 1, kind: string, text: string, contact: string, environment: [string, string][] }}
+ */
+function payload(draft, rows) {
+  const input = draft || {}
+  return {
+    v: 1,
+    kind: KINDS.includes(input.kind) ? input.kind : 'other',
+    text: cleanText(input.text),
+    contact: cleanContact(input.contact),
+    environment: Array.isArray(rows) ? rows : [],
+  }
+}
+
+/**
+ * The address of a receiver the page may post to, or '' when there is none: an https address, or
+ * one on this computer (the preview and tests).
+ */
+function usableEndpoint(value) {
+  if (typeof value !== 'string' || /\s/.test(value)) return ''
+  return /^https:\/\/[^/]+(\/|$)/.test(value) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/.test(value) ? value : ''
+}
+
+module.exports = {
+  KINDS, TITLE_TAGS, MAX_TEXT, MAX_CONTACT, MAX_TITLE, MAX_URL,
+  safe, environment, cleanText, titleOf, bodyOf, compose, reportText, cleanContact, payload, usableEndpoint,
+}

@@ -8,7 +8,7 @@ const { NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE, ART_ROUTE } = 
 const { FIELDS, INDEX } = require('./fields.cjs')
 const { dictionaries } = require('./i18n.cjs')
 const { TABS, placedKeys } = require('./layout.cjs')
-const { fetchChangelog, fetchStatus, fetchModels, postModels } = require('./net.cjs')
+const { fetchChangelog, fetchStatus, fetchModels, postModels, sendFeedback } = require('./net.cjs')
 const { copyText } = require('./clipboard.cjs')
 const { entryDate, releases } = require('./model/changelog.cjs')
 const feedback = require('./model/feedback.cjs')
@@ -54,7 +54,7 @@ module.exports = {
     FIELDS, INDEX, TABS, NS, ROW_KEY, STATUS_ROUTE, MODELS_ROUTE, CHANGELOG_ROUTE, ART_ROUTE, STYLE_ID,
     dictionaries, placedKeys,
     // calls to the host half
-    fetchStatus, fetchChangelog, fetchModels, postModels,
+    fetchStatus, fetchChangelog, fetchModels, postModels, sendFeedback,
     // logic
     fieldView, buildOps, saveDraft, checkText, splitOption, isMet, sectionView, pageView, savable,
     statusRows, summarise, formatCount, entryDate, releases,
