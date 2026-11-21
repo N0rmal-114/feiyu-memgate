@@ -7,8 +7,8 @@ needs no account anywhere and only the maintainers read what they wrote.
 
 The Worker is run by the maintainers of the project. It is not part of the published plugin package
 (`files` in `package.json` does not list this folder); the package holds only the Worker's address
-(`FEEDBACK_ENDPOINT` in `client/src/constants.cjs`). While that address is empty the tab has no Send
-button and the page calls nothing outside the host.
+(`FEEDBACK_ENDPOINT` in `client/src/constants.cjs`). The tab posts a report to that address when a person presses Send; with an
+empty address it has no Send button and the page calls nothing outside the host.
 
 | file | what it is |
 |---|---|

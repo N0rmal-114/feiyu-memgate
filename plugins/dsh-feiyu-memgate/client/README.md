@@ -128,7 +128,7 @@ entries of the package's `CHANGELOG.md`. Their Markdown is drawn by a small subs
 that builds React elements from text (headings, lists, paragraphs, code, bold, https links), so no HTML
 from the file can reach the page.
 
-Feedback. The Feedback tab writes a report and hands it to the person's browser; the page sends nothing.
+Feedback. The Feedback tab writes a report and either sends it to the project's receiver (Send, below) or hands it to the person's browser.
 `model/feedback.cjs` builds the address of GitHub's new-issue page with the title and the text as query
 parameters, and the button is a plain link to it (`target="_blank"`), so the report exists only once the
 person submits it on GitHub under their own account. What is attached besides their own words is decided in
@@ -137,8 +137,8 @@ one function, `environment(status)`: version numbers and state names, each of wh
 a file name cannot get in whatever a later status holds. The same lines are listed on the tab under the
 switch that attaches them. An address is kept under `MAX_URL` characters: a longer report is cut in the
 address only, the cut is marked, and the link copies the whole report to the clipboard on the way out.
-Where the package names a receiver (`FEEDBACK_ENDPOINT`, checked by `usableEndpoint`: https, or this
-computer for the preview), the tab is "write, then Send": one Send button, and the link
+The shipped package names a receiver (`FEEDBACK_ENDPOINT`, checked by `usableEndpoint`: https, or this
+computer for the preview; an empty value switches Send off and leaves the link and the copy button), so the tab is "write, then Send": one Send button, and the link
 to GitHub and the copy button are shown only inside the notice of a Send that failed. Send is the only call of the
 page that leaves the host: `net.cjs` `sendFeedback` posts `payload()` with `credentials: 'omit'` and no
 referrer, waits `FEEDBACK_TIMEOUT_MS`, and turns every failure into a code the tab shows. The receiver is

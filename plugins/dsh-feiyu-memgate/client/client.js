@@ -109,9 +109,9 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     // How long a confirmation ("Saved", "Copied") stays before it goes away.
     const SAVED_NOTE_MS = 2600
     // The project's feedback receiver (feedback-worker/): the address the Feedback tab posts a report to
-    // when a person presses Send. Empty while none is deployed; the tab then offers the link to GitHub
-    // and the copy button only. It is the one address outside the host that the page ever calls.
-    const FEEDBACK_ENDPOINT = ''
+    // when a person presses Send. An empty text switches Send off and leaves the link to GitHub and the
+    // copy button. It is the one address outside the host that the page ever calls.
+    const FEEDBACK_ENDPOINT = 'https://feiyu-memgate-feedback.feiyu-memgate.workers.dev/'
     // How long the page waits for the receiver before it says the report was not sent.
     const FEEDBACK_TIMEOUT_MS = 15000
     // The prefix of every element id the page makes, so that none can meet an id of the host's page.
