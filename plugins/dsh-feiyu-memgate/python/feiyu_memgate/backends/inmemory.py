@@ -9,12 +9,11 @@ memories held here contain it (the counts are kept up to date by put and delete)
 """
 import collections
 import threading
-import uuid
 
 from ..core.tidy import PreparedQuery, gram_weights, index_grams, normalize
 from ..registry import register
 from ..model import Hit
-from .base import MemoryBackend, message_date
+from .base import MemoryBackend, message_date, new_receipt, new_ref, receipt_ref, require_writable
 
 
 @register("backend", "inmemory")
@@ -38,12 +37,11 @@ class InMemoryBackend(MemoryBackend):
 
     def put(self, text, ref=None, date=None):
         """Store one memory text as it is and return its ref."""
-        if not self.writable:
-            raise PermissionError("this backend is read-only")
+        require_writable(self)
         return self._store(text, ref, date)
 
     def _store(self, text, ref=None, date=None):
-        ref = ref or "mem-" + uuid.uuid4().hex
+        ref = ref or new_ref()
         grams = index_grams(normalize(text))
         with self._lock:
             self._forget_grams(ref)  # replacing a ref must not count its old text twice
@@ -69,8 +67,7 @@ class InMemoryBackend(MemoryBackend):
 
     def delete(self, ref):
         """True when the memory existed and is gone now."""
-        if not self.writable:
-            raise PermissionError("this backend is read-only")
+        require_writable(self)
         with self._lock:
             if ref not in self._items:
                 return False
@@ -103,13 +100,12 @@ class InMemoryBackend(MemoryBackend):
             return self._items[ref][0]
 
     def remember(self, messages, timeout=None, ctl=None):
-        if not self.writable:
-            raise PermissionError("this backend is read-only")
-        receipt = "w-" + uuid.uuid4().hex
+        require_writable(self)
+        receipt = new_receipt()
         kept = 0
         for index, message in enumerate(messages):
             if message["role"] == "user":
-                self._store(message["content"], ref="%s-%d" % (receipt, index),
+                self._store(message["content"], ref=receipt_ref(receipt, index),
                             date=message_date(message))
                 kept += 1
         return receipt if kept else None  # nothing kept: no receipt for nothing

@@ -19,7 +19,7 @@ from ..core.pool import _NoCtl
 from ..errors import BackendError
 from ..registry import register
 from ..model import Hit
-from .base import MemoryBackend
+from .base import MemoryBackend, require_writable
 
 MAX_RESPONSE = 1024 * 1024
 TARGET_URI = "viking://~/memories"
@@ -293,8 +293,7 @@ class OpenVikingBackend(MemoryBackend):
     def remember(self, messages, timeout=None, ctl=None):
         """Submit messages in one session; `timeout` is the total budget for all calls.
         Returns the session id: OpenViking extracts memories from it in the background."""
-        if not self.writable:
-            raise PermissionError("this backend is read-only")
+        require_writable(self)
         end = None if timeout is None else time.monotonic() + timeout
 
         def left():
@@ -367,8 +366,7 @@ class OpenVikingBackend(MemoryBackend):
 
     def delete(self, ref, timeout=None):
         """True when the memory existed and is gone now; False when it was already gone."""
-        if not self.writable:
-            raise PermissionError("this backend is read-only")
+        require_writable(self)
         uri = self._own_memory_uri(ref)
         quoted = urllib.parse.quote(uri, safe="")
         # DELETE answers 200 for a path that is not there (it never says 404), and its
@@ -387,8 +385,7 @@ class OpenVikingBackend(MemoryBackend):
     def put(self, text, ref=None, date=None, timeout=None):
         """Write one memory file as it is. `ref` (its URI) is required; `date` is ignored
         because this store dates a memory by where its URI sits."""
-        if not self.writable:
-            raise PermissionError("this backend is read-only")
+        require_writable(self)
         if ref is None:
             raise ValueError("ref is required for this backend")
         uri = self._own_memory_uri(ref)

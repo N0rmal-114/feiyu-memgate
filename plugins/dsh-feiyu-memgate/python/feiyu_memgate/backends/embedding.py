@@ -49,26 +49,26 @@ connection each and run outside the lock.
 """
 import array
 import collections
+import contextlib
 import heapq
 import http.client
 import json
 import logging
 import math
-import os
 import socket
-import sqlite3
 import ssl
 import threading
 import time
 import urllib.parse
-import uuid
-from datetime import datetime, timezone
 
 from ..core.pool import _NoCtl
 from ..errors import BackendError
-from ..model import Hit
 from ..registry import register
-from .base import MemoryBackend, message_date
+from . import _sqlfile
+from ._sqlfile import SCAN_BATCH
+from .base import (DEFAULT_BUDGET, MemoryBackend, as_roles, clamp01, kept_messages, make_hit, new_receipt,  # noqa: F401
+                   parse_item, receipt_ref, require_writable)
+from .base import today as _today
 
 PRESETS = (
     # (pattern, values): the first pattern contained in the lower-cased model name wins. "min_score" and
@@ -102,14 +102,10 @@ GENERIC = {"floor": 0.40, "ceil": 0.80, "min_score": 0.50, "ratio": 0.85, "broad
 _log = logging.getLogger("feiyu_memgate.backends.embedding")
 _warned = set()  # model names already warned about in this process
 
-DEFAULT_BUDGET = 10.0  # seconds for one find() when neither the caller nor the options say
 MAX_RESPONSE = 16 * 1024 * 1024  # a batch of 32 vectors of 3072 floats is about 2 MB of JSON
 QUERY_CACHE = 256
 MAX_PREFIX = 512  # characters; the longest recommended instruction is about 100
-SCAN_BATCH = 500
 SCORE_CHECK_EVERY = 256  # vectors scored between two deadline checks
-
-_HAS_META = "meta" in getattr(Hit, "__dataclass_fields__", {})
 
 try:
     _sumprod = math.sumprod  # Python 3.12+: the dot product in C
@@ -117,19 +113,7 @@ except AttributeError:  # pragma: no cover - Python 3.11
     def _sumprod(a, b):
         return sum(x * y for x, y in zip(a, b))
 
-_SCHEMA = """
-CREATE TABLE IF NOT EXISTS memories (
-    ref TEXT PRIMARY KEY,
-    text TEXT NOT NULL,
-    created_at INTEGER NOT NULL,
-    date TEXT,
-    vector BLOB NOT NULL
-);
-CREATE TABLE IF NOT EXISTS info (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL
-);
-"""
+_SCHEMA = _sqlfile.memories_table(",\n    vector BLOB NOT NULL") + _sqlfile.INFO_TABLE
 
 
 def preset_for(model):
@@ -139,20 +123,6 @@ def preset_for(model):
         if pattern in lowered:
             return values, True
     return GENERIC, False
-
-
-def _today():
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-
-def _make_hit(ref, score, text, date, cosine):
-    """A Hit, with the raw cosine in meta when this version of Hit has a meta field."""
-    if _HAS_META:
-        try:
-            return Hit(ref=ref, score=score, text=text, date=date, meta={"cosine": cosine})
-        except TypeError:  # pragma: no cover - a Hit whose meta has another shape
-            pass
-    return Hit(ref=ref, score=score, text=text, date=date)
 
 
 def _unit(values):
@@ -290,8 +260,7 @@ class EmbeddingBackend(MemoryBackend):
 
     def __init__(self, path, url, model, key=None, writable=True, roles=("user",), timeout=10.0,
                  batch=32, floor=None, ceil=None, query_prefix=None, document_prefix=None):
-        if isinstance(roles, str):
-            roles = (roles,)
+        roles = as_roles(roles)
         if not isinstance(model, str) or not model:
             raise ValueError("model must be a non-empty string")
         if key is not None and not isinstance(key, str):
@@ -335,14 +304,8 @@ class EmbeddingBackend(MemoryBackend):
         self._data_version = None
         self._qcache = collections.OrderedDict()
         self._qlock = threading.Lock()
-        if self._path != ":memory:":
-            os.makedirs(os.path.dirname(os.path.abspath(self._path)), exist_ok=True)
-        self._db = sqlite3.connect(self._path, check_same_thread=False, timeout=10.0)
+        self._db = _sqlfile.open_store(self._path, _SCHEMA)
         try:
-            if self._path != ":memory:":
-                self._db.execute("PRAGMA journal_mode=WAL")
-            self._db.executescript(_SCHEMA)
-            self._db.commit()
             self._check_model()
         except Exception:
             self._db.close()
@@ -419,10 +382,6 @@ class EmbeddingBackend(MemoryBackend):
 
     # ------------------------------------------------------------ writing
 
-    def _require_writable(self):
-        if not self.writable:
-            raise PermissionError("this backend is read-only")
-
     def put(self, text, ref=None, date=None, timeout=None, ctl=None):
         """Store one memory text as it is and return its ref (an existing ref is replaced)."""
         return self.put_many([(text, ref, date)], timeout=timeout, ctl=ctl)[0]
@@ -433,8 +392,8 @@ class EmbeddingBackend(MemoryBackend):
         Each item is a text, a (text, ref, date) tuple (ref and date optional) or a dict with
         "text" and optionally "ref" and "date". All embeddings are fetched before anything is
         written, so a failing endpoint leaves the store unchanged."""
-        self._require_writable()
-        rows = [self._item(i) for i in items]
+        require_writable(self)
+        rows = [parse_item(i) for i in items]
         if not rows:
             return []
         vectors = self._embed([r[0] for r in rows], timeout, ctl, self._doc_prefix)
@@ -454,21 +413,9 @@ class EmbeddingBackend(MemoryBackend):
                     self._vectors[ref] = vec
         return refs
 
-    @staticmethod
-    def _item(item):
-        if isinstance(item, str):
-            item = (item,)
-        if isinstance(item, dict):
-            text, ref, date = item.get("text"), item.get("ref"), item.get("date")
-        else:
-            text, ref, date = (tuple(item) + (None, None))[:3]
-        if not isinstance(text, str) or not text.strip():
-            raise ValueError("a memory text must be a non-empty string")
-        return text, ref or "mem-" + uuid.uuid4().hex, date
-
     def delete(self, ref):
         """Remove one memory. True when it existed."""
-        self._require_writable()
+        require_writable(self)
         with self._lock:
             with self._db:
                 cur = self._db.execute("DELETE FROM memories WHERE ref = ?", (ref,))
@@ -479,12 +426,12 @@ class EmbeddingBackend(MemoryBackend):
     def remember(self, messages, timeout=None, ctl=None):
         """Keep the messages whose role is in `roles`. Returns a receipt id, or None when
         nothing matched (nothing was embedded or stored)."""
-        self._require_writable()
+        require_writable(self)
         today = _today()
-        kept = [(i, m["content"], message_date(m, today)) for i, m in enumerate(messages) if m["role"] in self.roles]
+        kept = kept_messages(messages, self.roles, today)
         if not kept:
             return None
-        receipt = "w-" + uuid.uuid4().hex
+        receipt = new_receipt()
         texts = [content for _, content, _ in kept]
         if any(not isinstance(t, str) or not t.strip() for t in texts):
             raise ValueError("a memory text must be a non-empty string")
@@ -496,53 +443,36 @@ class EmbeddingBackend(MemoryBackend):
                 for (index, content, date), vec in zip(kept, vectors):
                     self._db.execute(
                         "INSERT OR REPLACE INTO memories (ref, text, created_at, date, vector) VALUES (?, ?, ?, ?, ?)",
-                        ("%s-%d" % (receipt, index), content, now, date, vec.tobytes()),
+                        (receipt_ref(receipt, index), content, now, date, vec.tobytes()),
                     )
             if self._vectors is not None:
                 for (index, _, _), vec in zip(kept, vectors):
-                    self._vectors["%s-%d" % (receipt, index)] = vec
+                    self._vectors[receipt_ref(receipt, index)] = vec
         return receipt
 
     # ------------------------------------------------------------ reading
 
-    def count(self):
+    @contextlib.contextmanager
+    def _read(self):
+        """The one connection, used under the lock until the block ends."""
         with self._lock:
-            return self._db.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
+            yield self._db
+
+    def count(self):
+        return _sqlfile.count(self._read)
 
     def items(self):
         """Iterate (ref, text, date) over everything stored, oldest first."""
-        with self._lock:
-            rows = self._db.execute("SELECT ref, text, date FROM memories ORDER BY created_at, ref").fetchall()
-        return iter(rows)
+        return _sqlfile.items(self._read)
 
     def refs(self):
         """Iterate (ref, date or None) over every memory, ordered by ref, without texts or vectors.
         Read in batches by key with the lock released in between, so deleting while iterating is safe."""
-        last = None
-        while True:
-            with self._lock:
-                if last is None:
-                    rows = self._db.execute("SELECT ref, date FROM memories ORDER BY ref LIMIT ?",
-                                            (SCAN_BATCH,)).fetchall()
-                else:
-                    rows = self._db.execute("SELECT ref, date FROM memories WHERE ref > ? ORDER BY ref LIMIT ?",
-                                            (last, SCAN_BATCH)).fetchall()
-            for row in rows:
-                yield row[0], row[1]
-            if len(rows) < SCAN_BATCH:
-                return
-            last = rows[-1][0]
+        yield from _sqlfile.iter_refs(self._read, SCAN_BATCH)
 
     def receipt_refs(self, receipt):
         """The refs remember() stored for `receipt` (named "<receipt>-<index>"); a memory deleted since is absent."""
-        if not isinstance(receipt, str) or not receipt:
-            return None
-        prefix = receipt + "-"
-        with self._lock:
-            rows = self._db.execute(
-                "SELECT ref FROM memories WHERE substr(ref, 1, ?) = ? ORDER BY ref", (len(prefix), prefix)
-            ).fetchall()
-        return [r[0] for r in rows]
+        return _sqlfile.receipt_refs(self._read, receipt)
 
     def read(self, ref, timeout=None, ctl=None):
         with self._lock:
@@ -564,7 +494,7 @@ class EmbeddingBackend(MemoryBackend):
             return list(self._vectors.items())
 
     def _score(self, cosine):
-        return min(1.0, max(0.0, (cosine - self.floor) / (self.ceil - self.floor)))
+        return clamp01((cosine - self.floor) / (self.ceil - self.floor))
 
     def find(self, query, limit, timeout=None, ctl=None):
         """Up to `limit` hits, best first; memories at or below `floor` cosine are left out.
@@ -583,14 +513,7 @@ class EmbeddingBackend(MemoryBackend):
                 raise BackendError("deadline exceeded")
             for ref, vec in snapshot[start:start + SCORE_CHECK_EVERY]:
                 scored.append((_sumprod(qvec, vec), ref))
-        best = [(c, r) for c, r in heapq.nlargest(limit, scored) if self._score(c) > 0.0]
-        texts = self._texts([r for _, r in best])
-        hits = []
-        for cosine, ref in best:
-            if ref in texts:  # deleted by another connection between scan and fetch: skip
-                text, date = texts[ref]
-                hits.append(_make_hit(ref, self._score(cosine), text, date, cosine))
-        return hits
+        return self._top_hits(scored, limit)
 
     def neighbours(self, ref, limit, timeout=None, ctl=None):
         """Up to `limit` memories most similar to the stored memory `ref`, best first, never `ref` itself.
@@ -621,13 +544,17 @@ class EmbeddingBackend(MemoryBackend):
             for key, vec in snapshot[start:start + SCORE_CHECK_EVERY]:
                 if key != ref and len(vec) == len(own):
                     scored.append((_sumprod(own, vec), key))
+        return self._top_hits(scored, limit)
+
+    def _top_hits(self, scored, limit):
+        """The `limit` best of `scored` ([(cosine, ref)]) above the floor, as hits with their text."""
         best = [(c, r) for c, r in heapq.nlargest(limit, scored) if self._score(c) > 0.0]
         texts = self._texts([r for _, r in best])
         hits = []
-        for cosine, key in best:
-            if key in texts:  # deleted by another connection between scan and fetch: skip
-                text, date = texts[key]
-                hits.append(_make_hit(key, self._score(cosine), text, date, cosine))
+        for cosine, ref in best:
+            if ref in texts:  # deleted by another connection between scan and fetch: skip
+                text, date = texts[ref]
+                hits.append(make_hit(ref, self._score(cosine), text, date, {"cosine": cosine}))
         return hits
 
     def _texts(self, refs):

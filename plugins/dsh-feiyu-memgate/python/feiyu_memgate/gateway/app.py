@@ -9,14 +9,13 @@ raise; an error body is always {"error": <human text>, "code": <stable code>}
 (the codes are listed in docs/api.md).
 
 Standard library only.
+
+The parts that need no Gateway live beside it: tokens.py (token floor and the tenant token
+format), validate.py (request-body checks and their limits) and policies.py (start-up checks).
+Their public names are re-exported here, so this module stays the one place to import from.
 """
-import base64
 import collections
-import hashlib
 import hmac
-import math
-import re
-import struct
 import sys
 import threading
 import time
@@ -26,32 +25,31 @@ from ..core import limits, stages as stages_module, write as write_module
 from ..core.pool import POOL_SIZE, Pool
 from ..core.recall import BUSY, OK, RECALL_DEADLINE, MAX_WAIT, RecallContext, StageError, call, piece_name, recall
 from ..core.watch import ExtractionWatch, RecallFailures
-from ..errors import ConfigError, WriteRejected
-from ..model import AUDIENCES, TENANT_BINDINGS, TENANT_STORE
+from ..errors import WriteRejected
+from ..model import TENANT_STORE
+from . import policies
+# The names below were defined in this module before it was split. They are imported here for
+# the callers and tests that still reach them as attributes of gateway.app (re-exports).
+from ..errors import ConfigError  # noqa: F401
+from ..model import AUDIENCES, TENANT_BINDINGS  # noqa: F401
+from .policies import _audience_choices  # noqa: F401
+from .tokens import (  # noqa: F401
+    MAX_TENANT_ID_BYTES, MAX_TENANT_TOKEN_CHARS, MIN_TOKEN_CHARS, PLACEHOLDER_TOKEN, RANDOM_SECRET_CHARS,
+    RANDOM_SECRET_DISTINCT, TENANT_TOKEN_LABEL, TENANT_TOKEN_PREFIX, _B64URL, _MAC_BYTES, _b64, _b64_chars,
+    _secret_bytes, _unb64, mint_tenant_token, minting_secret_looks_weak, parse_tenant_token, tenant_token_mac,
+    usable_token)
+from .validate import (  # noqa: F401
+    MAX_CONTEXT_KEYS, MAX_CONTEXT_KEY_CHARS, MAX_CONTEXT_VALUE_CHARS, MAX_MESSAGE_CHARS, MAX_MESSAGES,
+    MAX_QUERY_CHARS, MAX_SPEAKER_CHARS, MAX_TIME_CHARS, MAX_TOTAL_CHARS, MAX_USED, MAX_USED_ID_CHARS,
+    MAX_USED_SOURCE_CHARS, _BadMessages, _check_shape, _valid_context, _valid_messages, _valid_used)
 
 DEFAULT_LIMIT = 5
 MAX_LIMIT = 10
-MAX_QUERY_CHARS = 500
-MAX_MESSAGES = 20
-MAX_MESSAGE_CHARS = 4000
-MAX_TOTAL_CHARS = 16000
-MAX_TIME_CHARS = 40
-MAX_SPEAKER_CHARS = 64
-MAX_CONTEXT_KEYS = 16
-MAX_CONTEXT_KEY_CHARS = 64
-MAX_CONTEXT_VALUE_CHARS = 200
-MAX_USED = 20
-MAX_USED_SOURCE_CHARS = 128
-MAX_USED_ID_CHARS = 512
 USED_DEADLINE = 3.0
 COLD_RECALL_DEADLINE = 8.0
 COLD_AFTER = 600.0  # a local embedding model is often unloaded after 10 idle minutes
 REMEMBER_DEADLINE = 10.0
 TENANT_PER_TENANT = 2
-# Tokens shorter than this, or the placeholder of the example configuration, are not loaded,
-# so a hand-copied example never guards a route with a public string.
-MIN_TOKEN_CHARS = 32
-PLACEHOLDER_TOKEN = "change-me"
 
 Reply = collections.namedtuple("Reply", "status body note", defaults=("",))
 
@@ -64,125 +62,6 @@ def error_reply(status, code, text, note=""):
 def stderr_log(line):
     sys.stderr.write(line + "\n")
     sys.stderr.flush()
-
-
-def usable_token(value):
-    """value when it can guard a route, "" when it is missing, the placeholder or shorter than MIN_TOKEN_CHARS."""
-    if not isinstance(value, str) or value in ("", PLACEHOLDER_TOKEN) or len(value) < MIN_TOKEN_CHARS:
-        return ""
-    return value
-
-
-# ---------------------------------------------------------------- tenant-bound tokens
-#
-# A client with tenant_binding = "token" holds a minting secret that never authenticates a
-# request by itself. A request token is
-#
-#     fmg1.<base64url(tenant id, UTF-8), no padding>.<base64url(HMAC-SHA256(secret, context)), no padding>
-#
-# where context frames, each as a 4-byte big-endian length followed by the bytes: TENANT_TOKEN_LABEL,
-# the client name (UTF-8), the client's tenants provider name (UTF-8), the token generation (decimal
-# ASCII) and the tenant id (UTF-8). The length prefixes make the framing unambiguous; the label keeps
-# these MACs apart from any other use of the secret; the client name keeps one client's tokens from
-# authenticating as another's; the provider name keeps a token from following its client when the
-# client is pointed at another provider (the same id there may be someone else); the generation lets
-# the operator void every token of a client at once. Verification needs no state. The tenant id is
-# encoded, not encrypted: whoever holds a token can read which tenant it names.
-#
-# Anyone holding one token can test guesses of the minting secret offline, at no cost to the gateway,
-# so the secret must be random (secrets.token_urlsafe(32)), never a phrase: see minting_secret_looks_weak().
-
-TENANT_TOKEN_PREFIX = "fmg1"
-TENANT_TOKEN_LABEL = b"feiyu-memgate tenant token v1"
-MAX_TENANT_ID_BYTES = 256
-_MAC_BYTES = 32  # HMAC-SHA256
-
-
-def _b64_chars(n):
-    """Characters of n bytes in unpadded base64url."""
-    return (4 * n + 2) // 3
-
-
-MAX_TENANT_TOKEN_CHARS = len(TENANT_TOKEN_PREFIX) + 1 + _b64_chars(MAX_TENANT_ID_BYTES) + 1 + _b64_chars(_MAC_BYTES)
-_B64URL = re.compile(r"[A-Za-z0-9_-]+")
-
-
-def _b64(raw):
-    return base64.urlsafe_b64encode(raw).rstrip(b"=").decode("ascii")
-
-
-def _unb64(text):
-    """The bytes of unpadded base64url text written in its one canonical spelling, else None.
-    Padding, the standard alphabet, whitespace and non-zero unused trailing bits are all refused, so
-    a token has exactly one accepted spelling."""
-    if not text or not text.isascii() or len(text) % 4 == 1 or _B64URL.fullmatch(text) is None:
-        return None
-    try:
-        raw = base64.urlsafe_b64decode(text + "=" * (-len(text) % 4))
-    except ValueError:  # binascii.Error
-        return None
-    return raw if _b64(raw) == text else None
-
-
-def _secret_bytes(secret):
-    # As the presented plain tokens are compared: an odd environment value still has one byte form.
-    return secret.encode("utf-8", "surrogateescape")
-
-
-def tenant_token_mac(secret, client, provider, generation, tenant_id):
-    """HMAC-SHA256 of one (client, tenants provider, generation, tenant) under a client's minting secret."""
-    fields = (TENANT_TOKEN_LABEL, client.encode("utf-8"), provider.encode("utf-8"), str(generation).encode("ascii"),
-              tenant_id.encode("utf-8"))
-    context = b"".join(struct.pack(">I", len(field)) + field for field in fields)
-    return hmac.new(_secret_bytes(secret), context, hashlib.sha256).digest()
-
-
-def mint_tenant_token(secret, client, provider, generation, tenant_id):
-    """The request token of `client` (whose tenants provider is `provider`) bound to `tenant_id`.
-    Raises ValueError for an empty tenant id or one over MAX_TENANT_ID_BYTES bytes of UTF-8 (the
-    message holds no secret)."""
-    if not isinstance(tenant_id, str):
-        raise ValueError("the tenant id must be text")
-    raw = tenant_id.encode("utf-8")  # strict: a lone surrogate has no UTF-8 form
-    if not 0 < len(raw) <= MAX_TENANT_ID_BYTES:
-        raise ValueError("the tenant id must be 1 to %d bytes of UTF-8" % MAX_TENANT_ID_BYTES)
-    mac = tenant_token_mac(secret, client, provider, generation, tenant_id)
-    return "%s.%s.%s" % (TENANT_TOKEN_PREFIX, _b64(raw), _b64(mac))
-
-
-# A heuristic, not a measure of entropy: secrets.token_urlsafe(32) gives 43 characters drawn from 64,
-# so a shorter secret, or one built from few distinct characters, was probably not made that way.
-RANDOM_SECRET_CHARS = 43
-RANDOM_SECRET_DISTINCT = 16
-
-
-def minting_secret_looks_weak(secret):
-    """True when a minting secret does not look randomly generated (shorter than 43 characters or
-    fewer than 16 distinct ones). A token lets its holder guess the secret offline, unlike a plain
-    token, which can only be guessed against the gateway and its rate limit."""
-    return len(secret) < RANDOM_SECRET_CHARS or len(set(secret)) < RANDOM_SECRET_DISTINCT
-
-
-def parse_tenant_token(presented):
-    """(tenant id, MAC bytes) of a token in the tenant-bound format, else None. Only the public
-    structure is checked here, its length first; the MAC is checked by the gateway, which knows the
-    secrets, and the tenant id by the client's provider."""
-    if not isinstance(presented, str) or len(presented) > MAX_TENANT_TOKEN_CHARS:
-        return None
-    parts = presented.split(".")
-    if len(parts) != 3 or parts[0] != TENANT_TOKEN_PREFIX:
-        return None
-    raw, mac = _unb64(parts[1]), _unb64(parts[2])
-    if raw is None or mac is None or len(mac) != _MAC_BYTES or not 0 < len(raw) <= MAX_TENANT_ID_BYTES:
-        return None
-    try:
-        return raw.decode("utf-8"), mac  # strict: one tenant id, one byte form
-    except UnicodeDecodeError:
-        return None
-
-
-def _audience_choices():
-    return ", ".join('"%s"' % level for level in AUDIENCES)
 
 
 def default_stages():
@@ -200,88 +79,6 @@ def _join(notes):
         if word and word not in seen:
             seen.append(word)
     return ",".join(seen)
-
-
-def _valid_context(value):
-    """The request's "context" object as a dict ({} when absent), or None when it breaks
-    the rules: at most MAX_CONTEXT_KEYS keys, each value a short string, a number or a boolean."""
-    if value is None:
-        return {}
-    if not isinstance(value, dict) or len(value) > MAX_CONTEXT_KEYS:
-        return None
-    for key, item in value.items():
-        if not isinstance(key, str) or not key or len(key) > MAX_CONTEXT_KEY_CHARS:
-            return None
-        if isinstance(item, bool):
-            continue
-        if isinstance(item, (int, float)):
-            if isinstance(item, float) and not math.isfinite(item):
-                return None
-            continue
-        if not isinstance(item, str) or len(item) > MAX_CONTEXT_VALUE_CHARS:
-            return None
-    return dict(value)
-
-
-def _valid_used(items):
-    """The "used" list as [(source, id)], or None when it breaks the rules: a list of at most
-    MAX_USED objects, each with a non-empty string "source" and "id" of sane length. An empty
-    list is fine (nothing used). Other keys are ignored, so a recall result can be passed as it is."""
-    if not isinstance(items, list) or len(items) > MAX_USED:
-        return None
-    clean = []
-    for item in items:
-        if not isinstance(item, dict):
-            return None
-        source, ref = item.get("source"), item.get("id")
-        if not isinstance(source, str) or not source or len(source) > MAX_USED_SOURCE_CHARS:
-            return None
-        if not isinstance(ref, str) or not ref or len(ref) > MAX_USED_ID_CHARS:
-            return None
-        clean.append((source, ref))
-    return clean
-
-
-def _valid_messages(messages):
-    """The messages as [{"role", "content", optional "time", "speaker"}], or None when the
-    shape is wrong. Over-long content is rejected, not truncated; other keys are dropped."""
-    if not isinstance(messages, list) or not 0 < len(messages) <= MAX_MESSAGES:
-        return None
-    clean = []
-    total = 0
-    for m in messages:
-        if not isinstance(m, dict):
-            return None
-        role, content = m.get("role"), m.get("content")
-        if role not in ("user", "assistant") or not isinstance(content, str):
-            return None
-        if not content.strip() or len(content) > MAX_MESSAGE_CHARS:
-            return None
-        total += len(content)
-        if total > MAX_TOTAL_CHARS:
-            return None
-        item = {"role": role, "content": content}
-        for key, cap in (("time", MAX_TIME_CHARS), ("speaker", MAX_SPEAKER_CHARS)):
-            value = m.get(key)
-            if value is None:
-                continue
-            if not isinstance(value, str) or len(value) > cap:
-                return None
-            item[key] = value
-        clean.append(item)
-    return clean
-
-
-class _BadMessages(Exception):
-    """A guard handed back something the backends cannot take (a forgotten return included)."""
-
-
-def _check_shape(messages):
-    if not isinstance(messages, list) or not all(
-            isinstance(m, dict) and m.get("role") in ("user", "assistant") and isinstance(m.get("content"), str)
-            for m in messages):
-        raise _BadMessages()
-    return messages
 
 
 class Gateway:
@@ -353,17 +150,7 @@ class Gateway:
 
     def _load_audiences(self, audiences):
         """name -> level for every store and tenants provider; what was not declared gets its default."""
-        levels = {name: "owner" for name in self.stores}
-        levels.update({name: "group" for name in self.tenants})
-        self._declared = set()
-        for name, level in dict(audiences or {}).items():
-            if name not in levels:
-                raise ConfigError("audiences names %s, which is neither a store nor a tenants provider" % name)
-            kind = "stores" if name in self.stores else "tenants"
-            if level not in AUDIENCES:
-                raise ConfigError("%s.%s.audience must be one of %s" % (kind, name, _audience_choices()))
-            levels[name] = level
-            self._declared.add(name)
+        levels, self._declared = policies.load_audiences(self.stores, self.tenants, audiences)
         return levels
 
     def audience_of(self, name):
@@ -376,84 +163,20 @@ class Gateway:
     def _check_audience(self, where, policy):
         """The two audience rules: a client reads only stores at least as wide as its own audience,
         and a client serving many groups reads no store that belongs to one group."""
-        if policy.audience is not None and policy.audience not in AUDIENCES:
-            raise ConfigError("%s.audience must be one of %s" % (where, _audience_choices()))
-        if policy.audience == "owner" and policy.public:
-            raise ConfigError("%s.audience is \"owner\" but public is true: an owner-level client is not public"
-                              % where)
-        if policy.audience in ("group", "public") and not policy.public:
-            raise ConfigError("%s.audience is \"%s\" but public is false: a client whose audience is \"group\" or "
-                              "\"public\" shows what it recalls to other people" % (where, policy.audience))
-        reach = AUDIENCES.index(policy.reach)
-        for entry in policy.recall or ():
-            shared = entry != TENANT_STORE
-            source = entry if shared else policy.tenants
-            level, note = self.audiences[source], "" if source in self._declared else " (the default: it declares none)"
-            if AUDIENCES.index(level) < reach:
-                if shared:
-                    head = "%s.recall names the store %r, whose audience is \"%s\"%s" % (where, entry, level, note)
-                else:
-                    head = "%s.recall names \"%s\", and the audience of tenants.%s is \"%s\"%s" % (
-                        where, TENANT_STORE, source, level, note)
-                raise ConfigError(
-                    "%s, but the client's audience is \"%s\": what it recalls would be shown to people the store "
-                    "is not for. take the store out of recall, or, if everything in it may be shown to them, set "
-                    "audience on [%s.%s]" % (head, policy.reach, "stores" if shared else "tenants", source))
-            if shared and policy.tenants is not None and policy.reach == "group" and level == "group":
-                raise ConfigError(
-                    "%s.recall names the store %r, whose audience is \"group\" (one group), but the client "
-                    "serves every tenant of %r: a store that all of them read must have audience \"public\""
-                    % (where, entry, policy.tenants))
+        policies.check_audience(where, policy, self.audiences, self._declared)
 
     def _check_policies(self):
-        for name in self.tenants:
-            if name in self.stores:
-                raise ConfigError("tenants.%s has the same name as a store" % name)
-        for name, policy in self.clients.items():
-            where = "clients.%s" % name
-            if policy.tenants is not None and policy.tenants not in self.tenants:
-                raise ConfigError("%s.tenants names an unknown tenants provider %r" % (where, policy.tenants))
-            self._check_binding(where, policy)
-            for store in policy.recall or ():
-                if store == TENANT_STORE:
-                    if policy.tenants is None:
-                        raise ConfigError("%s.recall names %r but the client has no tenants" % (where, TENANT_STORE))
-                elif store not in self.stores:
-                    raise ConfigError("%s.recall names an unknown store %r" % (where, store))
-            if policy.write == TENANT_STORE:
-                if policy.tenants is None:
-                    raise ConfigError("%s.write is %r but the client has no tenants" % (where, TENANT_STORE))
-            elif policy.write is not None:
-                if policy.write not in self.stores:
-                    raise ConfigError("%s.write names an unknown store %r" % (where, policy.write))
-                if not getattr(self.stores[policy.write], "writable", False):
-                    raise ConfigError("%s.write names the read-only store %r" % (where, policy.write))
-            self._check_audience(where, policy)
-            self._check_explain(where, policy)
+        policies.check_policies(self.stores, self.tenants, self.clients, self.audiences, self._declared)
 
     @staticmethod
     def _check_explain(where, policy):
         """An explained recall shows what a recall left out, so only a client that recalls and
         shows its answer to no one but the owner may have it."""
-        if not policy.explain:
-            return
-        if not policy.can_recall:
-            raise ConfigError("%s.explain needs recall: there is nothing to explain for a client that may not recall"
-                              % where)
-        if policy.reach != "owner":
-            raise ConfigError("%s.explain is for owner-level clients: it shows the candidates a recall left out, "
-                              "with their scores (the client's audience is \"%s\")" % (where, policy.reach))
+        policies.check_explain(where, policy)
 
     @staticmethod
     def _check_binding(where, policy):
-        if policy.tenant_binding not in TENANT_BINDINGS:
-            raise ConfigError("%s.tenant_binding must be \"request\" or \"token\"" % where)
-        if policy.tenant_binding == "token" and policy.tenants is None:
-            raise ConfigError("%s.tenant_binding = \"token\" needs tenants: only a tenant client has a tenant "
-                              "to bind its tokens to" % where)
-        generation = policy.tenant_token_generation
-        if isinstance(generation, bool) or not isinstance(generation, int) or generation < 1:
-            raise ConfigError("%s.tenant_token_generation must be a positive integer" % where)
+        policies.check_binding(where, policy)
 
     def _load_tokens(self, tokens):
         """(plain, minting): name -> token bytes of the clients that present their token as it is,
