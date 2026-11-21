@@ -2,7 +2,9 @@
 //
 // A port of the gateway's Python client (client/http.py). Out of scope in this version:
 // tenants (tenant_id, the tenant token, tenant-bound clients) and from_env. A plugin talks to
-// one gateway with one token.
+// one gateway with one token. recall and remember take an optional "context" (a small flat
+// object of labels) and send it as the request's "context" when it passes the gateway's own
+// check; one that does not is dropped with a warning, and the request goes out without it.
 //
 // Logs go through logger.warn and name only the kind of failure ("http 500 busy", "timeout"):
 // never the query, a memory text, an item id or the token. The error code of an answer is
@@ -27,6 +29,9 @@ const MAX_MESSAGES = 20 // gateway limit of messages per /v1/remember
 const MAX_TIME_CHARS = 40 // gateway limit of a message's optional "time"
 const MAX_SPEAKER_CHARS = 64 // gateway limit of a message's optional "speaker"
 const MAX_USED = 20 // gateway limit of items per /v1/used
+const MAX_CONTEXT_KEYS = 16 // gateway limit of keys in a request's optional "context"
+const MAX_CONTEXT_KEY_CHARS = 64 // gateway limit of a context key's length
+const MAX_CONTEXT_VALUE_CHARS = 200 // gateway limit of a context string value's length
 const MAX_RESPONSE_BYTES = 256 * 1024
 const MAX_ERROR_BYTES = 4096
 
@@ -56,6 +61,28 @@ function failure(status, code) {
   if (code === 'daily_limit') return LIMITED
   if (code !== null && (DEFINITE_CODES.has(code) || code.startsWith('bad_'))) return REJECTED
   return status >= 400 && status < 500 ? REJECTED : UNSURE
+}
+
+// Mirrors the gateway's _valid_context: a plain object of at most MAX_CONTEXT_KEYS keys, each key
+// a non-empty string of at most MAX_CONTEXT_KEY_CHARS characters, each value a boolean, a finite
+// number or a string of at most MAX_CONTEXT_VALUE_CHARS characters.
+export function validContext(value) {
+  if (!isObject(value)) return false
+  const proto = Object.getPrototypeOf(value)
+  if (proto !== Object.prototype && proto !== null) return false
+  const keys = Object.keys(value)
+  if (keys.length > MAX_CONTEXT_KEYS) return false
+  for (const key of keys) {
+    if (!key || codePointLength(key) > MAX_CONTEXT_KEY_CHARS) return false
+    const item = value[key]
+    if (typeof item === 'boolean') continue
+    if (typeof item === 'number') {
+      if (!Number.isFinite(item)) return false
+      continue
+    }
+    if (typeof item !== 'string' || codePointLength(item) > MAX_CONTEXT_VALUE_CHARS) return false
+  }
+  return true
 }
 
 const count = (value) => (Number.isInteger(value) && value > 0 ? value : 0)
@@ -153,6 +180,17 @@ export function createClient({ url, token, fetch: fetchImpl = globalThis.fetch, 
     }
   }
 
+  // { context } to add to a body: nothing when absent, nothing (and one warning that does not show
+  // it) when invalid. A label never makes a call fail.
+  function withContext(body, context, what) {
+    if (context === undefined || context === null) return body
+    if (!validContext(context)) {
+      warn(`memory ${what}: context dropped, it breaks the gateway's limits`)
+      return body
+    }
+    return { ...body, context: { ...context } }
+  }
+
   // One request until an absolute deadline (timeoutMs from now). Returns [object|null, outcome].
   async function request(method, path, payload, timeoutMs, what, signal, withToken) {
     if (!base || (withToken && !secret)) return [null, NOT_SENT]
@@ -218,14 +256,14 @@ export function createClient({ url, token, fetch: fetchImpl = globalThis.fetch, 
     }
   }
 
-  async function recallDetail(query, { timeoutMs = 8500, signal } = {}) {
+  async function recallDetail(query, { timeoutMs = 8500, signal, context } = {}) {
     try {
       if (typeof query !== 'string' || !pyStrip(query)) return null
       if (codePointLength(query) > MAX_QUERY_CHARS) {
         warn(`memory recall not sent: query over ${MAX_QUERY_CHARS} characters`)
         return null
       }
-      const [data] = await request('POST', '/v1/recall', { query, limit: recallLimit }, timeoutMs, 'recall', signal, true)
+      const [data] = await request('POST', '/v1/recall', withContext({ query, limit: recallLimit }, context, 'recall'), timeoutMs, 'recall', signal, true)
       const results = data?.results
       if (!Array.isArray(results)) return null
       return {
@@ -239,14 +277,14 @@ export function createClient({ url, token, fetch: fetchImpl = globalThis.fetch, 
     }
   }
 
-  async function rememberMessages(messages, { timeoutMs = 12000, signal } = {}) {
+  async function rememberMessages(messages, { timeoutMs = 12000, signal, context } = {}) {
     try {
       const clean = cleanMessages(messages)
       if (clean === null) {
         warn("memory remember not sent: messages break the gateway's limits")
         return 'failed'
       }
-      const [data, outcome] = await request('POST', '/v1/remember', { messages: clean }, timeoutMs, 'remember', signal, true)
+      const [data, outcome] = await request('POST', '/v1/remember', withContext({ messages: clean }, context, 'remember'), timeoutMs, 'remember', signal, true)
       if (outcome === OK) return data.status === 'ok' ? 'saved' : data.status === 'skipped' ? 'skipped' : 'unsure'
       return outcome === UNSURE ? 'unsure' : outcome === LIMITED ? 'limited' : 'failed'
     } catch {

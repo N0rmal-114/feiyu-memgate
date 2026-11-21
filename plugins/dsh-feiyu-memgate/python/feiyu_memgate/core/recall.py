@@ -89,6 +89,7 @@ class RecallContext:
     tenant_source     the name of the tenants provider whose store is part of this request
                       (None when there is none): a candidate from that source belongs to tenant_id
     public            True when the answer is shown to other people
+    audience          who sees the answer: the client's reach, "owner", "group" or "public"
     redact            the text cleaner chosen for this client (str -> str)
     context           the request's optional "context" object (small, already checked)
     accepted          the candidates kept so far, in order
@@ -101,7 +102,7 @@ class RecallContext:
 
     def __init__(self, query, limit, *, pool, clock=time.monotonic, deadline=None, public=False,
                  redact=None, client=None, tenant_id=None, notes=None, tenant_source=None, context=None,
-                 log=None, slots=None, keep=0):
+                 log=None, slots=None, keep=0, audience="owner"):
         self.query = query
         self.limit = limit
         self.pool = pool
@@ -111,6 +112,7 @@ class RecallContext:
         # The finds stop a little before the deadline, so the stages still have time.
         self.find_deadline = self.deadline - min(MAX_STAGE_RESERVE, STAGE_SHARE * max(self.deadline - now, 0.0))
         self.public = public
+        self.audience = audience
         self.redact = redact or (lambda text: text)
         self.client = client
         self.tenant_id = tenant_id

@@ -2300,3 +2300,34 @@ test('blockTone: bare blocks are read back: repeats are skipped, and the tone ca
   const fmt = createFormatter({ lang: 'en' })
   for (const message of talk.history.filter((m) => m.source?.kind === SOURCE_KIND && m.source.form !== 'notice')) assert.equal(fmt.strip(blockOf(message)), '')
 })
+
+test('every recall and remember carries its label: channel dsh and what triggered it', async () => {
+  const label = (via) => ({ channel: 'dsh', via })
+  // The automatic recall of a turn, then the second lookup after the reply.
+  const reply = 'Oolong, I believe. The spring harvest teas are lovely too.'
+  const auto = setup({ config: on(), handlers: { recall: async () => found(M_OOLONG) } })
+  await conversation(auto.host).turn('What tea do I like in the morning?', reply)
+  assert.deepEqual(auto.clients.calls.recall.map((c) => c.query), ['What tea do I like in the morning?', reply])
+  assert.deepEqual(auto.clients.calls.recall[0].opts.context, label('turn'))
+  assert.deepEqual(auto.clients.calls.recall[1].opts.context, label('followup'))
+  // The search tool.
+  const search = setup({ handlers: { recall: recallFound } })
+  await search.host.tools.get(TOOL_SEARCH).execute({ query: 'tea' }, {})
+  assert.deepEqual(search.clients.calls.recall[0].opts.context, label('search'))
+  // The remember tool.
+  const remember = setup({ now: () => NOW })
+  await remember.host.tools.get(TOOL_REMEMBER).execute({ text: 'The user moved to Hangzhou on 2026-11-01' }, {})
+  assert.deepEqual(remember.clients.calls.remember[0].opts.context, label('tool'))
+  assert.equal(remember.clients.calls.remember[0].opts.time, NOW_TIME)
+  // Automatic capture.
+  const capture = setup({ config: { modules: { autoCapture: true } }, now: () => NOW })
+  const session = fakeSession()
+  capture.host.emit('session/event', session, { type: 'turn/start', data: { turn: 1 } })
+  capture.host.emit('session/event', session, { type: 'user/message', data: userMessage('I moved to Hangzhou') })
+  capture.host.emit('session/event', session, { type: 'turn/end', data: { turn: 1, reason: { kind: 'completed' } } })
+  await tick(10)
+  assert.equal(capture.clients.calls.rememberMessages.length, 1)
+  assert.deepEqual(capture.clients.calls.rememberMessages[0].opts.context, label('capture'))
+  // The labels hold constants only and cannot be changed by a caller.
+  assert.ok(Object.isFrozen(capture.clients.calls.rememberMessages[0].opts.context))
+})

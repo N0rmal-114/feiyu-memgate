@@ -60,16 +60,22 @@ def _piece_name(kind, obj):
     return type(obj).__name__
 
 
+_AUDIENCE_LABELS = {"owner": "主人", "group": "一个群", "public": "公开"}
+
+
 def describe(gateway):
     """The wiring of a gateway as lines of text. Holds no secret: only whether a token exists."""
     lines = ["存储："]
     for name, store in gateway.stores.items():
-        lines.append("  %s: %s，%s" % (name, _piece_name("backend", store), "可写" if getattr(store, "writable", False) else "只读"))
+        lines.append("  %s: %s，%s；受众 %s" % (name, _piece_name("backend", store),
+                                             "可写" if getattr(store, "writable", False) else "只读",
+                                             _AUDIENCE_LABELS[gateway.audience_of(name)]))
     if not gateway.stores:
         lines.append("  （没有）")
     lines.append("租户来源：")
     for name, provider in gateway.tenants.items():
-        lines.append("  %s: %s" % (name, _piece_name("tenants", provider)))
+        lines.append("  %s: %s；受众 %s" % (name, _piece_name("tenants", provider),
+                                         _AUDIENCE_LABELS[gateway.audience_of(name)]))
     if not gateway.tenants:
         lines.append("  （没有）")
     lines.append("客户端：")
@@ -80,9 +86,12 @@ def describe(gateway):
             token = "有可用的铸造密钥" if gateway.has_token(name) else "没有可用的铸造密钥"
         else:
             token = "有可用令牌" if gateway.has_token(name) else "没有可用令牌"
-        line = "  %s: 召回 %s；写入 %s；租户 %s；公开 %s；每日写入上限 %s；令牌 %s" % (
+        line = "  %s: 召回 %s；写入 %s；租户 %s；公开 %s；受众 %s；每日写入上限 %s；令牌 %s" % (
             name, recall, policy.write or "无", policy.tenants or "无", "是" if policy.public else "否",
-            policy.daily_writes if policy.daily_writes is not None else "无", token)
+            _AUDIENCE_LABELS[policy.reach], policy.daily_writes if policy.daily_writes is not None else "无", token)
+        if policy.reach != "owner" and policy.write in gateway.stores and gateway.audience_of(policy.write) == "owner":
+            warnings.append("  提醒：%s 的内容会被别人看到，写入的却是只给主人的存储 %s：别人说的话会进到主人的私聊记忆里；"
+                            "确认这是你要的，否则换一个存储" % (name, policy.write))
         if policy.token_bound:
             line += "；租户绑定 token（每个令牌只能用于铸造时绑定的租户，第 %d 代）" % policy.tenant_token_generation
             if gateway.weak_minting_secret(name):  # yes or no only: never the secret or its length

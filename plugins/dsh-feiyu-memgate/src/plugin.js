@@ -234,6 +234,17 @@ const POOL_HEADS = Object.freeze({
 const GATEWAY_COMING = new Set(['idle', 'starting', 'restarting'])
 const FAILED = Object.freeze({ failed: true })
 
+// The label sent with every recall and remember: where the request comes from and what triggered
+// it. Constants only, nothing from the conversation. The built-in gateway ignores it; an operator's
+// own stages and guards can read it.
+const REQUEST_CONTEXT = Object.freeze({
+  turn: Object.freeze({ channel: 'dsh', via: 'turn' }),
+  search: Object.freeze({ channel: 'dsh', via: 'search' }),
+  followup: Object.freeze({ channel: 'dsh', via: 'followup' }),
+  tool: Object.freeze({ channel: 'dsh', via: 'tool' }),
+  capture: Object.freeze({ channel: 'dsh', via: 'capture' }),
+})
+
 const pad = (n, width = 2) => String(n).padStart(width, '0')
 
 // A Date from the clock's answer (a Date or a number of milliseconds), null when it is not a usable time.
@@ -712,7 +723,7 @@ export function createPlugin(ctx, config, deps = {}) {
       const c = client(s.advanced.recallLimit)
       if (!c) return gatewayComing(s) ? FAILED : null
       const timeoutMs = s.advanced.recallTimeoutMs
-      const detail = await within(c.recallDetail(plan.query, { timeoutMs, signal }), timeoutMs + 250, signal)
+      const detail = await within(c.recallDetail(plan.query, { timeoutMs, signal, context: REQUEST_CONTEXT.turn }), timeoutMs + 250, signal)
       if (signal?.aborted) return null // the turn ended: nobody is waiting for an answer
       if (!detail || !Array.isArray(detail.results)) return FAILED
       // Nothing came back and the gateway says a store failed or was busy: that is a lookup that did not
@@ -1085,7 +1096,7 @@ export function createPlugin(ctx, config, deps = {}) {
           const c = client()
           if (!c) return outcome('unavailable', t.unavailable)
           // The memory is dated by the message's own time: the local time here, with its UTC offset.
-          const status = await c.rememberStatus(text, { signal: exec?.signal, time: localTime(clock()) ?? undefined })
+          const status = await c.rememberStatus(text, { signal: exec?.signal, time: localTime(clock()) ?? undefined, context: REQUEST_CONTEXT.tool })
           return REMEMBER_STATUSES.includes(status) && status !== 'invalid' ? outcome(status, t[status]) : outcome('unsure', t.unsure)
         } catch (error) {
           // Something broke after the write may have been sent: say so, never claim success.
@@ -1130,7 +1141,7 @@ export function createPlugin(ctx, config, deps = {}) {
           const limit = Number.isInteger(args?.limit) && args.limit >= 1 && args.limit <= 10 ? args.limit : undefined
           const c = client(limit)
           if (!c) return outcome('unavailable', t.searchUnavailable)
-          const detail = await c.recallDetail(query, { signal: exec?.signal })
+          const detail = await c.recallDetail(query, { signal: exec?.signal, context: REQUEST_CONTEXT.search })
           if (!detail) return outcome('unavailable', t.searchUnavailable)
           const s = settings()
           // Under advanced.blockTone 'bare' no sentence; 'strict' is about the current message, so a search keeps the usual one.
@@ -1159,7 +1170,7 @@ export function createPlugin(ctx, config, deps = {}) {
     for (const batch of captureBatches(messages)) {
       // Fire and forget: the turn is over and nothing waits for this.
       Promise.resolve()
-        .then(() => c.rememberMessages(batch))
+        .then(() => c.rememberMessages(batch, { context: REQUEST_CONTEXT.capture }))
         .catch((error) => log.warn(`feiyu-memgate: capture failed (${kindOf(error)})`))
     }
   }
@@ -1258,7 +1269,7 @@ export function createPlugin(ctx, config, deps = {}) {
     const max = s.advanced.afterthoughtMax
     Promise.resolve()
       .then(async () => {
-        const detail = await within(c.recallDetail(query, { timeoutMs, signal }), timeoutMs + 250, signal)
+        const detail = await within(c.recallDetail(query, { timeoutMs, signal, context: REQUEST_CONTEXT.followup }), timeoutMs + 250, signal)
         if (signal.aborted) return
         if (!detail || !Array.isArray(detail.results)) {
           log.warn('feiyu-memgate: second lookup skipped (timeout)')

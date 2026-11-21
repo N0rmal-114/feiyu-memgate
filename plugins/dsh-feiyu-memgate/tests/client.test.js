@@ -3,7 +3,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import http from 'node:http'
 import net from 'node:net'
-import { createClient } from '../src/client.js'
+import { createClient, validContext } from '../src/client.js'
 
 const TOKEN = 'tok-test-fake-0123456789'
 
@@ -428,3 +428,58 @@ test('never rejects, whatever fetch does', async () => {
   assert.equal(await rejecting.reportUsed([{ source: 's', id: '1' }]), false)
   assert.equal(await rejecting.health(), null)
 })
+
+test('validContext mirrors the gateway: a plain object, 16 keys, short string keys, scalar values', () => {
+  const keys = (n) => Object.fromEntries(Array.from({ length: n }, (_, i) => [`k${i}`, i]))
+  for (const good of [{}, { channel: 'dsh', via: 'turn' }, { a: 1, b: 1.5, c: true, d: false, e: '' }, keys(16),
+    { ['k'.repeat(64)]: 'v' }, { k: 'v'.repeat(200) }, { k: '𝒳'.repeat(200) }, Object.assign(Object.create(null), { a: 'b' })]) {
+    assert.equal(validContext(good), true, JSON.stringify(good))
+  }
+  for (const bad of [null, undefined, 'x', 5, true, [], [1], new Map(), new (class A {})(), keys(17), { '': 'v' },
+    { ['k'.repeat(65)]: 'v' }, { k: 'v'.repeat(201) }, { k: '𝒳'.repeat(201) }, { k: null }, { k: undefined }, { k: [] },
+    { k: {} }, { k: NaN }, { k: Infinity }, { k: -Infinity }, { k: 1n }, { k: Symbol('s') }, { k: () => 1 }]) {
+    assert.equal(validContext(bad), false, String(bad))
+  }
+})
+
+test('recall and remember: a valid context goes in the body, without one the body is as it was', () =>
+  withServer(usual, async (client, server) => {
+    const context = { channel: 'dsh', via: 'turn', n: 2, on: true }
+    await client.recallDetail('hello', { context })
+    await client.recallDetail('hello')
+    await client.recallDetail('hello', { context: undefined })
+    await client.rememberMessages([{ role: 'user', content: 'a fact' }], { context })
+    await client.rememberMessages([{ role: 'user', content: 'a fact' }])
+    await client.rememberStatus('a fact', { context, time: '2026-11-17T20:15:03+09:00' })
+    await client.rememberStatus('a fact')
+    assert.deepEqual(server.requests.map((r) => r.json), [
+      { query: 'hello', limit: 5, context },
+      { query: 'hello', limit: 5 },
+      { query: 'hello', limit: 5 },
+      { messages: [{ role: 'user', content: 'a fact' }], context },
+      { messages: [{ role: 'user', content: 'a fact' }] },
+      { messages: [{ role: 'user', content: 'a fact', time: '2026-11-17T20:15:03+09:00' }], context },
+      { messages: [{ role: 'user', content: 'a fact' }] },
+    ])
+    assert.equal(server.requests[1].raw.toString('utf8'), '{"query":"hello","limit":5}')
+    assert.equal(server.requests[4].raw.toString('utf8'), '{"messages":[{"role":"user","content":"a fact"}]}')
+  }))
+
+test('an invalid context is dropped with one warning that does not show it, and the request is still sent', () =>
+  withServer(usual, async (client, server, log) => {
+    const secret = 'secret-label-value'
+    const bad = { why: secret, nested: { x: 1 } }
+    const detail = await client.recallDetail('hello', { context: bad })
+    assert.deepEqual(detail?.results.length, 1)
+    assert.equal(await client.rememberStatus('a fact', { context: bad }), 'saved')
+    assert.equal(await client.rememberMessages([{ role: 'user', content: 'a fact' }], { context: [secret] }), 'saved')
+    assert.deepEqual(server.requests.map((r) => r.json), [
+      { query: 'hello', limit: 5 },
+      { messages: [{ role: 'user', content: 'a fact' }] },
+      { messages: [{ role: 'user', content: 'a fact' }] },
+    ])
+    assert.equal(log.lines.length, 3)
+    assert.ok(log.lines[0].startsWith('memory recall: context dropped'))
+    assert.ok(log.lines[1].startsWith('memory remember: context dropped'))
+    assert.ok(!log.lines.join(String.fromCharCode(10)).includes(secret))
+  }))

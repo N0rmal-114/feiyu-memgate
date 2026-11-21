@@ -93,6 +93,15 @@ Measured basis, in the gateway's own benchmark with bge-m3 (nothing was measured
 - Memories are plain SQLite files; the plugin does not encrypt them. With `retrieval.hybrid` on there is one more, the keyword index `memories-<store id>-keywords.db`, which holds the same texts. To delete all data, quit DSH and delete `<DSH home>/data/feiyu-memgate/` (or the folder in `gateway.dataDir`, if you changed it).
 - With the `endpoint` tier, the text of every saved memory and every recall query go to the embeddings API you configured.
 - Recalled memories are part of the prompt and go to the model service of the conversation.
+- Every recall and remember request carries a small `context` label that says it comes from DSH and what triggered it. The label holds fixed constants only: nothing from the conversation and no ids. The bundled gateway does not read it; on a gateway you run yourself, your own recall stages and write guards can. The label is `channel: 'dsh'` plus the `via` of the table below:
+
+| `via` | Trigger |
+|---|---|
+| `turn` | the automatic recall of each turn |
+| `search` | the `memgate_search` tool |
+| `followup` | the second lookup after a reply |
+| `tool` | the `memgate_remember` tool |
+| `capture` | automatic capture |
 
 ## Limits
 

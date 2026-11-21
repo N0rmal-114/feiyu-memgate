@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 TENANT_STORE = "@tenant"
 # How a tenant client's tenant is known: named in each request body, or carried by the token itself.
 TENANT_BINDINGS = ("request", "token")
+# Who may see a store's content or a client's output, narrowest first: the order is the width.
+AUDIENCES = ("owner", "group", "public")
 
 
 @dataclass
@@ -71,6 +73,9 @@ class ClientPolicy:
                 None means 10 x rate_limit. Only used for a tenant client: rotating tenant
                 ids cannot go around it.
     pin_writes  True when what this client writes is pinned: the forgetting curve never forgets it.
+    audience    who sees what this client shows: "owner", "group" or "public" (see AUDIENCES). None
+                means "not declared": see reach. A client may only recall from stores at least as
+                wide as its audience.
     """
     name: str
     recall: tuple | None = None
@@ -84,6 +89,17 @@ class ClientPolicy:
     rate_limit_total: int | None = None
     tenant_binding: str = "request"
     tenant_token_generation: int = 1
+    audience: str | None = None
+
+    @property
+    def reach(self):
+        """The resolved audience: the declared one, else owner for a private client, group for a
+        public tenant client and public for any other public client."""
+        if self.audience is not None:
+            return self.audience
+        if not self.public:
+            return "owner"
+        return "group" if self.tenants is not None else "public"
 
     @property
     def token_bound(self):

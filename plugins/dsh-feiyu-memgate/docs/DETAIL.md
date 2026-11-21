@@ -93,6 +93,15 @@ dsh plugin --profile <name> add dsh-feiyu-memgate
 - 记忆是普通的 SQLite 文件，插件不加密。打开 `retrieval.hybrid` 时还多一个关键词索引 `memories-<store id>-keywords.db`，里面是同样的文本。删除全部数据：退出 DSH，删除 `<DSH home>/data/feiyu-memgate/`（改过 `gateway.dataDir` 的删那个文件夹）。
 - `endpoint` 方式下，每条保存的记忆的文本和每次召回的查询，都会发给你配置的向量接口。
 - 召回的记忆是提示词的一部分，会发给这段对话使用的模型服务。
+- 每次召回和保存记忆的请求都带一个 `context` 标记，写明请求来自 DSH，以及由什么触发。标记里只有固定的几个值，没有对话内容，也没有任何编号。内置网关不读它；自己部署网关时，自己写的召回步骤和写入守卫可以用它。标记是 `channel: 'dsh'` 加下表里的一个 `via`：
+
+| `via` | 由什么触发 |
+|---|---|
+| `turn` | 每一轮的自动召回 |
+| `search` | `memgate_search` 工具 |
+| `followup` | 回复之后再查的一次 |
+| `tool` | `memgate_remember` 工具 |
+| `capture` | 自动记录 |
 
 ## 限制
 
