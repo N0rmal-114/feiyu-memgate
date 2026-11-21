@@ -49,7 +49,20 @@ Reported for a run: the headline numbers of vector_lab (plus the recall of named
 direct hit per remark kind, the rank metrics that do not pass the score lines, and the association direct hit
 per world. --sweep tries a fixed grid per family and names a row by a rule fixed beforehand.
 
-Deterministic. A split folder named `test` is refused unless --final is given, and --sweep refuses it even then.
+    noise    hub=<lambda> k=10 | top=<T> | each=<Z> (bench/chat/noise.py, any subset in one part)
+             Filters that only REMOVE memories from what the product delivers (none raises a score or adds a
+             candidate): hub lowers the cosine of memories that are close to many others, top silences a lookup when
+             nothing in the store stands out for the query, each keeps only delivered memories that stand out. They
+             act on every lookup of the run (the first and the second); the rank metrics stay before them. lead and
+             cap are for session_lab.py only (an error here).
+
+--sweep noise tries each filter alone over a fixed grid (one row per setting, no winner rule); --diagnose noise prints,
+per case type, the distribution of the largest z of the world for a case's query, the ROC-AUC of that and of the plain
+top score for telling quiet cases from association remarks, and how many association remarks have their `direct`
+memory at z >= 1, 1.5, 2.
+
+Deterministic. A split folder named `test` is refused unless --final is given, and --sweep and --diagnose refuse it
+even then.
 """
 import argparse
 import importlib.util
@@ -76,6 +89,7 @@ def _sibling(name):
 
 
 lab = _sibling("vector_lab")
+noise_lab = _sibling("noise")
 run = lab.run
 methods = lab.methods
 
@@ -91,13 +105,14 @@ UNLABELLED = "unlabelled"
 
 # ------------------------------------------------------------------ specs
 
-FAMILIES = ("cue", "second", "cue2")  # the order in which a combined spec applies them
+FAMILIES = ("cue", "second", "cue2", "noise")  # the order in which a combined spec applies them
 DEFAULTS = {
     "cue": {"mode": "blend", "w": 0.3, "d": 0.05},
     "second": {"src": None, "q": "text", "merge": "fill", "extra": 2, "mode": "within", "min": None},
     "cue2": {"extra": 2, "mode": "within", "min": 0.5, "ratio": 0.85},
+    "noise": dict(noise_lab.DEFAULTS),
 }
-_INTS = {"extra"}
+_INTS = {"extra"} | noise_lab.INTS
 _STRINGS = {"mode", "src", "q", "merge"}
 _CHOICES = {
     ("cue", "mode"): ("blend", "max"),
@@ -128,6 +143,8 @@ def _check_part(part, values):
     for name in ("w", "ratio"):
         if name in values and not 0 <= values[name] <= 1:
             raise SystemExit("%s: %s must be between 0 and 1" % (part, name))
+    if part == "noise":
+        noise_lab.check(values, sessions=False)
     if part == "second" and not values["src"]:
         raise SystemExit("second: src=<kind> is required (the kind of the texts to look up with)")
     if part == "second" and values["src"] == CUE_KIND:
@@ -159,7 +176,7 @@ def parse_spec(text):
                 raise SystemExit("%s: unknown or malformed setting %r (known: %s)" % (part, pair, ", ".join(values)))
             values[name] = raw.strip() if name in _STRINGS else _number(name, raw.strip())
         _check_part(part, values)
-        config[part] = values
+        config[part] = values if part != "noise" or noise_lab.active(values) else None
     return config
 
 
@@ -170,7 +187,8 @@ def spec_label(config):
         values = config.get(part)
         if not values:
             continue
-        shown = ",".join("%s=%s" % (name, values[name]) for name in DEFAULTS[part] if values[name] is not None)
+        shown = (noise_lab.label(values) if part == "noise" else
+                 ",".join("%s=%s" % (name, values[name]) for name in DEFAULTS[part] if values[name] is not None))
         parts.append("%s:%s" % (part, shown))
     return ";".join(parts) or "product"
 
@@ -281,6 +299,10 @@ class LabEngine(lab.Engine):
         return out
 
     # ---- one lookup, as the product does it
+
+    def noisy_lookup(self, cosines, noise=None):
+        """lookup() with the filters of a parsed `noise` part (None: the product lookup itself)."""
+        return noise_lab.lookup(self, cosines, noise)
 
     def lookup(self, cosines):
         """What Engine.evaluate does with the product config, for arbitrary cosines: the ranking before the lines, the
@@ -393,12 +415,13 @@ class LabEngine(lab.Engine):
         out["scores"] = {self.ids[i]: scoring["scores"][i] for i in range(n)}
         out["cosines"] = {self.ids[i]: scoring["cos"][i] for i in range(n)}
 
-        first = self.lookup(scoring["first"])
+        noise = config["noise"]
+        first = self.noisy_lookup(scoring["first"], noise)
         out["first"], out["delivered"] = first, first["delivered"]
         items = [(mid, score, "first") for mid, score in first["delivered"]]
         items += [(a["id"], a["score"], "link") for a in first["added"]]
         if scoring["second"] is not None:
-            second = self.lookup(scoring["second"])
+            second = self.noisy_lookup(scoring["second"], noise)
             settings = config["second"]
             kept = [(mid, score) for mid, score in second["items"]
                     if settings["min"] is None or score >= settings["min"]]
@@ -708,7 +731,14 @@ def grid_cue2(src=None):
             for ratio in (0.8, 0.85, 0.9, 0.95)]
 
 
-GRIDS = {"second": grid_second, "cue": grid_cue, "cue2": grid_cue2}
+def grid_noise(src=None):
+    return (["noise:hub=%s,k=%d" % (lam, k) for lam in (0.25, 0.5, 1.0, 2.0) for k in (5, 10, 20)]
+            + ["noise:top=%s" % t for t in (1.5, 2.0, 2.5, 3.0, 3.5)]
+            + ["noise:each=%s" % z for z in (0.5, 1.0, 1.5, 2.0)])
+
+
+GRIDS = {"second": grid_second, "cue": grid_cue, "cue2": grid_cue2, "noise": grid_noise}
+NO_RULE = ("noise",)  # families whose rows are read from the table, not picked by the rule
 SWEEP_FAMILIES = tuple(GRIDS)
 RULE = ("precision >= product's, items per association remark <= product's + %s, quiet cases left quiet >= product's "
         "- 1, follow-ups hit >= product's - 1; then the highest association direct hit + chain recall, ties to "
@@ -748,7 +778,7 @@ SWEEP_HEADER = ("| variant | assoc direct hit | chain recall | precision | items
                 "| quiet gained | follow-up gained | follow-up lost | rule |")
 
 
-def sweep_table(results, base):
+def sweep_table(results, base, show_rule=True):
     lines = [SWEEP_HEADER, "|" + "|".join(["---"] * (SWEEP_HEADER.count("|") - 1)) + "|"]
     for result in [base] + list(results):
         values = dict(headline(result["summary"]))
@@ -759,7 +789,7 @@ def sweep_table(results, base):
             _fmt(values["noise per assoc remark"], 2), _fmt(values["follow-up hit"]), _fmt(values["quiet rate"]),
             _fmt(values["named remark recall"]), flip["assoc_gained"], flip["assoc_lost"], flip["assoc_p"],
             flip["quiet_broken"], flip["quiet_gained"], flip["followup_gained"], flip["followup_lost"],
-            "base" if result is base else ("ok" if eligible(result, base) else "-")))
+            "base" if result is base else ("ok" if show_rule and eligible(result, base) else "-")))
     return "\n".join(lines)
 
 
@@ -773,13 +803,17 @@ def run_sweep(engines, families, src, say):
         specs = GRIDS[family](src)
         family_rows = [run_variant(engines, parse_spec(spec), spec) for spec in specs]
         rows.extend(family_rows)
-        best = winner(family_rows, base)
+        best = winner(family_rows, base) if family not in NO_RULE else None
         winners[family] = best["label"] if best else None
-    say(sweep_table(rows, base))
+    ruled = [f for f in families if f not in NO_RULE]
+    say(sweep_table(rows, base, show_rule=bool(ruled)))
     say("")
-    say("chosen row per family by the rule: %s" % RULE)
-    for family in families:
-        say("  %s: %s" % (family, winners[family] or "none eligible"))
+    if ruled:
+        say("chosen row per family by the rule: %s" % RULE)
+        for family in ruled:
+            say("  %s: %s" % (family, winners[family] or "none eligible"))
+    if len(ruled) < len(families):
+        say("no rule picks a row for: %s (read the table)" % ", ".join(f for f in families if f in NO_RULE))
     return rows, winners, base
 
 
@@ -861,6 +895,62 @@ def find_case(engines, name):
     return found[0]
 
 
+# ------------------------------------------------------------------ diagnose noise
+
+CASE_TYPES = ("remark-assoc", "remark-named", "follow-up", "quiet")
+Z_STEPS = (1.0, 1.5, 2.0)
+
+
+def diagnose_noise(engines):
+    """Per case type the largest z of the world for the case's query (cases without a query are left out and counted),
+    the ROC-AUC of that and of the plain top score (the product's score of the best memory) for telling quiet cases from
+    association remarks, and the share of association remarks (with a query and a `direct` memory) whose best `direct`
+    memory has z at or above 1.0, 1.5 and 2.0."""
+    z_by_type, top_by_type, skipped = {}, {}, {}
+    direct_z = []
+    for engine in engines:
+        position = {mid: i for i, mid in enumerate(engine.ids)}
+        for case in engine.cases:
+            queries = methods.queries_for("v0", case.get("history") or [], case["message"])
+            if not queries:
+                skipped[case["type"]] = skipped.get(case["type"], 0) + 1
+                continue
+            cosines = engine.cosines_for(queries[0], None)
+            z = noise_lab.zscores(cosines)
+            z_by_type.setdefault(case["type"], []).append(max(z))
+            top_by_type.setdefault(case["type"], []).append(engine.scale.score(max(cosines)))
+            direct = [position[m] for m in case.get("direct") or [] if m in position]
+            if case["type"] == "remark-assoc" and direct:
+                direct_z.append(max(z[i] for i in direct))
+    spread = {}
+    for kind, values in z_by_type.items():
+        spread[kind] = {"n": len(values), "skipped": skipped.get(kind, 0), "median": noise_lab.quantile(values, 0.5),
+                        "q1": noise_lab.quantile(values, 0.25), "q3": noise_lab.quantile(values, 0.75)}
+    return {"types": spread,
+            "auc_z": noise_lab.auc(z_by_type.get("remark-assoc", []), z_by_type.get("quiet", [])),
+            "auc_top_score": noise_lab.auc(top_by_type.get("remark-assoc", []), top_by_type.get("quiet", [])),
+            "direct_z": {"n": len(direct_z), "shares": {str(t): (sum(1 for z in direct_z if z >= t) / len(direct_z)
+                                                                 if direct_z else None) for t in Z_STEPS}}}
+
+
+def diagnose_lines(found):
+    lines = ["| case type | n | median | first quartile | third quartile | without a query |", "|---|---|---|---|---|---|"]
+    for kind in list(CASE_TYPES) + sorted(k for k in found["types"] if k not in CASE_TYPES):
+        row = found["types"].get(kind)
+        if row:
+            lines.append("| %s | %d | %s | %s | %s | %d |" % (kind, row["n"], _fmt(row["median"], 2), _fmt(row["q1"], 2),
+                                                              _fmt(row["q3"], 2), row["skipped"]))
+    lines += ["", "(largest z of the world's memories for the case's query)", "",
+              "| ROC-AUC, association remarks against quiet cases | value |", "|---|---|",
+              "| largest z | %s |" % _fmt(found["auc_z"], 3),
+              "| plain top score (the product's score of the best memory) | %s |" % _fmt(found["auc_top_score"], 3), "",
+              "| association remarks whose best direct memory has z at least | share (%%) of %d |" % found["direct_z"]["n"],
+              "|---|---|"]
+    for step in Z_STEPS:
+        lines.append("| %s | %s |" % (step, _fmt(_percent(found["direct_z"]["shares"][str(step)]))))
+    return lines
+
+
 # ------------------------------------------------------------------ command line
 
 def refuse_sweep(split):
@@ -869,6 +959,14 @@ def refuse_sweep(split):
         if os.path.basename(os.path.normpath(path)).lower() == lab.FORBIDDEN_SPLIT:
             raise SystemExit("refusing --sweep on %s: a grid is a choice of rules, and the test split is not for "
                              "choosing rules, not even with --final" % split)
+
+
+def refuse_diagnose(split):
+    """SystemExit when --diagnose would run on the frozen test split (--final does not lift this)."""
+    for path in (split, os.path.realpath(split)):
+        if os.path.basename(os.path.normpath(path)).lower() == lab.FORBIDDEN_SPLIT:
+            raise SystemExit("refusing --diagnose on %s: it is a study for choosing rules, and the test split is not "
+                             "for choosing rules, not even with --final" % split)
 
 
 def main(argv=None):
@@ -885,6 +983,7 @@ def main(argv=None):
     parser.add_argument("--table", action="store_true", help="also print run.py's full Markdown table of each run")
     parser.add_argument("--sweep", metavar="FAMILIES", help="comma list of %s" % ", ".join(SWEEP_FAMILIES))
     parser.add_argument("--src", help="with --sweep second: the kind of the query texts")
+    parser.add_argument("--diagnose", metavar="WHAT", help="noise: the largest z per case type and the AUCs (development split)")
     parser.add_argument("--explain", metavar="CASE", help="with --run: one case in detail (world/id)")
     parser.add_argument("--verbose", action="store_true", help="with --explain: print memory texts")
     parser.add_argument("--out", metavar="JSON", help="write the records and summaries of the runs here")
@@ -892,6 +991,10 @@ def main(argv=None):
 
     if args.sweep:
         refuse_sweep(args.split)
+    if args.diagnose:
+        refuse_diagnose(args.split)
+        if args.diagnose != "noise":
+            raise SystemExit("unknown --diagnose %r (known: noise)" % args.diagnose)
     lab.refuse_test(args.split, args.final)
     if args.explain and not args.run:
         raise SystemExit("--explain needs --run (the variant to explain)")
@@ -944,6 +1047,12 @@ def main(argv=None):
         document["sweep"] = {"rule": RULE, "winners": winners,
                              "rows": [{"spec": r["label"], "summary": r["summary"], "ranks": r["ranks"],
                                        "flips": flips(base["records"], r["records"])} for r in rows]}
+    if args.diagnose:
+        found = diagnose_noise(engines)
+        run.say("")
+        for line in diagnose_lines(found):
+            run.say(line)
+        document["diagnose"] = found
     if args.explain:
         engine, case = find_case(engines, args.explain)
         for config in configs:

@@ -37,6 +37,10 @@ The product, `product`, has no extra block. A variant is a spec string, parts se
     pool     size=3       prototype 2, the conversation pool gives back at most `size` memories after a compaction
     recent   size=3       not built yet: at a new conversation, the strongest memories of the previous conversation's pool
     compact  every=<M>    the history is compacted before turn i of a conversation when i > 1 and (i - 1) % M == 0
+    noise    hub top each lead cap   filters that only REMOVE memories from what the product delivers
+             (bench/chat/noise.py describes them; any subset in one part, all off by default). hub, top and each act
+             inside every lookup (main and second); in a turn the memories already shown are taken out, then lead,
+             then cap. `noise` combines with every other family.
 
 `compact` alone is allowed (it shows what compaction costs); the defaults are the plugin's. The report puts the
 variant next to the product (and, when the variant compacts, next to the product under the same compaction): per kind
@@ -74,6 +78,7 @@ def _sibling(name):
 
 model_lab = _sibling("model_lab")
 lab = model_lab.lab
+noise_lab = model_lab.noise_lab
 run = model_lab.run
 methods = model_lab.methods
 
@@ -202,17 +207,18 @@ def pick(state, limit, skip=None, floor=PICK_FROM):
 
 # ------------------------------------------------------------------ specs
 
-FAMILIES = ("after", "pool", "recent", "prime", "rules", "compact")  # the order of a spec's label
+FAMILIES = ("after", "pool", "recent", "prime", "rules", "noise", "compact")  # the order of a spec's label
 DEFAULTS = {
     "after": {"max": 2},
     "pool": {"size": 3},
     "recent": {"size": 3},
     "prime": {"bonus": 0.15, "size": 3},
     "rules": {"from": PICK_FROM + 0.0, "decay": DECAY, "used": "none", "score": "off"},
+    "noise": dict(noise_lab.DEFAULTS),
     "compact": {"every": None},
 }
 _TYPES = {"max": int, "size": int, "every": int, "bonus": float, "from": float, "decay": float, "used": str,
-          "score": str}
+          "score": str, "hub": float, "k": int, "top": float, "each": float, "lead": float, "cap": int}
 _CHOICES = {("rules", "used"): ("none", "reply"), ("rules", "score"): ("off", "on")}
 PRODUCT_NAMES = ("", "product", "baseline")
 EXTRA_SCORE = 0.5  # rules score=on: the strength of an extra-block memory, which has no lookup score at that turn
@@ -232,6 +238,8 @@ def _check_part(part, values):
             raise SystemExit("%s: %s must be one of %s" % (part, name, ", ".join(_CHOICES[(part, name)])))
     if part == "compact" and values["every"] is None:
         raise SystemExit("compact: every=<turns> is required (the history is compacted every that many turns)")
+    if part == "noise":
+        noise_lab.check(values, sessions=True)
     if part == "rules" and not values["from"] > 0:
         raise SystemExit("rules: from must be above 0")
     if part == "rules" and not 0 < values["decay"] <= 1:
@@ -271,7 +279,7 @@ def parse_spec(text):
                 raise SystemExit("%s: %s must be a %s, not %r" % (
                     part, name, {int: "whole number", float: "number", str: "word"}[kind], raw.strip()))
         _check_part(part, values)
-        config[part] = values
+        config[part] = values if part != "noise" or noise_lab.active(values) else None
     if config["prime"] and (config["pool"] or config["recent"]):
         raise SystemExit("prime cannot be combined with pool or recent: it replaces them")
     return config
@@ -283,7 +291,9 @@ def spec_label(config):
     for part in FAMILIES:
         values = config.get(part)
         if values:
-            parts.append("%s:%s" % (part, ",".join("%s=%s" % (name, values[name]) for name in DEFAULTS[part])))
+            shown = (noise_lab.label(values) if part == "noise"
+                     else ",".join("%s=%s" % (name, values[name]) for name in DEFAULTS[part]))
+            parts.append("%s:%s" % (part, shown))
     return ";".join(parts) or "product"
 
 
@@ -295,7 +305,7 @@ def rules_of(config):
 def reference_config(config):
     """The product under the same compaction as `config` (None when the variant does not compact or compacts alone:
     the product itself is then the only reference)."""
-    if config["compact"] and any(config[name] for name in ("after", "pool", "recent", "prime")):
+    if config["compact"] and any(config[name] for name in ("after", "pool", "recent", "prime", "noise")):
         return {**{name: None for name in FAMILIES}, "compact": config["compact"]}
     return None
 
@@ -321,16 +331,18 @@ class SessionEngine(model_lab.LabEngine):
         self.position = {mid: i for i, mid in enumerate(self.ids)}
         self._found = {}
 
-    def found(self, query):
-        """[(id, score)] of one product lookup for `query` (delivered, then the linked additions), each memory once."""
-        if query not in self._found:
+    def found(self, query, noise=None):
+        """[(id, score)] of one product lookup for `query` (delivered, then the linked additions), each memory once;
+        with the `noise` filters that act inside a lookup (hub, top, each) when they are on."""
+        key = (query,) + tuple((noise or {}).get(name) for name in noise_lab.LOOKUP_KEYS)
+        if key not in self._found:
             out, seen = [], set()
-            for mid, score in self.lookup(self.cosines_for(query, None))["items"]:
+            for mid, score in self.noisy_lookup(self.cosines_for(query, None), noise)["items"]:
                 if mid not in seen:
                     seen.add(mid)
                     out.append((mid, score))
-            self._found[query] = out
-        return self._found[query]
+            self._found[key] = out
+        return self._found[key]
 
     def members(self, cluster):
         return {mid for mid, memory in self.world["memories"].items() if cluster and memory.get("cluster") == cluster}
@@ -409,7 +421,8 @@ def replay_session(engine, session, config, replies, trace=False):
         advance(pool, user, engine.text_of, rules["decay"])
         queries = methods.queries_for("v0", history, user)
         query = queries[0] if queries else None
-        main = [(mid, score) for mid, score in (engine.found(query) if query else []) if mid not in shown]
+        main = noise_lab.keep_session_part(engine.found(query, config["noise"]) if query else [], shown,
+                                           config["noise"], position)
         taken = {mid for mid, _ in main}
         extra = []
 
@@ -450,7 +463,7 @@ def replay_session(engine, session, config, replies, trace=False):
         pending = []
         if config["after"]:
             if reply:
-                pending = [(mid, score) for mid, score in engine.found(reply) if mid not in shown][:config["after"]["max"]]
+                pending = [(mid, score) for mid, score in engine.found(reply, config["noise"]) if mid not in shown][:config["after"]["max"]]
 
         cluster = turn.get("cluster")
         direct = list(turn.get("direct") or [])
@@ -511,6 +524,7 @@ def stats(records):
         "extra_prev": _share(sum(m["prev"] for m in extra), len(extra)),
         "extra_neither": _share(sum(m["neither"] for m in extra), len(extra)),
         "nothing": _share(sum(1 for r in records if not r["main"] and not r["extra"]), n),
+        "unrelated_per_turn": _share(sum(1 for m in main + extra if not m["related"]), n),
     }
 
 
@@ -600,14 +614,16 @@ def report_lines(result, refs, name="variant"):
 
     header = ["arrived per turn", "turns"] + ["main (%s)" % n for n, _ in columns] + [
         "main related %% (%s)" % n for n, _ in columns] + [
-        "extra block", "extra related %", "extra of the previous turn's cluster %", "extra related to neither %"]
+        "extra block", "extra related %", "extra of the previous turn's cluster %", "extra related to neither %"] + [
+        "unrelated arrived (%s)" % n for n, _ in columns]
     rows = []
     for kind in names:
         mine = _stat(result, kind)
         rows.append([kind, mine.get("n", 0)] + [_num(_stat(r, kind).get("main_per_turn")) for _, r in columns]
                     + [_pct(_stat(r, kind).get("main_related")) for _, r in columns]
                     + [_num(mine.get("extra_per_turn")), _pct(mine.get("extra_related")), _pct(mine.get("extra_prev")),
-                       _pct(mine.get("extra_neither"))])
+                       _pct(mine.get("extra_neither"))]
+                    + [_num(_stat(r, kind).get("unrelated_per_turn")) for _, r in columns])
     lines += [""] + _table(header, rows)
 
     idle = [_stat(r, "idle") for _, r in columns]
@@ -671,13 +687,23 @@ def grid_prime():
                       for bonus in (0.05, 0.1, 0.15, 0.2, 0.3) for size in (2, 3))
 
 
+def grid_noise():
+    return _canonical(
+        ["noise:hub=%s,k=%d" % (lam, k) for lam in (0.25, 0.5, 1.0, 2.0) for k in (5, 10, 20)]
+        + ["noise:top=%s" % t for t in (1.5, 2.0, 2.5, 3.0, 3.5)]
+        + ["noise:each=%s" % z for z in (0.5, 1.0, 1.5, 2.0)]
+        + ["noise:lead=%s" % r for r in (0.7, 0.8, 0.9, 0.95, 1.01)]
+        + ["noise:cap=%d" % n for n in (1, 2, 3)])
+
+
 GRIDS = {"after": grid_after, "pool": grid_pool, "recent": grid_recent, "rules-pool": grid_rules_pool,
-         "rules-recent": grid_rules_recent, "prime": grid_prime}
+         "rules-recent": grid_rules_recent, "prime": grid_prime, "noise": grid_noise}
 SWEEP_FAMILIES = tuple(GRIDS)
 # The kinds of turn each family is about (their `in front` is shown per row); nextday and return are always shown.
 MATTER = {"after": ("continue", "return"), "pool": ("continue", "return", "nextday"),
           "recent": ("nextday",), "rules-pool": ("continue", "return", "nextday"), "rules-recent": ("nextday",),
-          "prime": ("nextday", "return", "continue")}
+          "prime": ("nextday", "return", "continue"),
+          "noise": ("open", "named", "continue", "return", "nextday")}
 ALWAYS = ("nextday", "return")
 
 
@@ -693,7 +719,9 @@ def sweep_table(family, base, results, refs):
     header = (["variant"] + ["in front %% (%s)" % kind for kind in matter]
               + ["in front % (all)", "gained", "lost", "p"] + (["gained vs same compaction", "lost vs same compaction"]
                                                                if with_ref else [])
-              + ["extra per turn", "extra related %", "idle: nothing arrived %", "memories in front at the end"])
+              + (["lost (%s)" % kind for kind in matter] if family == "noise" else [])
+              + ["extra per turn", "extra related %", "main related %", "arrived per turn", "unrelated arrived per turn",
+                 "idle: nothing arrived %", "memories in front at the end"])
 
     def row(result, reference=None, is_base=False):
         mine = result["summary"]
@@ -704,8 +732,12 @@ def sweep_table(family, base, results, refs):
         if with_ref:
             g = flips(reference["records"], result["records"]) if reference else None
             cells += [g["gained"], g["lost"]] if g and not is_base else ["-", "-"]
+        if family == "noise":
+            cells += ["-" if is_base else f["kinds"].get(kind, [0, 0])[1] for kind in matter]
         cells += [_num(mine["all"]["extra_per_turn"]), _pct(mine["all"]["extra_related"]),
-                  _pct(_stat(result, "idle").get("nothing")), _num(mine["conversations"]["shown_end"])]
+                  _pct(mine["all"]["main_related"]), _num(mine["all"]["arrived_per_turn"]),
+                  _num(mine["all"]["unrelated_per_turn"]), _pct(_stat(result, "idle").get("nothing")),
+                  _num(mine["conversations"]["shown_end"])]
         return cells
 
     rows = [row(base, is_base=True)]

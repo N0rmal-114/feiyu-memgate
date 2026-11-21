@@ -596,6 +596,166 @@ class ExplainTest(unittest.TestCase):
             model_lab.find_case([engine], "nope")
 
 
+class NoiseTest(unittest.TestCase):
+    """The noise filters in model_lab (their own arithmetic is tested in test_bench_chat_noise.py). The query at 5
+    degrees has z 1.1818 for a and 1.1668 for b; the generated text at 85 degrees has a largest z of 1.1186 (c)."""
+
+    def test_the_spec_part(self):
+        self.assertIsNone(model_lab.parse_spec("noise")["noise"])
+        self.assertIsNone(model_lab.parse_spec("noise:")["noise"])
+        config = model_lab.parse_spec("noise:hub=1,k=5,top=2;second:src=reply")
+        self.assertEqual(config["noise"], {"hub": 1.0, "k": 5, "top": 2.0, "each": None, "lead": None, "cap": None})
+        self.assertEqual(model_lab.spec_label(config),
+                         "second:src=reply,q=text,merge=fill,extra=2,mode=within;noise:hub=1.0,k=5,top=2.0")
+        self.assertEqual(model_lab.spec_label(model_lab.parse_spec("noise:each=1.5")), "noise:each=1.5")
+        self.assertEqual(model_lab.spec_label(model_lab.parse_spec("noise:k=7,hub=0.5")), "noise:hub=0.5,k=7")
+        self.assertEqual(model_lab.parse_spec(model_lab.spec_label(config)), config)
+        label = model_lab.spec_label(model_lab.parse_spec("noise:top=2;cue2:;second:src=r;cue:"))
+        self.assertEqual([part.split(":")[0] for part in label.split(";")], ["cue", "second", "cue2", "noise"])
+
+    def test_lead_and_cap_belong_to_the_session_lab(self):
+        for text in ("noise:lead=0.9", "noise:cap=2", "noise:hub=1,cap=1"):
+            with self.assertRaises(SystemExit, msg=text) as context:
+                model_lab.parse_spec(text)
+            self.assertIn("session_lab", str(context.exception))
+
+    def test_bad_noise_values(self):
+        for text in ("noise:hub=-1", "noise:hub=x", "noise:k=0", "noise:k=1.5", "noise:top=nan", "noise:each=inf",
+                     "noise:nope=1", "noise:top", "noise:top=1;noise:each=1"):
+            with self.assertRaises(SystemExit, msg=text):
+                model_lab.parse_spec(text)
+
+    def test_the_default_filters_reproduce_the_product_exactly(self):
+        with open(_FIXTURE, encoding="utf-8") as handle:
+            world = json.load(handle)
+        angles = ProductBaselineTest.ANGLES
+        vectors = {m["text"]: angle(angles[mid]) for mid, m in world["memories"].items()}
+        for case in world["cases"]:
+            query = methods.queries_for("v0", case["history"], case["message"])[0]
+            vectors[query] = angle(ProductBaselineTest.QUERY_ANGLES[case["id"]])
+        engine = model_lab.LabEngine(world, lambda text: vectors[text], lab.Scale(*SCALE))
+        product = engine.records(model_lab.parse_spec("product"))
+        for spec in ("noise", "noise:hub=0", "noise:top=-100", "noise:each=-100", "noise:hub=0,top=-100,each=-100"):
+            self.assertEqual(engine.records(model_lab.parse_spec(spec)), product, spec)
+        self.assertEqual(model_lab.run_variant([engine], model_lab.parse_spec("noise:hub=0"))["summary"],
+                         model_lab.run_variant([engine], model_lab.parse_spec("product"))["summary"])
+
+    def test_top_silences_the_first_lookup(self):
+        engine = near()
+        result = engine.evaluate(engine.cases[0], model_lab.parse_spec("noise:top=1.5"))
+        self.assertEqual((result["final"], result["delivered"], result["added"]), ([], [], []))
+        self.assertEqual(final_of(engine, "noise:top=1.18"), ["a", "b"])  # z 1.1818 passes
+        self.assertEqual(final_of(engine, "noise:top=1.19"), [])
+
+    def test_each_keeps_what_stands_out(self):
+        engine = near()
+        self.assertEqual(final_of(engine, "noise:each=1.0"), ["a", "b"])
+        self.assertEqual(final_of(engine, "noise:each=1.17"), ["a"])
+        self.assertEqual(final_of(engine, "noise:each=1.5"), [])
+
+    def test_the_filters_act_on_the_second_lookup_too(self):
+        engine = near()
+        self.assertEqual(final_of(engine, "second:src=reply"), ["a", "b", "c", "d"])
+        # the first lookup's largest z is 1.1818 and the second's 1.1186: top=1.15 silences only the second
+        result = engine.evaluate(engine.cases[0], model_lab.parse_spec("second:src=reply;noise:top=1.15"))
+        self.assertEqual(result["final"], ["a", "b"])
+        self.assertEqual(result["second"]["items"], [])
+        self.assertEqual(result["second_kept"], [])
+        self.assertEqual(final_of(engine, "second:src=reply;noise:top=1.1"), ["a", "b", "c", "d"])
+
+    def test_top_and_each_never_add_a_memory(self):
+        engine = crowd()
+        product = final_of(engine, "product")
+        for spec in ("noise:top=0.5", "noise:top=-5", "noise:each=-0.5", "noise:each=0.5", "noise:top=1,each=1"):
+            self.assertTrue(set(final_of(engine, spec)) <= set(product), spec)
+
+    def test_hub_lowers_generic_memories_before_the_lines(self):
+        # b sits between a and c, the most generic of the three; lowering it can only drop it
+        angles = {"a": 0, "b": 10, "c": 20, "d": 90}
+        engine = engine_of(angles, {"q": 10})
+        case = engine.cases[0]
+        before = engine.evaluate(case, model_lab.parse_spec("product"))
+        after = engine.evaluate(case, model_lab.parse_spec("noise:hub=50,k=2"))
+        self.assertIn("b", [m for m, _ in before["delivered"]])
+        self.assertNotIn("b", [m for m, _ in after["delivered"]])  # its score is 0 after the penalty
+        # the linked step still reaches b through its unpenalised neighbours: the penalty acts on scores only
+        self.assertIn("b", [a["id"] for a in after["added"]])
+        self.assertEqual(final_of(engine, "noise:hub=0,k=2"), before["final"])
+
+    def test_the_noise_grid_and_its_sweep(self):
+        specs = model_lab.grid_noise()
+        self.assertEqual(len(specs), 12 + 5 + 4)
+        self.assertEqual(specs[:3], ["noise:hub=0.25,k=5", "noise:hub=0.25,k=10", "noise:hub=0.25,k=20"])
+        self.assertEqual(specs[12:17], ["noise:top=%s" % t for t in (1.5, 2.0, 2.5, 3.0, 3.5)])
+        self.assertEqual(specs[17:], ["noise:each=%s" % z for z in (0.5, 1.0, 1.5, 2.0)])
+        engine = near()
+        lines = []
+        rows, winners, base = model_lab.run_sweep([engine], ["noise"], None, lines.append)
+        self.assertEqual([r["label"] for r in rows], specs)
+        table = lines[0].split("\n")
+        self.assertEqual(len(table), 2 + 1 + len(specs))
+        self.assertTrue(all(line.count("|") == table[0].count("|") for line in table))
+        self.assertTrue(all(line.endswith("| - |") for line in table[3:]))  # no rule marks a row
+        text = "\n".join(lines)
+        self.assertNotIn("chosen row per family", text)
+        self.assertIn("no rule picks a row for: noise", text)
+        self.assertIsNone(winners["noise"])
+        self.assertIn("assoc lost", table[0])
+        self.assertIn("follow-up lost", table[0])
+
+    def test_a_mixed_sweep_still_picks_rows_for_the_other_families(self):
+        engine = near()
+        lines = []
+        _, winners, _ = model_lab.run_sweep([engine], ["second", "noise"], "reply", lines.append)
+        text = "\n".join(lines)
+        self.assertIn("chosen row per family by the rule", text)
+        self.assertIn("  second: ", text)
+        self.assertNotIn("  noise: ", text)
+        self.assertIsNotNone(winners["second"])
+
+
+class DiagnoseTest(unittest.TestCase):
+    def engine(self):
+        engine = engine_of(NEAR, {"a1": 5, "a2": 85, "q1": 300}, direct={"a1": (["a"], []), "a2": (["c"], [])})
+        engine.cases[2]["type"] = "quiet"
+        return engine
+
+    def test_the_numbers_by_hand(self):
+        found = model_lab.diagnose_noise([self.engine()])
+        assoc = found["types"]["remark-assoc"]
+        # largest z: 1.1818 (a1) and 1.1186 (a2); the quiet query at 300 degrees has 1.205, higher than both
+        self.assertEqual((assoc["n"], assoc["skipped"]), (2, 0))
+        self.assertAlmostEqual(assoc["median"], (1.1818 + 1.1186) / 2, places=3)
+        self.assertAlmostEqual(assoc["q1"], 1.1186 + 0.25 * (1.1818 - 1.1186), places=3)
+        self.assertAlmostEqual(assoc["q3"], 1.1186 + 0.75 * (1.1818 - 1.1186), places=3)
+        self.assertEqual(found["types"]["quiet"]["n"], 1)
+        self.assertEqual(found["auc_z"], 0.0)  # the quiet case stands out more than either remark
+        self.assertEqual(found["auc_top_score"], 1.0)  # but the plain top score tells them apart: .996 and .966 against .5
+        self.assertEqual(found["direct_z"]["n"], 2)
+        self.assertEqual(found["direct_z"]["shares"], {"1.0": 1.0, "1.5": 0.0, "2.0": 0.0})
+
+    def test_cases_without_a_query_are_counted_apart(self):
+        engine = self.engine()
+        engine.cases.append({"id": "n1", "type": "quiet", "history": [], "message": "ok", "direct": [], "chain": [],
+                             "also_ok": []})
+        found = model_lab.diagnose_noise([engine])
+        self.assertEqual(found["types"]["quiet"], dict(found["types"]["quiet"], n=1, skipped=1))
+
+    def test_the_lines(self):
+        text = "\n".join(model_lab.diagnose_lines(model_lab.diagnose_noise([self.engine()])))
+        for wanted in ("| remark-assoc | 2 | 1.15 |", "| quiet | 1 | 1.21 |", "ROC-AUC", "| largest z | 0.000 |",
+                       "| plain top score (the product's score of the best memory) | 1.000 |",
+                       "| 1.0 | 100.0 |", "| 1.5 | 0.0 |", "| 2.0 | 0.0 |", "share (%) of 2"):
+            self.assertIn(wanted, text)
+
+    def test_no_quiet_cases_means_no_auc(self):
+        engine = engine_of(NEAR, {"a1": 5}, direct={"a1": (["a"], [])})
+        found = model_lab.diagnose_noise([engine])
+        self.assertIsNone(found["auc_z"])
+        self.assertIsNone(found["auc_top_score"])
+        self.assertIn("| largest z | - |", "\n".join(model_lab.diagnose_lines(found)))
+
+
 class MainTest(unittest.TestCase):
     def setUp(self):
         self.root = tempfile.mkdtemp()
@@ -669,6 +829,50 @@ class MainTest(unittest.TestCase):
         self.assertIn("chosen row per family by the rule", text)
         self.assertIn("| product |", text)
         self.assertIn("second:src=reply-mem,q=both,merge=rank,min=0.6", text)
+
+    def test_a_noise_sweep_prints_the_table_without_a_rule(self):
+        self.fill_cache(model_lab.grid_noise())
+        code, text = self.call(["--split", self.split, "--cache", self.cache, "--sweep", "noise"])
+        self.assertEqual(code, 0)
+        self.assertIn("| product |", text)
+        self.assertIn("| noise:hub=0.25,k=5 |", text)
+        self.assertIn("| noise:each=2.0 |", text)
+        self.assertNotIn("chosen row per family", text)
+
+    def test_diagnose_prints_the_study_and_refuses_the_test_split_even_with_final(self):
+        self.fill_cache([])
+        out_path = os.path.join(self.root, "diag.json")
+        code, text = self.call(["--split", self.split, "--cache", self.cache, "--diagnose", "noise", "--out", out_path])
+        self.assertEqual(code, 0)
+        for wanted in ("| case type |", "| remark-assoc |", "| quiet |", "ROC-AUC", "| largest z |", "| plain top score"):
+            self.assertIn(wanted, text)
+        with open(out_path, encoding="utf-8") as handle:
+            self.assertEqual(set(json.load(handle)["diagnose"]), {"types", "auc_z", "auc_top_score", "direct_z"})
+        folder = os.path.join(self.root, "test")
+        os.makedirs(folder)
+        for extra in ([], ["--final"]):
+            with self.assertRaises(SystemExit) as context:
+                model_lab.main(["--split", folder, "--cache", self.cache, "--diagnose", "noise"] + extra)
+            self.assertIn("--diagnose", str(context.exception))
+        with self.assertRaises(SystemExit):
+            model_lab.refuse_diagnose(os.path.join(self.root, "x", "Test"))
+        model_lab.refuse_diagnose(self.split)
+        with self.assertRaises(SystemExit):
+            model_lab.main(["--split", self.split, "--cache", self.cache, "--diagnose", "other"])
+
+    def test_the_noise_sweep_refuses_the_test_split_even_with_final(self):
+        folder = os.path.join(self.root, "test")
+        os.makedirs(folder)
+        for extra in ([], ["--final"]):
+            with self.assertRaises(SystemExit) as context:
+                model_lab.main(["--split", folder, "--cache", self.cache, "--sweep", "noise"] + extra)
+            self.assertIn("--sweep", str(context.exception))
+
+    def test_lead_and_cap_are_refused_on_the_command_line(self):
+        self.fill_cache([])
+        for spec in ("noise:lead=0.9", "noise:cap=2"):
+            with self.assertRaises(SystemExit):
+                model_lab.main(["--split", self.split, "--cache", self.cache, "--run", spec])
 
     def test_a_missing_vector_stops_the_run(self):
         self.fill_cache(["second:src=reply-mem"], drop=("天气热可以多吃冰淇淋",))
