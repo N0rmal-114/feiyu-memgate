@@ -17,6 +17,7 @@ import os
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 from . import config, registry
 from .errors import ConfigError
@@ -90,12 +91,13 @@ def describe(gateway):
             name, recall, policy.write or "无", policy.tenants or "无", "是" if policy.public else "否",
             _AUDIENCE_LABELS[policy.reach], policy.daily_writes if policy.daily_writes is not None else "无", token)
         if policy.reach != "owner" and policy.write in gateway.stores and gateway.audience_of(policy.write) == "owner":
-            warnings.append("  提醒：%s 的内容会被别人看到，写入的却是只给主人的存储 %s：别人说的话会进到主人的私聊记忆里；"
-                            "确认这是你要的，否则换一个存储" % (name, policy.write))
+            warnings.append("  提醒：%s 的内容会被别人看到，写入的却是只给主人的存储 %s："
+                            "别人说的话会进到主人的私聊记忆里；确认这是你要的，否则换一个存储" % (name, policy.write))
         if policy.token_bound:
             line += "；租户绑定 token（每个令牌只能用于铸造时绑定的租户，第 %d 代）" % policy.tenant_token_generation
             if gateway.weak_minting_secret(name):  # yes or no only: never the secret or its length
-                warnings.append("  提醒：%s 的铸造密钥看起来不是随机生成的（太短或用到的字符太少）：拿到一个令牌的人能离线猜它；"
+                warnings.append("  提醒：%s 的铸造密钥看起来不是随机生成的（太短或用到的字符太少）："
+                                "拿到一个令牌的人能离线猜它；"
                                 "请用 python -c \"import secrets; print(secrets.token_urlsafe(32))\" 重新生成" % name)
             if policy.daily_writes_total is not None and policy.daily_writes is None:
                 warnings.append("  提醒：%s 设了 daily_writes_total 却没设 daily_writes：一个租户就能用完所有租户合计的"
@@ -108,11 +110,13 @@ def describe(gateway):
             line += "；可以查看召回的解释"
         lines.append(line)
     lines.extend(warnings)
-    lines.append("召回阶段（按顺序）：" + (" -> ".join(_piece_name("recall_stage", s) for s in gateway.stages) or "（没有）"))
+    lines.append("召回阶段（按顺序）：" + (
+        " -> ".join(_piece_name("recall_stage", s) for s in gateway.stages) or "（没有）"))
     profiles = ["%s %s" % (_piece_name("recall_stage", s), s.profile) for s in gateway.stages
                 if isinstance(getattr(s, "profile", None), str)]
     lines.append("分数线档位：" + ("、".join(profiles) or "（没有 min_score 或 relative_score）"))
-    lines.append("写入关卡（按顺序）：" + (" -> ".join(_piece_name("write_guard", g) for g in gateway.guards) or "（没有）"))
+    lines.append("写入关卡（按顺序）：" + (
+        " -> ".join(_piece_name("write_guard", g) for g in gateway.guards) or "（没有）"))
     return lines
 
 
@@ -120,7 +124,7 @@ def stage_reminders(gateway):
     """One reminder line per recall stage that stands before a stage it must come after
     (core.stages.misplaced; the stage's `after` names those stages)."""
     from .core.stages import misplaced
-    rules = {}
+    rules: dict[str, tuple[str, ...]] = {}
     for stage in gateway.stages:
         rule = getattr(stage, "after", None)
         if isinstance(rule, tuple):
@@ -346,7 +350,7 @@ def _day(epoch):
 def _curve_lines(curve):
     """The curve's name and its simple settings, as lines. Works for any curve piece."""
     name = _piece_name("forgetting_curve", curve)
-    settings = {k: v for k, v in sorted(getattr(curve, "__dict__", {}).items())
+    settings: dict[str, Any] = {k: v for k, v in sorted(getattr(curve, "__dict__", {}).items())
                 if not k.startswith("_") and isinstance(v, (int, float, str, bool, dict, list, tuple))}
     lines = ["曲线：%s" % name]
     if "half_life_days" in settings:  # the built-in one, spelled out
@@ -414,7 +418,7 @@ def _forget_status(gateway, args):
     f = gateway.forgetting
     report = gateway.sweep(dry_run=True)
     records = f.archive.list()
-    archived = {}
+    archived: dict[str, int] = {}
     for record in records:
         archived[record.store] = archived.get(record.store, 0) + 1
     print("遗忘状态（日期按 UTC）：")
@@ -425,8 +429,8 @@ def _forget_status(gateway, args):
             key, row["total"], row["pinned"], row["active"], row["demoted"], row["due"], row["failed"],
             archived.get(key, 0)))
         if row.get("held"):
-            print("    限速：到期的有 %d 条超过每次的上限，真正清理时会留下 %d 条到下一次（forget sweep --force 一次全删）" % (
-                row["due"], row["held"]))
+            print("    限速：到期的有 %d 条超过每次的上限，"
+                  "真正清理时会留下 %d 条到下一次（forget sweep --force 一次全删）" % (row["due"], row["held"]))
     for key in report["unsupported"]:
         print("  %s：存储缺少 refs/delete/put，管理不了" % key)
     for name in f.stores:
@@ -600,7 +604,8 @@ def _forget_explain(gateway, args):
     now = f.now()
     date = dates.get(args.ref)
     print("%s %s" % (args.store, args.ref))
-    print("  在存储里：%s；记忆日期：%s" % ("是" if args.ref in dates else "否（账本里还有一行，下次清理会去掉）", date or "-"))
+    print("  在存储里：%s；记忆日期：%s" % (
+        "是" if args.ref in dates else "否（账本里还有一行，下次清理会去掉）", date or "-"))
     if entry is None:
         print("  账本：还没有记录（没被用到过，清理时会补上）")
     else:
@@ -610,7 +615,8 @@ def _forget_explain(gateway, args):
             entry.uses, "是" if entry.pinned else "否"))
     status = f.status(args.store, args.ref, entry, date, now)
     names = {"pinned": "钉住（不降权、不遗忘）", "due": "到期（下一次清理会存档并删除，除非被每次的上限留到下一次）",
-             "demoted": "降权（排序保持率低于降权线：很快到新鲜度下限，以后是被删的候选；召回排序不因此改变）", "active": "正常"}
+             "demoted": "降权（排序保持率低于降权线：很快到新鲜度下限，以后是被删的候选；召回排序不因此改变）",
+             "active": "正常"}
     uses = f.uses_of(entry)
     rank_age = _age_days(f.ranking_start(entry, date), now)
     delete_start = f.deletion_start(entry, now)
@@ -624,11 +630,12 @@ def _forget_explain(gateway, args):
     if entry is None or entry.managed_since is None:
         print("  还没有开始被管理：删除的计时从第一次清理（或第一次被用到）开始")
     print("  如果以后再没被用到：")
-    print("    越过降权线（排序 R<%s）：%s" % (f.demote_below, _when(f, args.store, rank_age, uses, f.demote_below, now)))
+    print("    越过降权线（排序 R<%s）：%s" % (
+        f.demote_below, _when(f, args.store, rank_age, uses, f.demote_below, now)))
     print("    最早可以被删除（删除 R<%s）：%s" % (
         f.forget_below, _when(f, args.store, delete_age, uses, f.forget_below, now)))
-    print("    （每次清理每个存储最多忘 max(%d, %s×条数) 条，先忘保持率最低的，所以实际可能更晚；forget sweep --force 取消限速）" % (
-        f.max_forget_min, _percent(f.max_forget_fraction)))
+    print("    （每次清理每个存储最多忘 max(%d, %s×条数) 条，先忘保持率最低的，所以实际可能更晚；"
+          "forget sweep --force 取消限速）" % (f.max_forget_min, _percent(f.max_forget_fraction)))
     return 0
 
 
@@ -712,7 +719,8 @@ def build_parser():
                    help="租户编号（token 用）：只在标准输出打印一个绑定这个租户的令牌，铸造密钥从客户端的 token_env 读")
     p.set_defaults(func=cmd_tenants)
 
-    p = sub.add_parser("forget", help="遗忘曲线：查看状态、清理、存档、恢复、钉住（输出只有数字和地址，不显示记忆正文）")
+    p = sub.add_parser("forget", help="遗忘曲线：查看状态、清理、存档、恢复、钉住"
+                                      "（输出只有数字和地址，不显示记忆正文）")
     fsub = p.add_subparsers(dest="action", required=True)
 
     def forget_parser(name, help_text):
@@ -754,7 +762,7 @@ def _lenient_output():
     """
     for stream in (sys.stdout, sys.stderr):
         try:
-            stream.reconfigure(errors="replace")
+            stream.reconfigure(errors="replace")  # type: ignore[union-attr]  # a TextIOWrapper, or a test's stand-in
         except (AttributeError, ValueError, OSError):
             pass
 

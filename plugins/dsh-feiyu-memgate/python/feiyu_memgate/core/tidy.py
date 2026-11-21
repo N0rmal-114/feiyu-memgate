@@ -1,4 +1,5 @@
-"""Text helpers: normalising, near-duplicate detection for recall results, and the character grams (with their IDF weights) the keyword backends score on.
+"""Text helpers: normalising, near-duplicate detection for recall results, and the character grams (with their
+IDF weights) the keyword backends score on.
 
 Standard library only.
 """

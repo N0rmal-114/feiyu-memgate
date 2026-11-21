@@ -225,7 +225,8 @@ def client_policy(name, spec):
         public=public, audience=audience, daily_writes=spec.get("daily_writes"),
         daily_writes_total=spec.get("daily_writes_total"), rate_limit=spec.get("rate_limit", 60),
         rate_limit_total=spec.get("rate_limit_total"), pin_writes=spec.get("pin_writes", False),
-        explain=spec.get("explain", False), tenant_binding=binding, tenant_token_generation=spec.get("tenant_token_generation", 1),
+        explain=spec.get("explain", False), tenant_binding=binding,
+        tenant_token_generation=spec.get("tenant_token_generation", 1),
     )
 
 
@@ -260,7 +261,8 @@ _PROFILE_STAGES = ("min_score", "relative_score")
 def _with_profile(specs, profile):
     """`specs` (a recall stage list, or None for the default one) with `profile` added to every min_score and
     relative_score entry that does not set its own `profile`. No profile (None) leaves the entries alone: the
-    stages then use their own default, "broad". An explicit "precise" is added like any other. Entries that are not a name or a table are left for _pieces to refuse."""
+    stages then use their own default, "broad". An explicit "precise" is added like any other. Entries that are not a
+    name or a table are left for _pieces to refuse."""
     if profile is None:
         return specs
     if specs is None:
@@ -395,7 +397,8 @@ def build_gateway(cfg, env=None, log=stderr_log, wall=None, **overrides):
     if unknown:
         raise ConfigError("unknown section %s" % ", ".join(sorted(unknown)))
     # The fixed sections first: a typo there is found before anything is opened.
-    server, recall_cfg, write_cfg, redaction = (_section(cfg, name) for name in ("server", "recall", "write", "redaction"))
+    server, recall_cfg, write_cfg, redaction = (
+        _section(cfg, name) for name in ("server", "recall", "write", "redaction"))
 
     opened = []
     try:
@@ -434,7 +437,8 @@ def build_gateway(cfg, env=None, log=stderr_log, wall=None, **overrides):
             # For a tenant-bound client the variable holds the minting secret, not a token.
             what = "minting secret" if clients[name].token_bound else "token"
             if raw and not tokens[name]:
-                log("%s of client %s ignored: placeholder or shorter than %d characters" % (what, name, MIN_TOKEN_CHARS))
+                log("%s of client %s ignored: placeholder or shorter than %d characters"
+                    % (what, name, MIN_TOKEN_CHARS))
             elif not raw:
                 log("client %s has no %s (%s is not set): it cannot authenticate" % (name, what, token_env))
         if not clients:

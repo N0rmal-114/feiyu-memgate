@@ -15,12 +15,13 @@ Standard library only.
 import importlib
 import threading
 from importlib import metadata
+from typing import Any
 
 from .errors import ConfigError
 
 KINDS = ("backend", "recall_stage", "write_guard", "redactor", "tenants", "forgetting_curve")
 
-_pieces = {kind: {} for kind in KINDS}
+_pieces: dict[str, dict[str, Any]] = {kind: {} for kind in KINDS}
 _lock = threading.Lock()
 _builtins_loaded = False
 
@@ -96,7 +97,8 @@ def resolve(kind, name):
     if factory is None:
         factory = _from_entry_point(kind, name)
     if factory is None:
-        raise ConfigError("no %s piece named %r (known: %s)" % (kind, name, ", ".join(sorted(available(kind))) or "none"))
+        raise ConfigError("no %s piece named %r (known: %s)"
+                          % (kind, name, ", ".join(sorted(available(kind))) or "none"))
     return factory
 
 
@@ -120,6 +122,7 @@ def create(kind, spec, **extra):
     except TypeError as error:
         # A wrong or missing option. The message names options, never their values.
         raise ConfigError("%s %r: %s" % (kind, name, error)) from None
+    assert isinstance(name, str)  # resolve() refused anything else above
     if kind in NAMED_KINDS and ":" not in name:
         _name(piece, name)
     return piece

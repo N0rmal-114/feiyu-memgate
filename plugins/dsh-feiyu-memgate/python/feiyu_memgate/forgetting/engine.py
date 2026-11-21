@@ -21,6 +21,7 @@ import calendar
 import fnmatch
 import math
 import time
+from typing import Any
 
 DAY = 86400.0
 REQUIRED = ("refs", "delete", "put")
@@ -137,7 +138,7 @@ class Forgetting:
     def record_use(self, key, items, now=None):
         """items: (ref, date) of the memories that were returned to a caller."""
         now = self.wall() if now is None else now
-        seen = {}
+        seen: dict[Any, float | None] = {}
         for ref, date in items:
             seen.setdefault(ref, date_to_epoch(date))
         if seen:
@@ -145,7 +146,7 @@ class Forgetting:
 
     def _sync_listing(self, key, listing, now):
         known = {entry.ref for entry in self.ledger.entries(key)}
-        present = {}
+        present: dict[Any, Any] = {}
         for ref, date in listing:
             present.setdefault(ref, date)
         added = [(ref, date_to_epoch(date)) for ref, date in present.items() if ref not in known]
@@ -196,7 +197,7 @@ class Forgetting:
         listings but writes nothing anywhere.
         """
         now = self.wall() if now is None else now
-        report = {"unsupported": []}
+        report: dict[str, Any] = {"unsupported": []}
         for key, store in targets.items():
             if not supports(store):
                 report["unsupported"].append(key)
@@ -213,7 +214,7 @@ class Forgetting:
         except Exception:  # noqa: BLE001 - a store that cannot list is retried next time
             row["failed"] = 1
             return row
-        dates = {}
+        dates: dict[Any, Any] = {}
         for ref, date in listing:
             dates.setdefault(ref, date)
         if dry_run:

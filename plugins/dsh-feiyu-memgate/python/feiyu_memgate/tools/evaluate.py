@@ -111,7 +111,8 @@ def run_eval(backend, memories, queries, *, thresholds=THRESHOLDS, limits=LIMITS
     if seed:
         put = getattr(backend, "put", None)
         if put is None:
-            raise ValueError("这个存储没有 put()，没法写入示例记忆：请先把示例记忆放进去，再用 seed=False（命令行 --no-seed）评测")
+            raise ValueError("这个存储没有 put()，没法写入示例记忆："
+                             "请先把示例记忆放进去，再用 seed=False（命令行 --no-seed）评测")
         for ref, text in memories.items():
             put(text, ref=ref)
         out(f"已写入 {len(memories)} 条假记忆。")

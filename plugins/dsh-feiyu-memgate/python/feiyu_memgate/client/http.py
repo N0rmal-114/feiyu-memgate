@@ -231,7 +231,7 @@ class MemoryClient:
             return data, OK
         except TimeoutError:
             self.log.warning("memory %s failed: timeout", what)
-        except Exception as e:  # never raise to the caller; log the type only
+        except Exception as e:  # noqa: BLE001 - never raise to the caller; log the type only
             self.log.warning("memory %s failed: %s", what, type(e).__name__)
         finally:
             if conn is not None:

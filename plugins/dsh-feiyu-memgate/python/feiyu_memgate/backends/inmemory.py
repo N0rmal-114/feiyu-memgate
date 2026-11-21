@@ -32,7 +32,7 @@ class InMemoryBackend(MemoryBackend):
         self.writable = bool(writable)
         self._lock = threading.Lock()
         self._items = {}  # ref -> (text, date or None)
-        self._frequency = collections.Counter()  # gram -> how many memories hold it
+        self._frequency: collections.Counter[str] = collections.Counter()  # gram -> how many memories hold it
         for text in memories:
             self._store(text)  # seeding works for a read-only store too
 

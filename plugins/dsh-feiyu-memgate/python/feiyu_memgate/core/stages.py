@@ -5,6 +5,7 @@ Standard library only.
 """
 import datetime
 import math
+from typing import Any
 
 from ..errors import ConfigError
 from ..model import Candidate
@@ -448,7 +449,7 @@ class Linked(RecallStage):
         # All the lookups together wait at most this long, and never more than half of what is left: a store
         # that hangs must not take the time the stages after this one (and the first-hop answer) need.
         until = ctx.clock() + min(LINKED_WAIT, max(ctx.time_left(), 0.0) / 2)
-        found = {}  # (id of store, ref) -> [similarity, order met, parent, hit]
+        found: dict[Any, list[Any]] = {}  # (id of store, ref) -> [similarity, order met, parent, hit]
         for parent in first:
             if ctx.clock() >= until:
                 break

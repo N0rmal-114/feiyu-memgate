@@ -10,6 +10,7 @@ looked, so it is not known to be missing.
 import collections
 import threading
 import time
+from typing import Any
 
 EXTRACT_WAIT = 300.0
 EXTRACT_POLL = 30.0
@@ -25,7 +26,7 @@ class RecallFailures:
     def __init__(self, clock=time.monotonic, window=HOUR):
         self._clock = clock
         self._window = window
-        self._times = collections.deque()
+        self._times: collections.deque[float] = collections.deque()
         self._lock = threading.Lock()
 
     def _trim(self, now):
@@ -53,7 +54,7 @@ class ExtractionWatch:
         self._window = window
         self._max = max_pending
         self._pending = collections.OrderedDict()  # id -> [client, tracked_at, next_check]
-        self._done = collections.deque()  # (time, state)
+        self._done: collections.deque[tuple[float, Any]] = collections.deque()  # (time, state)
         self._lock = threading.Lock()
         self._halt = threading.Event()
         self._thread = None

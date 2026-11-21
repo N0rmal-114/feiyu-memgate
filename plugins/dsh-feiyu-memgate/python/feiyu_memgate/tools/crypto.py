@@ -35,9 +35,10 @@ class CryptoMissing(RuntimeError):
 
 def _aesgcm(key):
     try:
-        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM  # type: ignore[import-not-found]  # optional extra
     except ImportError:
-        raise CryptoMissing("主机 Python 缺少 cryptography 库，装好再备份：python -m pip install cryptography") from None
+        raise CryptoMissing("主机 Python 缺少 cryptography 库，装好再备份："
+                            "python -m pip install cryptography") from None
     if len(key) != KEY_LEN:
         raise KeyFileError(f"密钥长度不对，应该是 {KEY_LEN} 个字节")
     return AESGCM(key)
@@ -126,7 +127,7 @@ def can_open(blob, key):
     aead = _aesgcm(key)
     try:
         aead.decrypt(blob[len(MAGIC):len(MAGIC) + NONCE_LEN], blob[len(MAGIC) + NONCE_LEN:], MAGIC)
-    except Exception:
+    except Exception:  # noqa: BLE001 - any failure to authenticate means the key does not open the blob
         return False
     return True
 
@@ -183,7 +184,7 @@ def decrypt_to(blob, key, out_dir):
     nonce = blob[len(MAGIC):len(MAGIC) + NONCE_LEN]
     try:
         data = aead.decrypt(nonce, blob[len(MAGIC) + NONCE_LEN:], MAGIC)
-    except Exception:
+    except Exception:  # noqa: BLE001 - wrong key or a changed blob; no detail is passed on
         raise DecryptError("密钥不对，或者加密包被改过") from None
     # Anything the zip reader can raise on an authenticated but odd archive is a decrypt error, not a crash.
     zip_errors = (zipfile.BadZipFile, zlib.error, NotImplementedError, EOFError, ValueError, RuntimeError)

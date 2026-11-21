@@ -29,7 +29,8 @@ caller's own `ctl`.
 
 Failure handling: a child that raises or does not answer in time during a search is skipped for that
 search and recorded: `child_failures` (a list of ints, one per child, never reset) and the word
-`child-failed` through the caller's `ctl.note` (the access log). Only when every child fails is it an error. A write is all or nothing: if any child fails, the memories
+`child-failed` through the caller's `ctl.note` (the access log). Only when every child fails is it an error.
+A write is all or nothing: if any child fails, the memories
 are deleted again from every child (best effort; replacing an existing ref and failing
 removes it, so re-put it). Children must be able to `put(text, ref=..., date=...)` and
 `delete` when the hybrid is writable.
@@ -43,6 +44,7 @@ import os
 import socket
 import threading
 import time
+from typing import Any
 
 from .. import registry
 from ..errors import BackendError, ConfigError
@@ -268,7 +270,7 @@ class HybridBackend(MemoryBackend):
         try:
             for child in self.children:
                 self._child_put(child, rows, timeout, ctl)
-        except Exception:
+        except Exception:  # noqa: BLE001 - any child failure rolls the write back and surfaces as one BackendError
             self._rollback(refs)
             raise BackendError("a child failed to store; the write was rolled back") from None
         return refs
@@ -410,7 +412,7 @@ class HybridBackend(MemoryBackend):
         return self._fuse(answers)[:limit]
 
     def _fuse(self, answers):
-        merged = {}  # ref -> {"text", "date", "scores": [per child], "cosine"}
+        merged: dict[Any, dict[str, Any]] = {}  # ref -> {"text", "date", "scores": [per child], "cosine"}
         for index, hits in answers:
             for hit in hits:
                 entry = merged.setdefault(hit.ref, {"text": "", "date": None, "scores": [None] * len(self.children),
@@ -462,7 +464,7 @@ class HybridBackend(MemoryBackend):
 
         jobs = [(index, lambda left, cctl, c=child: rows_of(c, left, cctl)) for index, child in capable]
         # ref -> [highest score, its hit, first text found, first date found]
-        best = {}
+        best: dict[Any, list[Any]] = {}
         answers = self._gather(jobs, total, ctl)[0] if jobs else []
         for _, rows in answers:
             for hit_ref, score, hit in rows:

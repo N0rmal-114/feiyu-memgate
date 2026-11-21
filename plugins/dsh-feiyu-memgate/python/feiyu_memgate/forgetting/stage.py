@@ -7,6 +7,8 @@ and the access log gets the note "ledger-failed".
 
 Standard library only.
 """
+from typing import Any
+
 from ..core.recall import RecallStage
 from ..errors import ConfigError
 from ..registry import register
@@ -63,7 +65,7 @@ class Freshness(RecallStage):
         before = [(c, c.score) for c in managed]
         try:
             now = f.now()
-            by_key = {}
+            by_key: dict[Any, list[Any]] = {}
             for c in managed:
                 by_key.setdefault(_key(f, c, ctx), []).append(c)
             for key, group in by_key.items():
@@ -96,7 +98,7 @@ class Freshness(RecallStage):
             return
         f = self.forgetting
         managed = [c for c in ctx.accepted if f.manages(c.source)]
-        by_key = {}
+        by_key: dict[Any, list[Any]] = {}
         for c in self._credited(managed):
             by_key.setdefault(_key(f, c, ctx), []).append((c.ref, c.date))
         if not by_key:

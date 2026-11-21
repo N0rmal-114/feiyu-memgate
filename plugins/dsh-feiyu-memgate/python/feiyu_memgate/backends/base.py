@@ -163,16 +163,17 @@ class MemoryBackend(abc.ABC):
     tracks_writes = False
     # The min_score a recall should use for this backend when the policy names none (the gateway's
     # `min_score` stage reads it). The `default_` prefix is historical: it names the line of the "precise"
-    # profile, not the default profile (the default profile is "broad", see broad_* below). Scores of different backends mean different things (keyword
-    # overlap, semantic similarity), so a backend states a sensible floor for its own scale.
+    # profile, not the default profile (the default profile is "broad", see broad_* below). Scores of different
+    # backends mean different things (keyword overlap, semantic similarity), so a backend states a sensible floor
+    # for its own scale.
     # Optional: a backend that does not set it gets the gateway's own default.
-    default_min_score = None
+    default_min_score: float | None = None
     # The recall-leaning counterparts, used by the `min_score` / `relative_score` stages when their option
     # `profile` is "broad", which is the stages' default (they trade precision and silence for more answered
     # questions). None means this backend has no distinct broad setting: the stages then use the default_ line
     # above under either profile.
-    broad_min_score = None
-    broad_relative_ratio = None
+    broad_min_score: float | None = None
+    broad_relative_ratio: float | None = None
 
     @abc.abstractmethod
     def find(self, query, limit, timeout=None, ctl=None):

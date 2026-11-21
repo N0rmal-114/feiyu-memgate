@@ -14,6 +14,7 @@ import queue
 import socket
 import threading
 import time
+from typing import Any
 
 from ..errors import BackendError
 
@@ -166,7 +167,7 @@ class Pool:
 
     def __init__(self, size=POOL_SIZE):
         self.size = size
-        self._queue = queue.SimpleQueue()
+        self._queue: queue.SimpleQueue[Any] = queue.SimpleQueue()
         self._workers = []
         self._busy = 0
         self._closed = False
@@ -202,7 +203,7 @@ class Pool:
                 self._workers.append(worker)
                 try:
                     worker.start()
-                except Exception:
+                except Exception:  # noqa: BLE001 - a failed thread start is rolled back and reported as no capacity
                     # Roll everything back so a failed start cannot leak capacity.
                     self._workers.remove(worker)
                     self._busy -= 1

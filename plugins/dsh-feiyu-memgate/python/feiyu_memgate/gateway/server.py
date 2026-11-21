@@ -11,6 +11,10 @@ import threading
 import time
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .app import Gateway
 
 MAX_BODY = 64 * 1024
 MAX_CONNECTIONS = 32
@@ -26,6 +30,7 @@ def _error(text, code):
 
 
 class Handler(BaseHTTPRequestHandler):
+    server: "Server"  # set by the socketserver machinery; the Server below carries watch/unwatch/gw
     protocol_version = "HTTP/1.0"
     server_version = "gateway"
     sys_version = ""
@@ -138,11 +143,11 @@ class Handler(BaseHTTPRequestHandler):
             client = self._route(gw, method, path)
         except (BrokenPipeError, ConnectionResetError, TimeoutError):
             pass
-        except Exception:
+        except Exception:  # noqa: BLE001 - an unexpected route failure becomes a 500, the server stays up
             if not self._status:
                 try:
                     self._reply(500, _error("internal error", "internal"))
-                except Exception:
+                except Exception:  # noqa: BLE001 - the peer may already be gone; nothing more to do
                     pass
         finally:
             self.server.unwatch(self.request)
@@ -170,6 +175,7 @@ class Handler(BaseHTTPRequestHandler):
         # handed to the gateway beside the body, never written into it.
         name, bound_tenant = caller
         action = ROUTES[(method, path)]
+        assert action is not None  # only /healthz has no action, and it was answered above
         refused = gw.admit(name, action, bound_tenant)
         if refused is not None:
             self._note = refused.note
@@ -239,6 +245,7 @@ class Server(ThreadingHTTPServer):
 
     daemon_threads = True
     allow_reuse_address = True
+    gw: "Gateway"  # set by make_server
 
     def __init__(self, addr, handler, max_connections=MAX_CONNECTIONS, read_deadline=READ_DEADLINE):
         super().__init__(addr, handler)

@@ -33,7 +33,7 @@ class WriteGuard:
     """
 
     name = None
-    enforces = ()
+    enforces: tuple[str, ...] = ()
 
     def before(self, messages, ctx):
         return messages

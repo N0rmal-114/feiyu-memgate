@@ -191,7 +191,7 @@ class OpenVikingBackend(MemoryBackend):
             parsed = json.loads(b"".join(chunks).decode("utf-8"))
         except BackendError:
             raise
-        except Exception:
+        except Exception:  # noqa: BLE001 - any transport or parse failure becomes a BackendError, no upstream detail leaks
             raise BackendError("upstream request failed") from None
         finally:
             ctl.detach()
@@ -420,11 +420,11 @@ class OpenVikingBackend(MemoryBackend):
         pattern = re.compile(
             r"^viking://(~|user/[^/]+)/sessions/" + re.escape(receipt) + r"/history/archive_[0-9]+/memory_diff\.json$"
         )
-        found = []
+        found: list[tuple[str, str]] = []
         for entry in listing:
             uri = entry.get("uri") if isinstance(entry, dict) else entry
             m = pattern.match(uri) if isinstance(uri, str) else None
-            if m:
+            if m and isinstance(uri, str):
                 found.append((uri, m.group(1)))
         if len(found) != 1:
             return None

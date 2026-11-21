@@ -74,6 +74,7 @@ import ssl
 import threading
 import time
 import urllib.parse
+from typing import Any
 
 from ..core.pool import _NoCtl
 from ..errors import BackendError
@@ -110,11 +111,11 @@ PRESETS = (
 )
 # What an unknown model gets: the bge-m3 numbers, without prefixes.
 # The broad numbers are the bge-m3 ones too (a guess for an unknown model, like the rest).
-GENERIC = {"floor": 0.40, "ceil": 0.80, "min_score": 0.50, "ratio": 0.85, "broad_min_score": 0.30,
+GENERIC: dict[str, Any] = {"floor": 0.40, "ceil": 0.80, "min_score": 0.50, "ratio": 0.85, "broad_min_score": 0.30,
            "broad_ratio": 0.60, "query_prefix": "", "document_prefix": ""}
 
 _log = logging.getLogger("feiyu_memgate.backends.embedding")
-_warned = set()  # model names already warned about in this process
+_warned: set[str] = set()  # model names already warned about in this process
 
 MAX_RESPONSE = 16 * 1024 * 1024  # a batch of 32 vectors of 3072 floats is about 2 MB of JSON
 QUERY_CACHE = 256
@@ -123,7 +124,7 @@ MAX_PREFIX = 512  # characters; the longest recommended instruction is about 100
 SCORE_CHECK_EVERY = 256  # vectors scored between two deadline checks
 
 try:
-    _sumprod = math.sumprod  # Python 3.12+: the dot product in C
+    _sumprod = math.sumprod  # type: ignore[attr-defined]  # Python 3.12+: the dot product in C
 except AttributeError:  # pragma: no cover - Python 3.11
     def _sumprod(a, b):
         return sum(x * y for x, y in zip(a, b))
@@ -198,6 +199,7 @@ class _Http:
                 attach(raw)
             sock = raw
             if self.https:
+                assert self._ssl is not None  # built in __init__ whenever https is on
                 sock = self._ssl.wrap_socket(raw, server_hostname=self.host)
             conn = (http.client.HTTPSConnection if self.https else http.client.HTTPConnection)(self.host, self.port)
             conn.sock = sock
@@ -388,7 +390,7 @@ class EmbeddingBackend(MemoryBackend):
         gives every request the default budget (for writes, where the batch count is the caller's choice)."""
         if prefix:
             texts = [prefix + t for t in texts]
-        out = []
+        out: list[Any] = []
         end = None if total is None else time.monotonic() + total
         for start in range(0, len(texts), self._batch):
             chunk = texts[start:start + self._batch]
@@ -514,6 +516,7 @@ class EmbeddingBackend(MemoryBackend):
             finally:
                 self._lock.release()
             return
+        assert self._readers is not None  # None only for the shared in-memory store, handled above
         conn = self._readers.acquire(deadline)
         try:
             yield conn
@@ -567,7 +570,8 @@ class EmbeddingBackend(MemoryBackend):
                 db.execute("BEGIN")  # one snapshot for the counter and the vectors
                 try:
                     loaded_at = _generation(db)
-                    loaded = {ref: _blob_to_vector(blob) for ref, blob in db.execute("SELECT ref, vector FROM memories")}
+                    loaded = {ref: _blob_to_vector(blob)
+                              for ref, blob in db.execute("SELECT ref, vector FROM memories")}
                 finally:
                     db.rollback()
             with self._cache_lock:
