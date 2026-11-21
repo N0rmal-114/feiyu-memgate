@@ -113,34 +113,34 @@ const T = {
   zh: {
     help: [
       '用法：',
-      '/memgate-embed status：状态和下载进度',
-      '/memgate-embed list{all}：可用的模型',
-      '/memgate-embed add <id>{accept}：在后台下载一个模型',
-      '/memgate-embed use <id|none>：切换当前模型（none：不用模型）',
+      '/memgate-embed status：查看状态和下载进度',
+      '/memgate-embed list{all}：列出可用的向量模型',
+      '/memgate-embed add <id>{accept}：在后台下载向量模型',
+      '/memgate-embed use <id|none>：切换当前模型（none：不使用模型）',
       '/memgate-embed remove <id>：删除已下载的模型文件',
       '/memgate-embed cancel：取消正在进行的下载',
       '/memgate-embed origin [auto|huggingface|hf-mirror|<镜像地址>]：查看或设置下载来源',
     ],
     errors: {
       'too-long': '输入太长。',
-      'unknown-action': (d) => `不认识的子命令：${d}。`,
-      'unknown-option': (d) => `不认识的选项：${d}。`,
-      'option-not-applicable': (d) => `${d} 只用于需要先同意许可条款的模型。`,
+      'unknown-action': (d) => `未知的子命令：${d}。`,
+      'unknown-option': (d) => `未知的选项：${d}。`,
+      'option-not-applicable': (d) => `${d} 仅用于需先同意许可条款的模型。`,
       'unexpected-argument': (d) => `多余的参数：${d}。`,
-      'missing-model': '缺少模型 id。用 /memgate-embed list 查看。',
-      'unknown-model': (d, ids) => `没有这个模型：${d}。可用的 id：${ids}。`,
+      'missing-model': '缺少模型 id。可用 /memgate-embed list 查看。',
+      'unknown-model': (d, ids) => `未找到模型：${d}。可用的 id：${ids}。`,
     },
-    state: { 'no-model': '没有模型', loading: '加载中', ready: '就绪', error: '出错', off: '已关闭（设置里 engine 关掉了）' },
+    state: { 'no-model': '未选择模型', loading: '正在加载', ready: '就绪', error: '错误', off: '已关闭（设置中的 engine 已关闭）' },
     errorKind: {
-      'not-installed': '模型文件还没下载',
-      'file-corrupt': '模型文件校验失败，请 remove 后重新 add',
+      'not-installed': '模型文件未下载',
+      'file-corrupt': '模型文件校验失败，请先 remove 再重新 add',
       'load-failed': '模型加载失败',
-      'runtime-missing': 'node-llama-cpp 或它的 CPU 二进制包不可用',
+      'runtime-missing': 'node-llama-cpp 或其 CPU 二进制包不可用',
       crashed: '模型进程反复退出',
-      'port-unavailable': '没有可用的本地端口',
+      'port-unavailable': '无可用的本地端口',
       'bad-options': '内部参数错误',
-      'endpoint-failed': '本地接口无法启动',
-      'unknown-model': '设置里的模型不在列表中',
+      'endpoint-failed': '本地向量接口无法启动',
+      'unknown-model': '设置中指定的模型不在列表中',
     },
     reason: {
       http: 'HTTP 错误', network: '网络错误', dns: '域名解析失败', timeout: '超时', certificate: '证书错误',
@@ -209,7 +209,7 @@ function originText(lang, origin) {
 
 function sourcesText(lang, sources) {
   if (sources.length === 1) return sources[0]
-  return lang === 'zh' ? `${sources.join(' 或 ')}，先用先回应的那个` : `${sources.join(' or ')}, whichever answers first`
+  return lang === 'zh' ? `${sources.join(' 或 ')}，使用最先响应的一个` : `${sources.join(' or ')}, whichever answers first`
 }
 
 function licenceLine(lang, model) {
@@ -220,7 +220,7 @@ function progressLine(lang, p) {
   if (p.state === 'checking' || p.state === 'probing' || p.state === 'starting') {
     return lang === 'zh' ? `正在准备下载 ${p.id}` : `Preparing to download ${p.id}`
   }
-  if (p.state === 'verifying') return lang === 'zh' ? `正在完成 ${p.id}` : `Finishing ${p.id}`
+  if (p.state === 'verifying') return lang === 'zh' ? `正在校验 ${p.id}` : `Finishing ${p.id}`
   const line = `${p.id}: ${formatSize(p.bytes)} / ${formatSize(p.total)} (${percent(p.bytes, p.total)}), ${speedText(p.speed)}${p.source ? `, ${p.source}` : ''}`
   return lang === 'zh' ? `正在下载 ${line}` : `Downloading ${line}`
 }
@@ -245,17 +245,17 @@ export function formatStatus(lang, s) {
     const loaded = s.state === 'ready' ? (s.loaded ? (zh ? '，已在内存中' : ', in memory') : (zh ? '，未加载，下次请求时加载' : ', not loaded; the next request loads it')) : ''
     lines.push(zh ? `当前模型：${s.model}${pin}${loaded}` : `Active model: ${s.model}${pin}${loaded}`)
   } else {
-    lines.push(zh ? '当前模型：无。先 /memgate-embed add <id>，再 /memgate-embed use <id>。' : 'Active model: none. Run /memgate-embed add <id>, then /memgate-embed use <id>.')
+    lines.push(zh ? '当前模型：无。请先执行 /memgate-embed add <id>，再执行 /memgate-embed use <id>。' : 'Active model: none. Run /memgate-embed add <id>, then /memgate-embed use <id>.')
   }
   if (s.error) lines.push(zh ? `问题：${T[lang].errorKind[s.error] ?? s.error}` : `Problem: ${T[lang].errorKind[s.error] ?? s.error}`)
-  if (s.url && s.state === 'ready') lines.push(zh ? `本地接口：${s.url}（只在本机，带密钥）` : `Local endpoint: ${s.url} (this computer only, key required)`)
+  if (s.url && s.state === 'ready') lines.push(zh ? `本地接口：${s.url}（仅限本机访问，需要密钥）` : `Local endpoint: ${s.url} (this computer only, key required)`)
   if (s.model && Number.isInteger(s.maxInputTokens)) {
     const n = s.truncatedInputs ?? 0
     if (s.overflow === 'reject') {
-      lines.push(zh ? `超过 ${s.maxInputTokens} 个 token 的文本：拒绝` : `Text over ${s.maxInputTokens} tokens: refused`)
+      lines.push(zh ? `超过 ${s.maxInputTokens} 个 token 的文本：拒绝处理` : `Text over ${s.maxInputTokens} tokens: refused`)
     } else {
       lines.push(zh
-        ? `超过 ${s.maxInputTokens} 个 token 的文本：只取开头做向量；本次启动以来截断了 ${n} 段`
+        ? `超过 ${s.maxInputTokens} 个 token 的文本：仅对开头部分生成向量；本次启动以来已截断 ${n} 段`
         : `Text over ${s.maxInputTokens} tokens: embedded by its beginning; ${n} input${n === 1 ? '' : 's'} truncated since start`)
     }
   }
@@ -270,18 +270,18 @@ export function formatStatus(lang, s) {
 /** The reply for list() rows. `hidden`: how many unverified models the default list leaves out. */
 export function formatList(lang, rows, { all = false, hidden = 0 } = {}) {
   const zh = lang === 'zh'
-  const lines = [zh ? '模型（id、文件大小、维度、许可、校准）：' : 'Models (id, file size, dimensions, licence, calibration):']
+  const lines = [zh ? '向量模型（id、文件大小、维度、许可、校准）：' : 'Models (id, file size, dimensions, licence, calibration):']
   for (const r of rows) {
     const flags = []
     if (r.active) flags.push(zh ? '当前' : 'active')
     if (r.installed) flags.push(zh ? '已下载' : 'downloaded')
     if (r.downloading) flags.push(zh ? '下载中' : 'downloading')
-    if (r.requiresAcceptance) flags.push(zh ? `需同意许可，加 ${ACCEPT_FLAG}` : `needs ${ACCEPT_FLAG}`)
+    if (r.requiresAcceptance) flags.push(zh ? `需同意许可，请加 ${ACCEPT_FLAG}` : `needs ${ACCEPT_FLAG}`)
     if (r.status !== 'verified') flags.push(zh ? '未验证' : 'unverified')
     const parity = r.parity === 'exact' ? (zh ? '与校准文件相同' : 'calibrated file') : (zh ? '近似' : 'approximate')
     lines.push(`- ${r.id}: ${formatSize(r.sizeBytes)}, ${r.dimensions} d, ${r.license.name}, ${parity}${flags.length ? ` [${flags.join(', ')}]` : ''}`)
   }
-  if (!all && hidden > 0) lines.push(zh ? '加 --all 也列出未验证的模型。' : 'Add --all to include unverified models.')
+  if (!all && hidden > 0) lines.push(zh ? '使用 --all 可同时列出未验证的模型。' : 'Add --all to include unverified models.')
   lines.push(zh ? '各档位的检索效果：https://github.com/N0rmal-114/feiyu-memgate#部署档位' : 'Retrieval quality per tier: https://github.com/N0rmal-114/feiyu-memgate#部署档位')
   return lines.join('\n')
 }
@@ -300,39 +300,39 @@ export function formatAdd(lang, r) {
     ]
     if (r.resumeFrom > 0) lines.push(zh ? `续传：已有 ${formatSize(r.resumeFrom)}` : `Resuming: ${formatSize(r.resumeFrom)} already on disk`)
     if (m.status !== 'verified') {
-      lines.push(zh ? '注意：这个文件还没在本插件的引擎上测试过，可能加载失败。' : 'Note: this file has not been tested with this add-on\'s engine yet and may fail to load.')
+      lines.push(zh ? '注意：该文件尚未在本插件的引擎上测试，可能无法加载。' : 'Note: this file has not been tested with this add-on\'s engine yet and may fail to load.')
     }
-    if (r.accepted) lines.push(zh ? `已记录你同意 ${r.accepted.name}（${r.accepted.acceptedAt}）。` : `Recorded your acceptance of the ${r.accepted.name} (${r.accepted.acceptedAt}).`)
+    if (r.accepted) lines.push(zh ? `已记录对 ${r.accepted.name} 的同意（${r.accepted.acceptedAt}）。` : `Recorded your acceptance of the ${r.accepted.name} (${r.accepted.acceptedAt}).`)
     lines.push(zh ? `进度：/memgate-embed status。完成后：/memgate-embed use ${m.id}` : `Progress: /memgate-embed status. When it is done: /memgate-embed use ${m.id}`)
     return lines.join('\n')
   }
   switch (r.code) {
     case 'needs-acceptance':
       return zh
-        ? `${r.model.id} 的权重受 ${r.model.requiresAcceptance.name} 约束：${r.model.requiresAcceptance.url}\n读过并同意后，用 /memgate-embed add ${r.model.id} ${ACCEPT_FLAG} 下载（${formatSize(r.model.sizeBytes)}）。同意之前不会下载任何东西。`
+        ? `${r.model.id} 的权重受 ${r.model.requiresAcceptance.name} 约束：${r.model.requiresAcceptance.url}\n请阅读并同意后，执行 /memgate-embed add ${r.model.id} ${ACCEPT_FLAG} 下载（${formatSize(r.model.sizeBytes)}）。同意前不会下载任何内容。`
         : `The ${r.model.id} weights are under the ${r.model.requiresAcceptance.name}: ${r.model.requiresAcceptance.url}\nIf you have read and accept them, run /memgate-embed add ${r.model.id} ${ACCEPT_FLAG} to download it (${formatSize(r.model.sizeBytes)}). Nothing is downloaded before that.`
     case 'busy':
-      return zh ? `已经有一个下载在进行：${progressLine(lang, r.current)}。等它完成，或先 /memgate-embed cancel。` : `A download is already running: ${progressLine(lang, r.current)}. Wait for it, or run /memgate-embed cancel first.`
+      return zh ? `已有下载正在进行：${progressLine(lang, r.current)}。请等待其完成，或先执行 /memgate-embed cancel。` : `A download is already running: ${progressLine(lang, r.current)}. Wait for it, or run /memgate-embed cancel first.`
     case 'installed':
-      return zh ? `${r.model.id} 已经下载并校验过了。切换：/memgate-embed use ${r.model.id}` : `${r.model.id} is already downloaded and verified. Switch to it: /memgate-embed use ${r.model.id}`
+      return zh ? `${r.model.id} 已下载并校验。切换：/memgate-embed use ${r.model.id}` : `${r.model.id} is already downloaded and verified. Switch to it: /memgate-embed use ${r.model.id}`
     default:
-      return zh ? '没能开始下载。' : 'The download could not start.'
+      return zh ? '无法开始下载。' : 'The download could not start.'
   }
 }
 
 export function formatUse(lang, r) {
   const zh = lang === 'zh'
   if (r.ok) {
-    if (r.id === null) return zh ? '已停用模型。记忆插件会改回关键词检索。' : 'No model is active now. The memory plugin goes back to keyword search.'
-    return zh ? `当前模型改为 ${r.id}，正在加载。/memgate-embed status 查看状态。` : `The active model is now ${r.id}; it is loading. See /memgate-embed status.`
+    if (r.id === null) return zh ? '已停用向量模型，记忆插件将改用关键词检索。' : 'No model is active now. The memory plugin goes back to keyword search.'
+    return zh ? `当前模型已切换为 ${r.id}，正在加载。可用 /memgate-embed status 查看状态。` : `The active model is now ${r.id}; it is loading. See /memgate-embed status.`
   }
   switch (r.code) {
     case 'pinned':
-      return zh ? `设置里的 activeModel 指定了 ${r.pinned}，以设置为准。要用命令切换，先把设置改回 none。` : `The activeModel setting pins ${r.pinned}, and the setting wins. Set it back to none to switch with the command.`
+      return zh ? `设置项 activeModel 已指定 ${r.pinned}，以设置为准。如需用命令切换，请先将该设置改回 none。` : `The activeModel setting pins ${r.pinned}, and the setting wins. Set it back to none to switch with the command.`
     case 'not-installed':
-      return zh ? `${r.id} 还没下载。先 /memgate-embed add ${r.id}。` : `${r.id} has not been downloaded. Run /memgate-embed add ${r.id} first.`
+      return zh ? `${r.id} 尚未下载。请先执行 /memgate-embed add ${r.id}。` : `${r.id} has not been downloaded. Run /memgate-embed add ${r.id} first.`
     default:
-      return zh ? '没能切换。' : 'The model could not be switched.'
+      return zh ? '无法切换。' : 'The model could not be switched.'
   }
 }
 
@@ -341,28 +341,28 @@ export function formatRemove(lang, r) {
   if (r.ok) return zh ? `已删除 ${r.id} 的文件，释放 ${formatSize(r.freedBytes)}。` : `Deleted the files of ${r.id}, freeing ${formatSize(r.freedBytes)}.`
   switch (r.code) {
     case 'active':
-      return zh ? `${r.id} 是当前模型。先切换到别的模型或 /memgate-embed use none。` : `${r.id} is the active model. Switch to another model or run /memgate-embed use none first.`
+      return zh ? `${r.id} 是当前模型。请先切换到其他模型，或执行 /memgate-embed use none。` : `${r.id} is the active model. Switch to another model or run /memgate-embed use none first.`
     case 'downloading':
-      return zh ? `${r.id} 正在下载。先 /memgate-embed cancel。` : `${r.id} is downloading. Run /memgate-embed cancel first.`
+      return zh ? `${r.id} 正在下载。请先执行 /memgate-embed cancel。` : `${r.id} is downloading. Run /memgate-embed cancel first.`
     case 'not-installed':
       return zh ? `${r.id} 没有已下载的文件。` : `There are no downloaded files of ${r.id}.`
     default:
-      return zh ? '没能删除。' : 'The files could not be deleted.'
+      return zh ? '无法删除。' : 'The files could not be deleted.'
   }
 }
 
 export function formatCancel(lang, r) {
   const zh = lang === 'zh'
-  if (r.ok) return zh ? `已取消下载 ${r.id}。已下载的部分留在磁盘上，下次 add 会续传；remove 会删掉它。` : `Cancelled the download of ${r.id}. The downloaded part stays on disk and resumes on the next add; remove deletes it.`
+  if (r.ok) return zh ? `已取消下载 ${r.id}。已下载的部分保留在磁盘上，下次 add 时续传，remove 可将其删除。` : `Cancelled the download of ${r.id}. The downloaded part stays on disk and resumes on the next add; remove deletes it.`
   return zh ? '没有正在进行的下载。' : 'No download is running.'
 }
 
 export function formatOrigin(lang, r) {
   const zh = lang === 'zh'
   if (r.ok) return zh ? `下载来源：${originText(lang, r.origin)}` : `Download source: ${originText(lang, r.origin)}`
-  if (r.code === 'pinned') return zh ? `设置里的 origin 指定了 ${r.origin.value}，以设置为准。要用命令设置，先把设置改回 auto。` : `The origin setting is ${r.origin.value}, and the setting wins. Set it back to auto to choose with the command.`
+  if (r.code === 'pinned') return zh ? `设置项 origin 已指定 ${r.origin.value}，以设置为准。如需用命令设置，请先将该设置改回 auto。` : `The origin setting is ${r.origin.value}, and the setting wins. Set it back to auto to choose with the command.`
   return zh
-    ? `无效的来源：${echo(r.value)}。可用：auto、huggingface、hf-mirror，或一个 http(s)://主机[:端口] 形式的 Hugging Face 兼容镜像地址（不带路径）。`
+    ? `无效的来源：${echo(r.value)}。可用：auto、huggingface、hf-mirror，或 http(s)://主机[:端口] 形式的 Hugging Face 兼容镜像地址（不含路径）。`
     : `Invalid source: ${echo(r.value)}. Use auto, huggingface, hf-mirror, or a Hugging Face compatible mirror as http(s)://host[:port] without a path.`
 }
 

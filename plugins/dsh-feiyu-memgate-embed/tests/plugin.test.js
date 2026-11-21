@@ -373,7 +373,7 @@ describe('command', () => {
     try {
       await zh.addon.settled()
       await en.addon.settled()
-      assert.match((await zh.run('/memgate-embed')).text, /状态：没有模型/)
+      assert.match((await zh.run('/memgate-embed')).text, /状态：未选择模型/)
       assert.match((await en.run('/memgate-embed status')).text, /State: no model/)
       assert.match((await en.run('/memgate-embed list')).text, /bge-small-zh-v1\.5: [\d.]+ kB, 512 d, MIT/)
     } finally {

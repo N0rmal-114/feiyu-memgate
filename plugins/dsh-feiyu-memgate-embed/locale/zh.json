@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "feiyu-memgate 本地向量模型",
-    "description": "在本机 CPU 上运行向量模型，交给 feiyu-memgate 记忆插件使用：不依赖任何在线服务，也能按意思找回记忆。",
+    "description": "在本机 CPU 上运行向量模型，供 feiyu-memgate 记忆插件使用。不依赖在线服务，即可进行语义检索。",
     "detail": "docs/DETAIL.md"
   }
 }

@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-DeepSeek Harness（DSH）插件 `dsh-feiyu-memgate` 的附加插件。它用
+DeepSeek Harness（DSH）插件 `dsh-feiyu-memgate` 的向量插件。它用
 [node-llama-cpp](https://github.com/withcatai/node-llama-cpp) 在 CPU 上运行本地向量模型，并在 `127.0.0.1`
 上提供一个 OpenAI 兼容的向量接口给记忆插件。记忆插件的 `local` 检索方式（以及模型就绪时的 `auto`）就会把
 记忆存成向量并按向量检索。文本不离开本机，也不需要任何在线服务。
