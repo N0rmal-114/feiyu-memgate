@@ -845,8 +845,9 @@ def probe_minimal_authenticated_surface():
     with Session({"owner": {"recall": ["private"], "write": "private"}}, serve=True) as s:
         token = token_for("owner")
         table = sorted("%s %s" % key for key in server_module.ROUTES)
-        c.add("route_table_is_exactly_four", table == ["GET /healthz", "POST /v1/recall", "POST /v1/remember",
-                                                       "POST /v1/used"], "routes=%s" % table)
+        c.add("route_table_is_exactly_the_documented_five",
+              table == ["GET /healthz", "POST /v1/explain", "POST /v1/recall", "POST /v1/remember", "POST /v1/used"],
+              "routes=%s" % table)
         words = ("delete", "list", "export", "forget", "admin", "sweep", "restore", "backup")
         c.add("no_route_names_delete_list_or_export", not any(w in path for _m, path in server_module.ROUTES for w in words),
               "checked words=%s" % ",".join(words))
@@ -880,13 +881,17 @@ def probe_minimal_authenticated_surface():
                 st_d == 200 and isinstance(body_d, dict) and "stores" in body_d,
                 "documented: /healthz?deep=1 is unauthenticated; keys=%s" % sorted(body_d or {}))
         auth = {}
-        for path, action in (("/v1/recall", {"query": "x"}), ("/v1/remember", user_say("x")), ("/v1/used", {"used": []})):
+        for path, action in (("/v1/recall", {"query": "x"}), ("/v1/remember", user_say("x")), ("/v1/used", {"used": []}),
+                             ("/v1/explain", {"query": "x"})):
             auth[path] = (s.http.request("POST", path, None, action)[0],
                           s.http.request("POST", path, "short", action)[0])
         c.add("every_v1_route_is_401_without_a_valid_token", all(v == (401, 401) for v in auth.values()),
               "no token / short token statuses=%s" % {k: list(v) for k, v in auth.items()})
         host, _port, _extra = config.server_options({})
         c.add("default_bind_is_loopback", host == "127.0.0.1", "default host=%s" % host)
+        # The explained recall is read-only and off unless a client's configuration turns it on.
+        st_explain, _ = s.http.request("POST", "/v1/explain", token, {"query": "x"})
+        c.add("explain_is_refused_for_a_client_without_it", st_explain == 403, "status=%s" % st_explain)
         st_204, _ = s.http.request("POST", "/v1/recall", token, {"query": "x"})
         c.add("requests_with_token_work", st_204 == 200, "status=%d" % st_204)
     return report("delete_list_export_absent_and_surface_minimal", c)

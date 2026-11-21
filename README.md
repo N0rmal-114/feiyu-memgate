@@ -62,7 +62,7 @@
 - **召回路径**。认证、限流、权限检查之后，并行查询该客户端可读的每个存储，候选依次经过召回步骤（默认是 `min_score` → `relative_score` → `newer_first` → `linked` → `fill_text` → `drop_oversize` → `redact` → `dedupe` → `budget`），返回带分数、日期和来源的结果。
 - **写入路径**。校验长度和格式，依次经过写入守卫（默认是 `redact` 和 `daily_cap`），落到一个共享存储或当前租户自己的存储。
 - **遗忘路径**（可选）。账本只记地址、时间和使用次数，不存正文。清理器按保持率把到期的记忆先写进归档再删除。
-- **接口面**。只有四个路由：`GET /healthz`、`POST /v1/recall`、`POST /v1/remember`、`POST /v1/used`。没有删除、列出、导出的网络接口，这些操作只能在本机用命令行做。
+- **接口面**。只有五个路由：`GET /healthz`、`POST /v1/recall`、`POST /v1/remember`、`POST /v1/used`，和只读的 `POST /v1/explain`（说明一次召回里每条候选的去向；默认关闭，只有配置里打开了它的主人级客户端能用）。没有删除、列出、导出的网络接口，这些操作只能在本机用命令行做。
 
 <details>
 <summary>一次召回的时序图</summary>

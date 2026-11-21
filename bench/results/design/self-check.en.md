@@ -23,7 +23,7 @@ feiyu-memgate is a memory **gateway**. Its claim is not better search but what s
 | 7 | Bounded output, whole items | ✓ | count, chars, whole |
 | 8 | Forgetting, recoverable | ✓ | archived, restorable |
 | 9 | Write needs no LLM | ✓ | no network |
-| 10 | Minimal, authenticated network surface | ✓ | 4 routes, token |
+| 10 | Minimal, authenticated network surface | ✓ | 5 routes, token |
 
 Total: ✓ 9, ◐ 1, ✗ 0.
 

@@ -505,12 +505,12 @@
     {
       "property": "delete_list_export_absent_and_surface_minimal",
       "result": "yes",
-      "evidence": "ok route_table_is_exactly_four (routes=['GET /healthz', 'POST /v1/recall', 'POST /v1/remember', 'POST /v1/used']); ok no_route_names_delete_list_or_export (checked words=delete,list,export,forget,admin,sweep,restore,backup); ok every_other_route_and_method_is_404_or_405 (tried=199 unexpected=0); ok health_needs_no_token_and_says_ok (status=200); NOTE deep_health_without_token_names_stores_and_counts (documented: /healthz?deep=1 is unauthenticated; keys=['recall_busy_1h', 'recall_failed_1h', 'status', 'stores', 'writes_24h']); ok every_v1_route_is_401_without_a_valid_token (no token / short token statuses={'/v1/recall': [401, 401], '/v1/remember': [401, 401], '/v1/used': [401, 401]}); ok default_bind_is_loopback (default host=127.0.0.1); ok requests_with_token_work (status=200)",
+      "evidence": "ok route_table_is_exactly_the_documented_five (routes=['GET /healthz', 'POST /v1/explain', 'POST /v1/recall', 'POST /v1/remember', 'POST /v1/used']); ok no_route_names_delete_list_or_export (checked words=delete,list,export,forget,admin,sweep,restore,backup); ok every_other_route_and_method_is_404_or_405 (tried=205 unexpected=0); ok health_needs_no_token_and_says_ok (status=200); NOTE deep_health_without_token_names_stores_and_counts (documented: /healthz?deep=1 is unauthenticated; keys=['recall_busy_1h', 'recall_failed_1h', 'status', 'stores', 'writes_24h']); ok every_v1_route_is_401_without_a_valid_token (no token / short token statuses={'/v1/recall': [401, 401], '/v1/remember': [401, 401], '/v1/used': [401, 401], '/v1/explain': [401, 401]}); ok default_bind_is_loopback (default host=127.0.0.1); ok explain_is_refused_for_a_client_without_it (status=403); ok requests_with_token_work (status=200)",
       "checks": {
-        "route_table_is_exactly_four": {
+        "route_table_is_exactly_the_documented_five": {
           "ok": true,
           "kind": "check",
-          "detail": "routes=['GET /healthz', 'POST /v1/recall', 'POST /v1/remember', 'POST /v1/used']"
+          "detail": "routes=['GET /healthz', 'POST /v1/explain', 'POST /v1/recall', 'POST /v1/remember', 'POST /v1/used']"
         },
         "no_route_names_delete_list_or_export": {
           "ok": true,
@@ -520,7 +520,7 @@
         "every_other_route_and_method_is_404_or_405": {
           "ok": true,
           "kind": "check",
-          "detail": "tried=199 unexpected=0"
+          "detail": "tried=205 unexpected=0"
         },
         "health_needs_no_token_and_says_ok": {
           "ok": true,
@@ -535,12 +535,17 @@
         "every_v1_route_is_401_without_a_valid_token": {
           "ok": true,
           "kind": "check",
-          "detail": "no token / short token statuses={'/v1/recall': [401, 401], '/v1/remember': [401, 401], '/v1/used': [401, 401]}"
+          "detail": "no token / short token statuses={'/v1/recall': [401, 401], '/v1/remember': [401, 401], '/v1/used': [401, 401], '/v1/explain': [401, 401]}"
         },
         "default_bind_is_loopback": {
           "ok": true,
           "kind": "check",
           "detail": "default host=127.0.0.1"
+        },
+        "explain_is_refused_for_a_client_without_it": {
+          "ok": true,
+          "kind": "check",
+          "detail": "status=403"
         },
         "requests_with_token_work": {
           "ok": true,

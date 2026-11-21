@@ -62,7 +62,7 @@ This project was extracted from the memory module of a long-running private comp
 - **Recall path**. After authentication, rate limiting and permission checks, every store the client can read is queried in parallel. Candidates pass through the recall stages in order (by default `min_score` → `relative_score` → `newer_first` → `linked` → `fill_text` → `drop_oversize` → `redact` → `dedupe` → `budget`) and come back with score, date and source.
 - **Write path**. Length and format are validated, then the write guards run (by default `redact` and `daily_cap`), and the item lands in a shared store or in the current tenant's own store.
 - **Forgetting path** (optional). The ledger records only the address, time and use count, never the text. The sweeper archives memories whose retention has run out, then deletes them.
-- **Interface surface**. Four routes only: `GET /healthz`, `POST /v1/recall`, `POST /v1/remember`, `POST /v1/used`. There is no network endpoint for deleting, listing or exporting. Those operations are available only through the command line on the local machine.
+- **Interface surface**. Five routes only: `GET /healthz`, `POST /v1/recall`, `POST /v1/remember`, `POST /v1/used`, and the read-only `POST /v1/explain` (what became of each candidate of a recall; off by default, and only for an owner-level client whose configuration turns it on). There is no network endpoint for deleting, listing or exporting. Those operations are available only through the command line on the local machine.
 
 <details>
 <summary>Sequence diagram of one recall</summary>
