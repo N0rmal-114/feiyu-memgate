@@ -1015,7 +1015,7 @@ feiyu-memgate forget explain --config FILE STORE REF
 | `source.form` | 内容 | 什么时候加 |
 |---|---|---|
 | `recall` | 一个 `<memory_data>` 记忆块，格式见上面的 `BlockFormatter` | 每轮第一步，查到了这个会话的历史里还没给过的记忆时 |
-| `notice` | 一行说明：这一轮没能查询长期记忆 | 查询超时、出错，存储失败或繁忙而没有结果，或者自带网关还在启动；只在连续失败的第一轮（`advanced.failureNote`） |
+| `notice` | 一行说明：这一轮没能查询长期记忆 | 查询超时、出错，存储失败或繁忙而没有结果，或者内置网关还在启动；只在连续失败的第一轮（`advanced.failureNote`） |
 
 两种消息都放在这一轮最后一条用户消息之后，并留在对话历史里。其他插件想跳过它们，按 `source.kind` 判断。
 
@@ -1037,7 +1037,7 @@ feiyu-memgate forget explain --config FILE STORE REF
 | `runtime` | 插件运行在什么上面：`platform`、`arch`（Node 的 `process.platform` 和 `process.arch`）、`node`（Node 的版本）。设置页面的“反馈”和 `/memgate feedback` 把它写进由用户自己决定是否提交的报告里 |
 | `modules` | 每个功能开关的当前值 |
 | `registered` | 现在注册在宿主里的功能名 |
-| `gateway` | `mode`（`managed` 或 `external`）和 `state`。自带网关的 `state`：`idle`、`starting`、`running`、`restarting`、`off`、`failed`、`stopped`，不需要记忆功能时是 `unused`；外部网关是 `configured` 或 `incomplete`，另带 `url` |
+| `gateway` | `mode`（`managed` 或 `external`）和 `state`。内置网关的 `state`：`idle`、`starting`、`running`、`restarting`、`off`、`failed`、`stopped`，不需要记忆功能时是 `unused`；外部网关是 `configured` 或 `incomplete`，另带 `url` |
 | `secrets` | `external.token` 和 `retrieval.apiKey` 是否设置了值（布尔） |
 | `python` | `{ "found": false }`，或 `found`、`version`、`source`、`executable` |
 | `retrieval` | `setting`（设置的检索方式）、`active`（实际在用的）、`hybrid`（`setting` 和 `active` 两个布尔）、`tiers`（每种方式的 `name`、`available`、`missing`、`vector`、`active`） |

@@ -271,7 +271,7 @@ test('model/page: splitOption gives a non-empty name for every option label of F
 
 test('model/changelog: entryDate and releases', () => {
   const c = load('model/changelog.cjs')
-  assert.equal(c.entryDate('日期：2026-11-18。自带网关为提交'), '2026-11-18')
+  assert.equal(c.entryDate('日期：2026-11-18。内置网关为提交'), '2026-11-18')
   assert.equal(c.entryDate('日期:2026-01-02'), '2026-01-02', 'the ASCII colon too')
   assert.equal(c.entryDate('日期： 2026-01-02'), '2026-01-02')
   assert.equal(c.entryDate('no date'), '')
