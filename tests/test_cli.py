@@ -1,6 +1,5 @@
 import contextlib
 import io
-import json
 import os
 import sys
 import tempfile
@@ -351,7 +350,7 @@ stages = [%s]
     def test_a_client_without_token_env_is_shown_without_a_token(self):
         code, text = self.check(GOOD + "\n[clients.embedded]\nrecall = [\"private\"]\n")
         self.assertEqual(code, 0)
-        line = [l for l in text.splitlines() if l.startswith("  embedded:")][0]
+        line = [ln for ln in text.splitlines() if ln.startswith("  embedded:")][0]
         self.assertIn("没有可用令牌", line)
         code, text = self.check(GOOD + "\n[clients.embedded]\ntoken_env = 5\nrecall = [\"private\"]\n")
         self.assertEqual(code, 1)

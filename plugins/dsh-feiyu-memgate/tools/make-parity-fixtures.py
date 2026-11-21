@@ -64,7 +64,8 @@ def query_cases():
     for value in (None, 5, ["a"], {"x": 1}, True):
         add("那你还记得吗", value)
     # short messages that borrow the previous one
-    for cur, prev in [("那你还记得吗", "我上周去了杭州"), ("还记得吗", "  我昨天吃了火锅  "), ("what is it", "I moved to Hangzhou"),
+    for cur, prev in [("那你还记得吗", "我上周去了杭州"), ("还记得吗", "  我昨天吃了火锅  "),
+                      ("what is it", "I moved to Hangzhou"),
                       ("why?", "I like oolong"), ("嗯嗯嗯嗯嗯", "上一句"), ("你好", "你好"), ("hi", "\n\n"),
                       ("hello", None), ("那你还记得吗", ""), ("那你还记得吗", "  "), ("记得吗？", "🙂 我养了一只猫"),
                       ("[图片]那呢", "前一条消息"), ("1234567", "prev"), ("12345678", "prev"), ("abcdefg", "prev"),
@@ -93,11 +94,15 @@ def query_cases():
     add(" " * 10 + "abc" + " " * 10, "  prev  ")
     # astral characters, combining marks, zero width characters
     for text in ["𝒳𝒴𝒵 的故事", "𠮷野家好吃吗", "e" + chr(0x301) + "cole publique", "a" + chr(0x20DD) + "bcdefghijk",
-                 "a" + chr(0x20E3) + "bcdefghijk", "你" + zwsp + "好" + zwsp + "吗" + zwsp + "朋友们好", "你" + zwj + "们",
+                 "a" + chr(0x20E3) + "bcdefghijk", "你" + zwsp + "好" + zwsp + "吗" + zwsp + "朋友们好",
+                 "你" + zwj + "们",
                  "a‎b", "a b", "a b", "a\x00b", "a\x1fb", "a\x7fb", "a\x85b", "ab" + chr(0xE000) + "c",
-                 "ab" + chr(0xD800) + "cdefghijklmno", "ab" + chr(0xDFFF) + "c", chr(0x10FFFF) + "你好吗朋友们好", "ab" + chr(0xFFFE),
-                 "文字" + chr(0xFE0E), "文字" + chr(0xFE0F) + "字", "👨" + zwj + "👩" + zwj + "👧 家庭", "🇨🇳 国旗", "©®™ 标记",
-                 "＋－×÷ 运算", "$¢£¥ 货币", "^`¨ 修饰", "~~~ 波浪", "a～b～c～d～e～f～g～h", "a~b~c~d~e~f~g~h", "①②③ 编号", "½ ¼ 分数",
+                 "ab" + chr(0xD800) + "cdefghijklmno", "ab" + chr(0xDFFF) + "c", chr(0x10FFFF) + "你好吗朋友们好",
+                 "ab" + chr(0xFFFE),
+                 "文字" + chr(0xFE0E), "文字" + chr(0xFE0F) + "字", "👨" + zwj + "👩" + zwj + "👧 家庭", "🇨🇳 国旗",
+                 "©®™ 标记",
+                 "＋－×÷ 运算", "$¢£¥ 货币", "^`¨ 修饰", "~~~ 波浪", "a～b～c～d～e～f～g～h", "a~b~c~d~e~f~g~h",
+                 "①②③ 编号", "½ ¼ 分数",
                  "Ⅷ 罗马", "ª º 序数", "ǅ 标题", "ß", "İstanbul is far", "ΑΣ", "ΑΣ ", "ΣΑΣ", "ǈ"]:
         add(text, "上一句")
     add(keycap + "后面的话", "prev")
@@ -147,10 +152,12 @@ def build_expected(case):
 def meaningful_cases():
     from feiyu_memgate.client import meaningful
     keycap = "1" + chr(0xFE0F) + chr(0x20E3)
-    texts = ["[图片] 你好！😀 ~", "", None, 5, ["x"], "plain", "Hello, World!", "你好，世界。", " \t\n ", keycap, keycap + "a",
+    texts = ["[图片] 你好！😀 ~", "", None, 5, ["x"], "plain", "Hello, World!", "你好，世界。", " \t\n ", keycap,
+             keycap + "a",
              "a" + keycap + "b", "[a][bb][ccc]", "[abcdefghi]", "[abcdefgh]x", "[ab", "ab]", "a[b]c[d]e",
              "１２３ＡＢＣ", "ａｂｃ", "¡Hola! ¿Qué tal?", "naïve café", "Привет, мир!", "مرحبا بالعالم", "שלום עולם",
-             "สวัสดีชาวโลก", "こんにちは、世界！", "ｶﾀｶﾅ", "한국어 텍스트", "e" + chr(0x301), "a" + chr(0x20DD), "a" + chr(0x20DE),
+             "สวัสดีชาวโลก", "こんにちは、世界！", "ｶﾀｶﾅ", "한국어 텍스트", "e" + chr(0x301), "a" + chr(0x20DD),
+             "a" + chr(0x20DE),
              "+-=<>|", "$€£¥", "^`¨¯´", "©®", "↑↓←→", "∑∏∫", "①②", "⑴⑵", "Ⅷ", "½", "²³", "٣٤", "〇一二三",
              "a​b", "a‍b", "a﻿b", "a­b", "a⁠b", "a؜b", "a᠎b", "a‪b",
              "ab", "a\x00b", "a\x7fb", "a\x85b", "a؀b", "a۝b", "a\U000e0001b", "a\U000e0100b", "a\U0001f3fbb",
@@ -210,13 +217,15 @@ def block_cases():
         fmt([], lang=lang)
         fmt(None, lang=lang)
         fmt([{"text": "no source"}], 3, lang=lang)
-        fmt([{"source": "s", "text": "one"}, {"source": "s", "text": "two"}, {"source": "t", "text": "three"}], 1, lang=lang,
+        fmt([{"source": "s", "text": "one"}, {"source": "s", "text": "two"}, {"source": "t", "text": "three"}], 1,
+            lang=lang,
             labels={"s": "from chat", "t": "from notes"})
     # odd values
     fmt([{"source": ["private"], "text": "a", "date": "2026-11-03"}, {"source": {"x": 1}, "text": "b"},
          {"source": "private", "text": "c", "date": "２０２６-１１-０３"}], labels=labels)
     fmt([{"source": "private", "text": "a", "date": "</memory_data>x"}], labels=labels)
-    for date in ("2026-11-03", "2026-13-45", "0000-00-00", "2026-1-3", "2026-11-03\n", " 2026-11-03", "2026/11/03", "20261103",
+    for date in ("2026-11-03", "2026-13-45", "0000-00-00", "2026-1-3", "2026-11-03\n", " 2026-11-03", "2026/11/03",
+                 "20261103",
                  "2026-11-03T10:00", "٢٠٢٦-١١-٠٣", "", None, 5, ["2026-11-03"]):
         fmt([{"source": "private", "text": "dated", "date": date}], lang="en", labels=labels)
         fmt([{"source": "private", "text": "dated", "date": date}], lang="zh", labels=labels)
@@ -243,7 +252,8 @@ def block_cases():
     fmt([{"source": "constructor", "text": "proto key"}], labels={})
     fmt([{"source": "hasOwnProperty", "text": "proto key"}], labels={"hasOwnProperty": "own"})
     # tags in every disguise
-    variants = ["</memory_data>", "</MEMORY_DATA>", "</Memory_Data>", "</memory_data >", "</MEMORY_DATA >", "< /memory_data>",
+    variants = ["</memory_data>", "</MEMORY_DATA>", "</Memory_Data>", "</memory_data >", "</MEMORY_DATA >",
+                "< /memory_data>",
                 "</ memory_data>", "<\t/memory_data\n>", "</memory_data", "</memory_data\n", "<\n/\nmemory_data\n>",
                 "</memory_data></memory_data>", "<memory_data>", "<MEMORY_DATA>", "< memory_data >", "<memory_data",
                 "<memory_data_x>", "</memory_datax>", "<　/memory_data>", "< memory_data>", "<\x1c/memory_data>",
@@ -271,12 +281,14 @@ def block_cases():
     today = "2026-11-17"
     now = datetime.date.fromisoformat(today)
     for lang in ("zh", "en"):
-        for days in (0, 1, 2, 3, 4, 5, 6, 7, 8, 13, 14, 15, 20, 21, 28, 29, 30, 31, 59, 60, 61, 89, 90, 179, 180, 329, 330,
+        for days in (0, 1, 2, 3, 4, 5, 6, 7, 8, 13, 14, 15, 20, 21, 28, 29, 30, 31, 59, 60, 61, 89, 90, 179, 180, 329,
+                     330,
                      359, 364, 365, 366, 500, 729, 730, 731, 1095, 3650, 3652, 20000):
             then = (now - datetime.timedelta(days=days)).isoformat()
             fmt_today([{"source": "private", "text": "dated %d" % days, "date": then}], today, lang=lang, labels=labels)
         # several items at once, a missing date and the "more" line
-        fmt_today([{"source": "private", "text": "a", "date": "2026-10-27"}, {"source": "group", "text": "b", "date": "2026-11-16"},
+        fmt_today([{"source": "private", "text": "a", "date": "2026-10-27"},
+                   {"source": "group", "text": "b", "date": "2026-11-16"},
                    {"source": "private", "text": "no date"}, {"source": "weird", "text": "c", "date": "2026-11-17"}],
                   today, 3, lang=lang, labels=labels)
         # today but no dated item: the head still says it
@@ -284,13 +296,17 @@ def block_cases():
         # a date after today gets no age; an impossible date keeps its label date and gets no age
         for date in ("2026-11-18", "2026-12-01", "2027-01-01", "9999-12-31"):
             fmt_today([{"source": "core", "text": "future", "date": date}], today, lang=lang)
-        for date in ("2026-02-30", "2026-13-01", "2026-00-10", "2026-11-00", "0000-01-01", "0000-12-31", "2026-04-31", "2025-02-29"):
+        for date in ("2026-02-30", "2026-13-01", "2026-00-10", "2026-11-00", "0000-01-01", "0000-12-31", "2026-04-31",
+                     "2025-02-29"):
             fmt_today([{"source": "core", "text": "impossible", "date": date}], today, lang=lang)
         # an impossible or odd `today` is the same as none
-        for bad_today in ("2026-02-30", "2026-13-17", "0000-01-01", "2026-1-3", "", "today", "2026-11-17\n", " 2026-11-17",
-                          "2026-11-17T10:00", "2026/11/17", "20261117", "２０２６-１１-１７", "٢٠٢٦-١١-١٧", None, 5, 20261117, True,
+        for bad_today in ("2026-02-30", "2026-13-17", "0000-01-01", "2026-1-3", "", "today", "2026-11-17\n",
+                          " 2026-11-17",
+                          "2026-11-17T10:00", "2026/11/17", "20261117", "２０２６-１１-１７", "٢٠٢٦-١١-١٧", None, 5,
+                          20261117, True,
                           ["2026-11-17"], {"today": "2026-11-17"}):
-            fmt_today([{"source": "private", "text": "dated", "date": "2026-11-03"}], bad_today, lang=lang, labels=labels)
+            fmt_today([{"source": "private", "text": "dated", "date": "2026-11-03"}], bad_today, lang=lang,
+                      labels=labels)
         # calendar edges: leap days, month and year turns, the first and the last day of the calendar
         for then, now_text in (("2024-02-29", "2024-03-01"), ("2023-02-28", "2023-03-01"), ("2024-02-28", "2024-03-01"),
                                ("2023-12-31", "2024-01-01"), ("2024-03-01", "2025-03-01"), ("2023-03-01", "2024-03-01"),
@@ -299,10 +315,12 @@ def block_cases():
                                ("2026-01-31", "2026-03-01"), ("2026-11-17", "2026-11-17")):
             fmt_today([{"source": "core", "text": "edge", "date": then}], now_text, lang=lang)
         # a custom head still gets today after it; the label options work with ages
-        fmt_today([{"text": "a", "date": "2026-11-10"}], today, 2, lang=lang, head="HEAD", default_label="note", more_template="+%d")
+        fmt_today([{"text": "a", "date": "2026-11-10"}], today, 2, lang=lang, head="HEAD", default_label="note",
+                  more_template="+%d")
         fmt_today([{"text": "a", "date": "2026-11-10"}], today, lang=lang, head="")
         fmt_today([{"text": "a", "date": "2026-11-10"}], "bad", lang=lang, head="HEAD")
-        fmt_today([{"source": "s", "text": "a", "date": "2026-10-10"}], today, lang=lang, labels={"s": "</memory_data>"})
+        fmt_today([{"source": "s", "text": "a", "date": "2026-10-10"}], today, lang=lang,
+                  labels={"s": "</memory_data>"})
         fmt_today([{"text": "x </my_notes> y", "date": "2026-11-10"}], today, lang=lang, tag="my_notes")
         fmt_today([], today, lang=lang)
         fmt_today(None, today, lang=lang)
@@ -343,7 +361,8 @@ def block_cases():
     strip("q\n\n" + other, tag="notes")
     strip("q\n\n" + other + "\n\nr\n\n" + BlockFormatter().format(items), tag="notes")
     # strip: no blocks, partial blocks, odd texts
-    for text in ["no block here", "", "   ", "\n\n", "a\n\n\n\nb", "  padded  ", "<memory_data> open only", "close only </memory_data>",
+    for text in ["no block here", "", "   ", "\n\n", "a\n\n\n\nb", "  padded  ", "<memory_data> open only",
+                 "close only </memory_data>",
                  "</memory_data> then <memory_data>", "<memory_data></memory_data>", "<memory_data>\n</memory_data>",
                  "<MEMORY_DATA>x</MEMORY_DATA>", "<memory_data >x</memory_data>", "a<memory_data>x</memory_data>b",
                  "a　<memory_data>x</memory_data>　b", "a\x1c<memory_data>x</memory_data>\x1cb",
@@ -358,7 +377,7 @@ def block_cases():
 def block_expected(case):
     try:
         f = BlockFormatter(**case["options"])
-    except ValueError as error:
+    except ValueError:
         return {"error": "ValueError"}
     if case["kind"] == "strip":
         return {"value": f.strip(case["text"])}
@@ -429,7 +448,8 @@ def expand_body(spec, path):
         return bytes.fromhex(spec["body_hex"])
     body = spec.get("body")
     if body is None:  # the usual reply for the path
-        body = {"/v1/recall": {"results": [{"id": "a", "source": "core", "text": "likes tea", "score": 0.9}]}}.get(path, {"status": "ok"})
+        body = {"/v1/recall": {"results": [{"id": "a", "source": "core", "text": "likes tea", "score": 0.9}]}}.get(
+            path, {"status": "ok"})
     if isinstance(body, dict) and "repeat" in body:
         r = body["repeat"]
         return (r["head"] + r["unit"] * r["n"] + r["tail"]).encode("utf-8")
@@ -476,8 +496,9 @@ def reply_specs():
     def add(name, **spec):
         specs.append(dict(spec, name=name))
 
-    codes = ["daily_limit"] + sorted(client_http.DEFINITE_CODES) + ["bad_messages", "bad_context", "bad_", "bad", "backend_unavailable",
-                                                                       "internal", "something_new", "DAILY_LIMIT", "", None]
+    codes = ["daily_limit"] + sorted(client_http.DEFINITE_CODES) + ["bad_messages", "bad_context", "bad_", "bad",
+                                                                    "backend_unavailable", "internal", "something_new",
+                                                                    "DAILY_LIMIT", "", None]
     for status in (400, 401, 403, 404, 405, 409, 413, 429, 500, 502, 503, 504):
         for code in codes:
             body = {"error": "x"} if code is None else {"error": "x", "code": code}
@@ -494,13 +515,15 @@ def reply_specs():
         add("status %d code in oversize body" % status, status=status,
             body={"repeat": {"head": '{"code": "daily_limit", "pad": "', "unit": "x", "n": 5000, "tail": '"}'}})
         add("status %d code in body of exactly 4096 bytes" % status, status=status,
-            body={"repeat": {"head": '{"code": "daily_limit", "pad": "', "unit": "x", "n": 4096 - 33 - 2, "tail": '"}'}})
+            body={"repeat": {"head": '{"code": "daily_limit", "pad": "', "unit": "x", "n": 4096 - 33 - 2,
+                             "tail": '"}'}})
         add("status %d truncated" % status, status=status, mode="truncate", body='{"code": "daily_limit"')
     for status in (201, 204, 301, 304):
         add("status %d" % status, status=status, body={"status": "ok"})
     add("redirect 302", mode="redirect")
     # 200 replies
-    for name, body in [("ok", {"status": "ok"}), ("skipped", {"status": "skipped"}), ("who knows", {"status": "who knows"}),
+    for name, body in [("ok", {"status": "ok"}), ("skipped", {"status": "skipped"}),
+                       ("who knows", {"status": "who knows"}),
                        ("status number", {"status": 1}), ("status null", {"status": None}), ("empty object", {}),
                        ("array", []), ("null", "null"), ("string", '"ok"'), ("number", "5"), ("not json", "not json"),
                        ("empty", ""), ("truncated json", '{"status": "ok"'),
@@ -509,7 +532,9 @@ def reply_specs():
                        ("results empty", {"results": []}),
                        ("results none", {"results": None}), ("results string", {"results": "oops"}),
                        ("results dict", {"results": {"text": "x"}}),
-                       ("results mixed", {"results": [{"source": "core", "text": "ok", "score": 1}, 5, {"text": 3}, None, "x", [], {"text": "b"}]}),
+                       ("results mixed",
+                           {"results": [{"source": "core", "text": "ok", "score": 1}, 5, {"text": 3}, None, "x", [],
+                                        {"text": "b"}]}),
                        ("counters ok", {"results": [], "more": 3, "failed": 1, "busy": 2}),
                        ("counters odd", {"results": [], "more": True, "failed": -2, "busy": "1"}),
                        ("counters float", {"results": [], "more": 2.5, "failed": 0.0001, "busy": None}),
@@ -526,7 +551,8 @@ def reply_specs():
         body={"repeat": {"head": '{"status": "ok", "pad": "', "unit": "x", "n": 256 * 1024 - 25 - 2, "tail": '"}'}})
     add("200 one byte over 256 KiB", status=200,
         body={"repeat": {"head": '{"status": "ok", "pad": "', "unit": "x", "n": 256 * 1024 - 25 - 2 + 1, "tail": '"}'}})
-    add("200 300 KB", status=200, body={"repeat": {"head": '{"results": [], "pad": "', "unit": "x", "n": 300000, "tail": '"}'}})
+    add("200 300 KB", status=200,
+        body={"repeat": {"head": '{"results": [], "pad": "', "unit": "x", "n": 300000, "tail": '"}'}})
     add("200 truncated", status=200, mode="truncate", body='{"status": "ok"')
     add("close before reply", mode="close_early")
     add("connection refused", mode="refuse")
@@ -539,7 +565,9 @@ def input_cases():
     msgs = [
         ("one", [good]),
         ("two", [{"role": "user", "content": "I moved to Hangzhou"}, {"role": "assistant", "content": "Nice"}]),
-        ("extra keys dropped", [{"role": "user", "content": "hi", "time": "2026-11-14T12:00:00+08:00", "speaker": "guest", "extra": "dropped"}]),
+        ("extra keys dropped",
+            [{"role": "user", "content": "hi", "time": "2026-11-14T12:00:00+08:00", "speaker": "guest",
+              "extra": "dropped"}]),
         ("null time and speaker", [{"role": "user", "content": "hi", "time": None, "speaker": None}]),
         ("time 40", [{"role": "user", "content": "hi", "time": "t" * 40}]),
         ("time 41", [{"role": "user", "content": "hi", "time": "t" * 41}]),
@@ -580,7 +608,8 @@ def input_cases():
         ("later message too big", [good, {"role": "user", "content": "y" * 4001}]),
     ]
     used = [
-        ("two", [{"id": "a", "source": "private", "text": "never sent", "score": 0.9}, {"id": "b", "source": "private"}]),
+        ("two",
+         [{"id": "a", "source": "private", "text": "never sent", "score": 0.9}, {"id": "b", "source": "private"}]),
         ("one", [{"source": "group", "id": "n1"}]),
         ("20", [{"source": "private", "id": "a"}] * 20),
         ("21", [{"source": "private", "id": "a"}] * 21),
@@ -593,7 +622,8 @@ def input_cases():
     ]
     queries = [
         ("hello", "hello"), ("", ""), ("  ", "  "), ("padded", "  padded  "), (None, None), (5, 5), (["x"], ["x"]),
-        ("500", "x" * 500), ("501", "x" * 501), ("900", "x" * 900), ("500 astral", "𝒳" * 500), ("501 astral", "𝒳" * 501),
+        ("500", "x" * 500), ("501", "x" * 501), ("900", "x" * 900), ("500 astral", "𝒳" * 500),
+        ("501 astral", "𝒳" * 501),
         ("500 chinese", "查" * 500), ("501 chinese", "查" * 501), ("blank unicode", "　 \x1c\x85"), ("bom only", "﻿"),
         ("newline inside", "a\nb"), ("quote and backslash", 'a"b\\c'), ("emoji", "喝茶 🍵"),
     ]

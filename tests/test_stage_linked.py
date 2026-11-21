@@ -285,7 +285,9 @@ class LinkedStageTest(Case):
     def test_redaction_applies_to_additions(self):
         store = LinkStore(found=[hit("a", 0.9, "plain a")],
                           links={"a": [hit("c", 0.8, "mail me at SECRET-ADDR now"), hit("d", 0.7, "SECRET-ADDR")]})
-        redact = lambda text: text.replace("SECRET-ADDR", "[hidden]")
+        def redact(text):
+            return text.replace("SECRET-ADDR", "[hidden]")
+
         out, _, _ = self.run_recall({"s": store}, [stages.Linked(), stages.Redact()], redact=redact, public=True)
         self.assertEqual([r["text"] for r in out["results"]], ["plain a", "mail me at [hidden] now", "[hidden]"])
         # what redaction empties is dropped, the same as for any candidate

@@ -30,6 +30,7 @@ Standard library only.
 """
 import math
 import time
+from typing import Any
 
 from ..model import Candidate, Hit
 
@@ -73,7 +74,7 @@ class RecallStage:
 
     name = None
     cheap = False
-    enforces = ()
+    enforces: tuple[str, ...] = ()
 
     def prepare(self, candidates, ctx):
         return candidates
@@ -227,7 +228,8 @@ class Trace:
         """The candidates as the answer lists them: delivered first, then by score. Returns (list, cut)."""
         first = {id(e) for e in self.delivered}
         rest = sorted((e for e in self.entries.values() if id(e) not in first), key=lambda e: -e["candidate"].score)
-        out, cut = [], False
+        out: list[dict[str, Any]] = []
+        cut = False
         for entry in self.delivered + rest:
             if len(out) >= EXPLAIN_MAX:
                 cut = True
@@ -331,7 +333,7 @@ def find_all(stores, query, fetch, ctx):
         tasks[source] = submit(
             ctx.pool, lambda t, s=store: s.find(query, fetch, max(ctx.find_deadline - ctx.clock(), 0.05), t),
             wait=max(wait_until - time.monotonic(), 0.0), keep=ctx.keep, slots=ctx.slots, store=store)
-    out = {}
+    out: dict[Any, list[Any]] = {}
     failed = busy = 0
     for source, task in tasks.items():
         out[source] = []

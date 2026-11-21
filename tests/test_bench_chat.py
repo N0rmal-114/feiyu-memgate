@@ -853,7 +853,7 @@ class SessionValidatorTest(unittest.TestCase):
             path = os.path.join(folder, "w.json")
             with open(path, "w", encoding="utf-8") as handle:
                 json.dump(world, handle, ensure_ascii=False)
-            self.assertEqual([l for l in validate.problems_of(path) if "expected" not in l], [])
+            self.assertEqual([ln for ln in validate.problems_of(path) if "expected" not in ln], [])
 
     def test_a_problem_names_the_session_and_the_turn(self):
         found = self.problems(lambda s: s[0]["turns"][1].update(user=""))

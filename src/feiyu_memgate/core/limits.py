@@ -5,6 +5,7 @@ Standard library only, in memory only: a restart clears every count.
 import collections
 import threading
 import time
+from typing import Any
 
 RATE_LIMIT = 60
 RATE_WINDOW = 60.0
@@ -127,7 +128,7 @@ class TenantBudget:
     def __init__(self, total=3, per_tenant=2):
         self.total = total
         self.per_tenant = per_tenant
-        self._held = collections.Counter()
+        self._held: collections.Counter[Any] = collections.Counter()
         self._lock = threading.Lock()
 
     def acquire(self, tenant_key):

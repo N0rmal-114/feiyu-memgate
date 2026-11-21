@@ -339,13 +339,13 @@ def fill_of(doc, name):
 
 
 def source_text(ext, lang):
-    p, l = ext["perltqa"], ext["locomo"]
+    p, ln = ext["perltqa"], ext["locomo"]
     date = ext.get("generated") if isinstance(ext.get("generated"), str) else None
     fmt = TXT[lang]["source"]
     if date is None:             # the summary carries no date: the line ends after the counts
         fmt = fmt[:-len(" · %s")]
     args = (SOURCE, len(p["stores"]), thousands(p["full"][0]["answerable"]),
-            len(l["stores"]), thousands(l["full"][0]["answerable"]))
+            len(ln["stores"]), thousands(ln["full"][0]["answerable"]))
     return fmt % (args + ((date,) if date else ()))
 
 
@@ -1036,7 +1036,6 @@ def chart_samples(ext, own, systems, theme, lang):
                    [r for r in s["rows"] if r["system"] in report.REFERENCE]
             blocks.append((d, s, rows))
     head_h, top = 36, 100
-    plot_h = sum(head_h + ROW_H * len(rows) + 24 for _, _, rows in blocks)
     doc = new_doc(theme, lang)
     legend(doc, t["t_samples"], ranking_legend(doc, t))
     x0, scale = 240.0, 270.0

@@ -104,7 +104,7 @@ class RenderTest(unittest.TestCase):
     def test_ranking_has_one_bar_and_one_tick_per_charted_system_sorted_by_hit5(self):
         root = parse(charts.render_chart("ranking", SUMMARY, SYSTEMS, "light", "en"))
         paths = [p for p in root.iter(SVG + "path")]
-        ticks = [l for l in root.iter(SVG + "line") if l.get("class") == "tick"]
+        ticks = [ln for ln in root.iter(SVG + "line") if ln.get("class") == "tick"]
         self.assertEqual(len(paths), 3)            # the experiment variant is not drawn
         self.assertEqual(len(ticks), 3 + 1)        # one per bar, plus the legend's key
         labels = [t for t in texts(root) if t in ("A", "B", "other-b", "variant")]

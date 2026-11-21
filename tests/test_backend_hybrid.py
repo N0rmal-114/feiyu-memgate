@@ -8,7 +8,6 @@ from unittest import mock
 from feiyu_memgate import config, registry
 from feiyu_memgate.backends.base import MemoryBackend
 from feiyu_memgate.backends.hybrid import HybridBackend
-from feiyu_memgate.backends.sqlite import SQLiteBackend
 from feiyu_memgate.errors import BackendError, ConfigError
 from feiyu_memgate.model import Hit
 

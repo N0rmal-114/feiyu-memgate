@@ -217,7 +217,9 @@ class NewerFirstTest(unittest.TestCase):
         plain, on = self.gateway(base), self.gateway(base + [{"type": "newer_first", "band": 0.5}])
         self.fill(plain)
         self.fill(on)
-        scores = lambda g: sorted(r["score"] for r in g.recall("owner", {"query": "住在哪里的房子"}).body["results"])
+        def scores(g):
+            return sorted(r["score"] for r in g.recall("owner", {"query": "住在哪里的房子"}).body["results"])
+
         self.assertEqual(scores(plain), scores(on))
 
 

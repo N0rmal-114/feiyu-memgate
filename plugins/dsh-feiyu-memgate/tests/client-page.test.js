@@ -481,7 +481,7 @@ test('the tab bar moves with the arrow keys, Home and End, and selects at once',
   const loaded = load()
   const t = tr('en')
   const tabs = PAGE_TABS.map((id) => ({ id, label: id }))
-  const bar = (value) => expand({ type: (p) => loaded.internals.SettingsPage && p, props: {} }) && null
+  const bar = (_value) => expand({ type: (p) => loaded.internals.SettingsPage && p, props: {} }) && null
   void bar
   // The key handler is the Tabs component's: take it from a rendered page, whose current tab is 'overview'.
   const { tree } = renderBody()

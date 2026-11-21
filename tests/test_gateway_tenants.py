@@ -18,7 +18,6 @@ from urllib.parse import unquote
 
 from feiyu_memgate.backends.openviking import OpenVikingBackend as _OpenVikingBackend
 from feiyu_memgate.core import limits
-from feiyu_memgate.core.pool import Pool
 from feiyu_memgate.core.write import DailyCapGuard, RedactGuard
 from feiyu_memgate.errors import ConfigError
 from feiyu_memgate.gateway import app as gateway
@@ -337,7 +336,7 @@ class TenantRecallTests(TenantTestCase):
     def test_corrupt_keys_keep_last_good_and_warn(self):
         self.replace_keys("{not json", bump=10)
         self.assertEqual(self.recall(GROUP_A)[0], 200)
-        self.assertTrue(any("tenant" in l.lower() and "keys" in l.lower() for l in self.logs), self.logs)
+        self.assertTrue(any("tenant" in ln.lower() and "keys" in ln.lower() for ln in self.logs), self.logs)
         for bad in ("[]", json.dumps({GROUP_A: 5}), json.dumps({"abc": KEY_A})):
             self.replace_keys(bad, bump=20)
             self.assertEqual(self.recall(GROUP_A)[0], 200)
@@ -411,7 +410,7 @@ class TenantCorruptStartTests(TenantTestCase):
         self.assertEqual(self.remember(GROUP_A)[0], 403)
         status, _ = self.request("/v1/recall", {"query": "hello"}, token=TOKEN_OWNER)
         self.assertEqual(status, 200)
-        self.assertTrue(any("keys" in l.lower() for l in self.logs))
+        self.assertTrue(any("keys" in ln.lower() for ln in self.logs))
 
     def test_fixed_file_recovers_without_restart(self):
         self.replace_keys({GROUP_A: KEY_A})
@@ -486,7 +485,7 @@ class TenantKeysFileTests(TenantTestCase):
             self.assertEqual(self.recall(GROUP_B)[0], 200)  # last valid kept
             self.assertEqual(self.recall(GROUP_B)[0], 200)
             self.assertEqual(len(reads), 1)  # throttled to one attempt
-            self.assertTrue(any("PermissionError" in l for l in self.logs))
+            self.assertTrue(any("PermissionError" in ln for ln in self.logs))
         # permissions repaired: same mtime, size and inode; the next attempt after the interval must load it
         self.assertEqual(self.recall(GROUP_B)[0], 200)  # still inside the throttle window
         self.kclock.t += keyfile.RETRY_SECONDS + 1
@@ -507,7 +506,7 @@ class TenantKeysFileTests(TenantTestCase):
         self.replace_keys(big)
         self.assertEqual(self.recall("30003")[0], 403)
         self.assertEqual(self.recall(GROUP_B)[0], 200)
-        self.assertTrue(any("too large" in l for l in self.logs))
+        self.assertTrue(any("too large" in ln for ln in self.logs))
 
     def test_oversize_read_is_bounded(self):
         # Even if the size check were skipped, the read never takes more than the bound plus one byte.

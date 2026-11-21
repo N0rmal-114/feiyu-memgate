@@ -16,7 +16,7 @@ from pathlib import Path
 from feiyu_memgate import cli, config, registry
 from feiyu_memgate.backends.inmemory import InMemoryBackend
 from feiyu_memgate.client import LocalClient, MemoryClient
-from feiyu_memgate.core.recall import KEEP, RecallStage
+from feiyu_memgate.core.recall import RecallStage
 from feiyu_memgate.core.write import WriteGuard
 from feiyu_memgate.errors import ConfigError
 from feiyu_memgate.gateway import server as gateway_server
@@ -158,9 +158,11 @@ class MatrixTests(Built):
             for how in ("config", "code"):
                 with self.subTest(kind=kind, entry=entry, how=how):
                     if how == "config":
-                        build = lambda: config.build_gateway(config_for(kind, entry), env=ENV, log=lambda line: None)
+                        def build():
+                            return config.build_gateway(config_for(kind, entry), env=ENV, log=lambda line: None)
                     else:
-                        build = lambda: gateway_for(kind, entry)
+                        def build():
+                            return gateway_for(kind, entry)
                     if allowed:
                         build().close()
                     else:

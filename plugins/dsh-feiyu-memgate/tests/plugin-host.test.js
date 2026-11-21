@@ -709,7 +709,7 @@ test('switching retrieval.hybrid restarts the gateway under a vector tier, and n
 
 test('status reports the hybrid switch and the store files; the count comes from the vector file', async () => {
   const counted = []
-  const { host, plugin } = setup({
+  const { plugin } = setup({
     services: ['webServer'],
     values: { retrieval: { ...ENDPOINT, hybrid: true } },
     deps: { countMemories: async ({ file }) => { counted.push(file); return 7 } },

@@ -31,3 +31,20 @@ feiyu-memgate = "feiyu_memgate.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["plugins/dsh-feiyu-memgate/python"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "BLE"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["E501"]
+"bench/**" = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src/feiyu_memgate"]
+check_untyped_defs = true

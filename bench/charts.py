@@ -453,7 +453,7 @@ def chart_by_type(summary, systems, theme, lang, measure="hit5", title="t_bytype
     height = top + plot_h + 22 + 40
     doc = new_doc(summary, theme, lang, height)
     header(doc, t[title], family_legend(t))
-    left, gap = 214, 14
+    left = 214
     panel_w = (W - MARGIN - left) / 3.0
     scale = 150.0
     kinds = ("lexical", "paraphrase", "updated")

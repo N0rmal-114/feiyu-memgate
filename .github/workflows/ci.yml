@@ -1,5 +1,6 @@
-# Runs the tests of the gateway and of the two DSH plugins, and checks that the generated blocks in the
-# plugin are in step with their sources. Only GitHub's own actions are used.
+# Runs the tests of the gateway and of the two DSH plugins, checks that the generated blocks in the
+# plugin are in step with their sources, and runs the linters and the type checker. Only GitHub's own
+# actions are used.
 name: CI
 
 on:
@@ -42,6 +43,33 @@ jobs:
       # tree clean everywhere.
       - name: Gateway tests
         run: python -B -m unittest discover -s tests -t .
+
+  checks:
+    name: Lint and types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      # The only job that installs tools. Exact versions: a new release of a tool must not turn the build
+      # red by itself. The rules are in pyproject.toml and in each plugin's eslint.config.mjs.
+      - name: Install ruff and mypy
+        run: python -m pip install ruff==0.17.6 mypy==2.4.1
+      - name: Python lint
+        run: python -m ruff check .
+      - name: Python types
+        run: python -m mypy
+      # Nothing is added to the plugins' package.json: ESLint runs through npx with its exact version.
+      - name: dsh-feiyu-memgate lint
+        working-directory: plugins/dsh-feiyu-memgate
+        run: npx --yes eslint@10.15.0 .
+      - name: dsh-feiyu-memgate-embed lint
+        working-directory: plugins/dsh-feiyu-memgate-embed
+        run: npx --yes eslint@10.15.0 .
 
   plugins:
     name: Plugins (${{ matrix.os }})

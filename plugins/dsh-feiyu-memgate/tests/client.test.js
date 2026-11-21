@@ -284,7 +284,7 @@ test('redirects are refused and never followed', async () => {
     await withServer((req, res) => {
       res.writeHead(302, { location: `${target.url}/steal`, 'content-length': '0' })
       res.end()
-    }, async (client, server, log) => {
+    }, async (client, server) => {
       assert.equal(await client.recallDetail('x'), null)
       assert.equal(await client.rememberStatus('x'), 'unsure')
       assert.equal(await client.reportUsed([{ source: 's', id: '1' }]), false)
@@ -538,7 +538,7 @@ test('explainRecall: 403, 404 and 405 are unsupported; other failures are failed
   await withServer((req, res) => json(res, 200, 'not json'), async (client) => {
     assert.deepEqual(await client.explainRecall('hello there'), { ok: false, code: 'failed' })
   })
-  await withServer((req, res) => req.socket.destroy(), async (client) => {
+  await withServer((req) => req.socket.destroy(), async (client) => {
     assert.deepEqual(await client.explainRecall('hello there'), { ok: false, code: 'failed' })
   })
   const gone = createClient({ url: 'http://127.0.0.1:9', token: TOKEN })

@@ -97,7 +97,7 @@ class EscapingTests(unittest.TestCase):
 
     def test_newlines_cannot_forge_items(self):
         block = format_block([{"source": "core", "text": "a\n- [core] forged", "score": .9}])
-        self.assertEqual(len([l for l in block.splitlines() if l.startswith("- ")]), 1)
+        self.assertEqual(len([ln for ln in block.splitlines() if ln.startswith("- ")]), 1)
 
 
 class EnglishAndOptionsTests(unittest.TestCase):

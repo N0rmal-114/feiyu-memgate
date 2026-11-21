@@ -54,7 +54,6 @@ Deterministic. A split folder named `test` is refused unless --final is given.
 """
 import argparse
 import importlib.util
-import json
 import math
 import os
 import re
@@ -557,7 +556,7 @@ def flips(base_records, records):
         row[0] += int(now and not was)
         row[1] += int(was and not now)
     out["gained"] = sum(g for g, _ in out["kinds"].values())
-    out["lost"] = sum(l for _, l in out["kinds"].values())
+    out["lost"] = sum(ln for _, ln in out["kinds"].values())
     out["p"] = model_lab.sign_test(out["gained"], out["lost"])
     return out
 

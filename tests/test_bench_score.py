@@ -254,7 +254,7 @@ class DeliveredMetricsTest(unittest.TestCase):
                                "types": {"lexical": 1, "paraphrase": 1, "updated": 2, "quiet": 1}},
                    "systems": {"toy": score.score_system(result, QUERIES, LONG_MEMORIES)}, "errors": {}}
         text = score.build_markdown(summary)
-        header = [l for l in text.splitlines() if l.startswith("| 系统 | Hit@1 | Hit@5 | MRR@10 | Recall@5 | 交付命中")][0]
+        header = [ln for ln in text.splitlines() if ln.startswith("| 系统 | Hit@1 | Hit@5 | MRR@10 | Recall@5 | 交付命中")][0]
         cells = [c.strip() for c in header.strip("|").split("|")]
         self.assertEqual(cells[-5:], ["精确率", "交付 F1", "平均字数", "家族", "检索类型"])
         self.assertEqual(cells[:15][-1], "费用 CNY")

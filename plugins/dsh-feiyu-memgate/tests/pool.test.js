@@ -3,7 +3,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  DECAY, FORGET_BELOW, MAX_ITEMS, MAX_SESSIONS, PICK_FROM, RECENT_FROM, RECENT_MAX_ITEMS, RECENT_VERSION, advance, carry, parseSaved, planSave, snapshot, createPool, enter, mentions, offer, pick, reinforce, takePending,
+  DECAY, MAX_ITEMS, MAX_SESSIONS, PICK_FROM, RECENT_FROM, RECENT_MAX_ITEMS, RECENT_VERSION, advance, carry, parseSaved, planSave, snapshot, createPool, enter, mentions, offer, pick, reinforce, takePending,
 } from '../src/pool.js'
 
 const memory = (text, extra = {}) => ({ text, ...extra })

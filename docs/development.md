@@ -246,14 +246,40 @@ node scripts/preview-client.mjs --react <一个带有 react 和 react-dom 18 的
 
 `tests/gateway-e2e.test.js` 里起 `serve` 的那个进程没有加 `-B`，它从 `src/` 导入，可能在 `src/feiyu_memgate/` 下留 `__pycache__`（被 `.gitignore` 排除）。
 
+## 规范和类型检查
+
+测试不需要装任何东西，这两项检查需要工具，所以单独放一节。CI 里用的是固定的版本，本地照着装就行：
+
+```bash
+python -m pip install ruff==0.17.6 mypy==2.4.1    # 装进你自己的虚拟环境
+python -m ruff check .                            # 规则在 pyproject.toml 的 [tool.ruff]
+python -m mypy                                    # 只检查 src/feiyu_memgate，设置在 [tool.mypy]
+```
+
+两个插件各有一份 `eslint.config.mjs`，只开和正确性有关的规则（没定义的名字、没用到的变量、重复的键等），不管格式。插件的 `package.json` 里没有加任何依赖，ESLint 用 `npx` 按固定版本运行：
+
+```bash
+cd plugins/dsh-feiyu-memgate && npx --yes eslint@10.15.0 .
+cd plugins/dsh-feiyu-memgate-embed && npx --yes eslint@10.15.0 .
+```
+
+几条约定：
+
+- 一行最多 120 个字符；`tests/` 和 `bench/` 不查行长。
+- 有意接住所有异常的地方（一个部件出错不能拖垮一次请求）写 `except Exception:  # noqa: BLE001 - 原因`，原因要写。
+- 只为了让别的模块能从这里导入而写的导入，标 `# noqa: F401` 并说明是转出。
+- 类型检查不要求给每个函数写标注，只要求检查器能看懂；确实需要 `# type: ignore` 时写明是哪一类和为什么。
+- 升级工具的版本要同时改 `.github/workflows/ci.yml` 和这一节。
+
 ## CI
 
-`.github/workflows/ci.yml`，在推送到 `main` 和每个 pull request 时运行；只用 GitHub 自己的 actions（`checkout`、`setup-python`、`setup-node`），权限只有 `contents: read`，同一个分支上新的运行取消旧的。两个任务：
+`.github/workflows/ci.yml`，在推送到 `main` 和每个 pull request 时运行；只用 GitHub 自己的 actions（`checkout`、`setup-python`、`setup-node`），权限只有 `contents: read`，同一个分支上新的运行取消旧的。三个任务：
 
 | 任务 | 系统 | 版本 | 运行什么 |
 |---|---|---|---|
 | `gateway` | `ubuntu-latest`、`windows-latest` | Python 3.11、3.12、3.13，共 6 个组合；Ubuntu 加 Python 3.12 的那个组合另外装 `cryptography>=42` | `python -B -m unittest discover -s tests -t .`。其余组合什么都不装，所以加密备份的测试只在那一个组合里运行 |
 | `plugins` | `ubuntu-latest`、`windows-latest` | Python 3.12、Node 22 | 在 `plugins/dsh-feiyu-memgate`：`node --test`（`FEIYU_MEMGATE_SRC=../../src`）、`npm run sync-client -- --check`、`npm run sync-catalogue -- --check`；在 `plugins/dsh-feiyu-memgate-embed`：`node --test`（`FEIYU_MEMGATE_SRC=../..`，`DSH_FEIYU_MEMGATE_SRC=../dsh-feiyu-memgate`） |
+| `checks` | `ubuntu-latest` | Python 3.12、Node 22 | 装固定版本的 `ruff` 和 `mypy`，运行 `python -m ruff check .` 和 `python -m mypy`；在两个插件目录里各运行一次 `npx --yes eslint@10.15.0 .`。这是唯一会安装工具的任务 |
 
 CI 不做的事：不运行 `sync-gateway`（它没有检查模式），不重新生成对照数据，不设 `FEIYU_MEMGATE_SLOW_TESTS`，不运行 gitleaks，也不构建或发布任何包。
 

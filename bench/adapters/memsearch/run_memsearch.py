@@ -95,7 +95,7 @@ async def main_async(args):
             ranked, u1 = to_items(ranked_hits)
             deployed, u2 = to_items(dep_hits)
             unmapped += u1 + u2
-        except Exception as exc:  # contract rule 6: empty lists + counted failure
+        except Exception as exc:  # noqa: BLE001 - contract rule 6: empty lists + counted failure
             failures += 1
             sys.stderr.write("query %s failed: %s\n" % (qid, type(exc).__name__))
             ranked, deployed, ms_ = [], [], 0.0

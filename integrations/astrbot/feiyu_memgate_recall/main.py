@@ -89,7 +89,7 @@ def attach_memory(req: ProviderRequest, block: str, fallback: str = "message") -
             from astrbot.core.agent.message import TextPart
             parts.append(TextPart(text=block).mark_as_temp())
             return "temp"
-        except Exception:
+        except Exception:  # noqa: BLE001 - the temporary part is optional; fall back to the message
             pass
     prompt = getattr(req, "prompt", False)
     if fallback == "message" and (prompt is None or isinstance(prompt, str)):
@@ -153,7 +153,7 @@ class FeiyuMemgateRecall(Star):
             if isinstance(previous_raw, str) and block in previous_raw:
                 return  # the same memories are already in the history, right before this message
             attach_memory(req, block, self.fallback)
-        except Exception as e:  # a memory problem must never stop the reply
+        except Exception as e:  # noqa: BLE001 - a memory problem must never stop the reply
             logger.warning("memory recall skipped: %s", type(e).__name__)
 
     @filter.llm_tool(name="remember")
@@ -182,7 +182,7 @@ class FeiyuMemgateRecall(Star):
                                   context=self._context(event)), REMEMBER_BUDGET + 0.5)
         except asyncio.TimeoutError:
             outcome = "unsure"  # the worker may still finish: the write may happen
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - a failed write is logged by type and reported as failed
             logger.warning("memory remember failed: %s", type(e).__name__)
             outcome = "failed"
         if tenant_id is not None and outcome != "saved":
@@ -194,7 +194,8 @@ class FeiyuMemgateRecall(Star):
             # The gateway looked at it and kept nothing (a filter decided it is not worth keeping).
             return "记忆服务看过了这条，判断没有需要记下的内容，所以没有存。请如实告诉用户，用你自己的话说。"
         if outcome == "unsure":
-            return "没能确认是否保存成功：记忆服务没有及时回应，这条内容可能已经记住，也可能没有。请如实告诉用户结果不确定，不要下定论。"
+            return ("没能确认是否保存成功：记忆服务没有及时回应，这条内容可能已经记住，也可能没有。"
+                    "请如实告诉用户结果不确定，不要下定论。")
         if outcome != "saved":
             return "没记住：记忆服务暂时不可用，请如实告诉用户这次没有记住。"
         if tenant_id is not None:

@@ -124,7 +124,7 @@ class PlanTest(unittest.TestCase):
     def test_config_table_specs_parse_in_session_lab(self):
         lab = shared.session_lab()
         for name, config in plan_py.CONFIGS.items():
-            parsed = lab.parse_spec(config["spec"])
+            lab.parse_spec(config["spec"])
             self.assertIn(config["tone"], ("normal", "strict"), name)
         self.assertEqual(lab.parse_spec(plan_py.CONFIGS["cap3"]["spec"])["noise"]["cap"], 3)
         self.assertEqual(lab.parse_spec(plan_py.CONFIGS["combo"]["spec"])["after"]["max"], 2)
@@ -186,7 +186,9 @@ class PlanTest(unittest.TestCase):
 
 
 def entry_of(turn, history, main=(), extra=(), earlier=(), earlier_all=None, related=()):
-    memories = lambda ids: [{"id": m, "text": "memory " + m, "date": "2026-01-01"} for m in ids]
+    def memories(ids):
+        return [{"id": m, "text": "memory " + m, "date": "2026-01-01"} for m in ids]
+
     return {"world": "w", "session": "s01", "turn": turn, "persona": "someone", "history": history, "said": "now",
             "main": memories(main), "extra": memories(extra), "earlier": list(earlier),
             "earlier_all": list(earlier if earlier_all is None else earlier_all), "related_ids": set(related)}

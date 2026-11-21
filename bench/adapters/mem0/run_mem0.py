@@ -57,7 +57,7 @@ def balance():
         with urllib.request.urlopen(req, timeout=20) as r:
             infos = json.load(r)["balance_infos"]
         return float([i for i in infos if i["currency"] == "CNY"][0]["total_balance"])
-    except Exception:
+    except Exception:  # noqa: BLE001 - the balance is optional; None when it cannot be read
         return None
 
 
@@ -135,7 +135,7 @@ def ingest(memory, memories, infer, args, usage):
             for r in res.get("results", []):
                 events[r.get("event", "?")] = events.get(r.get("event", "?"), 0) + 1
             done.append(mid)
-        except Exception as e:  # keep going; counted and reported
+        except Exception as e:  # noqa: BLE001 - keep going; counted and reported
             failures.append("%s: %s" % (mid, type(e).__name__))
     return done, failures, stopped, events
 
@@ -174,7 +174,7 @@ def run(args):
 
     try:
         memory.search(WARMUP_QUERY, filters={"user_id": USER}, top_k=TOP)  # warm-up, not timed
-    except Exception:
+    except Exception:  # noqa: BLE001 - the warm-up is not timed and not needed
         pass
     answers, qfail = {}, 0
     for qid, q in queries.items():
@@ -185,7 +185,7 @@ def run(args):
             deployed_hits = memory.search(q["query"], filters={"user_id": USER})["results"]
             ms = (time.perf_counter() - t1) * 1000.0
             deployed = to_items(deployed_hits)
-        except Exception:
+        except Exception:  # noqa: BLE001 - a failed query is counted and answered with empty lists
             qfail += 1
             ranked, deployed, ms = [], [], 0.0
         answers[qid] = {"ranked": ranked, "deployed": deployed, "ms": round(ms, 3)}

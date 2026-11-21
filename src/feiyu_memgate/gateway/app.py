@@ -19,6 +19,7 @@ import hmac
 import sys
 import threading
 import time
+from typing import Any
 
 from .. import registry
 from ..core import limits, stages as stages_module, write as write_module
@@ -188,6 +189,7 @@ class Gateway:
         A minting secret must pass usable_token(), as the configuration loader requires of every
         token: a gateway built in code gets the same floor, as a ConfigError, because a token's
         holder can guess a weak secret offline."""
+        owner: dict[str, str]
         plain, minting, owner = {}, {}, {}
         for name, token in tokens.items():
             if not token or name not in self.clients:
@@ -283,7 +285,8 @@ class Gateway:
     def admit(self, name, action, bound_tenant=None):
         """The checks that need no request body: rate limits, then permission.
         `action` is "recall", "used" (both need the right to recall), "explain" (needs that and the
-        client's explain setting) or "remember"; bound_tenant is as for recall(). Returns a Reply to refuse, None to go on.
+        client's explain setting) or "remember"; bound_tenant is as for recall(). Returns a Reply to refuse, None to
+        go on.
 
         A tenant-bound client's whole rate limiting happens here, per tenant and in total, because
         its tenant is known before the body is read; a caller that skips admit() (an in-process call
@@ -343,7 +346,8 @@ class Gateway:
         provider = self.tenants[policy.tenants]
         if not isinstance(tenant_id, str) or not provider.valid_id(tenant_id):
             return error_reply(400, "bad_tenant", "bad tenant_id")
-        if not policy.token_bound and not self.limiter.allow(self._tenant_rate_key(policy, tenant_id), policy.rate_limit):
+        if not policy.token_bound and not self.limiter.allow(
+                self._tenant_rate_key(policy, tenant_id), policy.rate_limit):
             return error_reply(429, "rate_limited", "rate limited")
         store = provider.store(tenant_id)
         if store is None:
@@ -524,7 +528,7 @@ class Gateway:
         """Record a use for each reported memory that exists. Returns how many. A memory is known
         when the ledger has a row for it or its store can read it: made-up ids record nothing."""
         f = self.forgetting
-        by_key = {}
+        by_key: dict[Any, list[Any]] = {}
         for source, ref in dict.fromkeys(items):
             if not f.manages(source):
                 continue
@@ -670,7 +674,7 @@ class Gateway:
     def sweep_targets(self):
         """{ledger key: store} of everything the forgetting task looks after: the managed shared
         stores, and every tenant of each managed tenants provider that can list its tenants."""
-        targets = {}
+        targets: dict[Any, Any] = {}
         if self.forgetting is None:
             return targets
         for name, store in self.stores.items():

@@ -163,7 +163,7 @@ def run(args):
     try:
         bench.deployed(WARMUP)
         bench.ranked(WARMUP)
-        answers, failures, empty_blocks, modes_none = {}, 0, 0, 0
+        answers, failures, empty_blocks = {}, 0, 0
         for qid, q in queries.items():
             try:
                 ranked = items(bench.ranked(q["query"]))

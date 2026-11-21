@@ -30,7 +30,7 @@ export function compareVersions(a, b) {
 /** The sections of a changelog in file order: { version, title, body } (see the top of this file). */
 export function parseChangelog(text) {
   if (typeof text !== 'string' || !text) return []
-  const lines = text.replace(/^﻿/, '').split(/\r\n|\r|\n/)
+  const lines = text.replace(/^\uFEFF/, '').split(/\r\n|\r|\n/)
   const sections = []
   let current = null
   for (const line of lines) {

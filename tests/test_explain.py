@@ -11,9 +11,8 @@ import unittest
 from feiyu_memgate import cli, config, registry
 from feiyu_memgate.backends.inmemory import InMemoryBackend
 from feiyu_memgate.client import LocalClient, MemoryClient
-from feiyu_memgate.core import stages
 from feiyu_memgate.core.pool import Pool
-from feiyu_memgate.core.recall import DEFER, DROP, KEEP, RecallContext, RecallStage, recall
+from feiyu_memgate.core.recall import KEEP, RecallContext, RecallStage, recall
 from feiyu_memgate.core.redact import MARK, redact
 from feiyu_memgate.errors import ConfigError
 from feiyu_memgate.forgetting.stage import Freshness
@@ -167,7 +166,9 @@ class ConsistencyTests(EngineCase):
         ids = [c["id"] for c in out["candidates"]]
         self.assertEqual(sorted(ids), sorted(r.ref for r in rows))
         self.assertEqual(len(ids), len(set(ids)))
-        count = lambda outcome: sum(c["outcome"] == outcome for c in out["candidates"])
+        def count(outcome):
+            return sum(c["outcome"] == outcome for c in out["candidates"])
+
         self.assertEqual(count("delivered"), len(out["results"]))
         self.assertEqual(count("deferred") + count("over_limit") + count("not_reached"), out["more"])
         self.assertGreater(out["more"], 0)

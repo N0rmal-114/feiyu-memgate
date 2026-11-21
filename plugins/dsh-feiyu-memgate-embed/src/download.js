@@ -320,7 +320,7 @@ export function createDownloader({
     }
   }
 
-  async function run(current, { modelsDir, origins, onDone }) {
+  async function run(current, { modelsDir, origins }) {
     const { model, controller } = current
     const signal = controller.signal
     const progress = (bytes) => {

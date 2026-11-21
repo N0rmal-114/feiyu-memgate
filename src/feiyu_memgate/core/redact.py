@@ -122,7 +122,8 @@ def _is_value_repl(match):
 # -----BEGIN ... PRIVATE KEY----- up to the matching END line (or to the end of the text when the block is
 # cut off). Every line of the block becomes MARK, so the number of lines does not change.
 _PEM = re.compile(
-    r"-----BEGIN [A-Z0-9 ]{0,40}PRIVATE KEY(?: BLOCK)?-----.*?(?:-----END [A-Z0-9 ]{0,40}PRIVATE KEY(?: BLOCK)?-----|\Z)",
+    r"-----BEGIN [A-Z0-9 ]{0,40}PRIVATE KEY(?: BLOCK)?-----.*?"
+    r"(?:-----END [A-Z0-9 ]{0,40}PRIVATE KEY(?: BLOCK)?-----|\Z)",
     re.DOTALL,
 )
 
@@ -186,7 +187,8 @@ _PUBLIC_RULES = (
     # Building, unit and room numbers.
     re.compile(r"[0-9]+(?:栋|幢|号楼|单元|室|层)(?:[0-9]+(?:单元|室|层|号))*"),
     # English street addresses.
-    re.compile(r"\b[0-9]+\s+[A-Za-z]+(?:\s+[A-Za-z]+)?\s+(?:St|Street|Rd|Road|Ave|Avenue|Blvd|Lane|Ln)\b\.?", re.IGNORECASE),
+    re.compile(r"\b[0-9]+\s+[A-Za-z]+(?:\s+[A-Za-z]+)?\s+(?:St|Street|Rd|Road|Ave|Avenue|Blvd|Lane|Ln)\b\.?",
+               re.IGNORECASE),
 )
 
 

@@ -628,8 +628,8 @@ def probe_write_caps():
                   and writes.count(429) == len(ids) - 4,
                   "daily_writes_total=4 over %d tenants ok=%d daily_limit=%d stored=%d"
                   % (len(ids), writes.count(200), writes.count(429), stored))
-            per = [s.gw.remember("group", dict(user_say("same tenant write %d" % n), tenant_id="10010")).status
-                   for n in range(3)]
+            for n in range(3):
+                s.gw.remember("group", dict(user_say("same tenant write %d" % n), tenant_id="10010"))
             c.limit("caps_are_in_memory_and_reset_on_restart", True,
                     "documented: limits.py keeps counts in memory only; a restart clears them")
     return report("writes_are_capped", c)

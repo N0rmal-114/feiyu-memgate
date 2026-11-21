@@ -57,7 +57,7 @@ class Archive:
     def list(self, store=None):
         """Records without their text, oldest forgotten first."""
         sql = "SELECT store, ref, NULL, date, uses, forgotten_at, expires_at FROM archive"
-        args = ()
+        args: tuple[str, ...] = ()
         if store is not None:
             sql += " WHERE store = ?"
             args = (store,)

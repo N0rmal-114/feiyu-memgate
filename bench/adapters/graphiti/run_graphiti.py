@@ -186,7 +186,7 @@ async def ingest(g, memories, ids, st, limit_new):
                                       reference_time=ref_time(m["date"]), source=EpisodeType.text)
             st["uuid"][res.episode.uuid] = mid
             st["done"].append(mid)
-        except Exception as e:  # keep going; the failure is counted and reported
+        except Exception as e:  # noqa: BLE001 - keep going; the failure is counted and reported
             st["failed"].append(mid)
             print("FAILED", mid, type(e).__name__, str(e)[:120].replace(m["text"], "<text>"), flush=True)
         dt = time.perf_counter() - t0
@@ -223,7 +223,7 @@ async def answer(g, memories, queries, st, out_path, bal0):
         t0 = time.perf_counter()
         try:
             edges = await g.search(q["query"])  # default recipe, default limit (10)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - a failed query is counted and reported
             fails += 1
             print("query failed", qid, type(e).__name__, flush=True)
             answers[qid] = {"ranked": [], "deployed": [], "ms": 0.0}
@@ -260,7 +260,7 @@ async def answer(g, memories, queries, st, out_path, bal0):
         stats["entity_nodes"] = recs[0]["n"]
         recs, _, _ = await g.driver.execute_query("MATCH (n:Episodic) RETURN count(n) AS n")
         stats["episodes"] = recs[0]["n"]
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - a failed diagnostic is recorded, the run goes on
         stats["error"] = type(e).__name__
 
     bal1 = balance()

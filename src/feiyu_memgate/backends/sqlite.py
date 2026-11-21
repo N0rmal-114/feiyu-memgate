@@ -44,6 +44,7 @@ import json
 import sqlite3
 import threading
 import time
+from typing import Any
 
 from ..core.tidy import PreparedQuery, gram_weights, index_grams, normalize
 from ..errors import BackendError
@@ -186,6 +187,7 @@ class SQLiteBackend(MemoryBackend):
             finally:
                 self._lock.release()
             return
+        assert self._readers is not None  # None only for the shared in-memory store, handled above
         conn = self._readers.acquire(deadline)
         try:
             yield conn
@@ -329,7 +331,7 @@ class SQLiteBackend(MemoryBackend):
         weight of the shared grams, the same thing the score is made of. The rarest gram is the one
         with the greatest weight."""
         weights = prepared.weights
-        shared = {}
+        shared: dict[Any, float] = {}
         budget = self.max_postings
         for gram in sorted(weights, key=lambda g: (-weights[g], g)):
             if budget <= 0 or run.should_stop():

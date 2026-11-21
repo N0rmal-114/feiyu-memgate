@@ -12,6 +12,8 @@ python -m unittest discover -s tests -t .
 
 备份加密的测试需要 `cryptography`（`pip install cryptography`），没装时会自动跳过。
 
+提交前请再跑一遍规范和类型检查（`ruff`、`mypy`，插件是 ESLint），命令和约定见 [docs/development.md](docs/development.md#规范和类型检查)。
+
 - 仓库的结构、插件的测试和生成的部分、CI、发版时能看到的步骤：[docs/development.md](docs/development.md)。
 - 在 feiyu-memgate 之上做自己的东西（接进聊天程序、用别的语言接入、发布成包）：[docs/extending.md](docs/extending.md)。
 

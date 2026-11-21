@@ -140,7 +140,8 @@ def mint_token(cfg, client, tenant_id, env=None):
     provider_spec = tenants.get(policy.tenants) if isinstance(tenants, dict) else None
     if not isinstance(provider_spec, dict):
         raise ValueError("客户端 %s 的租户提供方 %s 没有配置" % (client, policy.tenants))
-    provider_spec, _ = config._split_audience("tenants", policy.tenants, provider_spec)  # audience is not the provider's
+    # the audience is not the provider's
+    provider_spec, _ = config._split_audience("tenants", policy.tenants, provider_spec)
     provider = registry.create("tenants", config.resolve_env(provider_spec, env, "tenants." + policy.tenants))
     try:
         valid = isinstance(tenant_id, str) and bool(provider.valid_id(tenant_id))

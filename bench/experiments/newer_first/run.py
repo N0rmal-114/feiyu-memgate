@@ -18,7 +18,6 @@ Metrics, per backend and grid point (default stage list with newer_first inserte
       rate (they must not move: the stage never changes which candidates reach the limit, unless it does).
 """
 import argparse
-import json
 import os
 import sys
 
