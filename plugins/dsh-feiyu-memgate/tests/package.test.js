@@ -221,6 +221,7 @@ test('files of this task hold no local paths, private data or vendor names', () 
     'client/client.js', 'client/README.md', ...clientSources(),
     'src/plugin.js', 'src/config.js', 'src/gateway.js', 'src/tiers.js', 'src/commands.js', 'src/migrate.js', 'src/migrate.py',
     'src/mirror.py', 'src/setup.js', 'src/catalogue.js',
+    'src/shared.js', 'src/time.js', 'src/tools.js', 'src/capture.js', 'src/followup.js', 'src/routes.js',
     'tests/plugin.test.js', 'tests/plugin-host.test.js', 'tests/gateway.test.js', 'tests/config.test.js', 'tests/package.test.js',
     'tests/tiers.test.js', 'tests/commands.test.js', 'tests/migrate.test.js', 'tests/mirror.test.js', 'tests/client-page.test.js',
     'tests/client-build.test.js', 'tests/client-modules.test.js', 'tests/setup.test.js', 'tests/catalogue.test.js',
