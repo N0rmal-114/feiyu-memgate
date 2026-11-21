@@ -260,6 +260,34 @@ class MemoryClient:
                 "more": _count(data.get("more")), "failed": _count(data.get("failed")),
                 "busy": _count(data.get("busy"))}
 
+    def explain(self, query, timeout=8.5, tenant_id=None, *, limit=None, context=None):
+        """An explained recall (POST /v1/explain, only for a client configured with explain = true):
+        the recall reply plus "stages" (the recall stages' names, in order) and "candidates" (every
+        candidate the recall looked at, with its scores, outcome and the stage that removed it), as a
+        dict; None on any failure (403 included). It counts as no use of a memory. `limit` defaults to
+        the client's recall_limit; the other arguments are as for recall_detail."""
+        if not isinstance(query, str) or not query.strip():
+            return None
+        if len(query) > MAX_QUERY_CHARS:
+            self.log.warning("memory explain not sent: query over %d characters", MAX_QUERY_CHARS)
+            return None
+        if limit is not None and (isinstance(limit, bool) or not isinstance(limit, int)):
+            return None
+        payload = {"query": query, "limit": self.recall_limit if limit is None else limit}
+        if context is not None:
+            payload["context"] = context
+        data, _ = self._post("/v1/explain", payload, time.monotonic() + timeout, "explain", tenant_id)
+        results, stages, candidates = (data.get(k) if data else None for k in ("results", "stages", "candidates"))
+        if not isinstance(results, list) or not isinstance(stages, list) or not isinstance(candidates, list):
+            return None
+        out = {"results": [r for r in results if isinstance(r, dict) and isinstance(r.get("text"), str)],
+               "more": _count(data.get("more")), "failed": _count(data.get("failed")),
+               "busy": _count(data.get("busy")), "stages": [s for s in stages if isinstance(s, str)],
+               "candidates": [c for c in candidates if isinstance(c, dict)]}
+        if data.get("candidates_cut") is True:
+            out["candidates_cut"] = True
+        return out
+
     def recall(self, query, timeout=8.5, tenant_id=None, *, context=None):
         """Return a list of {"id","source","text","score"} dicts (plus "date" when the memory has one),
         [] on any failure."""

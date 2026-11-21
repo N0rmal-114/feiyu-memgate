@@ -44,6 +44,7 @@
 
 ### 新增
 
+- 解释召回：新的请求 `POST /v1/explain`（docs/api.md）。回答是召回的 `results`、`more`、`failed`、`busy`，再加 `stages`（召回步骤的名字）和 `candidates`（这次看过的每条候选：`found`、`score`、`outcome`（`delivered`、`dropped`、`deferred`、`over_limit`、`not_reached`）、拿掉它的步骤 `stage`、添加它的步骤 `added_by`、脱敏并截到 300 字的 `text`、`date`），最多 100 条，多了有 `candidates_cut`。只给配置了 `explain = true` 的客户端（`ClientPolicy` 多了最后一个字段 `explain`），别的客户端 403；启动时要求这个客户端有 `recall` 且受众是 `owner`。它不运行各步骤的 `finish()`，不算一次用到；没有开解释的普通召回，回答和耗费都和以前一样。`MemoryClient` 和 `LocalClient` 多了 `explain()`，`feiyu-memgate check` 在开了它的客户端那一行写“可以查看召回的解释”。
 - 受众级别（见上面“要改的地方”）：`ClientPolicy` 多了最后一个字段 `audience` 和属性 `reach`，`Gateway` 多了 `audiences=` 参数和 `audience_of(名字)`，召回步骤的 `ctx.audience` 是这次请求的客户端的受众。
 - 客户端可以发送 `context`：`MemoryClient` 和 `LocalClient` 的 `recall`、`recall_detail`、`remember`、`remember_status`、`remember_messages` 多了只能按名字传的参数 `context=None`；不传时请求体和以前一样。约定三个常用的键 `channel`、`chat`、`via`，网关不解释它们，也不能把它们当身份（docs/api.md）。
 - AstrBot 示例插件的主人编号要带平台前缀：`FEIYU_MEMGATE_OWNER_IDS` 写成 `平台名:编号`（例如 `aiocqhttp:10001`），同一个号码在另一个平台上不再被当成主人；没有 `:` 的条目被忽略，启动时记一条警告（只写条数）。召回和记忆的请求带上 `context`（`channel` 是平台名，`chat` 是 `private` 或 `group`）。**已经在用这个示例的请改环境变量**，否则主人的私聊不再召回。

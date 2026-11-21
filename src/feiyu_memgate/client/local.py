@@ -3,12 +3,12 @@
     client = LocalClient.from_config("gateway.toml", client="owner")     # builds and starts a gateway
     client = MemoryClient("http://127.0.0.1:8080", token)                # the same calls over HTTP
 
-Every method (recall_detail, recall, remember_messages, remember_status, remember, report_used,
+Every method (recall_detail, recall, explain, remember_messages, remember_status, remember, report_used,
 configured, tenant_configured) is inherited from MemoryClient: the argument checks, the limits that
 stop a request from being sent, the mapping from an answer to "saved" / "skipped" / "failed" /
 "limited" / "unsure" / None, and the never-raise rule are one piece of code. Only the transport
 differs: `_post` calls the gateway's own entry points instead of opening a socket, in the order the
-HTTP server does: admit() (rate limit, then permission), then recall() / remember() / used(). So the
+HTTP server does: admit() (rate limit, then permission), then recall() / remember() / used() / explain(). So the
 client policy, rate limits, daily caps, recall stages, write guards, redaction and the forgetting
 ledger behave as they do behind `feiyu-memgate serve`.
 
@@ -32,7 +32,8 @@ import time
 from ..errors import ConfigError
 from .http import NOT_SENT, OK, RECALL_LIMIT, UNSURE, MemoryClient, MAX_RESPONSE_BYTES, _failure
 
-_ACTIONS = {"/v1/recall": "recall", "/v1/remember": "remember", "/v1/used": "used"}
+_ACTIONS = {"/v1/recall": "recall", "/v1/remember": "remember", "/v1/used": "used",
+            "/v1/explain": "explain"}
 # The gateway's start-up notes for a client that cannot authenticate over HTTP: no token_env, a token
 # variable that is not set, or (tenant_binding = "token") a minting-secret variable that is not set.
 # In process nothing authenticates, so they say nothing an embedded user needs.

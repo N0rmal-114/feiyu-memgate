@@ -397,7 +397,7 @@ DSH 插件 [plugins/dsh-feiyu-memgate](../plugins/dsh-feiyu-memgate/README.zh.md
 
 | 接口 | 范围 |
 |---|---|
-| HTTP 接口 | `/v1` 下的 `POST /v1/recall`、`POST /v1/remember`、`POST /v1/used`，和 `GET /healthz`；错误回答里的 `code` |
+| HTTP 接口 | `/v1` 下的 `POST /v1/recall`、`POST /v1/remember`、`POST /v1/used`、`POST /v1/explain`，和 `GET /healthz`；错误回答里的 `code` |
 | Python 客户端 | `feiyu_memgate.client` 的 `__all__`：`MemoryClient`、`LocalClient`、`BlockFormatter`、`format_block`、`QueryShaper`、`build_query`、`previous_user_text`、`meaningful` |
 | 扩展接口 | `feiyu_memgate.pieces` 的 `__all__`：做拼图要用的全部名字 |
 | 命令行 | `feiyu-memgate` 和它的子命令 |

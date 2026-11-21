@@ -118,6 +118,7 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 | `tenant_token_generation` | `1` | 只在 `tenant_binding = "token"` 时可写：铸造令牌的“代”，正整数。加一后重启，这个客户端以前铸造的令牌全部失效 |
 | `public` | `false` | 内容会被别人看到：改用公开脱敏。只写了 `audience` 不写 `public` 时由它推出 |
 | `audience` | 见“受众”一节 | 这个客户端展示的内容会被谁看到：`"owner"`、`"group"`、`"public"`。启动时拿它和 `recall` 里每个存储的受众核对 |
+| `explain` | `false` | 允许这个客户端用 `POST /v1/explain`：召回之外还能看到每条候选的分数和被哪一步拿掉。必须是布尔值；只给主人级别的客户端：要有 `recall`，受众是 `owner`，否则启动报错，见 [security.md](security.md) |
 | `daily_writes` | 不限 | 每天最多写几次（多租户按租户分别计） |
 | `daily_writes_total` | 不限 | 整个客户端每天最多写几次（多租户是所有租户合计） |
 | `rate_limit` | `60` | 每分钟最多几次请求（多租户按租户分别计） |

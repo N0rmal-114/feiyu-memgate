@@ -38,13 +38,14 @@
 
 所有接口回 JSON（UTF-8，中文不转义）。出错时是 `{"error": "...", "code": "..."}`：`error` 是给人看的，措辞可能改；`code` 是稳定的，程序请按 `code` 判断（见文末的表）。
 
-网关说的是明文 HTTP，每个回答之后关闭连接（回答的状态行是 `HTTP/1.0`）。路径一共四条，其余的路径回 404 `not_found`，路径对但方法不对（包括 `HEAD`、`OPTIONS`）回 405 `method_not_allowed`：
+网关说的是明文 HTTP，每个回答之后关闭连接（回答的状态行是 `HTTP/1.0`）。路径一共五条，其余的路径回 404 `not_found`，路径对但方法不对（包括 `HEAD`、`OPTIONS`）回 405 `method_not_allowed`：
 
 | 方法和路径 | 用途 | 要令牌 |
 |---|---|---|
 | `POST /v1/recall` | 召回 | 要 |
 | `POST /v1/remember` | 写入 | 要 |
 | `POST /v1/used` | 回报这次回复用了哪几条召回结果 | 要 |
+| `POST /v1/explain` | 解释一次召回：每条候选的结果和拿掉它的步骤（要 `explain = true`） | 要 |
 | `GET /healthz` | 健康检查 | 不要 |
 
 请求的路径里 `?` 以后的部分，除了 `/healthz?deep=1`，都被忽略。请求体是 JSON 对象，字段里不认识的键都忽略。`Content-Type` 不检查。
@@ -168,6 +169,73 @@ Authorization: Bearer <令牌>
 | 503 | `busy` | 工作线程、租户名额或连接数满了，或者要搜的存储全都因为忙没去查 |
 | 503 | `unavailable` | 要搜的存储都没查成（至少有一个是出错或超时） |
 | 503 | `stage_error` | 一块召回步骤在整理全部候选时出错，这次不返回任何结果 |
+
+### `POST /v1/explain`
+
+解释一次召回：回答和 `POST /v1/recall` 一样，再多两个字段，说明这次召回看过的每一条候选后来怎么样了，被哪一步拿掉的。给“为什么这条记忆没有回来”用，不用模型，不改任何存储。**只有配置里写了 `explain = true` 的客户端能用**，别的客户端得 403 `forbidden`。
+
+```
+Authorization: Bearer <令牌>
+{"query": "周末去哪玩了", "limit": 5, "tenant_id": "10001", "context": {"channel": "voice"}}
+```
+
+请求体、各项检查和错误回答都和 `/v1/recall` 完全一样（`query`、`limit`、`tenant_id`、`context`，同样的 `bad_*`、`unknown_tenant`、`tenant_mismatch`）。限流、总时限、存储的并发名额、各种 503 也一样；它和召回共用同一份每分钟的额度。
+
+```json
+{
+  "results": [{"id": "m-12", "source": "private", "text": "周末去了动物园看熊猫", "score": 0.58, "date": "2026-11-01"}],
+  "more": 0,
+  "failed": 0,
+  "busy": 0,
+  "stages": ["min_score", "relative_score", "fill_text", "dedupe", "budget"],
+  "candidates": [
+    {"source": "private", "id": "m-12", "found": 0.612, "score": 0.580, "outcome": "delivered",
+     "stage": null, "added_by": null, "text": "周末去了动物园看熊猫", "date": "2026-11-01"},
+    {"source": "private", "id": "m-40", "found": 0.210, "score": 0.210, "outcome": "dropped",
+     "stage": "min_score", "added_by": null, "text": "上周修了自行车"}
+  ]
+}
+```
+
+`results`、`more`、`failed`、`busy` 的意思和召回一样，同一个问题不开解释时回的也是这些值。多出来的两个字段：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `stages` | 数组 | 这个网关配置的召回步骤的名字，按顺序（注册名，自己写的步骤没有注册名时是类名） |
+| `candidates` | 数组 | 这次召回看过的每一条候选，每条只出现一次，下面逐项说明 |
+| `candidates_cut` | 布尔 | 只在候选超过 100 条、列表被截断时才有，值为 `true` |
+
+`candidates` 的排序：交付了的在前，按交付的顺序；其余的按 `score` 从高到低（分数相同的保持原来的先后）。最多 100 条，先排序再截断。每一项：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `source`、`id` | 字符串 | 和 `results` 里一样，`id` 是这条记忆在存储里的编号 |
+| `found` | 数字 | 候选进入召回步骤时的分数：存储返回的分数，或者添加它的步骤给的分数 |
+| `score` | 数字 | 它最后一次的分数，也就是经过了对它起作用的步骤之后的分数 |
+| `outcome` | 字符串 | 结果，取值见下表 |
+| `stage` | 字符串或 `null` | 对应 `dropped` 和 `deferred`：做出这个决定的步骤的名字；别的结果是 `null` |
+| `added_by` | 字符串或 `null` | 在 `prepare` 里把这条候选加进来的步骤的名字（目前只有 `linked`）；存储直接返回的候选是 `null` |
+| `text` | 字符串 | 这条候选在得出结果那一刻的文字，一律经过这个客户端的脱敏，最多 300 字。没有文字时（后端只在 `read` 时给文字）这个键不出现 |
+| `cut` | 布尔 | 只在 `text` 被截断时才有，值为 `true` |
+| `date` | 字符串 | 候选有日期才有这个键，格式同 `results[].date` |
+
+| `outcome` | 意思 |
+|---|---|
+| `delivered` | 交付了，它在 `results` 里 |
+| `dropped` | 被一个步骤拿掉了：在 `prepare` 里被去掉，或者在 `admit` 里得到 `DROP`，`stage` 是那一步。一个步骤在 `admit` 里出错也算它拿掉的（网关出错时宁可少给） |
+| `deferred` | 一个步骤回答了 `DEFER`（好的但放不下），计入 `more`，`stage` 是那一步 |
+| `over_limit` | 已经放满 `limit` 条之后才轮到它，没有便宜的步骤拿掉它，计入 `more`，`stage` 是 `null`。便宜的步骤在那时拿掉了它的，结果是 `dropped` |
+| `not_reached` | 总时限到了，还没轮到它，计入 `more`，`stage` 是 `null` |
+
+候选的文字比召回多了一处：召回只给交付了的记忆，这里还有被拿掉的。所以这个接口只给 `explain = true` 的客户端，而且启动时核对这个客户端的受众必须是 `owner`（见 [security.md](security.md)）。
+
+**它不算一次“用到”。** 解释召回不运行各个步骤的 `finish()`，所以遗忘曲线不会因为你查看而给任何记忆记一次用到；其余的和一次召回完全一样。访问日志里这一行的原因词以 `explain` 开头，和召回一样不写查询词和记忆文字。
+
+这个接口可能回的状态和 `/v1/recall` 相同，另有：
+
+| 状态 | `code` | 什么时候 |
+|---|---|---|
+| 403 | `forbidden` | 这个客户端没有 `recall`，或者配置里没有 `explain = true` |
 
 ### `POST /v1/remember`
 
@@ -307,7 +375,7 @@ Authorization: Bearer <令牌>
 | `bad_tenant` | 400 | `tenant_id` 格式不对，或者这个客户端不该带 `tenant_id` |
 | `bad_used` | 400 | `/v1/used` 的 `used` 不合规：不是列表、超过 20 项、某项缺 `source` 或 `id`、类型不对或太长 |
 | `unauthorized` | 401 | 令牌不对或没带（铸造密钥本身当令牌用也是这个） |
-| `forbidden` | 403 | 这个客户端不许做这件事（`/v1/used` 里：来源不是它能召回的） |
+| `forbidden` | 403 | 这个客户端不许做这件事（`/v1/used` 里：来源不是它能召回的；`/v1/explain` 里：没有 `explain = true`） |
 | `unknown_tenant` | 403 | 这个租户没登记 |
 | `tenant_mismatch` | 403 | 令牌绑定了一个租户，请求体里的 `tenant_id` 是别的（或者不是字符串）；什么都没做 |
 | `not_found` | 404 | 没有这个路径 |
@@ -380,6 +448,7 @@ remember_messages(messages, deadline=None, tenant_id=None, *, context=None) -> s
 remember_status(text, deadline=None, tenant_id=None, *, context=None) -> str
 remember(text, tenant_id=None, *, context=None) -> bool
 report_used(items, tenant_id=None, timeout=5.0) -> bool
+explain(query, timeout=8.5, tenant_id=None, *, limit=None, context=None) -> dict | None
 ```
 
 **`recall_detail(query, timeout=8.5, tenant_id=None)`**：返回网关的整个召回回答 `{"results": [...], "more": int, "failed": int, "busy": int}`；任何失败得 `None`（503 也是）。`results` 里每项是网关回的字典（`id`、`source`、`text`、`score`，有日期时还有 `date`），没有字符串 `text` 的项被丢掉；`more`、`failed`、`busy` 不是正整数时算 0。`query` 不是字符串、去掉空白后是空的，或者超过 500 字（记一行警告）：不发送，得 `None`；太长的要自己缩短，`build_query` 就是做这个的。`timeout` 是整次调用（连接加读回答）的总秒数，不是每一步的。
@@ -418,11 +487,13 @@ report_used(items, tenant_id=None, timeout=5.0) -> bool
 | 请求发出之前就失败：没配置、参数不合规、连不上网关（连接被拒、域名解析失败）、截止时间已过 | `"failed"` |
 | 请求发出之后失败：超时、连接中断、200 的回答不是 JSON 对象或超过 256 KiB | `"unsure"` |
 
+**`explain(query, timeout=8.5, tenant_id=None, *, limit=None, context=None)`**：对应 `POST /v1/explain`，只有配置了 `explain = true` 的客户端能用。返回 `{"results": [...], "more": int, "failed": int, "busy": int, "stages": [...], "candidates": [...]}`（候选超过 100 条时还有 `"candidates_cut": True`），任何失败得 `None`（403 和 503 也是）。`limit` 不写时用 `recall_limit`；`query` 和 `context` 的规则、不发送的条件同 `recall_detail`，`limit` 不是整数也不发送。字段的意思见 `POST /v1/explain`。它不算一次“用到”。
+
 ### `LocalClient`
 
 进程内的客户端：和 `MemoryClient` 同样的方法和返回值，不起服务、不占端口、不需要令牌，直接调用同一个进程里的 `Gateway`。用法、代价（没有信任边界）和生命周期见 [embedded.md](embedded.md)。
 
-`LocalClient` 是 `MemoryClient` 的子类。`recall_detail`、`recall`、`remember_messages`、`remember_status`、`remember`、`report_used` 的参数检查、截止时间、不发送的条件、返回值都是同一份代码，上一节的说明照样适用。只有传输不同：按 HTTP 服务器的顺序调用网关的 `admit()`，再调用 `recall()`、`remember()` 或 `used()`。没有认证：构造时按名字取客户端的权限。
+`LocalClient` 是 `MemoryClient` 的子类。`recall_detail`、`recall`、`explain`、`remember_messages`、`remember_status`、`remember`、`report_used` 的参数检查、截止时间、不发送的条件、返回值都是同一份代码，上一节的说明照样适用。只有传输不同：按 HTTP 服务器的顺序调用网关的 `admit()`，再调用 `recall()`、`remember()`、`used()` 或 `explain()`。没有认证：构造时按名字取客户端的权限。
 
 ```python
 LocalClient(gateway, client=None, tenant_client=None, *, start=True, close_gateway=False,
@@ -789,7 +860,7 @@ class RecallStage:
 |---|---|
 | `prepare(candidates, ctx)` | 全部候选、排序之前调用一次。只做便宜的事。返回候选的列表（基类原样返回） |
 | `admit(candidate, ctx)` | 按分数从高到低一条一条问，直到放满 `limit`。`KEEP` 留下；`DROP` 丢掉；`DEFER` 是好的但放不下，计入 `more`。基类返回 `KEEP` |
-| `finish(ctx)` | 全部候选看完以后调用一次，`ctx.accepted` 是要返回的。只做记账，不能改结果 |
+| `finish(ctx)` | 全部候选看完以后调用一次，`ctx.accepted` 是要返回的。只做记账，不能改结果。解释召回（`POST /v1/explain`）不调用它，所以它记的“用到”不会因为解释而多记 |
 
 `Candidate`（`feiyu_memgate.pieces.Candidate`）：`score`、`source`、`store`、`ref`、`text=""`、`date=None`、`meta={}`；`as_item()` 给出返回的 `{"id", "source", "text", "score", "date"?}`。
 
@@ -866,7 +937,7 @@ class ForgettingCurve:
 | 名字 | 是什么 |
 |---|---|
 | `KEEP`、`DROP`、`DEFER` | `admit` 的三个回答 |
-| `ClientPolicy` | 一个客户端的权限，冻结的数据类：`name`、`recall`、`write`、`tenants`、`public`、`daily_writes`、`rate_limit`、`pin_writes`、`daily_writes_total`、`rate_limit_total`、`tenant_binding`、`tenant_token_generation`、`audience`（最后一个字段，默认 `None` = 没声明），和属性 `token_bound`、`can_recall`、`can_write`、`total_rate_limit`、`reach`（客户端的受众：声明了就是声明的；没声明时不公开的是 `"owner"`，公开且带 `tenants` 的是 `"group"`，公开且不带的是 `"public"`）。`feiyu_memgate.model.AUDIENCES` 是 `("owner", "group", "public")`，顺序就是从窄到宽 |
+| `ClientPolicy` | 一个客户端的权限，冻结的数据类：`name`、`recall`、`write`、`tenants`、`public`、`daily_writes`、`rate_limit`、`pin_writes`、`daily_writes_total`、`rate_limit_total`、`tenant_binding`、`tenant_token_generation`、`audience`（默认 `None` = 没声明）、`explain`（最后一个字段，默认 `False`：这个客户端可以用 `POST /v1/explain`），和属性 `token_bound`、`can_recall`、`can_write`、`total_rate_limit`、`reach`（客户端的受众：声明了就是声明的；没声明时不公开的是 `"owner"`，公开且带 `tenants` 的是 `"group"`，公开且不带的是 `"public"`）。`feiyu_memgate.model.AUDIENCES` 是 `("owner", "group", "public")`，顺序就是从窄到宽 |
 | `Gateway` 的 `audiences=` | `Gateway(stores, clients, tokens, ..., audiences=None)`：`{名字: 级别}`，名字是存储或租户来源的名字；没写的存储是 `"owner"`，租户来源是 `"group"`。名字不是存储也不是租户来源、级别不在 `AUDIENCES` 里，都抛 `ConfigError`。`gateway.audience_of(名字)` 返回这个存储或租户来源的级别。受众的两条规则和配置文件建出来的网关一样，在 `Gateway` 里检查，见 [configuration.md](configuration.md#受众存储给谁看客户端被谁看) |
 | `BackendError` | 后端失败时抛，不带上游的文字 |
 | `ConfigError` | 配置不能用；消息里说是哪一项，不带密钥的值 |
@@ -910,7 +981,7 @@ feiyu-memgate serve --config FILE [--host HOST] [--port PORT]
 feiyu-memgate check --config FILE
 ```
 
-加载并建出网关，打印存储、租户来源（都带受众）、客户端（带它的受众）、召回步骤（按顺序）、分数线档位、写入守卫（按顺序），配了遗忘的还有遗忘的设置；对放错位置的召回步骤、自报租户号的多租户客户端、看起来不随机的铸造密钥、只设了合计每日上限的绑定客户端各打印一行提醒；受众不是主人的客户端写入受众是主人的存储时也提醒一行。不显示令牌，只说有没有可用的。退出码 0；配置有问题时打印 `配置有问题：<说明>`，退出码 1。
+加载并建出网关，打印存储、租户来源（都带受众）、客户端（带它的受众）、召回步骤（按顺序）、分数线档位、写入守卫（按顺序），配了遗忘的还有遗忘的设置；对放错位置的召回步骤、自报租户号的多租户客户端、看起来不随机的铸造密钥、只设了合计每日上限的绑定客户端各打印一行提醒；受众不是主人的客户端写入受众是主人的存储时也提醒一行；开了 `explain` 的客户端那一行末尾多一句“可以查看召回的解释”。不显示令牌，只说有没有可用的。退出码 0；配置有问题时打印 `配置有问题：<说明>`，退出码 1。
 
 ### `pieces`
 
