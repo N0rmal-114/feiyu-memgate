@@ -14,7 +14,7 @@ test('defaults', () => {
     gateway: { mode: 'managed', python: '', dataDir: '' },
     external: { url: '', token: '' },
     advanced: {
-      recallLimit: 5, recallTimeoutMs: 4000, language: 'auto', skipRepeats: true, linkedRecall: true, showAge: true, failureNote: true, captureMinChars: 4,
+      recallLimit: 5, recallTimeoutMs: 4000, language: 'auto', skipRepeats: true, linkedRecall: true, showAge: true, failureNote: true, captureMinChars: 4, blockTone: 'normal', maxNewPerTurn: 0,
       afterthought: false, afterthoughtMax: 2, conversationPool: false, poolSize: 3, recentPool: false, recentSize: 3, recentDays: 7,
       profile: 'broad', dailyWrites: 50, redaction: true, newerFirst: true, forgetting: false,
     },
@@ -156,7 +156,7 @@ test('the field table lists every setting once, labelled and explained in both l
 test('the chat settings: three switches that are on and a character count of 4, each with help in both languages', () => {
   const group = FIELDS.find((g) => g.group === 'advanced')
   assert.deepEqual(group.fields.map((f) => f.key), [
-    'recallLimit', 'recallTimeoutMs', 'language', 'skipRepeats', 'linkedRecall', 'showAge', 'failureNote', 'captureMinChars',
+    'recallLimit', 'recallTimeoutMs', 'language', 'skipRepeats', 'linkedRecall', 'showAge', 'failureNote', 'captureMinChars', 'blockTone', 'maxNewPerTurn',
     'afterthought', 'afterthoughtMax', 'conversationPool', 'poolSize', 'recentPool', 'recentSize', 'recentDays',
     'profile', 'dailyWrites', 'redaction', 'newerFirst', 'forgetting',
   ])
@@ -286,4 +286,27 @@ test('the recent pool settings: a switch that is off, a count of 1 to 5 and a nu
   for (const bad of ['0', '31', '1.5', 'week', '']) assert.equal(parseSetting(days, bad).ok, false, bad)
   const dict = buildConfigSchema(recordingSchema()).dict.advanced.dict
   assert.deepEqual([dict.recentSize.meta.min, dict.recentSize.meta.max, dict.recentDays.meta.min, dict.recentDays.meta.max], [1, 5, 1, 30])
+})
+
+test('the block wording and the cap on new memories: a choice that is normal and a count from 0 to 5, with help in both languages', () => {
+  const tone = SETTING_KEYS['advanced.blockTone']
+  assert.deepEqual([tone.kind, tone.default, tone.options.map((o) => o.value), tone.label.zh, tone.label.en], ['choice', 'normal', ['normal', 'strict'], '记忆块的说明', 'Wording of the memory block'])
+  for (const option of tone.options) assert.ok(option.label.en && option.label.zh)
+  assert.ok(tone.help.en && tone.help.zh)
+  assert.match(tone.help.en, /memgate_search/)
+  const cap = SETTING_KEYS['advanced.maxNewPerTurn']
+  assert.deepEqual([cap.kind, cap.default, cap.min, cap.max, cap.label.zh, cap.label.en], ['integer', 0, 0, 5, '每轮最多新给几条', 'New memories per turn'])
+  assert.ok(cap.help.en && cap.help.zh)
+  assert.equal(readConfig({ advanced: { blockTone: 'strict' } }).advanced.blockTone, 'strict')
+  assert.equal(readConfig({ advanced: { blockTone: 'loud' } }).advanced.blockTone, 'normal')
+  assert.equal(readConfig({ advanced: { maxNewPerTurn: 5 } }).advanced.maxNewPerTurn, 5)
+  assert.equal(readConfig({ advanced: { maxNewPerTurn: 6 } }).advanced.maxNewPerTurn, 0)
+  assert.equal(readConfig({ advanced: { maxNewPerTurn: -1 } }).advanced.maxNewPerTurn, 0)
+  assert.equal(readConfig({ advanced: { maxNewPerTurn: 1.5 } }).advanced.maxNewPerTurn, 0)
+  assert.deepEqual(parseSetting(tone, 'strict'), { ok: true, value: 'strict' })
+  assert.equal(parseSetting(tone, 'loud').ok, false)
+  assert.deepEqual(parseSetting(cap, '0'), { ok: true, value: 0 })
+  for (const bad of ['6', '-1', '1.5', 'two', '']) assert.equal(parseSetting(cap, bad).ok, false, bad)
+  const dict = buildConfigSchema(recordingSchema()).dict.advanced.dict
+  assert.deepEqual([dict.maxNewPerTurn.meta.min, dict.maxNewPerTurn.meta.max], [0, 5])
 })

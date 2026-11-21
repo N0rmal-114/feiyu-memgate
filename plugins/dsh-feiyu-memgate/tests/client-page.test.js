@@ -279,6 +279,20 @@ test('the real CHANGELOG.md of the package renders without any element outside t
   for (const type of types) assert.ok(['p', 'h5', 'ul', 'li', 'code', 'strong', 'a'].includes(type), type)
 })
 
+test('the page script carries the block wording as a choice and the cap as a count, with both languages', () => {
+  const advanced = plain(load().internals.FIELDS).find((g) => g.group === 'advanced').fields
+  const row = (key) => advanced.find((f) => f.key === key)
+  assert.deepEqual([row('blockTone').kind, row('blockTone').default, row('blockTone').options.map((o) => o.value)], ['choice', 'normal', ['normal', 'strict']])
+  assert.deepEqual([row('maxNewPerTurn').kind, row('maxNewPerTurn').default, row('maxNewPerTurn').min, row('maxNewPerTurn').max], ['integer', 0, 0, 5])
+  const { en, zh } = plain(load().internals.dictionaries())
+  for (const key of ['blockTone', 'maxNewPerTurn']) {
+    assert.equal(en[`f.advanced.${key}`], row(key).label.en)
+    assert.equal(zh[`f.advanced.${key}`], row(key).label.zh)
+    assert.equal(zh[`h.advanced.${key}`], row(key).help.zh)
+  }
+  assert.equal(zh['o.advanced.blockTone.strict'], row('blockTone').options[1].label.zh)
+})
+
 test('apply registers both dictionaries and the page under <package name>#<row id>', () => {
   const { exports, internals } = load()
   const calls = { effects: [], locale: [], slots: [] }
@@ -448,7 +462,7 @@ test('the page renders every group and field with plain elements when the host h
   assert.equal(passwords.length, 2, 'both secrets are password inputs')
   for (const input of passwords) assert.equal(input.props.value, '', 'a secret never shows a value')
   const selects = findAll(tree, (n) => n.type === 'select')
-  assert.deepEqual(selects.map((s) => s.props.id), ['feiyu-memgate-retrieval-tier', 'feiyu-memgate-gateway-mode', 'feiyu-memgate-advanced-language', 'feiyu-memgate-advanced-profile'])
+  assert.deepEqual(selects.map((s) => s.props.id), ['feiyu-memgate-retrieval-tier', 'feiyu-memgate-gateway-mode', 'feiyu-memgate-advanced-language', 'feiyu-memgate-advanced-blockTone', 'feiyu-memgate-advanced-profile'])
   const save = findAll(tree, (n) => n.type === 'button' && textOf(n) === 'Save')
   assert.equal(save.length, 1)
   assert.equal(save[0].props.disabled, true, 'nothing staged, nothing to save')

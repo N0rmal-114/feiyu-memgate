@@ -346,6 +346,23 @@ test('changelog says so when there is nothing to show, and is in the usage', asy
   assert.ok(harness().command.input.hint.includes('changelog'))
 })
 
+test('the block wording and the cap are listed, set by bare name and reset', async () => {
+  const { run, writes } = harness()
+  const config = await run('config')
+  assert.ok(config.text.includes('advanced.blockTone = normal  (normal)'), config.text)
+  assert.ok(config.text.includes('advanced.maxNewPerTurn = 0  (0)'))
+  assert.equal((await run('set blocktone strict')).text, 'Saved: advanced.blockTone = strict (was normal).')
+  assert.match((await run('set advanced.blockTone loud')).text, /advanced\.blockTone/)
+  assert.equal((await run('set maxnewperturn 3')).text, 'Saved: advanced.maxNewPerTurn = 3 (was 0).')
+  assert.match((await run('set advanced.maxNewPerTurn 6')).text, /takes a whole number from 0 to 5/)
+  assert.equal((await run('reset advanced.maxNewPerTurn')).text, 'Reset: advanced.maxNewPerTurn is back to its default (0).')
+  assert.deepEqual(writes.map((ops) => [ops[0].op, ops[0].path.join('.'), ops[0].value]), [
+    ['set', 'advanced.blockTone', 'strict'],
+    ['set', 'advanced.maxNewPerTurn', 3],
+    ['unset', 'advanced.maxNewPerTurn', undefined],
+  ])
+})
+
 test('use chooses a tier and says when it cannot run yet', async () => {
   const { run, writes } = harness()
   const local = await run('use local')

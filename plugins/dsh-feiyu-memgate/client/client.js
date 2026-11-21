@@ -517,6 +517,50 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (require) => {
           }
         },
         {
+          "key": "blockTone",
+          "kind": "choice",
+          "default": "normal",
+          "options": [
+            {
+              "value": "normal",
+              "label": {
+                "en": "normal: the usual sentence in front of the memories",
+                "zh": "normal：记忆块前面照常的那句话"
+              }
+            },
+            {
+              "value": "strict",
+              "label": {
+                "en": "strict: tell the model most of them are unrelated",
+                "zh": "strict：告诉模型这些记忆大多无关"
+              }
+            }
+          ],
+          "label": {
+            "en": "Wording of the memory block",
+            "zh": "记忆块的说明"
+          },
+          "help": {
+            "en": "The sentence at the top of the memory block. strict says that most of the memories are unrelated to the message and that the model should use one only when it clearly fits. Offline, this made replies use an unrelated memory far less often, and also made them use a related one less often. Applies to the automatic block only, not to memgate_search.",
+            "zh": "记忆块最上面的那句话。strict 会说明这些记忆大多和消息无关，只有明显有关的才用。离线测量里，这让回复用上无关记忆的次数少了很多，用上相关记忆的次数也少了一些。只用于自动召回的记忆块，不用于 memgate_search。"
+          }
+        },
+        {
+          "key": "maxNewPerTurn",
+          "kind": "integer",
+          "default": 0,
+          "min": 0,
+          "max": 5,
+          "label": {
+            "en": "New memories per turn",
+            "zh": "每轮最多新给几条"
+          },
+          "help": {
+            "en": "From the second turn of a conversation on, the memory block carries at most this many memories (0 to 5; 0 means no limit), the first ones the gateway returned after those already shown are left out. The \"more\" line counts the ones left out. The first turn and the second block are not limited.",
+            "zh": "一个对话从第二轮起，记忆块最多带这么多条记忆（0 到 5；0 表示不限），取网关返回的顺序里，去掉已经给过的之后最前面的几条。“还有几条”那一行会算上被去掉的。第一轮和第二个块不受限制。"
+          }
+        },
+        {
           "key": "afterthought",
           "kind": "boolean",
           "default": false,
