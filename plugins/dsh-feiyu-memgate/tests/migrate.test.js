@@ -1,7 +1,7 @@
 // Copying the keyword store into a vector store, with the Python found on this machine, the bundled
 // gateway's real `sqlite` and `embedding` backends, and a tiny embeddings server written here with
 // node:http. The target store is the one the local tier builds from a fake add-on service.
-import test from 'node:test'
+import test, { after } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import fs from 'node:fs'
@@ -14,6 +14,12 @@ import { migrationStateFile, readMigrationState, runMigration } from '../src/mig
 import { applyPlugin } from '../src/plugin.js'
 import { EMBED_SERVICE, TIERS, readEmbed, resolveStore } from '../src/tiers.js'
 import { createFakeHost } from './helpers/fake-host.js'
+
+// Helper processes are unref'd on purpose (they must never keep a host alive). In a test file nothing else
+// holds the event loop open while one is awaited, and Node 22 then ends the file with "Promise resolution
+// is still pending" (Node 24 waits). This timer stands in for the host.
+const keepAlive = setInterval(() => {}, 60000)
+after(() => clearInterval(keepAlive))
 
 const ISOLATED_ENV = { ...process.env, DSH_HOME: path.join(os.tmpdir(), 'dsh-memgate-no-home'), DSH_PRIMARY_RUNTIME: '' }
 const python = await findPython({ cache: null, env: ISOLATED_ENV })

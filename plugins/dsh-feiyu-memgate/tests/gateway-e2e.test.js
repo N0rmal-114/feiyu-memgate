@@ -2,7 +2,7 @@
 // Runs only when FEIYU_MEMGATE_SRC points at the checkout's src directory (the folder that holds
 // the feiyu_memgate package); otherwise it is skipped. Needs Python 3.11+ on PATH as `python`
 // (or the interpreter named in FEIYU_MEMGATE_PYTHON).
-import test from 'node:test'
+import test, { after } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
@@ -13,6 +13,12 @@ import path from 'node:path'
 import { createClient } from '../src/client.js'
 import { readConfig } from '../src/config.js'
 import { TOKEN_ENV, gatewayConfig, runMirror } from '../src/gateway.js'
+
+// Helper processes are unref'd on purpose (they must never keep a host alive). In a test file nothing else
+// holds the event loop open while one is awaited, and Node 22 then ends the file with "Promise resolution
+// is still pending" (Node 24 waits). This timer stands in for the host.
+const keepAlive = setInterval(() => {}, 60000)
+after(() => clearInterval(keepAlive))
 
 const SRC = process.env.FEIYU_MEMGATE_SRC
 const PYTHON = process.env.FEIYU_MEMGATE_PYTHON || 'python'

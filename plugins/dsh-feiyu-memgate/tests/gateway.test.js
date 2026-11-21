@@ -1,7 +1,7 @@
 // The managed gateway with the real bundled Python package and the Python found on this machine
 // (3.11 or newer). Discovery edge cases use a fake probe runner; everything else starts real
 // gateway processes in temporary folders and checks that none is left behind.
-import test from 'node:test'
+import test, { after } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn, spawnSync } from 'node:child_process'
 import { EventEmitter } from 'node:events'
@@ -15,6 +15,12 @@ import {
   BOOTSTRAP, PACKAGE_DIR, TOKEN_ENV, createGatewayManager, findPython, freePort, gatewayConfig, pythonCandidates, scrubbedEnv, tomlString,
 } from '../src/gateway.js'
 import { EMBEDDINGS_KEY_ENV, readEmbed } from '../src/tiers.js'
+
+// The gateway process and its pipes are unref'd on purpose: they must never keep a host alive. In a test
+// file nothing else holds the event loop open while a start or a stop is awaited, and Node 22 then ends
+// the file with "Promise resolution is still pending" (Node 24 waits). This timer stands in for the host.
+const keepAlive = setInterval(() => {}, 60000)
+after(() => clearInterval(keepAlive))
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 // Only the Python on PATH: the DSH home points at a folder that does not exist, so the discovery
