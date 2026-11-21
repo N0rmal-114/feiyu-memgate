@@ -509,31 +509,33 @@ test('FeedbackTab without a receiver: no Send, no contact line, and the way to G
   assert.equal(Boolean(buttonNamed(shipped, 'Send')), FEEDBACK_ENDPOINT !== '', 'Send is offered exactly when the package names a receiver')
 })
 
-test('FeedbackTab with a receiver: Send is the main action, GitHub and Copy stay, and a contact line appears', () => {
+test('FeedbackTab with a receiver: write, then Send; nothing else to choose from, and a contact line appears', () => {
   for (const lang of ['en', 'zh']) {
     const { tree, t } = renderTab({ lang, draft: { text: 'hello', contact: 'me@example.invalid' }, endpoint: ENDPOINT })
     const main = primary(tree)
     assert.equal(main.type, 'button')
     assert.equal(textOf(main), t('feedback.send'))
     assert.equal(main.props.disabled, undefined)
-    assert.equal(withClass(tree, 'fmg-button--primary').length, 1, 'one main action')
-    const github = findAll(tree, (n) => n.type === 'a' && n.props.className.split(' ').includes('fmg-button'))[0]
-    assert.equal(textOf(github), t('feedback.submit'))
-    assert.equal(github.props.className, 'fmg-button')
-    assert.equal(buttonNamed(tree, t('feedback.copy')).props.disabled, undefined)
+    const [actions] = withClass(tree, 'fmg-actions')
+    assert.deepEqual(findAll(actions, (n) => n.type === 'button' || n.type === 'a').map(textOf), [t('feedback.send')], 'Send is the only action')
+    assert.equal(findAll(tree, (n) => n.type === 'a').length, 0, 'no link leads away from the page')
+    assert.equal(buttonNamed(tree, t('feedback.copy')), undefined)
+    assert.ok(!textOf(tree).includes(t('feedback.submit')) && !textOf(tree).includes(t('feedback.others')))
     const [contact] = findAll(tree, (n) => n.type === 'input')
     assert.equal(contact.props.id, 'feiyu-memgate-feedback-contact')
     assert.equal(contact.props.value, 'me@example.invalid')
     assert.equal(contact.props.maxLength, 200)
     assert.equal(findAll(tree, (n) => n.type === 'label' && n.props.htmlFor === contact.props.id).length, 1)
     const text = textOf(tree)
-    for (const key of ['feedback.contact.help', 'feedback.howDirect', 'feedback.otherWays']) assert.ok(text.includes(t(key)), `${lang}: ${key}`)
-    assert.ok(!text.includes(t('feedback.how')), 'the text about GitHub being the way is not shown as well')
-    // The contact line belongs to Send alone.
-    assert.ok(!decodeURIComponent(github.props.href).includes('example.invalid'), 'not in the public address')
+    for (const key of ['feedback.contact.help', 'feedback.howDirect']) assert.ok(text.includes(t(key)), `${lang}: ${key}`)
+    assert.ok(!text.includes(t('feedback.how')) && !text.includes(t('feedback.public')), 'the text about GitHub is not shown')
   }
   const empty = renderTab({ endpoint: ENDPOINT })
   assert.equal(primary(empty.tree).props.disabled, true, 'nothing written, nothing to send')
+  // A long report needs no warning here: the warning is about the address for GitHub.
+  const long = renderTab({ draft: { text: '长'.repeat(3000) }, endpoint: ENDPOINT })
+  assert.equal(withClass(long.tree, 'fmg-notice--warn').length, 0)
+  assert.equal(primary(long.tree).props.disabled, undefined)
 })
 
 test('FeedbackTab: Send posts the report to the receiver once, and clears the text when it was taken', async () => {
@@ -589,16 +591,38 @@ test('FeedbackTab: what became of a Send is said: on its way, taken, refused, to
     const again = draw({ phase: 'sent', code: null }, { text: 'a second thought' }, lang)
     assert.ok(!textOf(again.tree).includes(again.t('feedback.sent')), 'the thanks go when the person writes again')
 
-    const failed = draw({ phase: 'failed', code: 'HTTP 502' }, { text: 'hello' }, lang)
+    const failed = draw({ phase: 'failed', code: 'HTTP 502' }, { text: 'hello', contact: 'me@example.invalid' }, lang)
     const [alert] = withRole(failed.tree, 'alert')
-    assert.equal(textOf(alert), failed.t('feedback.failed', { code: 'HTTP 502' }))
+    assert.ok(textOf(alert).startsWith(failed.t('feedback.failed', { code: 'HTTP 502' })))
     assert.ok(alert.props.className.includes('fmg-notice--warn'))
     assert.equal(primary(failed.tree).props.disabled, undefined, 'it can be tried again')
-    assert.equal(findAll(failed.tree, (n) => n.type === 'a' && n.props.className === 'fmg-button').length, 1, 'and GitHub is still there')
-    assert.equal(textOf(withRole(draw({ phase: 'failed', code: 'HTTP 429' }, { text: 'hello' }, lang).tree, 'alert')), failed.t('feedback.failedBusy'))
+    // The other two ways come with the failure, inside its notice, so what was written is not stuck.
+    const [github] = findAll(alert, (n) => n.type === 'a')
+    assert.equal(github.props.className, 'fmg-button')
+    assert.equal(textOf(github), failed.t('feedback.submit'))
+    assert.equal(filled(github.props.href).title, '[idea] hello')
+    assert.ok(!decodeURIComponent(github.props.href).includes('example.invalid'), 'the contact line is not put into the public address')
+    assert.equal(buttonNamed(alert, failed.t('feedback.copy')).props.disabled, undefined)
+    assert.equal(findAll(failed.tree, (n) => n.type === 'a').length, 1, 'and only there')
+    assert.ok(textOf(withRole(draw({ phase: 'failed', code: 'HTTP 429' }, { text: 'hello' }, lang).tree, 'alert')).startsWith(failed.t('feedback.failedBusy')))
     assert.ok(textOf(withRole(draw({ phase: 'failed', code: 'timeout' }, { text: 'hello' }, lang).tree, 'alert')).includes('timeout'))
   }
   assert.equal(withRole(draw({ phase: 'ready', code: null }).tree, 'alert').length, 0)
+  // After a failure a long report gets the warning about the address, next to the link it is about.
+  const long = draw({ phase: 'failed', code: 'network' }, { text: '长'.repeat(3000) })
+  assert.equal(withClass(long.tree, 'fmg-notice--warn').length, 2)
+})
+
+test('FeedbackTab: after a failed Send, Copy takes the report without the contact line', async () => {
+  const copied = []
+  const { tree, t } = renderTab({
+    draft: { text: 'hello', contact: 'me@example.invalid' }, endpoint: ENDPOINT, sendState: { phase: 'failed', code: 'network' },
+    copy: async (text) => { copied.push(text); return true },
+  })
+  buttonNamed(withRole(tree, 'alert')[0], t('feedback.copy')).props.onClick()
+  await tick()
+  assert.equal(copied.length, 1)
+  assert.ok(copied[0].startsWith('[idea] hello') && !copied[0].includes('example.invalid'))
 })
 
 test('the page hands its feedback options to the tab: a receiver, its fetch and the clipboard', async () => {

@@ -1381,12 +1381,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         'feedback.send': 'Send',
         'feedback.sending': 'Sending…',
         'feedback.sent': 'Received. Thank you.',
-        'feedback.failed': 'It was not sent ({code}). Try again, or use GitHub or the copy button below.',
-        'feedback.failedBusy': 'Too many reports in a short time. Try again in a minute.',
+        'feedback.failed': 'It was not sent ({code}). What you wrote is still in the box. Try again, or take it another way:',
+        'feedback.failedBusy': 'Too many reports in a short time. Try again in a minute, or take it another way:',
         'feedback.contact': 'How to reach you (optional)',
-        'feedback.contact.help': 'An e-mail address or anything else, if you would like an answer. It goes to the maintainers with Send only; it is never put into the GitHub link or the copied text.',
-        'feedback.howDirect': 'Send hands what you wrote, the contact line if you gave one, and the environment lines listed above to the project’s feedback receiver. Only the maintainers can read it; it is not published.',
-        'feedback.otherWays': 'You can also take it to GitHub yourself (public, needs an account), or copy the text and send it any way you like. Leave out keys and tokens either way.',
+        'feedback.contact.help': 'An e-mail address or anything else, if you would like an answer. Only the maintainers see it.',
+        'feedback.howDirect': 'Send hands what you wrote, the contact line if you gave one, and the environment lines listed above to the project’s feedback receiver. Only the maintainers can read it; it is not published. Leave out keys and tokens.',
         changedCount: '{count} changed',
         modelsTitle: 'Local embedding models',
         modelsIntro: 'Optional. With a local model, memory is recalled by meaning rather than by shared words, on this computer. Nothing is downloaded or installed until you press a button.',
@@ -1548,12 +1547,11 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         'feedback.send': '提交',
         'feedback.sending': '正在提交…',
         'feedback.sent': '收到了，谢谢你。',
-        'feedback.failed': '没有发出去（{code}）。可以再试一次，或者改用下面的 GitHub 或复制全文。',
-        'feedback.failedBusy': '提交得太频繁了，过一分钟再试。',
+        'feedback.failed': '没有发出去（{code}）。你写的内容还在输入框里。可以再试一次，或者换一种方式：',
+        'feedback.failedBusy': '提交得太频繁了。过一分钟再试，或者换一种方式：',
         'feedback.contact': '联系方式（可选）',
-        'feedback.contact.help': '想收到回复的话，留一个邮箱或别的联系方式。它只随“提交”发给维护者，不会放进 GitHub 的链接和复制的全文里。',
-        'feedback.howDirect': '“提交”会把你写的内容、联系方式（如果填了）和上面列出的运行环境发给项目的反馈接收服务，只有维护者能看到，不会公开。',
-        'feedback.otherWays': '也可以自己去 GitHub 提（公开，需要账号），或者复制全文用别的方式发给我们。无论哪种方式，都不要写密钥和令牌。',
+        'feedback.contact.help': '想收到回复的话，留一个邮箱或别的联系方式。只有维护者能看到。',
+        'feedback.howDirect': '“提交”会把你写的内容、联系方式（如果填了）和上面列出的运行环境发给项目的反馈接收服务，只有维护者能看到，不会公开。不要写密钥和令牌。',
         changedCount: '已改 {count} 项',
         modelsTitle: '本地向量模型',
         modelsIntro: '可选。有了本地模型，记忆按意思而不是按字面找回，全部在这台电脑上完成。按下按钮之前不会下载或安装任何东西。',
@@ -3033,15 +3031,17 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     'use strict'
     // The Feedback tab: a few words to the people who make the plugin.
     //
-    // A report can leave the page in three ways, and each is a click the person makes:
-    //   Send      posts it to the project's feedback receiver (feedback-worker/), where only the
-    //             maintainers can read it. Offered only when the page knows a receiver
-    //             (constants.cjs FEEDBACK_ENDPOINT); needs no account anywhere.
+    // Where the page knows a receiver (constants.cjs FEEDBACK_ENDPOINT) the tab is one thing: write, then
+    // Send. Send posts the report to the project's feedback receiver (feedback-worker/), where only the
+    // maintainers can read it; it needs no account anywhere.
+    //
+    // Two other ways exist, and each is a click the person makes:
     //   GitHub    a plain link to GitHub's new-issue page with the title and the text filled in
     //             (model/feedback.cjs builds the address); the person reads it once more there and
     //             submits it under their own account. Public.
     //   Copy      the whole report on the clipboard, to send any other way.
-    // Nothing leaves without one of those clicks, and when Send fails the other two are still there.
+    // They are what the tab offers while there is no receiver, and what it falls back to when a Send
+    // failed, so that what was written is never stuck. Next to a working Send they are not shown.
     //
     // What is attached besides the person's own words is shown in full before anything leaves: the
     // environment lines are listed under the switch that attaches them, and they are the same lines that
@@ -3099,6 +3099,10 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         sender.send(payload(draft, attached ? rows : [])).then((sent) => { if (sent) onChange({ text: '' }) })
       }
 
+      // The other ways are on the tab while there is no receiver, and after a Send that failed.
+      const failed = sender.phase === 'failed'
+      const otherWays = !endpoint || failed
+
       // The way to GitHub: a link when there is something to take there, a disabled button until then
       // (a link cannot be disabled). It is the main action only while there is no receiver.
       const githubText = [t('feedback.submit'), h(Icon, { key: 'icon', name: 'external', size: 13 })]
@@ -3113,13 +3117,19 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         }, githubText)
         : h(Button, { variant: endpoint ? undefined : 'primary', disabled: true }, githubText)
 
-      // What became of the last Send. The thanks stay until the person starts writing again.
+      const copyButton = h(Button, { key: 'copy', disabled: !report.ready, onClick: () => { copier.copy(whole) } }, t('feedback.copy'))
+      const copySaid = copier.state ? h('span', { key: 'said', className: copier.state === 'copied' ? 'fmg-quiet' : 'fmg-row__error', role: 'status' },
+        t(copier.state === 'copied' ? 'feedback.copied' : 'feedback.copyFailed')) : null
+
+      // What became of the last Send. The thanks stay until the person starts writing again; a failure
+      // says why and brings the other two ways with it.
       let outcome = null
       if (sender.phase === 'sent' && !report.ready) {
         outcome = h(Notice, { role: 'status' }, h('p', { className: 'fmg-actions' }, h(Icon, { name: 'check' }), t('feedback.sent')))
-      } else if (sender.phase === 'failed') {
+      } else if (failed) {
         outcome = h(Notice, { tone: 'warn', role: 'alert' },
-          h('p', null, sender.code === 'HTTP 429' ? t('feedback.failedBusy') : t('feedback.failed', { code: sender.code || '' })))
+          h('p', null, sender.code === 'HTTP 429' ? t('feedback.failedBusy') : t('feedback.failed', { code: sender.code || '' })),
+          h('div', { className: 'fmg-actions' }, github, copyButton, copySaid))
       }
 
       return h('section', { className: 'fmg-section', 'aria-label': title },
@@ -3165,18 +3175,18 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
                 onChange: (next) => onChange({ environment: next }),
               }))),
           h(Reveal, { open: attached, id: envId + '-lines' }, h(Facts, { rows }))),
-        h(Notice, { role: 'note' },
-          h('p', null, t(endpoint ? 'feedback.howDirect' : 'feedback.how')),
-          h('p', null, t(endpoint ? 'feedback.otherWays' : 'feedback.public'))),
+        endpoint
+          ? h(Notice, { role: 'note' }, h('p', null, t('feedback.howDirect')))
+          : h(Notice, { role: 'note' }, h('p', null, t('feedback.how')), h('p', null, t('feedback.public'))),
         outcome,
-        report.clipped ? h(Notice, { tone: 'warn', role: 'status' }, h('p', null, t('feedback.clipped'))) : null,
-        h('div', { className: 'fmg-actions' },
-          endpoint ? h(Button, { variant: 'primary', disabled: !report.ready || sending, onClick: send }, t(sending ? 'feedback.sending' : 'feedback.send')) : null,
-          github,
-          h(Button, { disabled: !report.ready, onClick: () => { copier.copy(whole) } }, t('feedback.copy')),
-          copier.state ? h('span', { className: copier.state === 'copied' ? 'fmg-quiet' : 'fmg-row__error', role: 'status' },
-            t(copier.state === 'copied' ? 'feedback.copied' : 'feedback.copyFailed')) : null,
-          h('a', { className: 'fmg-link fmg-actions__end', href: LINKS.issues, target: '_blank', rel: 'noreferrer noopener' }, t('feedback.others'))))
+        // The warning is about the address for GitHub, so it is shown where that link is.
+        report.clipped && otherWays ? h(Notice, { tone: 'warn', role: 'status' }, h('p', null, t('feedback.clipped'))) : null,
+        endpoint
+          ? h('div', { className: 'fmg-actions' },
+            h(Button, { variant: 'primary', disabled: !report.ready || sending, onClick: send }, t(sending ? 'feedback.sending' : 'feedback.send')))
+          : h('div', { className: 'fmg-actions' },
+            github, copyButton, copySaid,
+            h('a', { className: 'fmg-link fmg-actions__end', href: LINKS.issues, target: '_blank', rel: 'noreferrer noopener' }, t('feedback.others'))))
     }
 
     module.exports = { emptyFeedback, FeedbackTab }

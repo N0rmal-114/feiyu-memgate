@@ -1,15 +1,17 @@
 'use strict'
 // The Feedback tab: a few words to the people who make the plugin.
 //
-// A report can leave the page in three ways, and each is a click the person makes:
-//   Send      posts it to the project's feedback receiver (feedback-worker/), where only the
-//             maintainers can read it. Offered only when the page knows a receiver
-//             (constants.cjs FEEDBACK_ENDPOINT); needs no account anywhere.
+// Where the page knows a receiver (constants.cjs FEEDBACK_ENDPOINT) the tab is one thing: write, then
+// Send. Send posts the report to the project's feedback receiver (feedback-worker/), where only the
+// maintainers can read it; it needs no account anywhere.
+//
+// Two other ways exist, and each is a click the person makes:
 //   GitHub    a plain link to GitHub's new-issue page with the title and the text filled in
 //             (model/feedback.cjs builds the address); the person reads it once more there and
 //             submits it under their own account. Public.
 //   Copy      the whole report on the clipboard, to send any other way.
-// Nothing leaves without one of those clicks, and when Send fails the other two are still there.
+// They are what the tab offers while there is no receiver, and what it falls back to when a Send
+// failed, so that what was written is never stuck. Next to a working Send they are not shown.
 //
 // What is attached besides the person's own words is shown in full before anything leaves: the
 // environment lines are listed under the switch that attaches them, and they are the same lines that
@@ -67,6 +69,10 @@ function FeedbackTab(props) {
     sender.send(payload(draft, attached ? rows : [])).then((sent) => { if (sent) onChange({ text: '' }) })
   }
 
+  // The other ways are on the tab while there is no receiver, and after a Send that failed.
+  const failed = sender.phase === 'failed'
+  const otherWays = !endpoint || failed
+
   // The way to GitHub: a link when there is something to take there, a disabled button until then
   // (a link cannot be disabled). It is the main action only while there is no receiver.
   const githubText = [t('feedback.submit'), h(Icon, { key: 'icon', name: 'external', size: 13 })]
@@ -81,13 +87,19 @@ function FeedbackTab(props) {
     }, githubText)
     : h(Button, { variant: endpoint ? undefined : 'primary', disabled: true }, githubText)
 
-  // What became of the last Send. The thanks stay until the person starts writing again.
+  const copyButton = h(Button, { key: 'copy', disabled: !report.ready, onClick: () => { copier.copy(whole) } }, t('feedback.copy'))
+  const copySaid = copier.state ? h('span', { key: 'said', className: copier.state === 'copied' ? 'fmg-quiet' : 'fmg-row__error', role: 'status' },
+    t(copier.state === 'copied' ? 'feedback.copied' : 'feedback.copyFailed')) : null
+
+  // What became of the last Send. The thanks stay until the person starts writing again; a failure
+  // says why and brings the other two ways with it.
   let outcome = null
   if (sender.phase === 'sent' && !report.ready) {
     outcome = h(Notice, { role: 'status' }, h('p', { className: 'fmg-actions' }, h(Icon, { name: 'check' }), t('feedback.sent')))
-  } else if (sender.phase === 'failed') {
+  } else if (failed) {
     outcome = h(Notice, { tone: 'warn', role: 'alert' },
-      h('p', null, sender.code === 'HTTP 429' ? t('feedback.failedBusy') : t('feedback.failed', { code: sender.code || '' })))
+      h('p', null, sender.code === 'HTTP 429' ? t('feedback.failedBusy') : t('feedback.failed', { code: sender.code || '' })),
+      h('div', { className: 'fmg-actions' }, github, copyButton, copySaid))
   }
 
   return h('section', { className: 'fmg-section', 'aria-label': title },
@@ -133,18 +145,18 @@ function FeedbackTab(props) {
             onChange: (next) => onChange({ environment: next }),
           }))),
       h(Reveal, { open: attached, id: envId + '-lines' }, h(Facts, { rows }))),
-    h(Notice, { role: 'note' },
-      h('p', null, t(endpoint ? 'feedback.howDirect' : 'feedback.how')),
-      h('p', null, t(endpoint ? 'feedback.otherWays' : 'feedback.public'))),
+    endpoint
+      ? h(Notice, { role: 'note' }, h('p', null, t('feedback.howDirect')))
+      : h(Notice, { role: 'note' }, h('p', null, t('feedback.how')), h('p', null, t('feedback.public'))),
     outcome,
-    report.clipped ? h(Notice, { tone: 'warn', role: 'status' }, h('p', null, t('feedback.clipped'))) : null,
-    h('div', { className: 'fmg-actions' },
-      endpoint ? h(Button, { variant: 'primary', disabled: !report.ready || sending, onClick: send }, t(sending ? 'feedback.sending' : 'feedback.send')) : null,
-      github,
-      h(Button, { disabled: !report.ready, onClick: () => { copier.copy(whole) } }, t('feedback.copy')),
-      copier.state ? h('span', { className: copier.state === 'copied' ? 'fmg-quiet' : 'fmg-row__error', role: 'status' },
-        t(copier.state === 'copied' ? 'feedback.copied' : 'feedback.copyFailed')) : null,
-      h('a', { className: 'fmg-link fmg-actions__end', href: LINKS.issues, target: '_blank', rel: 'noreferrer noopener' }, t('feedback.others'))))
+    // The warning is about the address for GitHub, so it is shown where that link is.
+    report.clipped && otherWays ? h(Notice, { tone: 'warn', role: 'status' }, h('p', null, t('feedback.clipped'))) : null,
+    endpoint
+      ? h('div', { className: 'fmg-actions' },
+        h(Button, { variant: 'primary', disabled: !report.ready || sending, onClick: send }, t(sending ? 'feedback.sending' : 'feedback.send')))
+      : h('div', { className: 'fmg-actions' },
+        github, copyButton, copySaid,
+        h('a', { className: 'fmg-link fmg-actions__end', href: LINKS.issues, target: '_blank', rel: 'noreferrer noopener' }, t('feedback.others'))))
 }
 
 module.exports = { emptyFeedback, FeedbackTab }

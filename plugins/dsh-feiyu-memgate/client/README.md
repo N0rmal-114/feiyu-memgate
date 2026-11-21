@@ -138,7 +138,8 @@ a file name cannot get in whatever a later status holds. The same lines are list
 switch that attaches them. An address is kept under `MAX_URL` characters: a longer report is cut in the
 address only, the cut is marked, and the link copies the whole report to the clipboard on the way out.
 Where the package names a receiver (`FEEDBACK_ENDPOINT`, checked by `usableEndpoint`: https, or this
-computer for the preview), the tab also has a Send button and a contact line. Send is the only call of the
+computer for the preview), the tab is "write, then Send": one Send button and a contact line, and the link
+to GitHub and the copy button are shown only inside the notice of a Send that failed. Send is the only call of the
 page that leaves the host: `net.cjs` `sendFeedback` posts `payload()` with `credentials: 'omit'` and no
 referrer, waits `FEEDBACK_TIMEOUT_MS`, and turns every failure into a code the tab shows. The receiver is
 `feedback-worker/worker.js` (a Cloudflare Worker the maintainers run, not shipped in the package); its
