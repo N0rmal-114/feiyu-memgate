@@ -30,6 +30,7 @@ from feiyu_memgate.core.write import DailyCapGuard, RedactGuard
 from feiyu_memgate.errors import ConfigError
 from feiyu_memgate.gateway import app
 from feiyu_memgate.gateway import server as http_server
+from feiyu_memgate.gateway import tokens as gateway_tokens
 from feiyu_memgate.model import ClientPolicy
 from feiyu_memgate.tenants.base import TenantProvider
 from feiyu_memgate.tools import tenants as tenant_tools
@@ -219,7 +220,7 @@ class IdentifyTests(GatewayCase):
         self.assertEqual(len(long), app.MAX_TENANT_TOKEN_CHARS + 1)
         padded = mint("10001") + "A" * 1000
         with mock.patch.object(app, "tenant_token_mac") as mac, mock.patch.object(self.tenants, "valid_id") as valid, \
-                mock.patch.object(app, "_unb64") as decode:
+                mock.patch.object(gateway_tokens, "_unb64") as decode:
             self.assertIsNone(self.gw.identify(long))
             self.assertIsNone(self.gw.identify(padded))
         mac.assert_not_called()

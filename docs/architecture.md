@@ -135,6 +135,9 @@ src/feiyu_memgate/
   forgetting/        遗忘曲线
   core/              召回引擎、内置步骤、写入守卫、脱敏、限流、工作线程池（内部实现）
   gateway/           网关本体（app.py）和 HTTP 服务（server.py）
+    tokens.py        令牌：能不能用来守一条路由，和绑定租户的令牌格式（不需要 Gateway）
+    validate.py      请求体的检查和它们用的长度、个数上限
+    policies.py      启动时对配置的检查（受众、explain、租户绑定、存储名），都是纯函数
   client/            给聊天程序用的客户端
   tools/             备份、评测、租户管理
 integrations/astrbot AstrBot 接入示例
