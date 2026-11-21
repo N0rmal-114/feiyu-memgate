@@ -11,6 +11,7 @@ import collections
 import threading
 
 from ..core.tidy import PreparedQuery, gram_weights, index_grams, normalize
+from ..errors import BackendError
 from ..registry import register
 from ..model import Hit
 from .base import MemoryBackend, message_date, new_receipt, new_ref, receipt_ref, require_writable
@@ -100,12 +101,24 @@ class InMemoryBackend(MemoryBackend):
             return self._items[ref][0]
 
     def remember(self, messages, timeout=None, ctl=None):
+        """All or nothing: every row is prepared first, then all are stored under one hold of the
+        lock. A failure while preparing, or a caller that has given up (`ctl.cancelled`) when the
+        write is about to be applied, stores nothing (BackendError for the cancelled call)."""
         require_writable(self)
         receipt = new_receipt()
-        kept = 0
+        rows = []  # (ref, text, date, grams)
         for index, message in enumerate(messages):
             if message["role"] == "user":
-                self._store(message["content"], ref=receipt_ref(receipt, index),
-                            date=message_date(message))
-                kept += 1
-        return receipt if kept else None  # nothing kept: no receipt for nothing
+                text = message["content"]
+                rows.append((receipt_ref(receipt, index), text, message_date(message),
+                             index_grams(normalize(text))))
+        if not rows:
+            return None  # nothing kept: no receipt for nothing
+        with self._lock:
+            if ctl is not None and ctl.cancelled:
+                raise BackendError("cancelled")
+            for ref, text, date, grams in rows:
+                self._forget_grams(ref)  # replacing a ref must not count its old text twice
+                self._items[ref] = (text, date)
+                self._frequency.update(grams)
+        return receipt

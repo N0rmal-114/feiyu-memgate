@@ -18,6 +18,8 @@ import time
 from ..errors import BackendError
 
 POOL_SIZE = 8
+NOTE_MAX = 8  # a call keeps at most this many distinct notes
+NOTE_WORD = 32  # and each at most this many characters
 
 
 def _kill(sock):
@@ -51,6 +53,13 @@ class NullCtl:
     def on_cancel(self, fn):
         pass  # never cancelled, so fn is never called
 
+    def note(self, word):
+        pass  # nobody collects the notes of a call outside the pool
+
+    @property
+    def notes(self):
+        return ()
+
 
 NULL_CTL = NullCtl()
 # The old private name: backends written before NULL_CTL existed import it and call it.
@@ -67,6 +76,7 @@ class Task:
         self._cancelled = False
         self._finished = False
         self._hooks = []
+        self._notes = []
         self.done = threading.Event()
         self.result = None
         self.error = None
@@ -101,6 +111,22 @@ class Task:
                 self._hooks.append(fn)
                 return
         _call_quietly(fn)
+
+    def note(self, word):
+        """A backend's word for the access log of the request (a reason, a few characters: never a query
+        or a memory text). Distinct words only, a few at most; thread-safe."""
+        if not isinstance(word, str) or not word:
+            return
+        word = word[:NOTE_WORD]
+        with self._lock:
+            if word not in self._notes and len(self._notes) < NOTE_MAX:
+                self._notes.append(word)
+
+    @property
+    def notes(self):
+        """The words noted so far, in order."""
+        with self._lock:
+            return list(self._notes)
 
     def cancel(self):
         with self._lock:

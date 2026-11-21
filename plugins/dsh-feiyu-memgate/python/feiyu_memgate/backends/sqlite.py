@@ -51,6 +51,7 @@ from ..model import Hit
 from ..registry import register
 from . import _sqlfile
 from ._sqlfile import SCAN_BATCH
+from ._sqlfile import Readers as _Readers  # noqa: F401 - the pool lives in _sqlfile, shared with the embedding backend
 from .base import (DEFAULT_BUDGET, MemoryBackend, as_roles, message_date, new_receipt, new_ref, receipt_ref,
                    require_writable)
 from .base import today as _today
@@ -75,59 +76,6 @@ GRAM_SCHEME = "2"
 # Why the rows come back as one JSON value: the sqlite3 module lets go of the GIL at every row it steps,
 # and with several threads searching at once each of those hand-overs can wait a whole GIL switch
 # interval. One row per statement keeps parallel searches parallel.
-
-
-class _Readers:
-    """A bounded pool of read-only connections. Many searches run at once; none waits for another
-    one's SQL (WAL lets readers run beside the writer). Closed with the backend."""
-
-    def __init__(self, connect, maximum):
-        self._connect = connect
-        self._max = max(1, int(maximum))
-        self._cond = threading.Condition()
-        self._free = []
-        self._made = 0
-        self._closed = False
-
-    def acquire(self, deadline):
-        with self._cond:
-            while True:
-                if self._closed:
-                    raise BackendError("the store is closed")
-                if self._free:
-                    return self._free.pop()
-                if self._made < self._max:
-                    self._made += 1
-                    break
-                left = deadline - time.monotonic()
-                if left <= 0:
-                    raise BackendError("no free read connection in time")
-                self._cond.wait(left)
-        try:
-            return self._connect()
-        except Exception:
-            with self._cond:
-                self._made -= 1
-                self._cond.notify()
-            raise
-
-    def release(self, conn):
-        with self._cond:
-            if not self._closed:
-                self._free.append(conn)
-                self._cond.notify()
-                return
-            self._made -= 1
-        conn.close()  # the store was closed while this one was in use
-
-    def close(self):
-        with self._cond:
-            self._closed = True
-            free, self._free = self._free, []
-            self._made -= len(free)
-            self._cond.notify_all()
-        for conn in free:
-            conn.close()
 
 
 class _Run:
@@ -221,13 +169,7 @@ class SQLiteBackend(MemoryBackend):
                 [(g, ref) for ref, text in rows[start:start + SCAN_BATCH] for g in index_grams(normalize(text))])
 
     def _open_reader(self):
-        conn = sqlite3.connect(self._path, check_same_thread=False, timeout=10.0)
-        try:
-            conn.execute("PRAGMA query_only=ON")
-        except Exception:
-            conn.close()
-            raise
-        return conn
+        return _sqlfile.open_reader(self._path)
 
     @contextlib.contextmanager
     def _read(self, deadline=None):
@@ -279,16 +221,36 @@ class SQLiteBackend(MemoryBackend):
 
     def remember(self, messages, timeout=None, ctl=None):
         """Keep the messages whose role is in `roles`; returns the receipt id, or None when
-        no message qualified (nothing was kept, so there is no receipt for it)."""
+        no message qualified (nothing was kept, so there is no receipt for it).
+
+        All or nothing: every row is prepared first, then one transaction stores them all. A failure,
+        or a caller that has given up (`ctl.cancelled`) when the write is about to commit, leaves
+        the store exactly as it was (BackendError for the cancelled call)."""
         require_writable(self)
         receipt = new_receipt()
         today = _today()
-        kept = 0
+        rows = []  # (ref, text, date, gram rows)
         for index, message in enumerate(messages):
             if message["role"] in self.roles:
-                self.put(message["content"], ref=receipt_ref(receipt, index), date=message_date(message, today))
-                kept += 1
-        return receipt if kept else None
+                ref = receipt_ref(receipt, index)
+                text = message["content"]
+                grams = [(g, ref) for g in index_grams(normalize(text), self._unigrams)]
+                rows.append((ref, text, message_date(message, today), grams))
+        if not rows:
+            return None
+        now = int(time.time())
+        with self._lock:
+            with self._db:  # one transaction for every memory and its index rows
+                for ref, text, date, grams in rows:
+                    self._db.execute("DELETE FROM grams WHERE ref = ?", (ref,))
+                    self._db.execute(
+                        "INSERT OR REPLACE INTO memories (ref, text, created_at, date) VALUES (?, ?, ?, ?)",
+                        (ref, text, now, date),
+                    )
+                    self._db.executemany("INSERT OR IGNORE INTO grams (gram, ref) VALUES (?, ?)", grams)
+                if ctl is not None and ctl.cancelled:
+                    raise BackendError("cancelled")  # leaving the block rolls everything back
+        return receipt
 
     # ------------------------------------------------------------ reading
 
