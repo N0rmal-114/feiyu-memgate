@@ -1062,6 +1062,32 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
                 "managed"
               ]
             }
+          },
+          {
+            "key": "speakerAccount",
+            "kind": "string",
+            "default": "dsh:local",
+            "label": {
+              "en": "Speaker account",
+              "zh": "说话人账号"
+            },
+            "help": {
+              "en": "The account the plugin reports to the gateway with every write and recall, written dsh:name (lower-case letters, digits and _ . -). The bundled gateway maps it to the owner. With an external gateway that other programs share, list this account in the gateway's table of people.",
+              "zh": "插件每次写入和召回时向网关报告的账号，写成 dsh:名字（小写字母、数字和 _ . -）。内置网关把它对应到所有者。使用外部网关并与别的程序共用时，把这个账号写进网关的对照表。"
+            }
+          },
+          {
+            "key": "toolFields",
+            "kind": "boolean",
+            "default": false,
+            "label": {
+              "en": "Kind and event date on the memory tool",
+              "zh": "记忆工具可填写类型和日期"
+            },
+            "help": {
+              "en": "When on, the memgate_remember tool takes two more optional arguments, the kind of the memory (identity, preference, event, plan, entity) and the date of the event, filled in by the model and stored with the memory. When off, the tool's arguments are exactly as before.",
+              "zh": "开启后，memgate_remember 工具多两个可选参数：记忆的类型（身份、偏好、事件、计划、实体）和事情发生的日期，由模型填写，和记忆一起保存。关闭时工具的参数和以前完全一样。"
+            }
           }
         ]
       }
@@ -1482,6 +1508,19 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         'trial.delivered': 'Delivered',
         'trial.leftOut': 'Left out',
         'trial.linked': 'Linked',
+        'trial.field.speaker': 'Said by {who}',
+        'trial.field.about': 'About {who}',
+        'trial.field.channel': 'Channel {channel}',
+        'trial.field.eventDate': 'Happened {date}',
+        'trial.origin.said': 'Captured',
+        'trial.origin.tool': 'By the tool',
+        'trial.origin.curated': 'Written by the owner',
+        'trial.origin.derived': 'Derived',
+        'trial.kind.identity': 'Identity',
+        'trial.kind.preference': 'Preference',
+        'trial.kind.event': 'Event',
+        'trial.kind.plan': 'Plan',
+        'trial.kind.entity': 'Entity',
         'trial.noText': '(no text came back for this one)',
         'trial.reason.min_score': 'Below the score line',
         'trial.reason.relative_score': 'Too far below the best match',
@@ -1675,6 +1714,19 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         'trial.delivered': '会给出',
         'trial.leftOut': '没给出',
         'trial.linked': '关联带出',
+        'trial.field.speaker': '{who} 说的',
+        'trial.field.about': '关于 {who}',
+        'trial.field.channel': '渠道 {channel}',
+        'trial.field.eventDate': '发生在 {date}',
+        'trial.origin.said': '自动记录',
+        'trial.origin.tool': '工具记下',
+        'trial.origin.curated': '所有者写的',
+        'trial.origin.derived': '整理得出',
+        'trial.kind.identity': '身份',
+        'trial.kind.preference': '偏好',
+        'trial.kind.event': '事件',
+        'trial.kind.plan': '计划',
+        'trial.kind.entity': '实体',
         'trial.noText': '（这条没有带回原文）',
         'trial.reason.min_score': '相似度低于分数线',
         'trial.reason.relative_score': '和最相关的一条差得太多',
@@ -2196,7 +2248,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
               en: 'What the model and you can use on your own initiative.',
               zh: '模型和你可以主动使用的功能。',
             },
-            fields: ['modules.rememberTool', 'modules.searchTool', 'modules.commands'],
+            fields: ['modules.rememberTool', 'advanced.toolFields', 'modules.searchTool', 'modules.commands'],
           },
           {
             id: 'capture',
@@ -2285,7 +2337,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
               zh: '记忆的存放位置：插件内置的网关，或你自己运行的外部网关。',
             },
             fields: [
-              'gateway.mode', 'gateway.python', 'gateway.dataDir', 'external.url', 'external.token',
+              'gateway.mode', 'gateway.python', 'gateway.dataDir', 'external.url', 'external.token', 'advanced.speakerAccount',
               'advanced.dailyWrites', 'advanced.redaction', 'advanced.newerFirst', 'advanced.forgetting',
             ],
           },
@@ -2975,8 +3027,9 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
     'use strict'
     // The recall trial (Retrieval tab): the answer of the host half's try route turned into what the panel
     // shows. Pure. The answer is { ok: true, candidates, more, failed, busy, limit, ... } (src/plugin.js);
-    // a candidate is { source, id, found, score, outcome, stage, addedBy, text?, date?, cut? } as
-    // src/client.js explainRecall cleans it.
+    // a candidate is { source, id, found, score, outcome, stage, addedBy, text?, date?, cut?, fields? } as
+    // src/client.js explainRecall cleans it; `fields` holds what the record carries (speaker, about, channel,
+    // audience, origin, event_date, kind), all strings.
 
     const { TRIAL_MAX_CHARS } = require('../constants.cjs')
 
@@ -3000,6 +3053,10 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
       failed: 'trial.error.failed',
       network: 'trial.error.network',
     }
+
+    // The values of a record's origin and kind the page has a word for (the keys are 'trial.origin.' and 'trial.kind.' plus the value).
+    const ORIGINS = ['said', 'tool', 'curated', 'derived']
+    const KINDS = ['identity', 'preference', 'event', 'plan', 'entity']
 
     // A score that moved by less than this on its way is shown once.
     const MOVED = 0.005
@@ -3033,6 +3090,25 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
       return null
     }
 
+    const has = (value) => typeof value === 'string' && value !== ''
+
+    /**
+     * What a record carries, as an ordered list of { key, values } for the page's text: who said it, who it is
+     * about, the channel, how it came to be stored, its kind and the date of the event. The audience is not
+     * shown, and a value the page has no word for (an origin or a kind) is left out.
+     */
+    function factsOf(fields) {
+      if (fields === null || typeof fields !== 'object') return []
+      const facts = []
+      if (has(fields.speaker)) facts.push({ key: 'trial.field.speaker', values: { who: fields.speaker } })
+      if (has(fields.about)) facts.push({ key: 'trial.field.about', values: { who: fields.about } })
+      if (has(fields.channel)) facts.push({ key: 'trial.field.channel', values: { channel: fields.channel } })
+      if (ORIGINS.includes(fields.origin)) facts.push({ key: 'trial.origin.' + fields.origin, values: {} })
+      if (KINDS.includes(fields.kind)) facts.push({ key: 'trial.kind.' + fields.kind, values: {} })
+      if (has(fields.event_date)) facts.push({ key: 'trial.field.eventDate', values: { date: fields.event_date } })
+      return facts
+    }
+
     /** The candidates in the order given, each as the panel draws it. */
     function rows(answer) {
       const list = answer && Array.isArray(answer.candidates) ? answer.candidates : []
@@ -3048,6 +3124,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         delivered: c.outcome === 'delivered',
         linked: c.addedBy === 'linked',
         reason: reasonOf(c, limit),
+        facts: factsOf(c.fields),
       }))
     }
 
@@ -4224,6 +4301,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
         h('div', { className: 'fmg-trial__facts' },
           row.date ? h('span', null, row.date) : null,
           h('span', null, scores),
+          row.facts.map((fact) => h('span', { key: fact.key }, t(fact.key, fact.values))),
           left ? h(Tag, null, t('trial.leftOut')) : h(Tag, { tone: 'ok' }, t('trial.delivered')),
           row.reason ? h('span', { className: 'fmg-trial__reason' }, t(row.reason.key, row.reason.values)) : null,
           row.linked ? h(Tag, { tone: 'sea' }, t('trial.linked')) : null))

@@ -187,6 +187,13 @@ test('what the script prints never names a text, a ref or a path', { skip, timeo
   const deadline = Date.now() + 50000
   while (!/"event": "done"[^\n]*\n/.test(out) && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 50))
   child.stdin.end()
+  // Wait until the script has really gone: it holds the store files open, and on Windows the temporary
+  // folder cannot be removed while it does (the clean-up after the test failed with EPERM now and then).
+  await new Promise((resolve) => {
+    if (child.exitCode !== null || child.signalCode !== null) return resolve()
+    const giveUp = setTimeout(() => { child.kill(); resolve() }, 10000)
+    child.once('close', () => { clearTimeout(giveUp); resolve() })
+  })
   assert.deepEqual(out.trim().split(/\r?\n/).map((line) => JSON.parse(line).event), ['start', 'progress', 'done'])
   for (const secret of ['m-1', 'm-2', 'flowerpot', 'oolong', '西湖', dir, 'keywords.db']) assert.ok(!out.includes(secret), secret)
   assert.equal(out.split(/\r?\n/)[0], '{"event": "start", "vector": 3, "keyword": 0}')
@@ -201,4 +208,59 @@ test('stop ends a running update and reports it as stopped', { skip, timeout: 60
   })
   await runner.stop()
   assert.equal((await runner.done).state, 'stopped')
+})
+
+// ------------------------------------------------------------------ record fields
+
+const FIELD_COLUMNS = ['speaker', 'about', 'channel', 'audience', 'origin', 'event_date', 'kind']
+
+// A vector file whose memories table has the field columns, as the gateway writes it; `fields` is {ref: {column: value}}.
+const MAKE_VECTOR_WITH_FIELDS = [
+  'import json, sqlite3, sys',
+  'arg = json.loads(sys.argv[1])',
+  'cols = arg["columns"]',
+  'db = sqlite3.connect(arg["path"])',
+  'db.executescript("CREATE TABLE memories (ref TEXT PRIMARY KEY, text, created_at, date, vector, " + ", ".join(c + " TEXT" for c in cols) + "); CREATE TABLE info (key TEXT PRIMARY KEY, value TEXT NOT NULL);")',
+  'for ref, text, created_at, date in arg["rows"]:',
+  '    given = arg["fields"].get(ref, {})',
+  '    db.execute("INSERT INTO memories VALUES (?, ?, ?, ?, ?" + ", ?" * len(cols) + ")", (ref, text, created_at, date, b"\\x00") + tuple(given.get(c) for c in cols))',
+  'db.commit()',
+  'db.close()',
+].join('\n')
+
+const KEYWORD_FIELDS = [
+  'import json, sqlite3, sys',
+  'arg = json.loads(sys.argv[1])',
+  'db = sqlite3.connect(arg["path"])',
+  'rows = db.execute("SELECT ref, " + ", ".join(arg["columns"]) + " FROM memories ORDER BY ref").fetchall()',
+  'print(json.dumps({r[0]: {c: v for c, v in zip(arg["columns"], r[1:]) if v is not None} for r in rows}))',
+  'db.close()',
+].join('\n')
+
+const keywordFields = (file) => JSON.parse(py(KEYWORD_FIELDS, { path: file, columns: FIELD_COLUMNS }))
+
+test('the record fields of the vector file go to the index; a memory without an audience gets owner', { skip, timeout: 60000 }, async (t) => {
+  const dir = tempDir(t)
+  py(MAKE_VECTOR_WITH_FIELDS, {
+    path: path.join(dir, 'vector.db'),
+    columns: FIELD_COLUMNS,
+    rows: ROWS,
+    fields: {
+      'm-1': { speaker: 'owner', origin: 'tool', kind: 'event', event_date: '2026-01-01', channel: 'dsh', audience: 'group' },
+      'm-2': { origin: 'said', speaker: 'anon:0123456789abcdef', kind: '', about: 'x'.repeat(200) },
+    },
+  })
+  assert.deepEqual(await run(dir), { state: 'done', added: 3, removed: 0, remaining: 0 })
+  assert.deepEqual(keywordFields(path.join(dir, 'keywords.db')), {
+    'm-1': { speaker: 'owner', origin: 'tool', kind: 'event', event_date: '2026-01-01', channel: 'dsh', audience: 'group' },
+    'm-2': { origin: 'said', speaker: 'anon:0123456789abcdef', audience: 'owner' },
+    'm-3': { audience: 'owner' },
+  })
+})
+
+test('a vector file without field columns still fills the index, every memory owner-level', { skip, timeout: 60000 }, async (t) => {
+  const dir = tempDir(t)
+  vectorFile(path.join(dir, 'vector.db'), ROWS)
+  assert.deepEqual(await run(dir), { state: 'done', added: 3, removed: 0, remaining: 0 })
+  assert.deepEqual(keywordFields(path.join(dir, 'keywords.db')), { 'm-1': { audience: 'owner' }, 'm-2': { audience: 'owner' }, 'm-3': { audience: 'owner' } })
 })

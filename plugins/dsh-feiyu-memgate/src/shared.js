@@ -32,6 +32,12 @@ export const REQUEST_CONTEXT = Object.freeze({
   trial: Object.freeze({ channel: 'dsh', via: 'trial' }),
 })
 
+// The account this DSH reports to the gateway (advanced.speakerAccount): dsh:name, or the default when the
+// setting does not hold one. Mirrors the shape the gateway takes for an account of the platform dsh.
+export const DEFAULT_ACCOUNT = 'dsh:local'
+const ACCOUNT = /^dsh:[a-z0-9][a-z0-9_.-]{0,31}$/
+export const speakerAccount = (advanced) => (typeof advanced?.speakerAccount === 'string' && ACCOUNT.test(advanced.speakerAccount) ? advanced.speakerAccount : DEFAULT_ACCOUNT)
+
 export const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v)
 export const isUserOrigin = (m) => isObject(m) && m.role === 'user' && m.source?.kind === 'user'
 export const isSubagent = (header) => header?.origin === 'subagent' || (Number.isInteger(header?.delegationDepth) && header.delegationDepth > 0)

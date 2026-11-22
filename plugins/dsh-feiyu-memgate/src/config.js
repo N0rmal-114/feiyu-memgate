@@ -268,6 +268,16 @@ const GROUPS = [
         en: 'Memories unused for a long time rank lower and are eventually archived and removed (at most a few per day). Archived memories stay in the data folder for 90 days.',
         zh: '长期未被使用的记忆排名靠后，最终会被存档并删除（每天最多几条）。存档的记忆在数据文件夹中保留 90 天。',
       }, { needs: { key: 'gateway.mode', in: ['managed'] } }),
+      { key: 'speakerAccount', kind: 'string', default: 'dsh:local',
+        label: { en: 'Speaker account', zh: '说话人账号' },
+        help: {
+          en: "The account the plugin reports to the gateway with every write and recall, written dsh:name (lower-case letters, digits and _ . -). The bundled gateway maps it to the owner. With an external gateway that other programs share, list this account in the gateway's table of people.",
+          zh: '插件每次写入和召回时向网关报告的账号，写成 dsh:名字（小写字母、数字和 _ . -）。内置网关把它对应到所有者。使用外部网关并与别的程序共用时，把这个账号写进网关的对照表。',
+        } },
+      bool('toolFields', false, { en: 'Kind and event date on the memory tool', zh: '记忆工具可填写类型和日期' }, {
+        en: "When on, the memgate_remember tool takes two more optional arguments, the kind of the memory (identity, preference, event, plan, entity) and the date of the event, filled in by the model and stored with the memory. When off, the tool's arguments are exactly as before.",
+        zh: '开启后，memgate_remember 工具多两个可选参数：记忆的类型（身份、偏好、事件、计划、实体）和事情发生的日期，由模型填写，和记忆一起保存。关闭时工具的参数和以前完全一样。',
+      }),
     ],
   },
 ]

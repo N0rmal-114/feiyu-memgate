@@ -8,7 +8,7 @@ import path from 'node:path'
 import { releasedEntries } from './changelog.js'
 import { buildQuery, codePointLength, pyStrip } from './query.js'
 import { describeFailure } from './setup.js'
-import { kindOf, REQUEST_CONTEXT } from './shared.js'
+import { kindOf, REQUEST_CONTEXT, speakerAccount } from './shared.js'
 
 // Read by the settings page (client/client.js) as the document-relative path `feiyu-memgate/status`,
 // the same way first-party pages reach their host routes (packages/host/open-in-app/src/shared.ts:11-14).
@@ -198,7 +198,7 @@ export function createRoutes({ service, log, status, setup, settings, client, ve
           const limit = settings().advanced.recallLimit
           const c = client(limit)
           if (!c) return send(200, { ok: false, code: 'unavailable' })
-          const result = await c.explainRecall(query, { context: REQUEST_CONTEXT.trial })
+          const result = await c.explainRecall(query, { context: REQUEST_CONTEXT.trial, speaker: speakerAccount(settings().advanced) })
           send(200, result?.ok === true ? { ...result, limit } : { ok: false, code: result?.code === 'unsupported' ? 'unsupported' : 'failed' })
         } catch (error) {
           log.warn(`feiyu-memgate: trial recall failed (${kindOf(error)})`)

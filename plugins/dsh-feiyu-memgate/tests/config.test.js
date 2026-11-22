@@ -16,7 +16,7 @@ test('defaults', () => {
     advanced: {
       recallLimit: 5, recallTimeoutMs: 4000, language: 'auto', skipRepeats: true, linkedRecall: true, showAge: true, failureNote: true, captureMinChars: 4, blockTone: 'normal', maxNewPerTurn: 0, relevanceCheck: false, relevanceProvider: '', relevanceModel: '', relevanceTimeoutMs: 3000,
       afterthought: false, afterthoughtMax: 2, conversationPool: false, poolSize: 3, recentPool: false, recentSize: 3, recentDays: 7,
-      profile: 'broad', dailyWrites: 50, redaction: true, newerFirst: true, forgetting: false,
+      profile: 'broad', dailyWrites: 50, redaction: true, newerFirst: true, forgetting: false, speakerAccount: 'dsh:local', toolFields: false,
     },
   })
   assert.ok(Object.isFrozen(DEFAULTS.modules))
@@ -158,7 +158,7 @@ test('the chat settings: three switches that are on and a character count of 4, 
   assert.deepEqual(group.fields.map((f) => f.key), [
     'recallLimit', 'recallTimeoutMs', 'language', 'skipRepeats', 'linkedRecall', 'showAge', 'failureNote', 'captureMinChars', 'blockTone', 'maxNewPerTurn', 'relevanceCheck', 'relevanceProvider', 'relevanceModel', 'relevanceTimeoutMs',
     'afterthought', 'afterthoughtMax', 'conversationPool', 'poolSize', 'recentPool', 'recentSize', 'recentDays',
-    'profile', 'dailyWrites', 'redaction', 'newerFirst', 'forgetting',
+    'profile', 'dailyWrites', 'redaction', 'newerFirst', 'forgetting', 'speakerAccount', 'toolFields',
   ])
   for (const key of ['advanced.skipRepeats', 'advanced.showAge', 'advanced.failureNote']) {
     const field = SETTING_KEYS[key]
@@ -402,4 +402,28 @@ test('the schema does not carry the page-only attributes of a field', () => {
       for (const word of ['needs', 'unit', 'experimental']) assert.ok(!meta.includes(`"${word}"`), `${group.group}.${field.key}: ${word} in the schema`)
     }
   }
+})
+
+test('advanced.speakerAccount and advanced.toolFields: a text and a switch with the texts of the specification, in both languages', () => {
+  const account = SETTING_KEYS['advanced.speakerAccount']
+  assert.deepEqual([account.kind, account.default, account.secret, account.needs], ['string', 'dsh:local', undefined, undefined])
+  assert.deepEqual(account.label, { en: 'Speaker account', zh: '说话人账号' })
+  assert.equal(account.help.en, "The account the plugin reports to the gateway with every write and recall, written dsh:name (lower-case letters, digits and _ . -). The bundled gateway maps it to the owner. With an external gateway that other programs share, list this account in the gateway's table of people.")
+  assert.equal(account.help.zh, '插件每次写入和召回时向网关报告的账号，写成 dsh:名字（小写字母、数字和 _ . -）。内置网关把它对应到所有者。使用外部网关并与别的程序共用时，把这个账号写进网关的对照表。')
+  const fields = SETTING_KEYS['advanced.toolFields']
+  assert.deepEqual([fields.kind, fields.default], ['boolean', false])
+  assert.deepEqual(fields.label, { en: 'Kind and event date on the memory tool', zh: '记忆工具可填写类型和日期' })
+  assert.equal(fields.help.en, "When on, the memgate_remember tool takes two more optional arguments, the kind of the memory (identity, preference, event, plan, entity) and the date of the event, filled in by the model and stored with the memory. When off, the tool's arguments are exactly as before.")
+  assert.equal(fields.help.zh, '开启后，memgate_remember 工具多两个可选参数：记忆的类型（身份、偏好、事件、计划、实体）和事情发生的日期，由模型填写，和记忆一起保存。关闭时工具的参数和以前完全一样。')
+  // Read as checked values: the text is trimmed, anything else is the default.
+  assert.equal(readConfig({ advanced: { speakerAccount: '  dsh:desk  ' } }).advanced.speakerAccount, 'dsh:desk')
+  assert.equal(readConfig({ advanced: { speakerAccount: 7 } }).advanced.speakerAccount, 'dsh:local')
+  assert.equal(readConfig({ advanced: { toolFields: true } }).advanced.toolFields, true)
+  assert.equal(readConfig({ advanced: { toolFields: 'yes' } }).advanced.toolFields, false)
+  assert.deepEqual(parseSetting(account, 'dsh:desk'), { ok: true, value: 'dsh:desk' })
+  assert.deepEqual(parseSetting(fields, 'on'), { ok: true, value: true })
+  // The schema carries both, with their help, and the account is not a secret.
+  const dict = buildConfigSchema(recordingSchema()).dict.advanced.dict
+  assert.ok(dict.speakerAccount && dict.toolFields)
+  assert.ok(!JSON.stringify(dict.speakerAccount).includes('secret'))
 })

@@ -687,7 +687,7 @@ const KNOWN_UNUSED = [] // none today; a text nobody asks for fails the test bel
 
 test('i18n: every static key of the dictionary is used somewhere in client/src, except the ones listed in KNOWN_UNUSED', () => {
   const { UI } = load('i18n.cjs')
-  const DYNAMIC_PREFIXES = ['state.', 'installState.', 'language.', 'mascot.', 'overview.ready.', 'overview.fact.tier.', 'overview.asleep.', 'feedback.kind.']
+  const DYNAMIC_PREFIXES = ['state.', 'installState.', 'language.', 'mascot.', 'overview.ready.', 'overview.fact.tier.', 'overview.asleep.', 'feedback.kind.', 'trial.origin.', 'trial.kind.']
   const code = CJS.filter((id) => !['i18n.cjs', 'fields.cjs'].includes(id)).map((id) => scan(read(id)).code).join('\n')
   for (const prefix of DYNAMIC_PREFIXES) {
     assert.ok(code.includes(`'${prefix}' +`), `no module builds a key from '${prefix}' any more: take it off the list`)

@@ -3,7 +3,7 @@
 // own messages (never injected context, goal rounds or recall blocks), and only those worth a lookup.
 // Fire and forget: a failure never reaches the turn. Logs name kinds of failure only, never a message.
 import { buildQuery, codePointLength, meaningful, pyStrip } from './query.js'
-import { isObject, isSubagent, isUserOrigin, kindOf, MAX_REMEMBER_CHARS, REQUEST_CONTEXT, textOf } from './shared.js'
+import { isObject, isSubagent, isUserOrigin, kindOf, MAX_REMEMBER_CHARS, REQUEST_CONTEXT, speakerAccount, textOf } from './shared.js'
 import { localTime } from './time.js'
 
 const MAX_BATCH_MESSAGES = 20 // gateway limits of one /v1/remember
@@ -48,10 +48,11 @@ export function createCapture({ client, settings, formatter, clock, log }) {
       log.warn('feiyu-memgate: capture skipped (memory unavailable)')
       return
     }
+    const speaker = speakerAccount(settings().advanced)
     for (const batch of captureBatches(messages)) {
       // Fire and forget: the turn is over and nothing waits for this.
       Promise.resolve()
-        .then(() => c.rememberMessages(batch, { context: REQUEST_CONTEXT.capture }))
+        .then(() => c.rememberMessages(batch.map((m) => ({ ...m, speaker, origin: 'said' })), { context: REQUEST_CONTEXT.capture }))
         .catch((error) => log.warn(`feiyu-memgate: capture failed (${kindOf(error)})`))
     }
   }

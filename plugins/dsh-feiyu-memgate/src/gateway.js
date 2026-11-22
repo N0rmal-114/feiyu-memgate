@@ -23,12 +23,17 @@ import net from 'node:net'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { speakerAccount } from './shared.js'
 import { effectiveTier, resolveStore, TIERS } from './tiers.js'
 
 /** The folder that holds the bundled feiyu_memgate package (python/ in this repository). */
 export const PACKAGE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'python')
 
 export const TOKEN_ENV = 'FEIYU_MEMGATE_TOKEN'
+// The key the gateway turns the accounts of unknown speakers into stand-in codes with (see loadIdentityKey).
+export const IDENTITY_KEY_ENV = 'FEIYU_MEMGATE_IDENTITY_KEY'
+export const IDENTITY_KEY_FILE = 'identity.key'
+const OWNER = 'owner' // the one person of the generated identity table
 const PACKAGE_DIR_ENV = 'FEIYU_MEMGATE_PACKAGE_DIR'
 export const MIN_PYTHON = Object.freeze([3, 11])
 const STORE_NAME = 'memories'
@@ -199,8 +204,8 @@ export function missingSettings(settings, facts) {
  * The gateway configuration for one start.
  *   settings  readConfig() output (retrieval and advanced are used)
  *   facts     { embed }: the embedding add-on's snapshot, for the local tier (src/tiers.js)
- * Returns { text, env, store }: env holds the secrets the store reads (never the client token, which
- * the manager adds itself); store is resolveStore()'s answer.
+ * Returns { text, env, store }: env holds the secrets the store reads (never the client token or the
+ * identity key, which the manager adds itself); store is resolveStore()'s answer.
  */
 export function gatewayConfig({ port, dataDir, settings, facts = {}, utcOffsetHours = -new Date().getTimezoneOffset() / 60 }) {
   const resolved = resolveStore(settings.retrieval, dataDir, facts)
@@ -216,6 +221,8 @@ export function gatewayConfig({ port, dataDir, settings, facts = {}, utcOffsetHo
   if (policy.newerFirst) stages.push('newer_first')
   // linked comes after the score lines and newer_first, before fill_text (DEFAULT_STAGES in core/stages.py).
   if (policy.linkedRecall) stages.push('linked')
+  // record_audience right after linked (after newer_first or relative_score when those are off), before fill_text.
+  stages.push('record_audience')
   stages.push('fill_text', 'drop_oversize')
   if (policy.redaction) stages.push('redact')
   stages.push('dedupe', 'budget')
@@ -225,7 +232,8 @@ export function gatewayConfig({ port, dataDir, settings, facts = {}, utcOffsetHo
   if (policy.redaction) guards.push('redact')
   if (policy.dailyWrites > 0) guards.push({ type: 'daily_cap', utc_offset_hours: utcOffsetHours })
   // explain: the settings page's trial bench (POST /v1/explain). The managed client is the owner's.
-  const client = { token_env: TOKEN_ENV, recall: [STORE_NAME], write: STORE_NAME, explain: true }
+  // platforms and only_for: the client reports accounts of the platform dsh only, and speaks for the owner only.
+  const client = { token_env: TOKEN_ENV, recall: [STORE_NAME], write: STORE_NAME, explain: true, platforms: ['dsh'], only_for: [OWNER] }
   if (policy.dailyWrites > 0) client.daily_writes = policy.dailyWrites
 
   const lines = [
@@ -233,6 +241,10 @@ export function gatewayConfig({ port, dataDir, settings, facts = {}, utcOffsetHo
     '# The client token is not in this file: the gateway reads it from the environment.',
     '',
     ...table('server', { host: '127.0.0.1', port }),
+    // One person, the owner, with the one account this DSH reports (advanced.speakerAccount). The key for
+    // stand-in codes is read from the environment, never written here.
+    ...table('identity', { type: 'table', hash_key_env: IDENTITY_KEY_ENV }),
+    ...table(`identity.people.${OWNER}`, { owner: true, accounts: [speakerAccount(policy)] }),
     ...table(`stores.${STORE_NAME}`, store),
     ...table(`clients.${CLIENT_NAME}`, client),
     ...table('recall', { profile: policy.profile, stages }),
@@ -254,6 +266,62 @@ export function gatewayConfig({ port, dataDir, settings, facts = {}, utcOffsetHo
     }))
   }
   return { text: lines.join('\n'), env: resolved.env, store: resolved }
+}
+
+const IDENTITY_KEY_RE = /^[0-9a-fA-F]{64}$/
+
+/**
+ * The identity key of the managed gateway: 64 hexadecimal characters (32 random bytes) in identity.key in
+ * the data folder. Created when missing (mode 0o600 where the system has modes), read at every gateway
+ * start. A file that cannot be read or does not hold 64 hexadecimal characters is replaced by a new one,
+ * with one warning that names the kind of problem only ('unreadable', 'malformed', 'unwritable'); when the
+ * new file cannot be written either, the key lives in memory for this start. The key is never logged.
+ * `warn(kind)` is called with that kind.
+ */
+export function loadIdentityKey(dataDir, warn = () => {}) {
+  const file = path.join(dataDir, IDENTITY_KEY_FILE)
+  const read = () => fs.readFileSync(file, 'utf8').trim()
+  let problem = null // set when a file is there but cannot be used
+  try {
+    const text = read()
+    if (IDENTITY_KEY_RE.test(text)) return text
+    problem = 'malformed'
+  } catch (error) {
+    if (error?.code !== 'ENOENT') problem = 'unreadable'
+  }
+  const key = randomBytes(32).toString('hex')
+  if (problem === null) {
+    // Missing: create it without replacing a file another process made in the meantime.
+    try {
+      fs.writeFileSync(file, key, { encoding: 'utf8', mode: 0o600, flag: 'wx' })
+      return key
+    } catch (error) {
+      if (error?.code !== 'EEXIST') {
+        warn('unwritable')
+        return key
+      }
+      try {
+        const text = read()
+        if (IDENTITY_KEY_RE.test(text)) return text
+        problem = 'malformed'
+      } catch {
+        problem = 'unreadable'
+      }
+    }
+  }
+  warn(problem)
+  const temp = `${file}.${process.pid}.tmp`
+  try {
+    fs.writeFileSync(temp, key, { encoding: 'utf8', mode: 0o600 })
+    fs.renameSync(temp, file)
+  } catch {
+    try {
+      fs.rmSync(temp, { force: true })
+    } catch {
+      // nothing to do
+    }
+  }
+  return key
 }
 
 // Counts the memories of one store file without opening it for writing. The path arrives as an
@@ -535,6 +603,7 @@ export function createGatewayManager({
   let waiters = []
   let mirroring = null // the running keyword index update, see src/mirror.py
   let mirrorWarned = false
+  let keyWarned = false
 
   const warn = (message) => {
     try {
@@ -642,6 +711,11 @@ export function createGatewayManager({
       }
     }
     const token = randomBytes(32).toString('base64url')
+    const identityKey = loadIdentityKey(dataDir, (kind) => {
+      if (keyWarned) return
+      keyWarned = true
+      warn(`feiyu-memgate: the identity key file could not be used (${kind}); a new key is in use`)
+    })
     const proc = spawnImpl(python.argv[0], [
       ...python.argv.slice(1),
       '-I',
@@ -650,7 +724,7 @@ export function createGatewayManager({
       '-c', BOOTSTRAP, 'serve', '--config', configFile,
     ], {
       cwd: dataDir,
-      env: { ...scrubbedEnv(env), ...config.env, [TOKEN_ENV]: token, [PACKAGE_DIR_ENV]: packageDir, PYTHONIOENCODING: 'utf-8' },
+      env: { ...scrubbedEnv(env), ...config.env, [TOKEN_ENV]: token, [IDENTITY_KEY_ENV]: identityKey, [PACKAGE_DIR_ENV]: packageDir, PYTHONIOENCODING: 'utf-8' },
       stdio: ['pipe', 'pipe', 'pipe'],
       windowsHide: true,
     })

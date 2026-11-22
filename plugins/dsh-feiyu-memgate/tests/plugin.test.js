@@ -390,7 +390,7 @@ test('autoCapture sends the user messages of a turn after it ends, stripped, and
   host.emit('session/event', child, { type: 'turn/end', data: { turn: 1, reason: { kind: 'completed' } } })
   await tick(10)
   assert.equal(clients.calls.rememberMessages.length, 1)
-  assert.deepEqual(clients.calls.rememberMessages[0].messages, [{ role: 'user', content: 'I moved to Hangzhou', time: NOW_TIME }])
+  assert.deepEqual(clients.calls.rememberMessages[0].messages, [{ role: 'user', content: 'I moved to Hangzhou', time: NOW_TIME, speaker: 'dsh:local', origin: 'said' }])
 
   const off = setup()
   assert.equal(off.host.count('session/event'), 0)
@@ -2330,4 +2330,166 @@ test('every recall and remember carries its label: channel dsh and what triggere
   assert.deepEqual(capture.clients.calls.rememberMessages[0].opts.context, label('capture'))
   // The labels hold constants only and cannot be changed by a caller.
   assert.ok(Object.isFrozen(capture.clients.calls.rememberMessages[0].opts.context))
+})
+
+// ------------------------------------------------------------------ who speaks, and the two fields of the tool
+
+test('every recall, search, second lookup and write names the account; capture says said, the tool says tool', async () => {
+  const account = 'dsh:desk-2'
+  const advanced = { speakerAccount: account }
+  // The automatic recall of a turn, then the second lookup after the reply.
+  const auto = setup({ config: on(advanced), handlers: { recall: async () => found(M_OOLONG) } })
+  await conversation(auto.host).turn('What tea do I like in the morning?', 'Oolong, I believe. The spring harvest teas are lovely too.')
+  assert.equal(auto.clients.calls.recall.length, 2)
+  for (const call of auto.clients.calls.recall) assert.equal(call.opts.speaker, account)
+  // The search tool.
+  const search = setup({ config: { advanced: { language: 'en', ...advanced } }, handlers: { recall: recallFound } })
+  await search.host.tools.get(TOOL_SEARCH).execute({ query: 'tea' }, {})
+  assert.equal(search.clients.calls.recall[0].opts.speaker, account)
+  // The remember tool.
+  const remember = setup({ config: { advanced: { language: 'en', ...advanced } }, now: () => NOW })
+  await remember.host.tools.get(TOOL_REMEMBER).execute({ text: 'The user moved to Hangzhou on 2026-11-01' }, {})
+  assert.equal(remember.clients.calls.remember[0].opts.speaker, account)
+  assert.equal(remember.clients.calls.remember[0].opts.origin, 'tool')
+  // Automatic capture: every message of the batch.
+  const capture = setup({ config: { modules: { autoCapture: true }, advanced: { language: 'en', ...advanced } }, now: () => NOW })
+  const session = fakeSession()
+  capture.host.emit('session/event', session, { type: 'turn/start', data: { turn: 1 } })
+  capture.host.emit('session/event', session, { type: 'user/message', data: userMessage('I moved to Hangzhou') })
+  capture.host.emit('session/event', session, { type: 'user/message', data: userMessage('And I bought a bicycle there') })
+  capture.host.emit('session/event', session, { type: 'turn/end', data: { turn: 1, reason: { kind: 'completed' } } })
+  await tick(10)
+  const [{ messages }] = capture.clients.calls.rememberMessages
+  assert.equal(messages.length, 2)
+  for (const message of messages) assert.deepEqual([message.speaker, message.origin], [account, 'said'])
+  // The label stays what it was.
+  assert.deepEqual(capture.clients.calls.rememberMessages[0].opts.context, { channel: 'dsh', via: 'capture' })
+})
+
+test('a speakerAccount that is not dsh:name falls back to dsh:local', async () => {
+  const bad = ['', '  ', 'dsh:', 'dsh', 'DSH:local', 'dsh:Local', 'aiocqhttp:10001', 'dsh:-x', 'dsh:a b', `dsh:${'a'.repeat(33)}`, 'dsh:中文', 7, null, ['dsh:x']]
+  for (const speakerAccount of bad) {
+    const { host, clients } = setup({ config: { advanced: { language: 'en', speakerAccount } }, handlers: { recall: recallFound } })
+    await host.tools.get(TOOL_SEARCH).execute({ query: 'tea' }, {})
+    assert.equal(clients.calls.recall[0].opts.speaker, 'dsh:local', JSON.stringify(speakerAccount))
+  }
+  for (const speakerAccount of ['dsh:local', 'dsh:a', 'dsh:0_x.y-z', `dsh:${'a'.repeat(32)}`, ' dsh:desk ']) {
+    const { host, clients } = setup({ config: { advanced: { language: 'en', speakerAccount } }, handlers: { recall: recallFound } })
+    await host.tools.get(TOOL_SEARCH).execute({ query: 'tea' }, {})
+    assert.equal(clients.calls.recall[0].opts.speaker, speakerAccount.trim(), JSON.stringify(speakerAccount))
+  }
+})
+
+// The arguments of the remember tool as they were before advanced.toolFields: the schema with the switch off is exactly this.
+const REMEMBER_PARAMETERS_BEFORE = {
+  type: 'object',
+  properties: {
+    text: {
+      type: 'string',
+      description: 'The fact to remember, as one short sentence that stands on its own: say who or what it is about instead of "he", "it", "this" or "there"; '
+        + 'write times as dates, not "tomorrow" or "last week"; if it replaces an earlier fact, say so, for example "From November 2026 the badminton class is on Thursdays, no longer on Tuesdays" '
+        + '(at most 4000 characters).',
+    },
+  },
+  required: ['text'],
+  additionalProperties: false,
+}
+
+test('advanced.toolFields: off, the remember schema is exactly the old one; on, two optional arguments more', () => {
+  const off = setup()
+  assert.deepEqual(off.host.tools.get(TOOL_REMEMBER).parameters, REMEMBER_PARAMETERS_BEFORE)
+  const withFields = setup({ config: { advanced: { language: 'en', toolFields: true } } })
+  const parameters = withFields.host.tools.get(TOOL_REMEMBER).parameters
+  assert.deepEqual(Object.keys(parameters.properties), ['text', 'kind', 'event_date'])
+  assert.deepEqual(parameters.properties.text, REMEMBER_PARAMETERS_BEFORE.properties.text)
+  assert.deepEqual(parameters.properties.kind, {
+    type: 'string',
+    enum: ['identity', 'preference', 'event', 'plan', 'entity'],
+    description: "Optional. What kind of fact this is: identity (who someone is), preference (what someone likes or avoids), event (something that happened), plan (something intended), entity (a person, pet, place or thing in the user's life). Leave it out when unsure.",
+  })
+  assert.deepEqual(parameters.properties.event_date, {
+    type: 'string',
+    description: 'Optional. The date the fact is about, as YYYY-MM-DD, when it is not today. Leave it out when unsure.',
+  })
+  assert.deepEqual(parameters.required, ['text'], 'both are optional')
+  assert.equal(parameters.additionalProperties, false)
+  assert.equal(withFields.host.tools.get(TOOL_REMEMBER).description, off.host.tools.get(TOOL_REMEMBER).description)
+  for (const text of [parameters.properties.kind.description, parameters.properties.event_date.description]) assert.ok(!/[一-鿿]/.test(text), 'English like the rest of the schema')
+})
+
+test('advanced.toolFields: the kind and date the model gives are stored when valid and dropped when not; the memory is stored either way', async () => {
+  const { host, clients } = setup({ config: { advanced: { language: 'en', toolFields: true } }, now: () => NOW })
+  const remember = host.tools.get(TOOL_REMEMBER)
+  const stored = async (args) => {
+    const value = await remember.execute({ text: 'The user moved to Hangzhou on 2026-11-01', ...args }, {})
+    assert.equal(value.status, 'saved', JSON.stringify(args))
+    const { opts } = clients.calls.remember.at(-1)
+    return [opts.kind, opts.eventDate]
+  }
+  assert.deepEqual(await stored({ kind: 'event', event_date: '2026-11-01' }), ['event', '2026-11-01'])
+  assert.deepEqual(await stored({ kind: 'entity' }), ['entity', undefined])
+  assert.deepEqual(await stored({ event_date: '2024-02-29' }), [undefined, '2024-02-29'])
+  assert.deepEqual(await stored({}), [undefined, undefined])
+  for (const kind of ['Event', 'rumour', '', 7, null, ['event']]) assert.deepEqual(await stored({ kind }), [undefined, undefined], JSON.stringify(kind))
+  for (const eventDate of ['2026-02-30', '2023-02-29', '2026-13-01', '2026-1-1', 'yesterday', '2026-11-01T10:00', '2026-11-01 ', '', 20261101, null]) {
+    assert.deepEqual(await stored({ event_date: eventDate }), [undefined, undefined], JSON.stringify(eventDate))
+  }
+  assert.deepEqual(await stored({ kind: 'nonsense', event_date: '2026-11-01' }), [undefined, '2026-11-01'], 'one valid, one dropped')
+  // With the switch off, what the model gives is not passed on at all.
+  const off = setup({ now: () => NOW })
+  await off.host.tools.get(TOOL_REMEMBER).execute({ text: 'a fact', kind: 'event', event_date: '2026-11-01' }, {})
+  assert.deepEqual([off.clients.calls.remember[0].opts.kind, off.clients.calls.remember[0].opts.eventDate], [undefined, undefined])
+})
+
+test('advanced.toolFields: a change of the switch registers the tool again, at once; other changes leave it alone', () => {
+  const host = createFakeHost()
+  const clients = fakeClients()
+  const managers = fakeManagers()
+  const advanced = volatile({ language: 'en', toolFields: false })
+  const config = {
+    modules: volatile({ autoRecall: false, rememberTool: true, searchTool: false, promptSection: false, autoCapture: false, commands: false }),
+    advanced,
+    gateway: volatile({ mode: 'external' }),
+    external: volatile(EXTERNAL),
+  }
+  applyPlugin(host.ctx, config, { createClient: clients.createClient, createGatewayManager: managers.createGatewayManager, importHost: false })
+  const first = host.tools.get(TOOL_REMEMBER)
+  assert.deepEqual(Object.keys(first.parameters.properties), ['text'])
+  host.emit('loader/volatile-update', [['advanced']])
+  assert.equal(host.tools.get(TOOL_REMEMBER), first, 'the same definition while the switch is the same')
+  advanced.set({ language: 'en', toolFields: true })
+  host.emit('loader/volatile-update', [['advanced']])
+  const second = host.tools.get(TOOL_REMEMBER)
+  assert.notEqual(second, first)
+  assert.deepEqual(Object.keys(second.parameters.properties), ['text', 'kind', 'event_date'])
+  advanced.set({ language: 'en', toolFields: false })
+  host.emit('loader/volatile-update', [['advanced']])
+  assert.deepEqual(Object.keys(host.tools.get(TOOL_REMEMBER).parameters.properties), ['text'])
+})
+
+test('advanced.speakerAccount is in the identity table of the managed gateway: a change restarts it, an invalid value that stays invalid does not; toolFields does not', async () => {
+  const host = createFakeHost()
+  const managers = fakeManagers()
+  const advanced = volatile({ speakerAccount: 'dsh:local' })
+  const plugin = applyPlugin(host.ctx, { gateway: volatile({}), advanced }, { createClient: fakeClients().createClient, createGatewayManager: managers.createGatewayManager, importHost: false })
+  await plugin.settled()
+  const change = async (values) => {
+    advanced.set(values)
+    host.emit('loader/volatile-update', [['advanced']])
+    await plugin.settled()
+    return managers.created.length
+  }
+  assert.equal(await change({ speakerAccount: 'dsh:desk-2' }), 2)
+  assert.equal(managers.created[1].options.settings.advanced.speakerAccount, 'dsh:desk-2')
+  assert.equal(await change({ speakerAccount: 'dsh:desk-2', toolFields: true }), 2, 'the tool arguments are not part of the gateway')
+  assert.equal(await change({ speakerAccount: 'nonsense' }), 3, 'an account that is not valid counts as dsh:local, which is a change from dsh:desk-2')
+  assert.equal(await change({ speakerAccount: 'other nonsense' }), 3, 'and one invalid value is the same as another')
+  assert.equal(await change({ speakerAccount: 'dsh:local' }), 3, 'dsh:local is what the invalid one meant')
+})
+
+test('external mode: the account is still sent with every call, and no gateway starts', async () => {
+  const { host, clients, managers } = setup({ config: { advanced: { language: 'en', speakerAccount: 'dsh:desk-2' } }, handlers: { recall: recallFound } })
+  assert.equal(managers.created.length, 0)
+  await host.tools.get(TOOL_SEARCH).execute({ query: 'tea' }, {})
+  assert.equal(clients.calls.recall[0].opts.speaker, 'dsh:desk-2')
 })

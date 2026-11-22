@@ -36,7 +36,7 @@ const TABS = [
           en: 'What the model and you can use on your own initiative.',
           zh: '模型和你可以主动使用的功能。',
         },
-        fields: ['modules.rememberTool', 'modules.searchTool', 'modules.commands'],
+        fields: ['modules.rememberTool', 'advanced.toolFields', 'modules.searchTool', 'modules.commands'],
       },
       {
         id: 'capture',
@@ -125,7 +125,7 @@ const TABS = [
           zh: '记忆的存放位置：插件内置的网关，或你自己运行的外部网关。',
         },
         fields: [
-          'gateway.mode', 'gateway.python', 'gateway.dataDir', 'external.url', 'external.token',
+          'gateway.mode', 'gateway.python', 'gateway.dataDir', 'external.url', 'external.token', 'advanced.speakerAccount',
           'advanced.dailyWrites', 'advanced.redaction', 'advanced.newerFirst', 'advanced.forgetting',
         ],
       },

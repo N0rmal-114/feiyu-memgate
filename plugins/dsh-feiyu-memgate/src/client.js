@@ -27,11 +27,16 @@ const MAX_REMEMBER_CHARS = 4000 // gateway limit per message for /v1/remember
 const MAX_TOTAL_CHARS = 16000 // gateway limit for all messages of one /v1/remember
 const MAX_MESSAGES = 20 // gateway limit of messages per /v1/remember
 const MAX_TIME_CHARS = 40 // gateway limit of a message's optional "time"
-const MAX_SPEAKER_CHARS = 64 // gateway limit of a message's optional "speaker"
+const MAX_SPEAKER_CHARS = 64 // gateway limit of a message's optional "speaker" and "about"
 const MAX_USED = 20 // gateway limit of items per /v1/used
 const MAX_CONTEXT_KEYS = 16 // gateway limit of keys in a request's optional "context"
 const MAX_CONTEXT_KEY_CHARS = 64 // gateway limit of a context key's length
 const MAX_CONTEXT_VALUE_CHARS = 200 // gateway limit of a context string value's length
+// The optional message keys that become record fields of the memory (the gateway's REQUEST_FIELDS).
+const CHANNEL = /^[a-z0-9][a-z0-9_.:-]{0,63}$/
+const ORIGINS = ['said', 'tool', 'curated', 'derived']
+export const KINDS = ['identity', 'preference', 'event', 'plan', 'entity']
+const FIELD_KEYS = ['speaker', 'about', 'channel', 'audience', 'origin', 'event_date', 'kind'] // the keys of a row's "fields"
 const MAX_RESPONSE_BYTES = 256 * 1024
 const MAX_ERROR_BYTES = 4096
 
@@ -85,6 +90,22 @@ export function validContext(value) {
   return true
 }
 
+// A real calendar date written YYYY-MM-DD and nothing else (the gateway's _valid_event_date).
+export function validEventDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+  const [year, month, day] = value.split('-').map(Number)
+  if (year < 1 || month < 1 || month > 12 || day < 1) return false
+  return day <= new Date(Date.UTC(2000 + (year % 400), month, 0)).getUTCDate()
+}
+
+// Whether `value` is acceptable as the optional message key `key` (the gateway's _valid_field).
+function validField(key, value) {
+  if (typeof value !== 'string') return false
+  if (key === 'channel') return CHANNEL.test(value)
+  if (key === 'event_date') return validEventDate(value)
+  return (key === 'origin' ? ORIGINS : KINDS).includes(value)
+}
+
 const count = (value) => (Number.isInteger(value) && value > 0 ? value : 0)
 
 // The messages as the gateway takes them, or null when one breaks a gateway limit.
@@ -106,6 +127,17 @@ function cleanMessages(messages) {
       if (value === null || value === undefined) continue
       if (typeof value !== 'string' || codePointLength(value) > cap) return null
       item[key] = value
+    }
+    for (const key of ['channel', 'origin', 'event_date', 'kind']) {
+      const value = m[key]
+      if (value === null || value === undefined) continue
+      if (!validField(key, value)) return null
+      item[key] = value
+    }
+    const about = m.about
+    if (about !== null && about !== undefined) {
+      if (typeof about !== 'string' || codePointLength(about) > MAX_SPEAKER_CHARS) return null
+      item.about = about
     }
     clean.push(item)
   }
@@ -130,6 +162,11 @@ function cleanCandidate(c) {
   if (typeof c.text === 'string') out.text = c.text
   if (typeof c.date === 'string') out.date = c.date
   if (c.cut === true) out.cut = true
+  if (isObject(c.fields)) {
+    const fields = {}
+    for (const key of FIELD_KEYS) if (typeof c.fields[key] === 'string') fields[key] = c.fields[key]
+    if (Object.keys(fields).length) out.fields = fields
+  }
   return out
 }
 
@@ -199,6 +236,12 @@ export function createClient({ url, token, fetch: fetchImpl = globalThis.fetch, 
     } catch {
       // a broken logger must not break a call
     }
+  }
+
+  // The optional "speaker" of a recall: a string of at most MAX_SPEAKER_CHARS characters goes into the body,
+  // anything else is left out (a label never makes a call fail, as with the context).
+  function withSpeaker(body, speaker) {
+    return typeof speaker === 'string' && speaker && codePointLength(speaker) <= MAX_SPEAKER_CHARS ? { ...body, speaker } : body
   }
 
   // { context } to add to a body: nothing when absent, nothing (and one warning that does not show
@@ -277,14 +320,14 @@ export function createClient({ url, token, fetch: fetchImpl = globalThis.fetch, 
     }
   }
 
-  async function recallDetail(query, { timeoutMs = 8500, signal, context } = {}) {
+  async function recallDetail(query, { timeoutMs = 8500, signal, context, speaker } = {}) {
     try {
       if (typeof query !== 'string' || !pyStrip(query)) return null
       if (codePointLength(query) > MAX_QUERY_CHARS) {
         warn(`memory recall not sent: query over ${MAX_QUERY_CHARS} characters`)
         return null
       }
-      const [data] = await request('POST', '/v1/recall', withContext({ query, limit: recallLimit }, context, 'recall'), timeoutMs, 'recall', signal, true)
+      const [data] = await request('POST', '/v1/recall', withContext(withSpeaker({ query, limit: recallLimit }, speaker), context, 'recall'), timeoutMs, 'recall', signal, true)
       const results = data?.results
       if (!Array.isArray(results)) return null
       return {
@@ -301,14 +344,14 @@ export function createClient({ url, token, fetch: fetchImpl = globalThis.fetch, 
   // POST /v1/explain: a recall with the reasons. { ok: true, stages, candidates, more, failed, busy,
   // cut } or { ok: false, code }: 'unsupported' when the gateway answers 403, 404 or 405 (an older
   // gateway, or explain is off for this client), 'failed' for anything else.
-  async function explainRecall(query, { timeoutMs = 8500, signal, context, limit = recallLimit } = {}) {
+  async function explainRecall(query, { timeoutMs = 8500, signal, context, limit = recallLimit, speaker } = {}) {
     try {
       if (typeof query !== 'string' || !pyStrip(query)) return { ok: false, code: 'failed' }
       if (codePointLength(query) > MAX_QUERY_CHARS) {
         warn(`memory explain not sent: query over ${MAX_QUERY_CHARS} characters`)
         return { ok: false, code: 'failed' }
       }
-      const [data, , status] = await request('POST', '/v1/explain', withContext({ query, limit }, context, 'explain'), timeoutMs, 'explain', signal, true)
+      const [data, , status] = await request('POST', '/v1/explain', withContext(withSpeaker({ query, limit }, speaker), context, 'explain'), timeoutMs, 'explain', signal, true)
       if (status === 403 || status === 404 || status === 405) return { ok: false, code: 'unsupported' }
       if (!data || !Array.isArray(data.candidates)) return { ok: false, code: 'failed' }
       return {
@@ -342,10 +385,16 @@ export function createClient({ url, token, fetch: fetchImpl = globalThis.fetch, 
 
   // opts.time: the message's own time ("2026-11-17T20:15:03+09:00", at most 40 characters), which the
   // gateway uses to date the memory. Not a Python option: the Python client's remember() takes no time.
+  // opts.speaker, opts.origin, opts.kind, opts.eventDate: the message's own "speaker", "origin", "kind" and
+  // "event_date" when given; the gateway checks them as cleanMessages does.
   async function rememberStatus(text, opts) {
     if (typeof text !== 'string' || !pyStrip(text)) return 'failed'
     const message = { role: 'user', content: text }
     if (typeof opts?.time === 'string') message.time = opts.time
+    if (typeof opts?.speaker === 'string') message.speaker = opts.speaker
+    if (typeof opts?.origin === 'string') message.origin = opts.origin
+    if (typeof opts?.kind === 'string') message.kind = opts.kind
+    if (typeof opts?.eventDate === 'string') message.event_date = opts.eventDate
     return rememberMessages([message], opts)
   }
 

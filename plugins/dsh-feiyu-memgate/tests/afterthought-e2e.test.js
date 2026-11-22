@@ -12,7 +12,7 @@ import path from 'node:path'
 import { SOURCE_KIND, TOOL_REMEMBER, applyPlugin } from '../src/plugin.js'
 import { createClient } from '../src/client.js'
 import { readConfig } from '../src/config.js'
-import { TOKEN_ENV, gatewayConfig } from '../src/gateway.js'
+import { IDENTITY_KEY_ENV, TOKEN_ENV, gatewayConfig } from '../src/gateway.js'
 import {
   assistantMessage, createFakeHost, fakeSession, preStepPayload, userMessage,
 } from './helpers/fake-host.js'
@@ -58,7 +58,7 @@ test('afterthought through a real gateway: the reply finds a memory the message 
   fs.writeFileSync(configPath, text)
   const code = `import sys; sys.path.insert(0, ${JSON.stringify(path.resolve(SRC))}); from feiyu_memgate.cli import main; sys.exit(main())`
   const child = spawn(PYTHON, ['-I', '-B', '-c', code, 'serve', '--config', configPath], {
-    env: { ...process.env, ...env, [TOKEN_ENV]: TOKEN, PYTHONIOENCODING: 'utf-8' },
+    env: { ...process.env, ...env, [TOKEN_ENV]: TOKEN, [IDENTITY_KEY_ENV]: 'cd'.repeat(32), PYTHONIOENCODING: 'utf-8' },
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
   })

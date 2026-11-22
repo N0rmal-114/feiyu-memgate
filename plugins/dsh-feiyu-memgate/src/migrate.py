@@ -10,6 +10,11 @@ closes: the plugin stopped the copy, or the host process went away however it we
 to stdout as JSON lines. Nothing printed names a memory text, a key or a token: failures are reported
 by the kind of error only.
 
+The seven record fields (speaker, about, channel, audience, origin, event_date, kind) are copied with
+the text when the keyword store file has them as columns and the target keeps fields; a copied memory
+without an audience gets "owner": these stores are the owner's. Only values the gateway would take are
+copied (a short non-empty string; an audience of the three known ones).
+
 A state file next to the stores lists every ref already copied. A memory copied once and later removed
 from the vector store (forgotten, deleted) is therefore not copied again, and a run that stopped half
 way, at its item limit, its time limit or a failure of the embeddings endpoint, resumes where it
@@ -32,6 +37,9 @@ import time
 from pathlib import Path
 
 STATE_VERSION = 1
+FIELD_NAMES = ("speaker", "about", "channel", "audience", "origin", "event_date", "kind")  # model.FIELDS
+AUDIENCES = ("owner", "group", "public")
+MAX_FIELD = 128
 
 
 def _watch_stdin():
@@ -78,11 +86,12 @@ def store_each(target, items, timeout, deadline):
     for item in items:
         if time.monotonic() >= deadline:
             break
+        ref = item["ref"] if isinstance(item, dict) else item[1]
         try:
             target.put_many([item], timeout=timeout)
-            stored.append(item[1])
+            stored.append(ref)
         except Exception:  # noqa: BLE001 - only whether it was accepted matters here
-            refused.append(item[1])
+            refused.append(ref)
     return stored, refused
 
 
@@ -102,12 +111,46 @@ def source_refs(db):
         return []
 
 
-def source_items(db, refs):
+def source_columns(db):
+    """The record field columns the keyword store file has (a subset of FIELD_NAMES, in that order)."""
+    if db is None:
+        return ()
+    try:
+        names = {row[1] for row in db.execute("PRAGMA table_info(memories)")}
+    except sqlite3.OperationalError:
+        return ()
+    return tuple(name for name in FIELD_NAMES if name in names)
+
+
+def clean_record_fields(values):
+    """The fields of one copied memory: only usable values, and an audience ("owner" when there is none)."""
+    fields = {}
+    for name, value in values.items():
+        if isinstance(value, str) and value and len(value) <= MAX_FIELD:
+            fields[name] = value
+    if fields.get("audience") not in AUDIENCES:
+        fields["audience"] = "owner"
+    return fields
+
+
+def source_items(db, refs, columns=(), keeps_fields=False):
+    """The memories of `refs`, in that order: (text, ref, date) tuples, or, when the target keeps fields,
+    dicts with "fields" (the columns the file has, an audience of "owner" when it has none)."""
     marks = ",".join("?" * len(refs))
-    rows = db.execute("SELECT ref, text, date FROM memories WHERE ref IN (%s)" % marks, refs).fetchall()
-    found = {ref: (text, date) for ref, text, date in rows}
-    return [(found[ref][0], ref, found[ref][1]) for ref in refs
-            if ref in found and isinstance(found[ref][0], str) and found[ref][0].strip()]
+    names = ("ref", "text", "date") + tuple(columns) if keeps_fields else ("ref", "text", "date")
+    rows = db.execute("SELECT %s FROM memories WHERE ref IN (%s)" % (", ".join(names), marks), refs).fetchall()
+    found = {row[0]: row[1:] for row in rows}
+    items = []
+    for ref in refs:
+        if ref not in found or not isinstance(found[ref][0], str) or not found[ref][0].strip():
+            continue
+        text, date = found[ref][0], found[ref][1]
+        if keeps_fields:
+            fields = clean_record_fields(dict(zip(columns, found[ref][2:])))
+            items.append({"text": text, "ref": ref, "date": date, "fields": fields})
+        else:
+            items.append((text, ref, date))
+    return items
 
 
 def main():
@@ -128,6 +171,8 @@ def main():
         target = registry.create("backend", resolve_env(job["target"], os.environ, "migration"))
         source = open_source(job["source"])
         refs = source_refs(source)
+        columns = source_columns(source)
+        keeps_fields = getattr(target, "stores_fields", False) is True
         present = {ref for ref, _ in target.refs()}
     except Exception as error:  # noqa: BLE001 - reported by kind only
         emit("failed", kind=type(error).__name__)
@@ -152,8 +197,8 @@ def main():
         if moved >= max_items or time.monotonic() >= deadline:
             break
         chunk = todo[position:position + min(batch, max_items - moved)]
-        items = source_items(source, chunk)
-        offered = {item[1] for item in items}
+        items = source_items(source, chunk, columns, keeps_fields)
+        offered = {item["ref"] if isinstance(item, dict) else item[1] for item in items}
         # Refs that vanished from the keyword store meanwhile count as handled: there is nothing left to copy.
         copied.update(ref for ref in chunk if ref not in offered)
         try:

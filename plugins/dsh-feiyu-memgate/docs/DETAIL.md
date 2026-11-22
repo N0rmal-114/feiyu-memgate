@@ -65,6 +65,8 @@ dsh plugin --profile <name> add dsh-feiyu-memgate
 | `advanced.profile` | `broad` 每轮条数多、漏得少、杂讯也多，上下文涨得更快；`precise` 每轮约一条、更贴题 | `broad` |
 | `advanced.dailyWrites` | 每天最多写入几条，0 为不限 | 50 |
 | `advanced.redaction` | 保存和召回时去掉密钥、令牌、密码 | 开 |
+| `advanced.speakerAccount` | 插件每次写入和召回时向网关报告的账号，写成 `dsh:名字`；内置网关把它对应到所有者；改动会重启内置网关 | `dsh:local` |
+| `advanced.toolFields` | `memgate_remember` 多两个可选参数：记忆的类型和事情发生的日期，由模型填写；关闭时参数和以前一样 | 关 |
 | `gateway.mode` | `managed` 用内置网关，`external` 连接你自己运行的网关 | `managed` |
 
 `/memgate` 的子命令：`status`、`config`、`set <键> <值>`、`reset <键>`、`on <功能>`、`off <功能>`、`tiers`、`use <方式>`，以及本地模型的 `models`、`install <模型> [--confirm]`、`builds allow|deny`、`use <模型>`、`remove <模型>`、`cancel`，以及 `changelog`（最新发布的版本改了什么，纯文本；设置页面的“更新日志”一节显示所有版本，内容读自插件包自己的 CHANGELOG.md）。完整的设置列表、各项的取值和例子见插件包里的 README.zh.md。
@@ -91,6 +93,7 @@ dsh plugin --profile <name> add dsh-feiyu-memgate
 
 - 默认模式下一切都留在你的电脑上。网关只监听 `127.0.0.1` 的随机端口，令牌每次启动随机生成，只在内存里。只有你在设置页面或用 `/memgate install` 安装向量插件或模型时才会下载：宿主的插件管理器从 npm 取向量插件，向量插件下载模型。
 - 记忆是普通的 SQLite 文件，插件不加密。打开 `retrieval.hybrid` 时还多一个关键词索引 `memories-<store id>-keywords.db`，里面是同样的文本。删除全部数据：退出 DSH，删除 `<DSH home>/data/feiyu-memgate/`（改过 `gateway.dataDir` 的删那个文件夹）。
+- 内置网关把每条记忆和几项附加信息一起存进存储：说话人（所有者的名字 `owner`，不是账号）、这条记忆怎么来的（自动记录，或模型通过工具记下）、受众（`owner`），模型填写时还有类型和事情发生的日期。`advanced.speakerAccount` 是固定标签，不是个人标识。数据文件夹里的 `identity.key` 是网关给未登记说话人生成替身码用的密钥（64 位十六进制字符，缺失时自动创建）：只通过环境变量交给网关进程，不进配置文件、日志、状态和设置页面；删除它只会让未登记说话人的替身码变新；备份数据文件夹时应一并备份。
 - `endpoint` 方式下，每条保存的记忆的文本和每次召回的查询，都会发给你配置的向量接口。
 - 召回的记忆是提示词的一部分，会发给这段对话使用的模型服务。
 - 每次召回和保存记忆的请求都带一个 `context` 标记，写明请求来自 DSH，以及由什么触发。标记里只有固定的几个值，没有对话内容，也没有任何编号。内置网关不读它；自己部署网关时，自己写的召回步骤和写入守卫可以用它。标记是 `channel: 'dsh'` 加下表里的一个 `via`：
@@ -104,6 +107,13 @@ dsh plugin --profile <name> add dsh-feiyu-memgate
 | `capture` | 自动记录 |
 | `trial` | 设置页面的“试一下召回” |
 
+## 说话人和每条记忆记着什么
+
+- 插件向网关报告一个账号，默认 `dsh:local`（设置 `advanced.speakerAccount`，格式 `dsh:名字`，不符时按默认处理）。自动记录的每条消息带这个账号和来源 `said`；`memgate_remember` 工具写入时带这个账号和来源 `tool`；每次召回、`memgate_search`、回复之后再查的一次和设置页面的试召回都带这个账号。请求的 `context` 标记不变。
+- 内置网关的配置（每次启动时生成）多了几项：`[identity]`（`type = "table"`，`hash_key_env = "FEIYU_MEMGATE_IDENTITY_KEY"`），只有一个人的 `[identity.people.owner]`（`owner = true`，`accounts` 里是这个账号），`[clients.dsh]` 里的 `platforms = ["dsh"]` 和 `only_for = ["owner"]`，以及召回步骤里紧跟在 `linked` 之后的 `record_audience`（在 `fill_text` 之前，不论其他开关怎样）。密钥不在配置里：数据文件夹里的 `identity.key` 在每次启动时读取，交给网关进程的环境变量 `FEIYU_MEMGATE_IDENTITY_KEY`。文件不可读或内容不是 64 位十六进制字符时，换成新的，并记一条只说明问题种类的警告。外部网关不生成配置，插件只发送上面说的账号和来源。
+- `advanced.toolFields` 开启后，`memgate_remember` 多两个可选参数 `kind`（`identity`、`preference`、`event`、`plan`、`entity`）和 `event_date`（`YYYY-MM-DD`）。模型给的值无效时丢弃该值，记忆照常保存。开关改动后工具立即重新注册。
+- 复制工具 `migrate.py`（关键词存储复制到向量存储）和 `mirror.py`（让混合检索的关键词索引与向量文件一致）：来源文件有这些字段的列时，一并复制 `speaker`、`about`、`channel`、`audience`、`origin`、`event_date`、`kind`；没有受众的记忆写入时受众为 `owner`，因为这些存储是所有者的。来源文件只读打开，旧文件没有这些列时照常复制。
+
 ## 试一下召回
 
 设置页面“检索”标签页的最后一节“试一下召回”用来查看一句话会召回什么：输入一句话，点“试一下”，页面列出网关为这句话查到的记忆、每条的分数，没给出的记忆还会写明是在哪一步去掉的（低于分数线、和最相关的一条差得太多、没有读到原文、太长、脱敏后没有内容、和前面一条重复、超出字数预算、带有排除标记、超过每次最多的条数、时间不够）。
@@ -112,6 +122,7 @@ dsh plugin --profile <name> add dsh-feiyu-memgate
 - 试一下不改动任何记忆，也不算作一次使用。它不碰对话的状态：已给过的记忆、对话池、相关性检查和状态里的计数都不变。
 - 这句话先按自动召回的办法处理。太短或只是一句应答的，对话里不会为它召回，页面会这样说明。
 - 记忆原文只显示在所有者的设置页面里，不写入日志。
+- 每条结果下面还列出这条记忆记着的说话人、来源、类型、事情发生的日期和渠道（有哪些列哪些）；受众不显示。
 - 页面显示的是网关的结果，不含网关回答之后插件自己做的事：对话里，插件还会跳过历史里已经给过的记忆（`advanced.skipRepeats`），按 `advanced.maxNewPerTurn` 限制每轮的新记忆条数，打开相关性检查（实验功能）时再让模型筛一遍。所以对话里实际给出的，可能比这里“会给出”的少。
 
 ## 限制

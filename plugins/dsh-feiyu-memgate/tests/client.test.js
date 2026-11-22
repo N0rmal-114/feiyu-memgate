@@ -555,3 +555,110 @@ test('explainRecall: an empty or over-long query is not sent, and the log shows 
     assert.ok((await client.explainRecall('a'.repeat(500))).ok)
     assert.ok(!log.lines.join('\n').includes('secret memory text'))
   }))
+
+// ------------------------------------------------------------------ the record fields and the speaker
+
+test('remember: channel, origin, kind, event_date and about go through when the gateway would take them', () =>
+  withServer(usual, async (client, server) => {
+    const full = {
+      role: 'user', content: 'I moved', time: '2026-11-14T12:00:00+08:00', speaker: 'dsh:local',
+      channel: 'dsh', origin: 'tool', kind: 'event', event_date: '2026-11-14', about: 'dsh:amy', extra: 'dropped',
+    }
+    assert.equal(await client.rememberMessages([full]), 'saved')
+    const { extra, ...sent } = full
+    assert.deepEqual(server.requests[0].json, { messages: [sent] })
+    // null and undefined count as absent
+    assert.equal(await client.rememberMessages([{ role: 'user', content: 'x', channel: null, origin: undefined, kind: null, event_date: null, about: null }]), 'saved')
+    assert.deepEqual(server.requests[1].json, { messages: [{ role: 'user', content: 'x' }] })
+    for (const origin of ['said', 'tool', 'curated', 'derived']) assert.equal(await client.rememberMessages([{ role: 'user', content: 'x', origin }]), 'saved', origin)
+    for (const kind of ['identity', 'preference', 'event', 'plan', 'entity']) assert.equal(await client.rememberMessages([{ role: 'user', content: 'x', kind }]), 'saved', kind)
+    for (const channel of ['a', 'dsh', 'a1_b.c:d-e', 'x'.repeat(64)]) assert.equal(await client.rememberMessages([{ role: 'user', content: 'x', channel }]), 'saved', channel)
+    for (const event_date of ['2026-11-14', '2024-02-29', '0001-01-01', '9999-12-31']) assert.equal(await client.rememberMessages([{ role: 'user', content: 'x', event_date }]), 'saved', event_date)
+    assert.equal(await client.rememberMessages([{ role: 'user', content: 'x', about: 'a'.repeat(64) }]), 'saved')
+  }))
+
+test('remember: a channel, origin, kind, event_date or about the gateway would refuse is not sent, and the call fails', () =>
+  withServer(usual, async (client, server, log) => {
+    const user = (extra) => [{ role: 'user', content: 'x', ...extra }]
+    const bad = [
+      { channel: '' }, { channel: 'Dsh' }, { channel: '-a' }, { channel: '_a' }, { channel: 'a b' }, { channel: 'x'.repeat(65) }, { channel: 'dsh\n' }, { channel: 5 }, { channel: ['dsh'] },
+      { origin: 'Said' }, { origin: 'self' }, { origin: '' }, { origin: 1 },
+      { kind: 'Event' }, { kind: 'rumour' }, { kind: '' }, { kind: false },
+      { event_date: '2026-02-30' }, { event_date: '2023-02-29' }, { event_date: '2026-13-01' }, { event_date: '2026-00-10' }, { event_date: '2026-11-00' },
+      { event_date: '2026-1-1' }, { event_date: '20261101' }, { event_date: '2026-11-14T10:00' }, { event_date: '2026-11-14 ' }, { event_date: ' 2026-11-14' }, { event_date: '0000-01-01' }, { event_date: '' }, { event_date: 20261114 },
+      { about: 'a'.repeat(65) }, { about: 5 }, { about: ['x'] }, { about: {} },
+    ]
+    for (const extra of bad) assert.equal(await client.rememberMessages(user(extra)), 'failed', JSON.stringify(extra))
+    assert.equal(server.requests.length, 0, 'nothing leaves the machine')
+    assert.ok(log.lines.every((line) => /not sent: messages break the gateway/.test(line)), 'one plain warning each')
+    // an over-long one does the same today
+    assert.equal(await client.rememberMessages(user({ speaker: 'x'.repeat(65) })), 'failed')
+  }))
+
+test('recall and explain: the speaker goes in the body when it is a string of at most 64 characters, else the body is as it was', () =>
+  withServer((req, res) => json(res, 200, req.url === '/v1/explain' ? { candidates: [] } : { results: [] }), async (client, server) => {
+    const context = { channel: 'dsh', via: 'turn' }
+    await client.recallDetail('hello', { speaker: 'dsh:local' })
+    await client.recallDetail('hello', { speaker: 'dsh:local', context })
+    await client.explainRecall('hello there', { speaker: 'dsh:local', limit: 2 })
+    await client.explainRecall('hello there', { speaker: 'x'.repeat(64) })
+    assert.deepEqual(server.requests.map((r) => r.json), [
+      { query: 'hello', limit: 5, speaker: 'dsh:local' },
+      { query: 'hello', limit: 5, speaker: 'dsh:local', context },
+      { query: 'hello there', limit: 2, speaker: 'dsh:local' },
+      { query: 'hello there', limit: 5, speaker: 'x'.repeat(64) },
+    ])
+    server.requests.length = 0
+    // Not a usable speaker: left out, the call still goes out.
+    for (const speaker of [undefined, null, '', 5, ['dsh:local'], 'x'.repeat(65)]) {
+      await client.recallDetail('hello', { speaker })
+      await client.explainRecall('hello there', { speaker })
+    }
+    assert.deepEqual(server.requests.map((r) => r.json), Array.from({ length: 6 }, () => [{ query: 'hello', limit: 5 }, { query: 'hello there', limit: 5 }]).flat())
+    // Without the option the body is byte for byte what it was.
+    server.requests.length = 0
+    await client.recallDetail('hello')
+    await client.explainRecall('hello there')
+    assert.equal(server.requests[0].raw.toString('utf8'), '{"query":"hello","limit":5}')
+    assert.equal(server.requests[1].raw.toString('utf8'), '{"query":"hello there","limit":5}')
+  }))
+
+test('rememberStatus: speaker, origin, kind and eventDate go into its one message as speaker, origin, kind and event_date', () =>
+  withServer(usual, async (client, server) => {
+    assert.equal(await client.rememberStatus('a fact', { time: '2026-11-17T20:15:03+09:00', speaker: 'dsh:local', origin: 'tool', kind: 'plan', eventDate: '2026-12-01' }), 'saved')
+    assert.deepEqual(server.requests[0].json, {
+      messages: [{ role: 'user', content: 'a fact', time: '2026-11-17T20:15:03+09:00', speaker: 'dsh:local', origin: 'tool', kind: 'plan', event_date: '2026-12-01' }],
+    })
+    // Only what is given; the others are absent.
+    await client.rememberStatus('a fact', { speaker: 'dsh:local' })
+    assert.deepEqual(server.requests[1].json, { messages: [{ role: 'user', content: 'a fact', speaker: 'dsh:local' }] })
+    await client.rememberStatus('a fact', { origin: undefined, kind: 5, eventDate: null })
+    assert.equal(server.requests[2].raw.toString('utf8'), '{"messages":[{"role":"user","content":"a fact"}]}')
+    // A value the gateway would refuse makes the call fail, as with the messages.
+    assert.equal(await client.rememberStatus('a fact', { kind: 'rumour' }), 'failed')
+    assert.equal(await client.rememberStatus('a fact', { eventDate: '2026-02-30' }), 'failed')
+    assert.equal(await client.rememberStatus('a fact', { speaker: 'x'.repeat(65) }), 'failed')
+    assert.equal(server.requests.length, 3)
+  }))
+
+test('explainRecall: a row keeps its fields as an object of the seven known keys with string values, absent when none is left', () =>
+  withServer((req, res) => json(res, 200, {
+    candidates: [
+      { ...GOOD, id: 'a', fields: { speaker: 'owner', about: 'amy', channel: 'dsh', audience: 'owner', origin: 'tool', event_date: '2026-10-20', kind: 'event' } },
+      { ...GOOD, id: 'b', fields: { origin: 'said', kind: 5, speaker: null, unknown: 'x', event_date: ['2026-10-20'] } },
+      { ...GOOD, id: 'c', fields: { kind: 7, other: 'x' } },
+      { ...GOOD, id: 'd', fields: {} },
+      { ...GOOD, id: 'e', fields: [] },
+      { ...GOOD, id: 'f', fields: 'owner' },
+      { ...GOOD, id: 'g', fields: null },
+      { ...GOOD, id: 'h' },
+    ],
+  }), async (client) => {
+    const { candidates } = await client.explainRecall('hello there')
+    assert.deepEqual(candidates.map((c) => c.fields), [
+      { speaker: 'owner', about: 'amy', channel: 'dsh', audience: 'owner', origin: 'tool', event_date: '2026-10-20', kind: 'event' },
+      { origin: 'said' },
+      undefined, undefined, undefined, undefined, undefined, undefined,
+    ])
+    for (const c of candidates.slice(2)) assert.ok(!('fields' in c), 'no empty object')
+  }))

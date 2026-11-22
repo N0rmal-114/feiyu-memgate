@@ -88,7 +88,7 @@ import { buildQuery } from './query.js'
 import { readRecent, removeRecent, writeRecent } from './recent.js'
 import { ART_FILES, createRoutes } from './routes.js'
 import { createModelSetup } from './setup.js'
-import { FORM_NOTICE, FORM_POOL, FORM_RECALL, isObject, isSubagent, isUserOrigin, kindOf, MAX_QUERY_CHARS, MAX_REMEMBER_CHARS, PLUGIN_NAME, REQUEST_CONTEXT, sessionIdOf, SOURCE_KIND, textOf, within } from './shared.js'
+import { FORM_NOTICE, FORM_POOL, FORM_RECALL, isObject, isSubagent, isUserOrigin, kindOf, MAX_QUERY_CHARS, MAX_REMEMBER_CHARS, PLUGIN_NAME, REQUEST_CONTEXT, sessionIdOf, SOURCE_KIND, speakerAccount, textOf, within } from './shared.js'
 import { asDate, localDate } from './time.js'
 import { EMBED_SERVICE, EMBED_UPDATE_EVENT, effectiveTier, embedKey, readEmbed, resolveStore, TIER_NAMES, TIERS } from './tiers.js'
 import { createTools, TOOL_REMEMBER, TOOL_SEARCH } from './tools.js'
@@ -283,6 +283,7 @@ export function createPlugin(ctx, config, deps = {}) {
   const relevanceWarned = new Set()
   let disposed = false
   let promptLanguage = null // the language of the registered prompt section
+  let toolFields = null // advanced.toolFields as the registered memgate_remember was built
 
   // The options of format(): today's date on this machine, only while advanced.showAge is on.
   const blockOptions = (s) => {
@@ -413,9 +414,9 @@ export function createPlugin(ctx, config, deps = {}) {
 
   const needsMemory = (s) => s.modules.autoRecall || s.modules.rememberTool || s.modules.searchTool || s.modules.autoCapture
 
-  // The settings a gateway is built from; any change restarts it. Recall limits and the language are
-  // not among them: they are read per call.
-  const policyOf = (s) => [s.advanced.profile, s.advanced.dailyWrites, s.advanced.redaction, s.advanced.newerFirst, s.advanced.linkedRecall, s.advanced.forgetting]
+  // The settings a gateway is built from; any change restarts it (the account is in its identity table).
+  // Recall limits and the language are not among them: they are read per call.
+  const policyOf = (s) => [s.advanced.profile, s.advanced.dailyWrites, s.advanced.redaction, s.advanced.newerFirst, s.advanced.linkedRecall, s.advanced.forgetting, speakerAccount(s.advanced)]
   function tierKey(s, tier, f) {
     if (tier === 'endpoint') return [s.retrieval.url, s.retrieval.model, s.retrieval.apiKey]
     // The add-on appearing, changing model, restarting its server or going away changes this key.
@@ -594,7 +595,7 @@ export function createPlugin(ctx, config, deps = {}) {
       const c = client(s.advanced.recallLimit)
       if (!c) return gatewayComing(s) ? FAILED : null
       const timeoutMs = s.advanced.recallTimeoutMs
-      const detail = await within(c.recallDetail(plan.query, { timeoutMs, signal, context: REQUEST_CONTEXT.turn }), timeoutMs + 250, signal)
+      const detail = await within(c.recallDetail(plan.query, { timeoutMs, signal, context: REQUEST_CONTEXT.turn, speaker: speakerAccount(s.advanced) }), timeoutMs + 250, signal)
       if (signal?.aborted) return null // the turn ended: nobody is waiting for an answer
       if (!detail || !Array.isArray(detail.results)) return FAILED
       // Nothing came back and the gateway says a store failed or was busy: that is a lookup that did not
@@ -1066,7 +1067,10 @@ export function createPlugin(ctx, config, deps = {}) {
 
   const MODULES = {
     autoRecall: () => ctx.on('agent/pre-step', onPreStep, { prepend: true }),
-    rememberTool: () => ctx.tools.register(rememberDefinition()),
+    rememberTool: () => {
+      toolFields = settings().advanced.toolFields === true
+      return ctx.tools.register(rememberDefinition())
+    },
     searchTool: () => ctx.tools.register(searchDefinition()),
     promptSection: () => {
       const lang = language()
@@ -1148,6 +1152,8 @@ export function createPlugin(ctx, config, deps = {}) {
     // The prompt section is text fixed at registration: a change of language registers it again,
     // the way a module switch does.
     if (active.has('promptSection') && promptLanguage !== resolveLanguage(s.advanced.language, deps.locale)) setModule('promptSection', false)
+    // The arguments of memgate_remember are part of its definition: a change of advanced.toolFields registers it again.
+    if (active.has('rememberTool') && toolFields !== (s.advanced.toolFields === true)) setModule('rememberTool', false)
     for (const name of MODULE_NAMES) setModule(name, s.modules[name])
     setModule('recallState', s.modules.autoRecall && (s.advanced.afterthought || s.advanced.conversationPool || s.advanced.recentPool))
     // Switching the recent pool off deletes its file (the only thing that does: a plugin that is disposed or

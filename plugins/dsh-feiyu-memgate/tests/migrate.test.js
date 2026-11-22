@@ -260,7 +260,7 @@ test('the plugin with a fake add-on and the real gateway: auto runs local, copie
   assert.equal(status.store.count, 5)
   assert.ok(!JSON.stringify(status).includes(ADDON_KEY))
   const client = createClient(manager.endpoint())
-  const detail = await client.recallDetail('The user parks the bicycle in the courtyard shed')
+  const detail = await client.recallDetail('The user parks the bicycle in the courtyard shed', { speaker: 'dsh:local' })
   assert.ok(detail?.results.some((r) => r.text.includes('courtyard shed')), JSON.stringify(detail))
   await host.unload()
   assert.equal(manager.state(), 'stopped')
@@ -286,4 +286,111 @@ test('a hybrid target is filled through both children under one ref, with the sa
   // The index is already in line with the vector file: the update before the next start has nothing to do.
   const mirrored = await runMirror({ python, mirror: hybrid.mirror, dataDir, env: ISOLATED_ENV }).done
   assert.deepEqual(mirrored, { state: 'done', added: 0, removed: 0, remaining: 0 })
+})
+
+// ------------------------------------------------------------------ record fields
+
+const FIELD_COLUMNS = ['speaker', 'about', 'channel', 'audience', 'origin', 'event_date', 'kind']
+
+// Seeds a keyword store through the gateway's backend, with the record fields of each memory.
+function seedKeywordWithFields(file, rows) {
+  py([
+    'import json, sys',
+    'sys.path.insert(0, sys.argv[1])',
+    'from feiyu_memgate.backends.sqlite import SQLiteBackend',
+    'b = SQLiteBackend(sys.argv[2])',
+    'for ref, text, fields in json.loads(sys.stdin.buffer.read().decode("utf-8")):',
+    '    b.put(text, ref, "2026-11-01", fields=fields)',
+    'b.close()',
+  ].join('\n'), [PACKAGE_DIR, file], JSON.stringify(rows))
+}
+
+// A store file as the first versions wrote it: no field columns at all.
+function seedOldKeyword(file, rows) {
+  py([
+    'import json, sqlite3, sys',
+    'db = sqlite3.connect(sys.argv[1])',
+    'db.execute("CREATE TABLE memories (ref TEXT PRIMARY KEY, text TEXT NOT NULL, created_at INTEGER NOT NULL, date TEXT)")',
+    'for i, (ref, text) in enumerate(json.loads(sys.stdin.buffer.read().decode("utf-8"))):',
+    '    db.execute("INSERT INTO memories VALUES (?, ?, ?, ?)", (ref, text, 100 + i, "2026-11-01"))',
+    'db.commit()',
+    'db.close()',
+  ].join('\n'), [file], JSON.stringify(rows))
+}
+
+function fieldRows(file) {
+  return JSON.parse(py([
+    'import json, sqlite3, sys',
+    'db = sqlite3.connect(sys.argv[1])',
+    `cols = ${JSON.stringify(FIELD_COLUMNS)}`,
+    'rows = db.execute("SELECT ref, " + ", ".join(cols) + " FROM memories ORDER BY ref").fetchall()',
+    'print(json.dumps({r[0]: {c: v for c, v in zip(cols, r[1:]) if v is not None} for r in rows}))',
+    'db.close()',
+  ].join('\n'), [file]))
+}
+
+test('the record fields are copied with the text; a memory without an audience gets owner', { skip, timeout: 60000 }, async (t) => {
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-memgate-mig-'))
+  const server = await embeddingsServer()
+  t.after(async () => {
+    await server.close()
+    fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 })
+  })
+  const source = TIERS.keyword.store(null, dataDir).table.path
+  seedKeywordWithFields(source, [
+    ['w-aaaa-0', MEMORIES[0][1], { speaker: 'owner', origin: 'tool', kind: 'event', event_date: '2026-10-31', channel: 'dsh', audience: 'group' }],
+    ['w-aaaa-1', MEMORIES[1][1], { origin: 'said', speaker: 'anon:0123456789abcdef' }],
+    ['w-bbbb-0', MEMORIES[2][1], {}],
+  ])
+  const target = resolveStore({ tier: 'local', url: '', model: '', apiKey: '' }, dataDir, { embed: readEmbed(addonService(server.url)) })
+  const result = await runMigration({ python, source, target, dataDir, env: ISOLATED_ENV }).done
+  assert.deepEqual(result, { state: 'done', total: 3, copied: 3, refused: 0, remaining: 0 })
+  assert.deepEqual(fieldRows(target.table.path), {
+    'w-aaaa-0': { speaker: 'owner', origin: 'tool', kind: 'event', event_date: '2026-10-31', channel: 'dsh', audience: 'group' },
+    'w-aaaa-1': { origin: 'said', speaker: 'anon:0123456789abcdef', audience: 'owner' },
+    'w-bbbb-0': { audience: 'owner' },
+  })
+  // The source file is only read.
+  assert.deepEqual(fieldRows(source)['w-aaaa-1'], { origin: 'said', speaker: 'anon:0123456789abcdef' })
+})
+
+test('a keyword store file without field columns is copied as before, every memory owner-level', { skip, timeout: 60000 }, async (t) => {
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-memgate-mig-'))
+  const server = await embeddingsServer()
+  t.after(async () => {
+    await server.close()
+    fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 })
+  })
+  const source = TIERS.keyword.store(null, dataDir).table.path
+  seedOldKeyword(source, MEMORIES.slice(0, 2))
+  const target = resolveStore({ tier: 'local', url: '', model: '', apiKey: '' }, dataDir, { embed: readEmbed(addonService(server.url)) })
+  const result = await runMigration({ python, source, target, dataDir, env: ISOLATED_ENV }).done
+  assert.deepEqual(result, { state: 'done', total: 2, copied: 2, refused: 0, remaining: 0 })
+  assert.deepEqual(storeRows(target.table.path), MEMORIES.slice(0, 2).sort())
+  assert.deepEqual(fieldRows(target.table.path), { 'w-aaaa-0': { audience: 'owner' }, 'w-aaaa-1': { audience: 'owner' } })
+})
+
+test('a field value the gateway would refuse is left out of the copy, the memory is still copied', { skip, timeout: 60000 }, async (t) => {
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-memgate-mig-'))
+  const server = await embeddingsServer()
+  t.after(async () => {
+    await server.close()
+    fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 })
+  })
+  const source = TIERS.keyword.store(null, dataDir).table.path
+  seedOldKeyword(source, [['w-aaaa-0', MEMORIES[0][1]]])
+  // Odd values written straight into the file: too long, empty, an audience that is not one.
+  py([
+    'import sqlite3, sys',
+    'db = sqlite3.connect(sys.argv[1])',
+    'for column in sys.argv[2:]:',
+    '    db.execute("ALTER TABLE memories ADD COLUMN " + column + " TEXT")',
+    'db.execute("UPDATE memories SET speaker = ?, kind = ?, audience = ?, origin = ?", ("x" * 200, "", "everyone", "tool"))',
+    'db.commit()',
+    'db.close()',
+  ].join('\n'), [source, ...FIELD_COLUMNS])
+  const target = resolveStore({ tier: 'local', url: '', model: '', apiKey: '' }, dataDir, { embed: readEmbed(addonService(server.url)) })
+  const result = await runMigration({ python, source, target, dataDir, env: ISOLATED_ENV }).done
+  assert.deepEqual(result, { state: 'done', total: 1, copied: 1, refused: 0, remaining: 0 })
+  assert.deepEqual(fieldRows(target.table.path), { 'w-aaaa-0': { origin: 'tool', audience: 'owner' } })
 })

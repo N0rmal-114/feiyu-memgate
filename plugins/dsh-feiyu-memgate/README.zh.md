@@ -86,7 +86,7 @@ dsh plugin --profile desktop add dsh-feiyu-memgate
 - **`/memgate` 聊天命令。** 见[/memgate 命令](#memgate-命令)。
 - **profile 的配置文件。** profile 的 `cordis.patch.yml` 里的 `feiyu-memgate` 这一行。另外两种方式也把改动存在这里。家目录级的补丁或 `--patch` 覆盖层如果设置了同一行，它们优先；会被它们盖掉的改动会被拒绝。
 
-多数设置立即生效。改动 `gateway.mode`、`gateway.python`、`gateway.dataDir`、检索方式或正在使用的向量接口设置、`retrieval.hybrid`（只在它改变网关实际运行的内容时；在 `keyword` 下不会）、`advanced.profile`、`advanced.dailyWrites`、`advanced.redaction`、`advanced.newerFirst`、`advanced.linkedRecall`、`advanced.forgetting` 会重启网关，每日写入上限的计数随之重新开始。聊天体验的十项设置（`advanced.skipRepeats`、`advanced.showAge`、`advanced.failureNote`、`advanced.captureMinChars`、`advanced.blockTone`、`advanced.maxNewPerTurn`、`advanced.relevanceCheck`、`advanced.relevanceProvider`、`advanced.relevanceModel`、`advanced.relevanceTimeoutMs`）每一轮都重新读取，不会重启网关；第二个块的七项设置（`advanced.afterthought`、`advanced.afterthoughtMax`、`advanced.conversationPool`、`advanced.poolSize`、`advanced.recentPool`、`advanced.recentSize`、`advanced.recentDays`）也一样，打开或关掉其中一项功能，它的监听会立刻注册或移除；改动 `advanced.language` 会按新的语言重新注册系统提示词里的那一段。关掉一项功能，它在 DSH 里注册的东西就被移除。只有 `modules.autoRecall`、`modules.rememberTool`、`modules.searchTool`、`modules.autoCapture` 中至少有一个开着时，网关才会运行。
+多数设置立即生效。改动 `gateway.mode`、`gateway.python`、`gateway.dataDir`、检索方式或正在使用的向量接口设置、`retrieval.hybrid`（只在它改变网关实际运行的内容时；在 `keyword` 下不会）、`advanced.profile`、`advanced.dailyWrites`、`advanced.redaction`、`advanced.newerFirst`、`advanced.linkedRecall`、`advanced.forgetting`、`advanced.speakerAccount` 会重启网关，每日写入上限的计数随之重新开始。聊天体验的十项设置（`advanced.skipRepeats`、`advanced.showAge`、`advanced.failureNote`、`advanced.captureMinChars`、`advanced.blockTone`、`advanced.maxNewPerTurn`、`advanced.relevanceCheck`、`advanced.relevanceProvider`、`advanced.relevanceModel`、`advanced.relevanceTimeoutMs`）每一轮都重新读取，不会重启网关；第二个块的七项设置（`advanced.afterthought`、`advanced.afterthoughtMax`、`advanced.conversationPool`、`advanced.poolSize`、`advanced.recentPool`、`advanced.recentSize`、`advanced.recentDays`）也一样，打开或关掉其中一项功能，它的监听会立刻注册或移除；改动 `advanced.language` 会按新的语言重新注册系统提示词里的那一段。关掉一项功能，它在 DSH 里注册的东西就被移除。`advanced.toolFields` 决定 `memgate_remember` 工具有哪些参数：改动后该工具立即重新注册，不重启网关。只有 `modules.autoRecall`、`modules.rememberTool`、`modules.searchTool`、`modules.autoCapture` 中至少有一个开着时，网关才会运行。
 
 | 设置 | 作用 | 默认值 | 备注 |
 |---|---|---|---|
@@ -133,6 +133,8 @@ dsh plugin --profile desktop add dsh-feiyu-memgate
 | `advanced.redaction` | 保存和召回记忆时，去掉密钥、令牌、密码这类敏感信息。 | 开 | 基于模式匹配，认不出旁边没有关键词提示的孤立的敏感信息。只用于 managed 模式。 |
 | `advanced.newerFirst` | 相关度差不多时，较新的记忆排在前面。 | 开 | 只看日期，不判断两条记忆是否矛盾。只用于 managed 模式。 |
 | `advanced.forgetting` | 实验性。很久没用到的记忆排得更靠后，最终存档并删除。 | 关 | 见下文。只用于 managed 模式。 |
+| `advanced.speakerAccount` | 插件每次写入和召回时向网关报告的账号，写成 `dsh:名字`（小写字母、数字和 `_` `.` `-`）。 | `dsh:local` | 内置网关把它对应到所有者；格式不符时按 `dsh:local` 处理。使用外部网关并与别的程序共用时，把这个账号写进网关的对照表。改动它会重启内置网关。 |
+| `advanced.toolFields` | 开启后，`memgate_remember` 工具多两个可选参数：记忆的类型（身份、偏好、事件、计划、实体）和事情发生的日期，由模型填写，和记忆一起保存。 | 关 | 关闭时工具的参数和以前完全一样。模型填的值无效时丢弃该值，记忆照常保存。改动后工具立即重新注册。 |
 
 ### 检索方式
 
@@ -253,6 +255,7 @@ profile 的 `cordis.patch.yml` 里，一行会整个替换同一个 `id` 那一�
 | 今天的日期和每条记忆距今多久 | 每个记忆块 | `advanced.showAge` |
 | 检索失败时的一行说明 | 本轮检索超时或出错 | `advanced.failureNote` |
 | `memgate_remember`、`memgate_search` 的工具说明 | 工具开启时 | `modules.rememberTool`、`modules.searchTool` |
+| `memgate_remember` 两个可选参数（类型、事情发生的日期）的说明 | `advanced.toolFields` 开启时 | `advanced.toolFields` |
 | 筛选记忆用的提示词（只发给做筛选的模型） | `advanced.relevanceCheck` 开启时 | `advanced.relevanceCheck` |
 
 每一行都可以关掉；全部关掉后，插件交给模型的只有 `<memory_data>` 包裹里的记忆本身。
@@ -271,11 +274,15 @@ profile 的 `cordis.patch.yml` 里，一行会整个替换同一个 `id` 那一�
 | `model-setup.json` | 从设置页面或 `/memgate install` 开始的模型设置进度：模型、进行到哪一步、等你决定的安装脚本、上次失败的代码。 |
 | `forgetting-ledger-<store id>.db`、`forgetting-archive-<store id>.db` | 只在打开遗忘时出现。存档里是被删记忆的全文，没有加密。 |
 | `gateway.log`、`gateway.log.1` | 网关日志，大约 1 MiB 轮转一次。 |
+| `identity.key` | 内置网关给未登记的说话人生成替身码用的密钥，64 位十六进制字符。缺失时自动创建，内容不符时重新生成。 |
 | `gateway-<pid>-<n>.toml` | 正在运行的进程的网关配置，进程停止时删除。里面没有令牌，也没有密钥。 |
 | `pycache/` | 网关的 Python 字节码缓存。 |
 
 - **插件不做加密。** 存储是普通的 SQLite 文件。像保护任何存着个人笔记的文件一样保护这个文件夹。
-- **网关只在本机。** 它监听 `127.0.0.1`，端口每次启动时随机选一个空闲的。每次启动，插件生成一个新的随机令牌（32 字节），只存在内存里和网关的环境变量里，从不写进文件或日志。网关进程拿到的是 DSH 环境变量的副本，去掉名字含 `KEY`、`PASSWORD`、`SECRET`、`TOKEN` 的，也去掉以 `DSH_` 开头的，再加上它需要的令牌，以及 `endpoint` 方式下需要的密钥。DSH 退出时它也退出。
+- **网关只在本机。** 它监听 `127.0.0.1`，端口每次启动时随机选一个空闲的。每次启动，插件生成一个新的随机令牌（32 字节），只存在内存里和网关的环境变量里，从不写进文件或日志。网关进程拿到的是 DSH 环境变量的副本，去掉名字含 `KEY`、`PASSWORD`、`SECRET`、`TOKEN` 的，也去掉以 `DSH_` 开头的，再加上它需要的令牌、身份密钥，以及 `endpoint` 方式下需要的密钥。DSH 退出时它也退出。
+- **每条记忆还存着什么。** 内置网关把每条记忆和几项附加信息一起存进存储：说话人（表里写的是所有者的名字 `owner`，不是账号）、这条记忆怎么来的（自动记录，或模型通过工具记下）、受众（`owner`），模型填写时还有记忆的类型和事情发生的日期。这些信息只在存储文件里；设置页面“试一下召回”的结果会显示其中的说话人、来源、类型、日期和渠道，不显示受众。它们不进记忆块，也不写入日志。
+- **说话人账号是固定标签，不是个人标识。** `advanced.speakerAccount`（默认 `dsh:local`）是插件向网关报告的一个固定标签，用来区分写入来源，不包含你的姓名、账号或设备信息，也不随对话变化。内置网关把它对应到所有者，存储里只留下名字 `owner`。
+- **身份密钥文件。** 数据文件夹里的 `identity.key` 是内置网关为未登记的说话人生成替身码用的密钥。缺失时自动创建，内容是 32 个随机字节写成的 64 位十六进制字符，每次启动网关时读取，只通过环境变量交给网关进程，不写入配置文件、日志、状态和设置页面返回的内容。删除它只会让未登记说话人的替身码变成新的，已存记忆里的 `owner` 不受影响。它属于数据文件夹，备份该文件夹时应一并备份。
 - **召回的记忆会发给你的模型服务商。** 记忆块是提示词的一部分，所以它和别的消息一样，会发给这段对话使用的模型服务。
 - **`endpoint` 模式下离开电脑的内容。** 每条保存或复制的记忆的文本，以及每次召回的查询，都会发给你在 `retrieval.url` 里配置的向量接口。接口密钥通过环境变量交给网关，不写进文件。`external` 模式下，请求发往 `external.url` 里的地址。
 - **每个请求带一个来源标记。** 每次召回和保存记忆的请求都带一个 `context` 标记，写明请求来自 DSH，以及由什么触发（`turn`、`search`、`followup`、`tool`、`capture`、`trial` 之一）。标记里没有对话内容。内置网关不读它；自己部署网关时，自己写的召回步骤和写入守卫可以用它。

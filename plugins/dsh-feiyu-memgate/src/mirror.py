@@ -20,6 +20,10 @@ closes: the plugin stopped the run, or the host process went away however it wen
 to stdout as JSON lines. Nothing printed names a memory text, a ref, a key or a path: counts, and the
 kind of error when a run fails. Exit code 0 for done and partial, 2 for failed.
 
+The seven record fields (speaker, about, channel, audience, origin, event_date, kind) go along when the
+vector file has them as columns and the keyword index keeps fields; a memory without an audience gets
+"owner": these stores are the owner's.
+
 The vector file is only read, through SQLite directly and read-only (it needs no embeddings endpoint).
 The keyword index is written through the gateway's own backend, so its layout is always the one the
 gateway expects. A run that reaches its time limit reports `partial` and the next start continues.
@@ -33,6 +37,9 @@ import time
 from pathlib import Path
 
 BATCH = 200
+FIELD_NAMES = ("speaker", "about", "channel", "audience", "origin", "event_date", "kind")  # model.FIELDS
+AUDIENCES = ("owner", "group", "public")
+MAX_FIELD = 128
 DEFAULT_DEADLINE = 60.0
 
 
@@ -67,12 +74,37 @@ def vector_refs(db):
         return []
 
 
-def vector_items(db, refs):
-    """(text, ref, date) of the given refs, in that order. Empty texts are left out."""
+def vector_columns(db):
+    """The record field columns the vector file has (a subset of FIELD_NAMES, in that order)."""
+    if db is None:
+        return ()
+    try:
+        names = {row[1] for row in db.execute("PRAGMA table_info(memories)")}
+    except sqlite3.OperationalError:
+        return ()
+    return tuple(name for name in FIELD_NAMES if name in names)
+
+
+def clean_record_fields(values):
+    """The fields of one memory: only usable values, and an audience ("owner" when there is none)."""
+    fields = {}
+    for name, value in values.items():
+        if isinstance(value, str) and value and len(value) <= MAX_FIELD:
+            fields[name] = value
+    if fields.get("audience") not in AUDIENCES:
+        fields["audience"] = "owner"
+    return fields
+
+
+def vector_items(db, refs, columns=()):
+    """(text, ref, date, fields) of the given refs, in that order. Empty texts are left out. `fields`
+    is the memory's record fields (an audience of "owner" when the file has none)."""
     marks = ",".join("?" * len(refs))
-    rows = db.execute("SELECT ref, text, date FROM memories WHERE ref IN (%s)" % marks, refs).fetchall()
-    found = {ref: (text, date) for ref, text, date in rows}
-    return [(found[ref][0], ref, found[ref][1]) for ref in refs
+    names = ("ref", "text", "date") + tuple(columns)
+    rows = db.execute("SELECT %s FROM memories WHERE ref IN (%s)" % (", ".join(names), marks), refs).fetchall()
+    found = {row[0]: row[1:] for row in rows}
+    return [(found[ref][0], ref, found[ref][1], clean_record_fields(dict(zip(columns, found[ref][2:]))))
+            for ref in refs
             if ref in found and isinstance(found[ref][0], str) and found[ref][0].strip()]
 
 
@@ -89,6 +121,8 @@ def main():
         vector = open_vector(job["vector"])
         wanted = vector_refs(vector)
         keyword = registry.create("backend", job["keyword"])
+        columns = vector_columns(vector)
+        keeps_fields = getattr(keyword, "stores_fields", False) is True
         have = [ref for ref, _ in keyword.refs()]
         wanted_set = set(wanted)
         stale = [ref for ref in have if ref not in wanted_set]
@@ -107,8 +141,11 @@ def main():
         handled = 0  # refs looked at, whether added or skipped as empty
         while handled < len(missing) and time.monotonic() < deadline and removed == len(stale):
             chunk = missing[handled:handled + BATCH]
-            for text, ref, date in vector_items(vector, chunk):
-                keyword.put(text, ref=ref, date=date)
+            for text, ref, date, fields in vector_items(vector, chunk, columns):
+                if keeps_fields:
+                    keyword.put(text, ref=ref, date=date, fields=fields)
+                else:
+                    keyword.put(text, ref=ref, date=date)
                 added += 1
             handled += len(chunk)
             emit("progress", added=added, removed=removed, remaining=len(missing) - handled + len(stale) - removed)

@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 import { createClient } from '../src/client.js'
 import { readConfig } from '../src/config.js'
 import {
-  BOOTSTRAP, PACKAGE_DIR, TOKEN_ENV, createGatewayManager, findPython, freePort, gatewayConfig, pythonCandidates, scrubbedEnv, tomlString,
+  BOOTSTRAP, IDENTITY_KEY_ENV, IDENTITY_KEY_FILE, PACKAGE_DIR, TOKEN_ENV, createGatewayManager, findPython, freePort, gatewayConfig, loadIdentityKey, pythonCandidates, scrubbedEnv, tomlString,
 } from '../src/gateway.js'
 import { EMBEDDINGS_KEY_ENV, readEmbed } from '../src/tiers.js'
 
@@ -69,12 +69,15 @@ function manager(t, dataDir, overrides = {}, extra = {}) {
   return { m, warnings }
 }
 
+// The generated configuration names an identity key in the environment: a fixed one for the tests that run the gateway by hand.
+const TEST_IDENTITY_KEY = 'ab'.repeat(32)
+
 // `feiyu-memgate check` on a configuration file: 0 when the gateway accepts it.
 function check(file, env = {}) {
   const code = `import os, sys; sys.path.insert(0, os.environ["FEIYU_MEMGATE_PACKAGE_DIR"]); from feiyu_memgate.cli import main; sys.exit(main())`
   // -B: no byte-code caches next to the bundled sources (the package copy must stay exact).
   return spawnSync(python.executable, ['-I', '-B', '-c', code, 'check', '--config', file], {
-    env: { ...scrubbedEnv(), FEIYU_MEMGATE_PACKAGE_DIR: PACKAGE_DIR, PYTHONIOENCODING: 'utf-8', ...env },
+    env: { ...scrubbedEnv(), FEIYU_MEMGATE_PACKAGE_DIR: PACKAGE_DIR, PYTHONIOENCODING: 'utf-8', [IDENTITY_KEY_ENV]: TEST_IDENTITY_KEY, ...env },
     encoding: 'utf8',
     windowsHide: true,
     timeout: 30000,
@@ -237,13 +240,14 @@ test('the linked stage follows newer_first (relative_score when that is off) and
     const line = text.split('\n').find((l) => l.startsWith('stages = '))
     return JSON.parse(line.slice('stages = '.length))
   }
-  const tail = ['fill_text', 'drop_oversize', 'redact', 'dedupe', 'budget']
+  // record_audience follows linked (or whatever came last before it) and is always there, before fill_text.
+  const tail = ['record_audience', 'fill_text', 'drop_oversize', 'redact', 'dedupe', 'budget']
   assert.deepEqual(stagesOf({}), ['min_score', 'relative_score', 'newer_first', 'linked', ...tail])
   assert.deepEqual(stagesOf({ newerFirst: false }), ['min_score', 'relative_score', 'linked', ...tail])
   assert.deepEqual(stagesOf({ forgetting: true }), ['min_score', 'freshness', 'relative_score', 'newer_first', 'linked', ...tail])
   assert.deepEqual(stagesOf({ linkedRecall: false }), ['min_score', 'relative_score', 'newer_first', ...tail])
   assert.deepEqual(stagesOf({ linkedRecall: false, newerFirst: false }), ['min_score', 'relative_score', ...tail])
-  assert.deepEqual(stagesOf({ redaction: false }), ['min_score', 'relative_score', 'newer_first', 'linked', 'fill_text', 'drop_oversize', 'dedupe', 'budget'])
+  assert.deepEqual(stagesOf({ redaction: false }), ['min_score', 'relative_score', 'newer_first', 'linked', 'record_audience', 'fill_text', 'drop_oversize', 'dedupe', 'budget'])
 })
 
 // A gateway process that never answers its health check.
@@ -389,8 +393,9 @@ test('managed start: healthy, remember and recall, token only in memory', { skip
 
   const client = createClient({ url, token, logger: { warn: (w) => warnings.push(w) } })
   assert.equal((await client.health()).status, 'ok')
-  assert.equal(await client.rememberStatus('The user keeps the spare key under the blue flowerpot'), 'saved')
-  const detail = await client.recallDetail('where is the spare key kept')
+  // The client speaks for the owner only (only_for): every write and recall names the account.
+  assert.equal(await client.rememberStatus('The user keeps the spare key under the blue flowerpot', { speaker: 'dsh:local', origin: 'said' }), 'saved')
+  const detail = await client.recallDetail('where is the spare key kept', { speaker: 'dsh:local' })
   assert.ok(detail?.results.some((r) => r.text.includes('blue flowerpot')), JSON.stringify(detail))
 
   await m.stop()
@@ -475,10 +480,11 @@ test('two managers on one data folder at once share the store', { skip, timeout:
   assert.notEqual(a.endpoint().url, b.endpoint().url)
   const writer = createClient(a.endpoint())
   const reader = createClient(b.endpoint())
-  assert.equal(await writer.rememberStatus('The user parks the bicycle in the courtyard shed'), 'saved')
-  const detail = await reader.recallDetail('where is the bicycle parked')
+  const speaker = { speaker: 'dsh:local' }
+  assert.equal(await writer.rememberStatus('The user parks the bicycle in the courtyard shed', speaker), 'saved')
+  const detail = await reader.recallDetail('where is the bicycle parked', speaker)
   assert.ok(detail?.results.some((r) => r.text.includes('courtyard shed')), JSON.stringify(detail))
-  assert.equal(await reader.rememberStatus('The user waters the plants on Sundays'), 'saved')
+  assert.equal(await reader.rememberStatus('The user waters the plants on Sundays', speaker), 'saved')
   await Promise.all([a.stop(), b.stop()])
 })
 
@@ -488,7 +494,7 @@ test('the bootstrap exits when its stdin closes', { skip, timeout: 30000 }, asyn
   const file = path.join(dataDir, 'gateway.toml')
   fs.writeFileSync(file, gatewayConfig({ port: await freePort(), dataDir, settings }).text)
   const child = spawn(python.executable, ['-I', '-B', '-c', BOOTSTRAP, 'serve', '--config', file], {
-    env: { ...scrubbedEnv(), [TOKEN_ENV]: 'bootstrap-test-token-' + 'q'.repeat(32), FEIYU_MEMGATE_PACKAGE_DIR: PACKAGE_DIR },
+    env: { ...scrubbedEnv(), [TOKEN_ENV]: 'bootstrap-test-token-' + 'q'.repeat(32), [IDENTITY_KEY_ENV]: TEST_IDENTITY_KEY, FEIYU_MEMGATE_PACKAGE_DIR: PACKAGE_DIR },
     stdio: ['pipe', 'ignore', 'ignore'],
     windowsHide: true,
   })
@@ -498,4 +504,233 @@ test('the bootstrap exits when its stdin closes', { skip, timeout: 30000 }, asyn
   child.stdin.end()
   const code = await Promise.race([exited, sleep(10000).then(() => 'timeout')])
   assert.equal(code, 0)
+})
+
+// ------------------------------------------------------------------ who speaks: the identity table and its key
+
+// The lines of one table of the generated configuration (up to the blank line that ends it).
+function sectionOf(text, name) {
+  const all = text.split('\n')
+  const start = all.indexOf(`[${name}]`)
+  assert.ok(start >= 0, `[${name}] is in the configuration`)
+  const rest = all.slice(start + 1)
+  return rest.slice(0, rest.indexOf(''))
+}
+
+const configFor = (advanced = {}) => gatewayConfig({ port: 4321, dataDir: path.join(os.tmpdir(), 'dsh-memgate-identity'), settings: readConfig({ advanced }) }).text
+
+test('the configuration has an identity table with one person, the owner, and the client reports the dsh platform for the owner only', () => {
+  const text = configFor()
+  assert.deepEqual(sectionOf(text, 'identity'), ['type = "table"', `hash_key_env = "${IDENTITY_KEY_ENV}"`])
+  assert.deepEqual(sectionOf(text, 'identity.people.owner'), ['owner = true', 'accounts = ["dsh:local"]'])
+  const client = sectionOf(text, 'clients.dsh')
+  assert.ok(client.includes('platforms = ["dsh"]'), client.join('\n'))
+  assert.ok(client.includes('only_for = ["owner"]'), client.join('\n'))
+  assert.ok(client.includes('explain = true') && client.includes(`token_env = "${TOKEN_ENV}"`), 'what the client had before is still there')
+  assert.equal(IDENTITY_KEY_ENV, 'FEIYU_MEMGATE_IDENTITY_KEY')
+  // The key is named by its variable only: no key-like run of characters anywhere in the file.
+  assert.ok(!/[0-9a-fA-F]{32}/.test(text), 'no key in the configuration')
+  assert.ok(!text.includes('hash_key ='), 'the gateway refuses a key written in the file')
+})
+
+test('the account of the configuration is advanced.speakerAccount, and dsh:local when that is not a dsh:name', () => {
+  assert.deepEqual(sectionOf(configFor({ speakerAccount: 'dsh:desk-2' }), 'identity.people.owner'), ['owner = true', 'accounts = ["dsh:desk-2"]'])
+  for (const speakerAccount of ['', 'desk-2', 'aiocqhttp:10001', 'DSH:Desk', 'dsh:', 'dsh:a b', `dsh:${'a'.repeat(33)}`]) {
+    assert.deepEqual(sectionOf(configFor({ speakerAccount }), 'identity.people.owner'), ['owner = true', 'accounts = ["dsh:local"]'], JSON.stringify(speakerAccount))
+  }
+})
+
+test('record_audience is in the recall stages in every combination of the switches: right after linked (else newer_first, else relative_score), before fill_text', () => {
+  const stagesOf = (advanced) => JSON.parse(configFor(advanced).split('\n').find((l) => l.startsWith('stages = ')).slice('stages = '.length))
+  let combinations = 0
+  for (const forgetting of [false, true]) {
+    for (const newerFirst of [false, true]) {
+      for (const linkedRecall of [false, true]) {
+        for (const redaction of [false, true]) {
+          const stages = stagesOf({ forgetting, newerFirst, linkedRecall, redaction })
+          const at = stages.indexOf('record_audience')
+          const label = JSON.stringify({ forgetting, newerFirst, linkedRecall, redaction })
+          assert.equal(stages.filter((s) => s === 'record_audience').length, 1, label)
+          assert.equal(stages[at - 1], linkedRecall ? 'linked' : newerFirst ? 'newer_first' : 'relative_score', label)
+          assert.equal(stages[at + 1], 'fill_text', label)
+          combinations += 1
+        }
+      }
+    }
+  }
+  assert.equal(combinations, 16)
+})
+
+test('loadIdentityKey: created as 64 hexadecimal characters with the owner mode, then read again and again', (t) => {
+  const dir = tempDir(t)
+  const warned = []
+  const key = loadIdentityKey(dir, (kind) => warned.push(kind))
+  assert.match(key, /^[0-9a-f]{64}$/)
+  const file = path.join(dir, IDENTITY_KEY_FILE)
+  assert.equal(fs.readFileSync(file, 'utf8'), key)
+  if (process.platform !== 'win32') assert.equal(fs.statSync(file).mode & 0o777, 0o600)
+  assert.equal(loadIdentityKey(dir, (kind) => warned.push(kind)), key, 'the same key at the next start')
+  assert.equal(loadIdentityKey(dir, (kind) => warned.push(kind)), key)
+  assert.deepEqual(warned, [], 'nothing to warn about')
+  // A line break after the key (an editor added it) does no harm.
+  fs.writeFileSync(file, `${key}\n`)
+  assert.equal(loadIdentityKey(dir, (kind) => warned.push(kind)), key)
+  // Capital letters are hexadecimal too.
+  fs.writeFileSync(file, 'AB'.repeat(32))
+  assert.equal(loadIdentityKey(dir, (kind) => warned.push(kind)), 'AB'.repeat(32))
+  assert.deepEqual(warned, [])
+  // Another folder, another key.
+  assert.notEqual(loadIdentityKey(tempDir(t)), key)
+})
+
+test('loadIdentityKey: a file that is not 64 hexadecimal characters is replaced, with one warning that names the kind only', (t) => {
+  const planted = 'zz'.repeat(32) // looks like a key, is not hexadecimal
+  for (const content of ['', 'short', 'ab'.repeat(31), 'AB'.repeat(31) + 'xy', planted, `${'ab'.repeat(32)}00`]) {
+    const dir = tempDir(t)
+    const file = path.join(dir, IDENTITY_KEY_FILE)
+    fs.writeFileSync(file, content)
+    const warned = []
+    const key = loadIdentityKey(dir, (kind) => warned.push(kind))
+    assert.match(key, /^[0-9a-f]{64}$/, JSON.stringify(content))
+    assert.notEqual(key, content)
+    assert.deepEqual(warned, ['malformed'], JSON.stringify(content))
+    assert.equal(fs.readFileSync(file, 'utf8'), key, 'the new key is in the file')
+    assert.equal(loadIdentityKey(dir, (kind) => warned.push(kind)), key, 'and kept from then on')
+    assert.deepEqual(warned, ['malformed'])
+  }
+  // A file that cannot be read at all (a folder is there): another kind, the key lives on in memory.
+  const dir = tempDir(t)
+  fs.mkdirSync(path.join(dir, IDENTITY_KEY_FILE))
+  const warned = []
+  const key = loadIdentityKey(dir, (kind) => warned.push(kind))
+  assert.match(key, /^[0-9a-f]{64}$/)
+  assert.deepEqual(warned, ['unreadable'])
+  // A folder that is not there: nothing can be written, one warning, a key for this start.
+  const gone = []
+  assert.match(loadIdentityKey(path.join(dir, 'no', 'such', 'folder'), (kind) => gone.push(kind)), /^[0-9a-f]{64}$/)
+  assert.deepEqual(gone, ['unwritable'])
+})
+
+// A manager over a fake interpreter and a fake gateway process, which also keeps what the configuration file said at the start.
+function keyManager(t, dataDir, { spawned, texts }) {
+  const warnings = []
+  const fake = { argv: ['python-for-tests'], executable: 'python-for-tests', version: '3.12.0', source: 'test' }
+  const base = fakeSpawn(spawned)
+  const m = createGatewayManager({
+    settings: readConfig({ gateway: { dataDir } }),
+    env: { ...ISOLATED_ENV, FEIYU_MEMGATE_IDENTITY_KEY: 'from-the-parent-environment', SOME_API_KEY: 'unrelated-secret' },
+    logger: { warn: (w) => warnings.push(w) },
+    find: async () => fake,
+    spawnImpl: (command, args, options) => {
+      texts.push(fs.readFileSync(args[args.indexOf('--config') + 1], 'utf8'))
+      return base(command, args, options)
+    },
+    healthTimeoutMs: 50,
+    maxRestarts: 0,
+  })
+  managersOf.get(t).push(m)
+  return { m, warnings }
+}
+
+test('the manager hands the key of the file to the gateway in its environment, and nowhere else', async (t) => {
+  const dataDir = tempDir(t)
+  const planted = 'c0ffee'.repeat(10) + 'abcd' // 64 hexadecimal characters
+  assert.match(planted, /^[0-9a-f]{64}$/)
+  fs.writeFileSync(path.join(dataDir, IDENTITY_KEY_FILE), planted)
+  const spawned = []
+  const texts = []
+  const { m, warnings } = keyManager(t, dataDir, { spawned, texts })
+  m.start()
+  await m.ready()
+  assert.ok(spawned.length >= 1)
+  const { env } = spawned[0].options
+  assert.equal(env[IDENTITY_KEY_ENV], planted, 'the key of the file, not the one of the parent environment')
+  assert.equal(env.SOME_API_KEY, undefined, 'the scrubbed environment still drops every other KEY variable')
+  assert.equal(env[TOKEN_ENV].length >= 43, true)
+  assert.equal(scrubbedEnv({ [IDENTITY_KEY_ENV]: planted, PATH: 'x' })[IDENTITY_KEY_ENV], undefined, 'scrubbedEnv itself removes it: the manager adds it on purpose')
+  // Not in the configuration file, not in the log, not in a warning, not in what the manager shows.
+  for (const text of texts) assert.ok(!text.includes(planted), 'not in the configuration')
+  assert.ok(!fs.readFileSync(path.join(dataDir, 'gateway.log'), 'utf8').includes(planted), 'not in the log')
+  assert.deepEqual(warnings.filter((w) => w.includes(planted)), [])
+  assert.ok(!JSON.stringify({ endpoint: m.endpoint(), state: m.state(), pid: m.pid(), store: m.store(), python: m.python() }).includes(planted))
+  assert.equal(fs.readFileSync(path.join(dataDir, IDENTITY_KEY_FILE), 'utf8'), planted, 'the file was only read')
+})
+
+test('the manager creates the key file when it is missing and replaces a broken one with one warning that does not show it', async (t) => {
+  const created = tempDir(t)
+  const first = { spawned: [], texts: [] }
+  const a = keyManager(t, created, first)
+  a.m.start()
+  await a.m.ready()
+  const key = fs.readFileSync(path.join(created, IDENTITY_KEY_FILE), 'utf8')
+  assert.match(key, /^[0-9a-f]{64}$/)
+  assert.equal(first.spawned[0].options.env[IDENTITY_KEY_ENV], key)
+  assert.deepEqual(a.warnings.filter((w) => /identity key/.test(w)), [])
+
+  const broken = tempDir(t)
+  const bad = 'not a key but secret-looking text'
+  fs.writeFileSync(path.join(broken, IDENTITY_KEY_FILE), bad)
+  const second = { spawned: [], texts: [] }
+  const b = keyManager(t, broken, second)
+  b.m.start()
+  await b.m.ready()
+  const replaced = fs.readFileSync(path.join(broken, IDENTITY_KEY_FILE), 'utf8')
+  assert.match(replaced, /^[0-9a-f]{64}$/)
+  assert.equal(second.spawned[0].options.env[IDENTITY_KEY_ENV], replaced)
+  const notes = b.warnings.filter((w) => /identity key/.test(w))
+  assert.equal(notes.length, 1, 'one warning')
+  assert.match(notes[0], /\(malformed\)/)
+  assert.ok(!notes[0].includes(bad) && !notes[0].includes(replaced), 'the kind only')
+  assert.ok(!b.warnings.join('\n').includes(replaced))
+})
+
+const STORED = [
+  'import json, sqlite3, sys',
+  'db = sqlite3.connect(sys.argv[1], timeout=10)',
+  'rows = db.execute("SELECT text, speaker, about, channel, audience, origin, event_date, kind FROM memories ORDER BY text").fetchall()',
+  'print(json.dumps(rows))',
+  'db.close()',
+].join('\n')
+
+test('the real gateway takes the generated configuration: a write and a recall for the account work, the record keeps the owner and the origin', { skip, timeout: 60000 }, async (t) => {
+  const dataDir = tempDir(t)
+  const planted = 'fe'.repeat(32)
+  fs.writeFileSync(path.join(dataDir, IDENTITY_KEY_FILE), planted)
+  const { m, warnings } = manager(t, dataDir)
+  m.start()
+  assert.equal(await m.ready(), 'running')
+  const { url, token } = m.endpoint()
+  const client = createClient({ url, token, logger: { warn: (w) => warnings.push(w) } })
+  const text = 'The user keeps the spare key under the blue flowerpot'
+  // The client speaks for the owner only: a write or a recall without the account, or with another, is refused.
+  assert.equal(await client.rememberStatus(text), 'failed', 'no speaker')
+  assert.equal(await client.rememberStatus(text, { speaker: 'dsh:stranger' }), 'failed', 'an account nobody listed')
+  assert.equal(await client.rememberStatus(text, { speaker: 'aiocqhttp:10001' }), 'failed', 'a platform the client was not given')
+  assert.equal(await client.recallDetail('where is the spare key kept'), null, 'a recall without the account')
+  assert.equal(await client.recallDetail('where is the spare key kept', { speaker: 'dsh:stranger' }), null)
+  // The account the plugin reports.
+  assert.equal(await client.rememberStatus(text, { speaker: 'dsh:local', origin: 'tool', kind: 'event', eventDate: '2026-10-31' }), 'saved')
+  assert.equal(await client.rememberStatus('The user drinks oolong tea every morning', { speaker: 'dsh:local', origin: 'said' }), 'saved')
+  const detail = await client.recallDetail('where is the spare key kept', { speaker: 'dsh:local' })
+  assert.ok(detail?.results.some((r) => r.text.includes('blue flowerpot')), JSON.stringify(detail))
+  // The explained recall shows what each record carries.
+  const explained = await client.explainRecall('where is the spare key kept', { speaker: 'dsh:local' })
+  assert.equal(explained.ok, true, JSON.stringify(explained))
+  const row = explained.candidates.find((c) => c.text?.includes('blue flowerpot'))
+  assert.ok(row, JSON.stringify(explained.candidates))
+  assert.deepEqual([row.fields.speaker, row.fields.origin, row.fields.kind, row.fields.event_date], ['owner', 'tool', 'event', '2026-10-31'])
+  assert.equal(row.fields.audience, 'owner')
+  assert.ok(explained.stages.includes('record_audience'), explained.stages.join())
+  // The stored records: the speaker is the owner's name, the account itself is not kept.
+  const rows = JSON.parse(spawnSync(python.executable, ['-I', '-B', '-c', STORED, path.join(dataDir, 'memories.db')], { encoding: 'utf8', windowsHide: true }).stdout)
+  assert.equal(rows.length, 2)
+  assert.deepEqual(rows[1].slice(0, 2), ['The user keeps the spare key under the blue flowerpot', 'owner'])
+  assert.deepEqual([rows[1][5], rows[1][6], rows[1][7]], ['tool', '2026-10-31', 'event'])
+  assert.deepEqual([rows[0][1], rows[0][5]], ['owner', 'said'])
+  assert.ok(!JSON.stringify(rows).includes('dsh:local'), 'the account is not stored')
+  await m.stop()
+  // The key stays out of the log and the warnings, and the file is the one that was planted.
+  assert.ok(!fs.readFileSync(path.join(dataDir, 'gateway.log'), 'utf8').includes(planted))
+  assert.deepEqual(warnings.filter((w) => w.includes(planted)), [])
+  assert.equal(fs.readFileSync(path.join(dataDir, IDENTITY_KEY_FILE), 'utf8'), planted)
 })

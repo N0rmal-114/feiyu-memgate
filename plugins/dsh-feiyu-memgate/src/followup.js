@@ -5,7 +5,7 @@
 // stopLookups(). Logs name kinds of failure only, never a reply, a query or a memory.
 import { buildQuery } from './query.js'
 import * as pool from './pool.js'
-import { FORM_NOTICE, isObject, isSubagent, isUserOrigin, kindOf, REQUEST_CONTEXT, sessionIdOf, SOURCE_KIND, textOf, within } from './shared.js'
+import { FORM_NOTICE, isObject, isSubagent, isUserOrigin, kindOf, REQUEST_CONTEXT, sessionIdOf, SOURCE_KIND, speakerAccount, textOf, within } from './shared.js'
 
 /**
  * @param {object} deps
@@ -77,7 +77,7 @@ export function createFollowup({ chat, client, settings, formatter, log, isDispo
     const max = s.advanced.afterthoughtMax
     Promise.resolve()
       .then(async () => {
-        const detail = await within(c.recallDetail(query, { timeoutMs, signal, context: REQUEST_CONTEXT.followup }), timeoutMs + 250, signal)
+        const detail = await within(c.recallDetail(query, { timeoutMs, signal, context: REQUEST_CONTEXT.followup, speaker: speakerAccount(s.advanced) }), timeoutMs + 250, signal)
         if (signal.aborted) return
         if (!detail || !Array.isArray(detail.results)) {
           log.warn('feiyu-memgate: second lookup skipped (timeout)')

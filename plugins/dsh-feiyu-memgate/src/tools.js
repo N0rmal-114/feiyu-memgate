@@ -3,8 +3,9 @@
 // registers them when their switches are on. Domain outcomes are values, never errors, and every reply
 // says only what is known ("unsure" never reads as success). Logs name kinds of failure only, never a
 // memory, a query or a token.
+import { KINDS, validEventDate } from './client.js'
 import { codePointLength, pyStrip } from './query.js'
-import { kindOf, MAX_QUERY_CHARS, MAX_REMEMBER_CHARS, REQUEST_CONTEXT } from './shared.js'
+import { kindOf, MAX_QUERY_CHARS, MAX_REMEMBER_CHARS, REQUEST_CONTEXT, speakerAccount } from './shared.js'
 import { localTime } from './time.js'
 
 export const TOOL_REMEMBER = 'memgate_remember'
@@ -28,7 +29,32 @@ const SEARCH_STATUSES = ['found', 'none', 'unavailable', 'invalid']
 export function createTools({ settings, language, client, formatter, blockFormatter, blockOptions, clock, log, texts }) {
   const outcome = (status, text) => ({ status, text })
 
+  // The two optional arguments of advanced.toolFields. Model-facing text, English like the rest of the schema.
+  const FIELD_PARAMETERS = {
+    kind: {
+      type: 'string',
+      enum: KINDS,
+      description:
+        "Optional. What kind of fact this is: identity (who someone is), preference (what someone likes or avoids), event (something that happened), plan (something intended), entity (a person, pet, place or thing in the user's life). Leave it out when unsure.",
+    },
+    event_date: {
+      type: 'string',
+      description: 'Optional. The date the fact is about, as YYYY-MM-DD, when it is not today. Leave it out when unsure.',
+    },
+  }
+
   function rememberDefinition() {
+    const fields = settings().advanced.toolFields === true
+    const properties = {
+      text: {
+        type: 'string',
+        description:
+          'The fact to remember, as one short sentence that stands on its own: say who or what it is about instead of "he", "it", "this" or "there"; ' +
+          'write times as dates, not "tomorrow" or "last week"; if it replaces an earlier fact, say so, for example "From November 2026 the badminton class is on Thursdays, no longer on Tuesdays" ' +
+          `(at most ${MAX_REMEMBER_CHARS} characters).`,
+      },
+    }
+    if (fields) Object.assign(properties, structuredClone(FIELD_PARAMETERS))
     return {
       name: TOOL_REMEMBER,
       description:
@@ -40,15 +66,7 @@ export function createTools({ settings, language, client, formatter, blockFormat
       // The host validates nothing for a raw schema tool (docs/cookbook/adding-a-tool.md:43): execute() checks the arguments.
       parameters: {
         type: 'object',
-        properties: {
-          text: {
-            type: 'string',
-            description:
-              'The fact to remember, as one short sentence that stands on its own: say who or what it is about instead of "he", "it", "this" or "there"; ' +
-              'write times as dates, not "tomorrow" or "last week"; if it replaces an earlier fact, say so, for example "From November 2026 the badminton class is on Thursdays, no longer on Tuesdays" ' +
-              `(at most ${MAX_REMEMBER_CHARS} characters).`,
-          },
-        },
+        properties,
         required: ['text'],
         additionalProperties: false,
       },
@@ -72,7 +90,14 @@ export function createTools({ settings, language, client, formatter, blockFormat
           const c = client()
           if (!c) return outcome('unavailable', t.unavailable)
           // The memory is dated by the message's own time: the local time here, with its UTC offset.
-          const status = await c.rememberStatus(text, { signal: exec?.signal, time: localTime(clock()) ?? undefined, context: REQUEST_CONTEXT.tool })
+          const s = settings()
+          const opts = { signal: exec?.signal, time: localTime(clock()) ?? undefined, context: REQUEST_CONTEXT.tool, speaker: speakerAccount(s.advanced), origin: 'tool' }
+          // A kind or a date the model gave that is not valid is dropped; the memory is still stored.
+          if (s.advanced.toolFields === true) {
+            if (typeof args?.kind === 'string' && KINDS.includes(args.kind)) opts.kind = args.kind
+            if (validEventDate(args?.event_date)) opts.eventDate = args.event_date
+          }
+          const status = await c.rememberStatus(text, opts)
           return REMEMBER_STATUSES.includes(status) && status !== 'invalid' ? outcome(status, t[status]) : outcome('unsure', t.unsure)
         } catch (error) {
           // Something broke after the write may have been sent: say so, never claim success.
@@ -117,9 +142,9 @@ export function createTools({ settings, language, client, formatter, blockFormat
           const limit = Number.isInteger(args?.limit) && args.limit >= 1 && args.limit <= 10 ? args.limit : undefined
           const c = client(limit)
           if (!c) return outcome('unavailable', t.searchUnavailable)
-          const detail = await c.recallDetail(query, { signal: exec?.signal, context: REQUEST_CONTEXT.search })
-          if (!detail) return outcome('unavailable', t.searchUnavailable)
           const s = settings()
+          const detail = await c.recallDetail(query, { signal: exec?.signal, context: REQUEST_CONTEXT.search, speaker: speakerAccount(s.advanced) })
+          if (!detail) return outcome('unavailable', t.searchUnavailable)
           // Under advanced.blockTone 'bare' no sentence; 'strict' is about the current message, so a search keeps the usual one.
           const fmt = s.advanced.blockTone === 'bare' ? blockFormatter(s, lang) : formatter(lang)
           const block = fmt.format(detail.results, detail.more, blockOptions(s))

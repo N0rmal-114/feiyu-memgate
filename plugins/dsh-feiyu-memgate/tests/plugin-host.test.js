@@ -3,9 +3,11 @@
 // changing in place, going away) and the copy into a new vector store. Fakes only: no gateway process.
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { EventEmitter } from 'node:events'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { createGatewayManager } from '../src/gateway.js'
 import { ART_FILES, ART_PATH, CHANGELOG_PATH, MODELS_PATH, ROW_ID, STATUS_PATH, TRY_PATH, applyPlugin } from '../src/plugin.js'
 import { migrationStateFile } from '../src/migrate.js'
 import { EMBED_SERVICE, EMBEDDINGS_KEY_ENV, keywordIndexFile } from '../src/tiers.js'
@@ -433,7 +435,7 @@ test('the trial route: a good answer passes through with the limit, the built qu
   assert.equal(clients.calls.explain.length, 1)
   assert.equal(clients.calls.explain[0].query, 'What tea do I like in the morning?')
   assert.equal(clients.calls.explain[0].limit, 3, 'the client made for the recall limit setting')
-  assert.deepEqual(clients.calls.explain[0].opts, { context: { channel: 'dsh', via: 'trial' } })
+  assert.deepEqual(clients.calls.explain[0].opts, { context: { channel: 'dsh', via: 'trial' }, speaker: 'dsh:local' }, 'the label and the account')
   assert.equal(host.logs.length, 0, 'nothing about the query or the result is logged')
 })
 
@@ -778,4 +780,55 @@ test('the copy target keeps its store id, so its state file does not change when
   assert.equal(hybrid.id, plain.id)
   assert.equal(migrationStateFile(migrations[1].dataDir, hybrid.id), migrationStateFile(migrations[0].dataDir, plain.id))
   assert.equal(hybrid.mirror.keyword.path, keywordIndexFile(migrations[1].dataDir, plain.id))
+})
+
+test('the trial route asks with the speaker account of the settings, and with dsh:local when the setting is not an account', async () => {
+  for (const [speakerAccount, expected] of [['dsh:desk-2', 'dsh:desk-2'], ['desk-2', 'dsh:local'], ['', 'dsh:local']]) {
+    const { route, clients } = trialSetup({ handlers: { explain: async () => EXPLAINED }, values: { advanced: { language: 'en', speakerAccount } } })
+    const response = await ask(route, 'What tea do I like in the morning?')
+    assert.equal(response.status, 200)
+    assert.equal(clients.calls.explain[0].opts.speaker, expected)
+    assert.ok(!response.body.includes(expected), 'the account is not part of the answer')
+  }
+})
+
+test('the identity key of the managed gateway is in no route answer, no status and no log line of the plugin', async (t) => {
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-memgate-key-'))
+  t.after(() => fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }))
+  const planted = 'beef'.repeat(16)
+  fs.writeFileSync(path.join(dataDir, 'identity.key'), planted)
+  // The real manager over a fake interpreter and a gateway process that never answers: the key is read and handed over.
+  const handed = []
+  const spawnImpl = (command, args, options) => {
+    handed.push(options.env.FEIYU_MEMGATE_IDENTITY_KEY)
+    const child = new EventEmitter()
+    Object.assign(child, { exitCode: null, signalCode: null, pid: 0, unref() {}, kill() { child.exitCode = 0; setImmediate(() => child.emit('exit', 0)) } })
+    child.stdin = Object.assign(new EventEmitter(), { end() {}, write() {}, unref() {} })
+    child.stdout = Object.assign(new EventEmitter(), { unref() {} })
+    child.stderr = Object.assign(new EventEmitter(), { unref() {} })
+    return child
+  }
+  const { host, plugin } = setup({
+    services: ['webServer', 'commands'],
+    values: { gateway: { dataDir } },
+    deps: { createGatewayManager: (options) => createGatewayManager({ ...options, spawnImpl, healthTimeoutMs: 50, maxRestarts: 0 }) },
+  })
+  await plugin.settled()
+  await plugin.gateway().ready()
+  assert.equal(handed[0], planted, 'the gateway got the key')
+  const seen = []
+  seen.push(JSON.stringify(await plugin.status()))
+  seen.push(JSON.stringify(plugin.migration()))
+  for (const path of [STATUS_PATH, TRY_PATH, MODELS_PATH, CHANGELOG_PATH]) {
+    const route = host.routes.get(path)
+    for (const method of ['GET', 'POST']) {
+      const answer = await callRoute(route, { method, peer: OWNER, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query: 'What tea do I like in the morning?' }) })
+      seen.push(answer.body, JSON.stringify(answer.headers))
+    }
+  }
+  seen.push(JSON.stringify(await run(host, 'status')))
+  seen.push(host.logs.map((entry) => entry.text).join('\n'))
+  seen.push(fs.readFileSync(path.join(dataDir, 'gateway.log'), 'utf8'))
+  for (const text of seen) assert.ok(!String(text).includes(planted), 'the key is nowhere')
+  await plugin.gateway().stop()
 })

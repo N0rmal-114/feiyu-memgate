@@ -26,6 +26,7 @@ function TrialRow(props) {
     h('div', { className: 'fmg-trial__facts' },
       row.date ? h('span', null, row.date) : null,
       h('span', null, scores),
+      row.facts.map((fact) => h('span', { key: fact.key }, t(fact.key, fact.values))),
       left ? h(Tag, null, t('trial.leftOut')) : h(Tag, { tone: 'ok' }, t('trial.delivered')),
       row.reason ? h('span', { className: 'fmg-trial__reason' }, t(row.reason.key, row.reason.values)) : null,
       row.linked ? h(Tag, { tone: 'sea' }, t('trial.linked')) : null))

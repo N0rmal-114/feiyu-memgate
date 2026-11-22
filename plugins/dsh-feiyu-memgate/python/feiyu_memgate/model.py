@@ -1,5 +1,6 @@
 """The small data shapes that pieces hand to each other. Standard library only."""
 import collections.abc
+import datetime
 import re
 import unicodedata
 from dataclasses import dataclass, field
@@ -50,6 +51,67 @@ def valid_account(value):
 def platform_of(account):
     """The platform part of an account (the text before the first ":")."""
     return account.partition(":")[0]
+
+
+# The optional keys of a message in a remember request that become record fields of the memory. One rule
+# for each, used by the gateway (gateway.validate) and by the clients, so that they cannot disagree.
+REQUEST_FIELDS = ("channel", "origin", "event_date", "kind", "audience")
+_CHANNEL = re.compile(r"[a-z0-9][a-z0-9_.:-]{0,63}")
+_DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
+
+
+def valid_channel(value):
+    """True when `value` is a channel name: lower-case letters, digits and _ . : -, at most 64 characters."""
+    return isinstance(value, str) and _CHANNEL.fullmatch(value) is not None
+
+
+def valid_event_date(value):
+    """True when `value` is a real calendar date written YYYY-MM-DD and nothing else."""
+    if not isinstance(value, str) or _DATE.fullmatch(value) is None:
+        return False
+    try:
+        datetime.date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
+
+
+def valid_request_field(key, value):
+    """True when `value` is a valid value of the request key `key` (one of REQUEST_FIELDS)."""
+    if key == "channel":
+        return valid_channel(value)
+    if key == "event_date":
+        return valid_event_date(value)
+    choices = {"origin": ORIGINS, "kind": KINDS, "audience": AUDIENCES}[key]
+    return isinstance(value, str) and value in choices
+
+
+MAX_HISTORY = 6          # recent turns a recall request may carry
+MAX_HISTORY_CHARS = 500  # characters in one turn
+HISTORY_ROLES = ("user", "assistant")
+
+
+def clean_history(value):
+    """The "history" of a recall request as a new list of {"role", "content"} dicts, or None when it breaks the
+    rules. None (the key absent or null) is no history: []. Otherwise a list of at most MAX_HISTORY items, each an
+    object whose "role" is "user" or "assistant" and whose "content" is a string of 1 to MAX_HISTORY_CHARS
+    characters that is not blank; other keys of an item are dropped. One definition, used by the gateway and by
+    the clients, so that they cannot disagree."""
+    if value is None:
+        return []
+    if not isinstance(value, list) or len(value) > MAX_HISTORY:
+        return None
+    clean = []
+    for item in value:
+        if not isinstance(item, dict):
+            return None
+        role, content = item.get("role"), item.get("content")
+        if not isinstance(role, str) or role not in HISTORY_ROLES:
+            return None
+        if not isinstance(content, str) or not content.strip() or len(content) > MAX_HISTORY_CHARS:
+            return None
+        clean.append({"role": role, "content": content})
+    return clean
 
 
 def clean_fields(fields):

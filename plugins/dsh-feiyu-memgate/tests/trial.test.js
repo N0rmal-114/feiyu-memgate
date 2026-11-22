@@ -41,13 +41,27 @@ const ANSWER = {
   more: 2, failed: 0, busy: 0, cut: false, limit: 5,
 }
 
+// Rows that carry what the record holds: every text of the facts appears at least once.
+const FIELD_ANSWER = {
+  ok: true,
+  stages: [],
+  candidates: [
+    cand('p', 'delivered', 0.7, 0.7, { text: 'p', fields: { speaker: 'owner', about: 'amy', channel: 'dsh', origin: 'said', kind: 'identity', event_date: '2026-10-20', audience: 'owner' } }),
+    cand('q', 'delivered', 0.6, 0.6, { text: 'q', fields: { origin: 'tool', kind: 'preference' } }),
+    cand('r', 'delivered', 0.5, 0.5, { text: 'r', fields: { origin: 'curated', kind: 'event' } }),
+    cand('s', 'delivered', 0.4, 0.4, { text: 's', fields: { origin: 'derived', kind: 'plan' } }),
+    cand('t', 'delivered', 0.3, 0.3, { text: 't', fields: { kind: 'entity' } }),
+  ],
+  more: 0, failed: 0, busy: 0, cut: false, limit: 5,
+}
+
 // ------------------------------------------------------------------ model/trial.cjs
 
 test('rows(): every candidate in the order given, with its text, date, score, tags and reason', () => {
   const list = plain(trial.rows(ANSWER))
   assert.equal(list.length, ANSWER.candidates.length)
   assert.deepEqual(list.map((row) => row.key), ANSWER.candidates.map((c, index) => 'memories:' + c.id + ':' + index))
-  assert.deepEqual(list[0], { key: 'memories:a:0', text: 'Drinks oolong', cut: false, date: '2026-11-01', found: 0.612, score: 0.58, moved: true, delivered: true, linked: false, reason: null })
+  assert.deepEqual(list[0], { key: 'memories:a:0', text: 'Drinks oolong', cut: false, date: '2026-11-01', found: 0.612, score: 0.58, moved: true, delivered: true, linked: false, reason: null, facts: [] })
   assert.equal(list[1].linked, true)
   assert.equal(list[1].moved, false)
   assert.deepEqual([list[2].text, list[2].cut, list[2].date], ['x', true, null])
@@ -66,6 +80,30 @@ test('rows(): every candidate in the order given, with its text, date, score, ta
     { key: 'trial.reason.over_limit', values: { limit: 5 } },
     { key: 'trial.reason.not_reached', values: {} },
   ])
+})
+
+test('rows(): facts lists what the record carries, in a fixed order, without the audience and without what the page has no word for', () => {
+  const list = plain(trial.rows(FIELD_ANSWER))
+  assert.deepEqual(list[0].facts, [
+    { key: 'trial.field.speaker', values: { who: 'owner' } },
+    { key: 'trial.field.about', values: { who: 'amy' } },
+    { key: 'trial.field.channel', values: { channel: 'dsh' } },
+    { key: 'trial.origin.said', values: {} },
+    { key: 'trial.kind.identity', values: {} },
+    { key: 'trial.field.eventDate', values: { date: '2026-10-20' } },
+  ])
+  assert.deepEqual(list.slice(1).map((row) => row.facts.map((fact) => fact.key)), [
+    ['trial.origin.tool', 'trial.kind.preference'],
+    ['trial.origin.curated', 'trial.kind.event'],
+    ['trial.origin.derived', 'trial.kind.plan'],
+    ['trial.kind.entity'],
+  ])
+  const odd = (fields) => trial.rows({ candidates: [cand('z', 'delivered', 1, 1, { fields })] })[0].facts
+  assert.deepEqual(odd({ audience: 'owner' }), [], 'the audience is not shown')
+  assert.deepEqual(odd({ origin: 'guessed', kind: 'rumour', speaker: '', channel: 7 }), [], 'an unknown origin or kind, an empty or odd value is left out')
+  assert.deepEqual(odd(undefined), [])
+  assert.deepEqual(odd(null), [])
+  assert.deepEqual(odd('owner'), [])
 })
 
 test('rows(): a score counts as moved from 0.005 on, and the same key never repeats', () => {
@@ -241,6 +279,19 @@ test('TrialPanel: each failure code shows its message, in both languages', () =>
   }
 })
 
+test('TrialPanel: the facts of a record are plain spans in its facts line, after the score and before the tags', () => {
+  for (const lang of LANGS) {
+    const { tree, t } = renderPanel({ lang, text: 'tea', saved: done(FIELD_ANSWER) })
+    const rows = withClass(tree, 'fmg-trial__row')
+    assert.equal(rows.length, 5)
+    const line = withClass(rows[0], 'fmg-trial__facts')[0]
+    const spans = line.props.children.flat(Infinity).filter((node) => node && node.type === 'span' && !node.props.className)
+    assert.deepEqual(spans.map(textOf), ['0.70', t('trial.field.speaker', { who: 'owner' }), t('trial.field.about', { who: 'amy' }), t('trial.field.channel', { channel: 'dsh' }), t('trial.origin.said'), t('trial.kind.identity'), t('trial.field.eventDate', { date: '2026-10-20' })])
+    assert.equal(withClass(line, 'fmg-tag').length, 1, 'the tags stay after the facts')
+    assert.deepEqual(withClass(rows[4], 'fmg-trial__facts').map(textOf).map((text) => text.includes(t('trial.kind.entity'))), [true])
+  }
+})
+
 test('TrialPanel: a good answer shows the summary, every row with its tags and reason, and the note', () => {
   for (const lang of LANGS) {
     const { tree, t } = renderPanel({ lang, text: 'tea', saved: done(ANSWER) })
@@ -306,12 +357,12 @@ test('TrialPanel: no candidates says so instead of the summary and the rows; the
 test('the texts: both languages say the same thing, with the same placeholders, and match the specification', () => {
   const dict = plain(shared.internals.dictionaries())
   const keys = Object.keys(dict.en).filter((key) => key.startsWith('trial.'))
-  assert.equal(keys.length, 29)
+  assert.equal(keys.length, 42)
   for (const key of keys) {
     assert.ok(key in dict.zh, key)
     assert.deepEqual([...dict.zh[key].matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort(), [...dict.en[key].matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort(), `${key}: placeholders`)
   }
-  assert.equal(Object.keys(dict.zh).filter((key) => key.startsWith('trial.')).length, 29)
+  assert.equal(Object.keys(dict.zh).filter((key) => key.startsWith('trial.')).length, 42)
   assert.equal(dict.zh['trial.run'], '试一下')
   assert.equal(dict.en['trial.run'], 'Try')
   assert.equal(dict.zh['trial.reason.over_limit'], '超过每次最多 {limit} 条')
@@ -319,6 +370,11 @@ test('the texts: both languages say the same thing, with the same placeholders, 
   // The keys the model and the view ask for are all there.
   const asked = new Set(['trial.intro', 'trial.placeholder', 'trial.inputLabel', 'trial.run', 'trial.busy', 'trial.summary', 'trial.none', 'trial.note', 'trial.partial', 'trial.delivered', 'trial.leftOut', 'trial.linked', 'trial.noText'])
   for (const row of trial.rows(ANSWER)) if (row.reason) asked.add(row.reason.key)
+  for (const row of trial.rows(FIELD_ANSWER)) for (const fact of row.facts) asked.add(fact.key)
+  assert.equal(dict.en['trial.field.speaker'], 'Said by {who}')
+  assert.equal(dict.zh['trial.field.speaker'], '{who} 说的')
+  assert.equal(dict.zh['trial.origin.curated'], '所有者写的')
+  assert.equal(dict.en['trial.kind.entity'], 'Entity')
   for (const code of ['unavailable', 'unsupported', 'no-recall', 'failed', 'network']) asked.add(trial.errorKey(code))
   assert.deepEqual([...asked].sort(), keys.sort())
 })
@@ -396,6 +452,9 @@ test('the preview answers every trial mode, and the found answer shows every kin
   const kinds = new Set(list.map((row) => row.reason && row.reason.key))
   for (const key of ['trial.reason.min_score', 'trial.reason.relative_score', 'trial.reason.dedupe', 'trial.reason.budget', 'trial.reason.over_limit']) assert.ok(kinds.has(key), key)
   for (const row of list) if (row.text !== null) assert.ok(Array.from(row.text).length <= 300)
+  // The sample rows carry fields so that every text of the facts shows once.
+  const shown = new Set(list.flatMap((row) => row.facts.map((fact) => fact.key)))
+  for (const key of Object.keys(plain(shared.internals.dictionaries()).en).filter((id) => /^trial\.(field|origin|kind)\./.test(id))) assert.ok(shown.has(key), key)
   for (const lang of LANGS) {
     const { tree } = renderPanel({ lang, saved: done(found) })
     assert.equal(withClass(tree, 'fmg-trial__row').length, found.candidates.length)

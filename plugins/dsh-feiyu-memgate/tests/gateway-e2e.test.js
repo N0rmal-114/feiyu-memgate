@@ -12,7 +12,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { createClient } from '../src/client.js'
 import { readConfig } from '../src/config.js'
-import { TOKEN_ENV, gatewayConfig, runMirror } from '../src/gateway.js'
+import { IDENTITY_KEY_ENV, TOKEN_ENV, gatewayConfig, runMirror } from '../src/gateway.js'
 
 // Helper processes are unref'd on purpose (they must never keep a host alive). In a test file nothing else
 // holds the event loop open while one is awaited, and Node 22 then ends the file with "Promise resolution
@@ -170,7 +170,7 @@ test('real gateway, hybrid endpoint store: both files hold the same refs, recall
   fs.writeFileSync(configPath, text)
   const code = `import sys; sys.path.insert(0, ${JSON.stringify(path.resolve(SRC))}); from feiyu_memgate.cli import main; sys.exit(main())`
   const child = spawn(PYTHON, ['-I', '-B', '-c', code, 'serve', '--config', configPath], {
-    env: { ...process.env, ...env, [TOKEN_ENV]: TOKEN, PYTHONIOENCODING: 'utf-8' },
+    env: { ...process.env, ...env, [TOKEN_ENV]: TOKEN, [IDENTITY_KEY_ENV]: 'cd'.repeat(32), PYTHONIOENCODING: 'utf-8' },
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
   })
@@ -197,10 +197,12 @@ test('real gateway, hybrid endpoint store: both files hold the same refs, recall
       'The user drinks oolong tea every morning',
       'The user parks the bicycle in the courtyard shed',
     ]
-    for (const memory of memories) assert.equal(await client.rememberStatus(memory), 'saved', memory)
+    // The generated configuration lets this client speak for the owner only: every call names the account.
+    const speaker = { speaker: 'dsh:local' }
+    for (const memory of memories) assert.equal(await client.rememberStatus(memory, speaker), 'saved', memory)
     const recall = async (query) => {
       for (let i = 0; i < 40; i++) {
-        const detail = await client.recallDetail(query)
+        const detail = await client.recallDetail(query, speaker)
         if (detail?.results.length) return detail.results.map((r) => r.text)
         await sleep(250)
       }
