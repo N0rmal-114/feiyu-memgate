@@ -1,0 +1,25 @@
+{
+  "id": "one-person-two-hosts",
+  "title": "同一个人在两个宿主上是同一个人：一边存、另一边召回，入库只记一个名字",
+  "checks": ["raw_account_gone"],
+  "setup": {
+    "people": {"owner": {"owner": true, "accounts": ["dsh:local", "aiocqhttp:10001"]}},
+    "stores": {"private": {"audience": "owner"}},
+    "clients": {
+      "dsh_bot": {"recall": ["private"], "write": "private", "platforms": ["dsh"], "only_for": ["owner"], "fields": ["speaker"]},
+      "chat_bot": {"recall": ["private"], "write": "private", "platforms": ["aiocqhttp"], "only_for": ["owner"], "fields": ["speaker"]}
+    }
+  },
+  "steps": [
+    {"do": "remember", "client": "dsh_bot", "as": "dsh:local", "text": "Owner drinks oolong tea after dinner"},
+    {"do": "remember", "client": "chat_bot", "as": "aiocqhttp:10001", "text": "Owner reads detective novels at the weekend"},
+    {"do": "recall", "client": "chat_bot", "as": "aiocqhttp:10001", "query": "Owner drinks oolong tea after dinner",
+     "present": ["oolong tea"], "fields": {"oolong tea": {"speaker": "owner"}},
+     "why": "DSH 上存的记忆，QQ 一侧必须召回得到，记录的说话人是 owner"},
+    {"do": "recall", "client": "dsh_bot", "as": "dsh:local", "query": "Owner reads detective novels at the weekend",
+     "present": ["detective novels"], "fields": {"detective novels": {"speaker": "owner"}},
+     "why": "QQ 上存的记忆，DSH 一侧必须召回得到，记录的说话人是 owner"},
+    {"do": "files", "lack": ["dsh:local", "aiocqhttp:10001"], "have": ["owner"],
+     "why": "存储文件里只有人名 owner，两个原始账号都不许出现"}
+  ]
+}

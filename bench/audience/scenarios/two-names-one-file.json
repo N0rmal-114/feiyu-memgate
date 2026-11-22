@@ -1,0 +1,24 @@
+{
+  "id": "two-names-one-file",
+  "title": "同一个文件配了两个存储名，一个主人级、一个公开，公开的名字读不到主人的记忆",
+  "checks": ["record_rule", "stamp_at_write"],
+  "setup": {
+    "stores": {"private": {"audience": "owner"}},
+    "clients": {
+      "owner_bot": {"recall": ["private"], "write": "private"}
+    }
+  },
+  "steps": [
+    {"do": "remember", "client": "owner_bot", "text": "Owner's cat Mochi sleeps on the green cushion"},
+    {"do": "reconfigure",
+     "patch": {"stores": {"window": {"file": "private", "audience": "public"}},
+               "clients": {"public_bot": {"recall": ["window"], "write": "window", "audience": "public"}}}},
+    {"do": "remember", "client": "public_bot", "text": "The harbour market opens at nine on Sundays"},
+    {"do": "recall", "client": "public_bot", "query": "The harbour market opens at nine on Sundays",
+     "present": ["harbour market"], "why": "公开名字读得到经它写入、带公开受众的记忆"},
+    {"do": "recall", "client": "public_bot", "query": "Owner's cat Mochi sleeps on the green cushion",
+     "absent": ["Mochi"], "why": "同一个文件里主人级的记忆，从公开的存储名读不到"},
+    {"do": "recall", "client": "owner_bot", "query": "Owner's cat Mochi sleeps on the green cushion",
+     "present": ["Mochi"], "why": "主人从主人级的存储名读得到这条记忆"}
+  ]
+}

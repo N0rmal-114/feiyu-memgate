@@ -46,6 +46,8 @@
 
 ### 新增
 
+- 召回和解释的请求多了可选的 `history`：最近几轮对话，最多 6 项，每项 `{"role": "user" 或 "assistant", "content": 1 到 500 字、不能是空白}`，项里别的键丢掉；不合规 400，新的稳定码 `bad_history`；`null` 或不写等于没有。它作为 `RecallContext.history`（`{"role", "content"}` 字典的列表，没带时是 `[]`）交给召回步骤，不交给别的任何东西：自带的步骤都不读它，网关不存它、不写进日志，所以回答和带不带它无关；它只是给自己写的步骤的入口，自带的行为没有变。`MemoryClient` 和 `LocalClient` 的 `recall_detail`、`recall`、`explain` 多了只能按名字传的 `history=None`，给了才发送，不合规的不发送、和超长的查询词一样失败。说明见 docs/api.md。
+- 受众隔离场景 `bench/audience/`：十五个 JSON 场景（主人的私聊记忆和群、公开客户端，一个群和另一个群，客户端报了别的平台的账号，限定只替主人说话，同一个人在两个宿主上，复制的存储文件，同一个文件两个存储名，没有受众的记录和旧版本写法的行，遗忘后恢复，解释召回，答案里的字段，替身码，消息要求更窄的受众），不用模型，用真的网关和 SQLite 文件核对；`python -B bench/audience/run.py` 运行（`--json FILE` 写出结果）。`tests/test_bench_audience.py` 跑全部场景，并把十项保护逐个关掉，要求相应的场景失败；`linked` 接上来的记忆的受众检查写成同一个文件里的普通测试。说明见 `bench/audience/README.md` 和 docs/security.md。
 - **网关认识人了：`[identity]` 身份表。** 宿主报告说话人用账号 `<平台>:<编号>`（`aiocqhttp:10001`）；`[identity]` 的 `type = "table"` 是一张人和账号的表（`[identity.people.<名字>]` 里写 `owner = true` 和 `accounts = [...]`，整张表正好一个主人），所有宿主来问得到同一个答案。有了它，写入消息的 `speaker` 和新的 `about` 必须是账号，网关在写入守卫和脱敏之前把它们换成人名，没登记的账号换成 `anon:` 加 16 位十六进制的替身码（密钥来自 `hash_key_env`，按存储名分开）；换算后的 `speaker`、`about` 进记忆的字段，原来的账号不进守卫、存储和日志。角色是 `assistant` 的消息，说话人一律是 `self`。没有 `[identity]` 时，`speaker` 照旧，`about` 检查后丢掉，已有的行为和回答都不变。
 - 客户端多了 `platforms`（可以报哪些平台的账号，不写就一个账号都报不了）和 `only_for`（只替表里这几个人说话）：越过的请求整个 403 `forbidden`；`about` 说的是别人，只有受众是 `owner` 的客户端可以。没有 `[identity]` 时写这两项启动报错。`ClientPolicy` 多了 `platforms`、`only_for` 两个字段（排在最后），`Gateway` 多了 `identity=`，召回步骤的 `RecallContext` 多了 `person`。
 - `POST /v1/recall` 和 `POST /v1/explain` 多了可选的 `speaker`（账号）：不是账号 400，新的稳定码 `bad_speaker`；平台和 `only_for` 的规则同写入。换算后的值是 `RecallContext.person`，自带的步骤都不用它。`POST /v1/used` 不带 `speaker`，不受 `only_for` 管。

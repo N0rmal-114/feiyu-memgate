@@ -1,0 +1,37 @@
+{
+  "id": "fields-in-answers",
+  "title": "群客户端的答案里带的字段只有类别和渠道，从来没有人名或账号；要求带说话人的配置起不来",
+  "checks": ["names_owner_only"],
+  "setup": {
+    "people": {
+      "owner": {"owner": true, "accounts": ["aiocqhttp:10001"]},
+      "amy": {"accounts": ["aiocqhttp:20002"]}
+    },
+    "stores": {},
+    "tenants": {"group": {"audience": "group", "ids": ["50001"]}},
+    "clients": {
+      "group_bot": {"tenants": "group", "recall": ["@tenant"], "write": "@tenant", "audience": "group",
+                    "platforms": ["aiocqhttp"], "fields": ["kind", "channel"]}
+    }
+  },
+  "steps": [
+    {"do": "remember", "client": "group_bot", "tenant_id": "50001", "as": "aiocqhttp:20002",
+     "text": "The group booked the pottery class for Sunday afternoon", "keys": {"kind": "event", "channel": "qq"}},
+    {"do": "remember", "client": "group_bot", "tenant_id": "50001", "as": "aiocqhttp:30003",
+     "text": "The group will bring paper lanterns to the lake", "keys": {"kind": "plan", "channel": "qq"}},
+    {"do": "recall", "client": "group_bot", "tenant_id": "50001", "as": "aiocqhttp:20002",
+     "query": "The group booked the pottery class for Sunday afternoon",
+     "present": ["pottery class"], "fields": {"pottery class": {"kind": "event", "channel": "qq"}},
+     "never": ["amy", "Amy", "20002", "aiocqhttp", "anon:", "speaker"],
+     "why": "群客户端的答案只带它配置的字段 kind 和 channel，里面不许有人名、账号或替身码"},
+    {"do": "recall", "client": "group_bot", "tenant_id": "50001", "as": "aiocqhttp:30003",
+     "query": "The group will bring paper lanterns to the lake",
+     "present": ["paper lanterns"], "fields": {"paper lanterns": {"kind": "plan", "channel": "qq"}},
+     "never": ["30003", "aiocqhttp", "anon:", "speaker"],
+     "why": "没登记过的人说的话，答案里同样只有 kind 和 channel"},
+    {"do": "reconfigure", "patch": {"clients": {"group_bot": {"fields": ["kind", "speaker"]}}}, "refuse": "clients.group_bot.fields",
+     "why": "给群客户端配 speaker 字段，网关必须拒绝启动：只有主人级的客户端看得到说话人"},
+    {"do": "reconfigure", "patch": {"clients": {"group_bot": {"fields": ["about"]}}}, "refuse": "clients.group_bot.fields",
+     "why": "给群客户端配 about 字段，网关必须拒绝启动：只有主人级的客户端看得到谈论的对象"}
+  ]
+}

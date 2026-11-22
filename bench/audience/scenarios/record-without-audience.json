@@ -1,0 +1,26 @@
+{
+  "id": "record-without-audience",
+  "title": "直接放进公开存储、没有受众的记录，公开客户端看不到，重新打标记之后才看得到",
+  "checks": ["unstamped_is_owner", "record_rule", "stamp_at_write"],
+  "setup": {
+    "stores": {"board": {"audience": "public"}},
+    "clients": {
+      "owner_bot": {"recall": ["board"], "write": "board"},
+      "public_bot": {"recall": ["board"], "write": "board", "audience": "public"}
+    }
+  },
+  "steps": [
+    {"do": "remember", "client": "public_bot", "text": "The ferry timetable changes in May"},
+    {"do": "put_raw", "store": "board", "how": "direct", "text": "A paper kite is stuck in the old plane tree"},
+    {"do": "recall", "client": "public_bot", "query": "The ferry timetable changes in May",
+     "present": ["ferry timetable"], "why": "经网关写入的记忆带着存储的受众，公开客户端读得到"},
+    {"do": "recall", "client": "public_bot", "query": "A paper kite is stuck in the old plane tree",
+     "absent": ["paper kite"], "why": "没有受众的记录按主人级算，公开客户端看不到"},
+    {"do": "recall", "client": "owner_bot", "query": "A paper kite is stuck in the old plane tree",
+     "present": ["paper kite"], "why": "主人级的客户端看得到没有受众的记录"},
+    {"do": "restamp", "store": "board", "mode": "missing", "changed": 1,
+     "why": "restamp --missing 只给没有受众的那一条打上公开"},
+    {"do": "recall", "client": "public_bot", "query": "A paper kite is stuck in the old plane tree",
+     "present": ["paper kite"], "why": "打上公开之后，公开客户端看得到这条记录"}
+  ]
+}

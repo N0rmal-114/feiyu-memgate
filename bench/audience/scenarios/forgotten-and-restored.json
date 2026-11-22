@@ -1,0 +1,27 @@
+{
+  "id": "forgotten-and-restored",
+  "title": "被遗忘又恢复的记忆受众不变：群级的仍给本群看，主人级的仍然不给群看",
+  "checks": ["record_rule", "stamp_at_write"],
+  "setup": {
+    "stores": {},
+    "tenants": {"group": {"audience": "group", "ids": ["50001"]}},
+    "clients": {
+      "group_bot": {"tenants": "group", "recall": ["@tenant"], "write": "@tenant", "audience": "group"},
+      "admin_bot": {"tenants": "group", "recall": ["@tenant"]}
+    }
+  },
+  "steps": [
+    {"do": "remember", "client": "group_bot", "tenant_id": "50001", "text": "The group fixes bicycles at the shed on Saturday mornings"},
+    {"do": "remember", "client": "group_bot", "tenant_id": "50001", "text": "The shed was lent to the owner for the spring fair",
+     "keys": {"audience": "owner"}},
+    {"do": "forget_restore", "store": "group", "tenant_id": "50001",
+     "texts": ["The group fixes bicycles at the shed on Saturday mornings", "The shed was lent to the owner for the spring fair"],
+     "why": "遗忘服务先把两条记忆归档并从存储里删掉，再逐条恢复"},
+    {"do": "recall", "client": "group_bot", "tenant_id": "50001", "query": "The group fixes bicycles at the shed on Saturday mornings",
+     "present": ["fixes bicycles"], "why": "恢复后的群级记忆仍然给本群看（归档带着它的受众）"},
+    {"do": "recall", "client": "group_bot", "tenant_id": "50001", "query": "The shed was lent to the owner for the spring fair",
+     "absent": ["lent to the owner"], "why": "恢复后的主人级记忆仍然不给群看，不能因为恢复而变宽"},
+    {"do": "recall", "client": "admin_bot", "tenant_id": "50001", "query": "The shed was lent to the owner for the spring fair",
+     "present": ["lent to the owner"], "why": "主人级的客户端读得到恢复后的这条记忆"}
+  ]
+}

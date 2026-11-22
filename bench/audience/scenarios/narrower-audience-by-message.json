@@ -1,0 +1,26 @@
+{
+  "id": "narrower-audience-by-message",
+  "title": "消息要求的受众比存储窄时，这条记录只给主人，群里看不到",
+  "checks": ["record_rule", "stamp_at_write"],
+  "setup": {
+    "stores": {"club": {"audience": "group"}},
+    "clients": {
+      "owner_bot": {"recall": ["club"]},
+      "club_bot": {"recall": ["club"], "write": "club", "audience": "group"}
+    }
+  },
+  "steps": [
+    {"do": "remember", "client": "club_bot", "text": "The club lends the old projector on Wednesdays"},
+    {"do": "remember", "client": "club_bot", "text": "The club set aside a quiet corner for the owner's cat",
+     "keys": {"audience": "owner"}},
+    {"do": "remember", "client": "club_bot", "text": "The club announces a bake sale to everyone", "keys": {"audience": "public"}, "status": 400,
+     "why": "消息要求的受众比存储宽（公开），必须被拒绝（400），不能借此把群里的话放宽"},
+    {"do": "recall", "client": "club_bot", "query": "The club lends the old projector on Wednesdays",
+     "present": ["old projector"], "why": "没有指定受众的消息带着存储的群级受众，群客户端读得到"},
+    {"do": "recall", "client": "club_bot", "query": "The club set aside a quiet corner for the owner's cat",
+     "absent": ["quiet corner"], "why": "消息要求了主人级，这条记录只给主人，群客户端看不到"},
+    {"do": "recall", "client": "owner_bot", "query": "The club set aside a quiet corner for the owner's cat",
+     "present": ["quiet corner"], "why": "主人级的客户端读得到这条记录"},
+    {"do": "files", "lack": ["bake sale"], "have": ["quiet corner"], "why": "被拒绝的那句话没有存进任何存储文件"}
+  ]
+}

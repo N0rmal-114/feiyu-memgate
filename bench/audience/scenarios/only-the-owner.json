@@ -1,0 +1,34 @@
+{
+  "id": "only-the-owner",
+  "title": "限定只替主人说话的客户端，别人来说话整个请求被拒绝，什么也不存",
+  "checks": ["only_for"],
+  "setup": {
+    "people": {
+      "owner": {"owner": true, "accounts": ["aiocqhttp:10001"]},
+      "amy": {"accounts": ["aiocqhttp:20002"]}
+    },
+    "stores": {"private": {"audience": "owner"}},
+    "clients": {
+      "chat_owner": {"recall": ["private"], "write": "private", "platforms": ["aiocqhttp"], "only_for": ["owner"]}
+    }
+  },
+  "steps": [
+    {"do": "remember", "client": "chat_owner", "as": "aiocqhttp:10001", "text": "Owner keeps a spare key in the ceramic frog"},
+    {"do": "remember", "client": "chat_owner", "as": "aiocqhttp:20002", "text": "Amy says the yellow bicycle needs a new bell", "status": 403,
+     "why": "身份表里的另一个人通过只替主人说话的客户端写入，必须被拒绝（403）"},
+    {"do": "remember", "client": "chat_owner", "as": "aiocqhttp:30003", "text": "A stranger says the red kettle is loud", "status": 403,
+     "why": "身份表里没有的陌生人写入，必须被拒绝（403）"},
+    {"do": "remember", "client": "chat_owner", "text": "Nobody says the grey door squeaks", "status": 403,
+     "why": "不报说话人的请求也必须被拒绝：这个客户端只替主人说话"},
+    {"do": "recall", "client": "chat_owner", "as": "aiocqhttp:20002", "query": "yellow bicycle bell", "status": 403,
+     "why": "身份表里的另一个人用这个客户端召回，必须被拒绝（403）"},
+    {"do": "recall", "client": "chat_owner", "as": "aiocqhttp:30003", "query": "red kettle", "status": 403,
+     "why": "陌生人用这个客户端召回，必须被拒绝（403）"},
+    {"do": "recall", "client": "chat_owner", "query": "grey door", "status": 403,
+     "why": "不报说话人的召回也必须被拒绝（403）"},
+    {"do": "recall", "client": "chat_owner", "as": "aiocqhttp:10001", "query": "Owner keeps a spare key in the ceramic frog",
+     "present": ["spare key"], "why": "主人自己通过这个客户端写入和召回都被放行"},
+    {"do": "files", "lack": ["yellow bicycle", "red kettle", "grey door"], "have": ["spare key"],
+     "why": "被拒绝的三句话不许落进任何存储文件"}
+  ]
+}

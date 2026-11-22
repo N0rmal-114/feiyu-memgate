@@ -9,6 +9,7 @@ Standard library only.
 import math
 
 from ..model import REQUEST_FIELDS, valid_account, valid_channel  # noqa: F401 - re-exported for gateway.fields
+from ..model import clean_history as _valid_history  # noqa: F401 - the one rule of "history", also used by the clients
 from ..model import valid_request_field as _valid_field
 
 MAX_QUERY_CHARS = 500

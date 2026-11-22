@@ -43,7 +43,7 @@ from .tokens import (  # noqa: F401
 from .validate import (  # noqa: F401
     MAX_CONTEXT_KEYS, MAX_CONTEXT_KEY_CHARS, MAX_CONTEXT_VALUE_CHARS, MAX_MESSAGE_CHARS, MAX_MESSAGES,
     MAX_QUERY_CHARS, MAX_SPEAKER_CHARS, MAX_TIME_CHARS, MAX_TOTAL_CHARS, MAX_USED, MAX_USED_ID_CHARS,
-    MAX_USED_SOURCE_CHARS, _BadMessages, _check_shape, _valid_context, _valid_messages, _valid_used)
+    MAX_USED_SOURCE_CHARS, _BadMessages, _check_shape, _valid_context, _valid_history, _valid_messages, _valid_used)
 
 DEFAULT_LIMIT = 5
 MAX_LIMIT = 10
@@ -465,6 +465,9 @@ class Gateway:
         context = _valid_context(body.get("context"))
         if context is None:
             return error_reply(400, "bad_context", "bad context")
+        history = _valid_history(body.get("history"))
+        if history is None:
+            return error_reply(400, "bad_history", "bad history")
         person = None
         if self.identity is not None:
             person = self._asker(policy, tenant_id, body)
@@ -476,7 +479,7 @@ class Gateway:
             return error_reply(503, "busy", "busy", "tenant-budget")
         try:
             return self._search(policy, tenant_id, tenant_store, query, max(1, min(limit, MAX_LIMIT)), context,
-                                trace, person)
+                                trace, person, history)
         finally:
             if key:
                 self.tenant_budget.release(key)
@@ -492,7 +495,8 @@ class Gateway:
                 stores[name] = self.stores[name]
         return stores
 
-    def _search(self, policy, tenant_id, tenant_store, query, limit, context, trace=False, person=None):
+    def _search(self, policy, tenant_id, tenant_store, query, limit, context, trace=False, person=None,
+                history=()):
         stores = self._recall_stores(policy, tenant_store)
         notes = ["explain"] if trace else []
         deadline_s = self.recall_deadline_now() if stores else self.recall_deadline
@@ -501,7 +505,7 @@ class Gateway:
                             tenant_id=tenant_id, notes=notes, context=context, log=self._log,
                             tenant_source=policy.tenants if TENANT_STORE in policy.recall else None,
                             slots=self.store_slots, keep=self._keep(policy), audience=policy.reach, trace=trace,
-                            show_fields=policy.fields, person=person)
+                            show_fields=policy.fields, person=person, history=history)
         try:
             out = recall(stores, self.stages, ctx)
         except StageError:

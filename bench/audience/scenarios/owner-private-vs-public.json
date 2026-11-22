@@ -1,0 +1,26 @@
+{
+  "id": "owner-private-vs-public",
+  "title": "主人的私聊记忆，公开客户端召回不到",
+  "checks": ["store_rule", "stamp_at_write"],
+  "setup": {
+    "stores": {"private": {"audience": "owner"}, "board": {"audience": "public"}},
+    "clients": {
+      "owner_bot": {"recall": ["private", "board"], "write": "private"},
+      "public_bot": {"recall": ["board"], "write": "board", "audience": "public"}
+    }
+  },
+  "steps": [
+    {"do": "remember", "client": "owner_bot", "text": "Owner keeps a jar of jasmine tea beside the window"},
+    {"do": "remember", "client": "public_bot", "text": "The notice board lists a kite festival in April"},
+    {"do": "recall", "client": "owner_bot", "query": "Owner keeps a jar of jasmine tea beside the window",
+     "present": ["jasmine tea"], "why": "主人读得到自己的私聊记忆"},
+    {"do": "recall", "client": "owner_bot", "query": "The notice board lists a kite festival in April",
+     "present": ["kite festival"], "why": "主人也读得到比自己受众更宽的公开存储"},
+    {"do": "recall", "client": "public_bot", "query": "The notice board lists a kite festival in April",
+     "present": ["kite festival"], "why": "公开客户端必须读得到公开存储里它自己写的记忆"},
+    {"do": "recall", "client": "public_bot", "query": "Owner keeps a jar of jasmine tea beside the window",
+     "absent": ["jasmine tea"], "why": "主人的私聊记忆不许出现在公开客户端的召回里"},
+    {"do": "reconfigure", "patch": {"clients": {"public_bot": {"recall": ["board", "private"]}}}, "refuse": "clients.public_bot.recall",
+     "why": "公开客户端把只给主人的存储列进召回，网关必须拒绝启动"}
+  ]
+}

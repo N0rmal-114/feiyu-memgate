@@ -1,0 +1,26 @@
+{
+  "id": "older-version-row",
+  "title": "旧版本写法的一行写进已打过标记的群存储，重新打标记之前群里看不到",
+  "checks": ["unstamped_is_owner", "record_rule"],
+  "setup": {
+    "stores": {"club": {"audience": "group"}},
+    "clients": {
+      "owner_bot": {"recall": ["club"]},
+      "club_bot": {"recall": ["club"], "write": "club", "audience": "group"}
+    }
+  },
+  "steps": [
+    {"do": "remember", "client": "club_bot", "text": "The club swaps seeds on the first Sunday"},
+    {"do": "put_raw", "store": "club", "how": "legacy", "text": "The club keeps a spare key under the blue pot"},
+    {"do": "recall", "client": "club_bot", "query": "The club swaps seeds on the first Sunday",
+     "present": ["swaps seeds"], "why": "经网关写入的记忆带着群级受众，群客户端读得到"},
+    {"do": "recall", "client": "club_bot", "query": "The club keeps a spare key under the blue pot",
+     "absent": ["spare key"], "why": "旧版本写法的行没有受众，按主人级算，群里看不到"},
+    {"do": "recall", "client": "owner_bot", "query": "The club keeps a spare key under the blue pot",
+     "present": ["spare key"], "why": "主人级的客户端看得到这一行，说明它确实写进去、也找得到"},
+    {"do": "restamp", "store": "club", "mode": "missing", "changed": 1,
+     "why": "restamp --missing 只给没有受众的那一行打上群级"},
+    {"do": "recall", "client": "club_bot", "query": "The club keeps a spare key under the blue pot",
+     "present": ["spare key"], "why": "打上群级之后，群客户端看得到这一行"}
+  ]
+}

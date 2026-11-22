@@ -1,0 +1,25 @@
+{
+  "id": "copied-store-file",
+  "title": "主人的存储文件被复制并配成公开存储，里面的记忆公开客户端也读不到",
+  "checks": ["record_rule", "stamp_at_write"],
+  "setup": {
+    "stores": {"private": {"audience": "owner"}},
+    "clients": {
+      "owner_bot": {"recall": ["private"], "write": "private"}
+    }
+  },
+  "steps": [
+    {"do": "remember", "client": "owner_bot", "text": "Owner's cat Mochi sleeps on the green cushion"},
+    {"do": "copy_store", "from": "private", "to": "borrowed"},
+    {"do": "reconfigure",
+     "patch": {"stores": {"borrowed": {"audience": "public"}},
+               "clients": {"public_bot": {"recall": ["borrowed"], "write": "borrowed", "audience": "public"}}}},
+    {"do": "remember", "client": "public_bot", "text": "The harbour market opens at nine on Sundays"},
+    {"do": "recall", "client": "public_bot", "query": "The harbour market opens at nine on Sundays",
+     "present": ["harbour market"], "why": "公开客户端读得到公开存储里它自己写的记忆"},
+    {"do": "recall", "client": "public_bot", "query": "Owner's cat Mochi sleeps on the green cushion",
+     "absent": ["Mochi"], "why": "复制来的文件里，主人的记忆每条都带着主人级的受众，配成公开存储也不许交给公开客户端"},
+    {"do": "recall", "client": "owner_bot", "query": "Owner's cat Mochi sleeps on the green cushion",
+     "present": ["Mochi"], "why": "主人仍然从原来的存储读得到这条记忆"}
+  ]
+}

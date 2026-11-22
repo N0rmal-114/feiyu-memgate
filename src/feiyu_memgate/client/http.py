@@ -31,7 +31,7 @@ import urllib.parse
 
 # The gateway's own rule for a message's optional keys, one definition (a small file of pure checks:
 # it loads the model and nothing of the gateway's running parts).
-from ..model import REQUEST_FIELDS, valid_request_field
+from ..model import REQUEST_FIELDS, clean_history, valid_request_field
 
 RECALL_LIMIT = 5
 MAX_QUERY_CHARS = 500       # gateway limit for /v1/recall
@@ -254,14 +254,17 @@ class MemoryClient:
                 conn.close()
         return None, (UNSURE if sent else NOT_SENT)
 
-    def recall_detail(self, query, timeout=8.5, tenant_id=None, *, context=None, speaker=None):
+    def recall_detail(self, query, timeout=8.5, tenant_id=None, *, context=None, speaker=None, history=None):
         """The gateway's whole recall reply as {"results": [...], "more": int, "failed": int,
         "busy": int}, None on any failure (503 included). A query over 500 characters is
         not sent (None): shorten it yourself, as build_query does. `context` is an optional
         flat dict (say channel, chat) sent as it is; stages and guards may read it, the gateway
         never treats it as identity. `speaker` is who is asking, an account "<platform>:<id>" (at most 64
         characters), sent only when given. A gateway with an identity table resolves it (a speaker the
-        client may not name is refused: None); without one it is ignored."""
+        client may not name is refused: None); without one it is ignored. `history` is the recent turns of the
+        conversation, at most 6 of {"role": "user" or "assistant", "content": 1 to 500 characters, not blank}
+        (other keys of an item are dropped), sent only when given; one that breaks the rule is not sent (None),
+        like a query that is too long. It only reaches recall stages someone wrote: the built-in ones do not read it."""
         if not isinstance(query, str) or not query.strip():
             return None
         if len(query) > MAX_QUERY_CHARS:
@@ -270,11 +273,17 @@ class MemoryClient:
         if not _speaker_ok(speaker):
             self.log.warning("memory recall not sent: bad speaker")
             return None
+        turns = clean_history(history)
+        if turns is None:
+            self.log.warning("memory recall not sent: bad history")
+            return None
         payload = {"query": query, "limit": self.recall_limit}
         if context is not None:
             payload["context"] = context
         if speaker is not None:
             payload["speaker"] = speaker
+        if history is not None:
+            payload["history"] = turns
         data, _ = self._post("/v1/recall", payload, time.monotonic() + timeout, "recall", tenant_id)
         results = data.get("results") if data else None
         if not isinstance(results, list):
@@ -283,12 +292,12 @@ class MemoryClient:
                 "more": _count(data.get("more")), "failed": _count(data.get("failed")),
                 "busy": _count(data.get("busy"))}
 
-    def explain(self, query, timeout=8.5, tenant_id=None, *, limit=None, context=None, speaker=None):
+    def explain(self, query, timeout=8.5, tenant_id=None, *, limit=None, context=None, speaker=None, history=None):
         """An explained recall (POST /v1/explain, only for a client configured with explain = true):
         the recall reply plus "stages" (the recall stages' names, in order) and "candidates" (every
         candidate the recall looked at, with its scores, outcome and the stage that removed it), as a
         dict; None on any failure (403 included). It counts as no use of a memory. `limit` defaults to
-        the client's recall_limit; the other arguments (`speaker` too) are as for recall_detail."""
+        the client's recall_limit; the other arguments (`speaker` and `history` too) are as for recall_detail."""
         if not isinstance(query, str) or not query.strip():
             return None
         if len(query) > MAX_QUERY_CHARS:
@@ -299,11 +308,17 @@ class MemoryClient:
         if not _speaker_ok(speaker):
             self.log.warning("memory explain not sent: bad speaker")
             return None
+        turns = clean_history(history)
+        if turns is None:
+            self.log.warning("memory explain not sent: bad history")
+            return None
         payload = {"query": query, "limit": self.recall_limit if limit is None else limit}
         if context is not None:
             payload["context"] = context
         if speaker is not None:
             payload["speaker"] = speaker
+        if history is not None:
+            payload["history"] = turns
         data, _ = self._post("/v1/explain", payload, time.monotonic() + timeout, "explain", tenant_id)
         results, stages, candidates = (data.get(k) if data else None for k in ("results", "stages", "candidates"))
         if not isinstance(results, list) or not isinstance(stages, list) or not isinstance(candidates, list):
@@ -316,10 +331,10 @@ class MemoryClient:
             out["candidates_cut"] = True
         return out
 
-    def recall(self, query, timeout=8.5, tenant_id=None, *, context=None, speaker=None):
+    def recall(self, query, timeout=8.5, tenant_id=None, *, context=None, speaker=None, history=None):
         """Return a list of {"id","source","text","score"} dicts (plus "date" when the memory has one),
         [] on any failure."""
-        detail = self.recall_detail(query, timeout, tenant_id, context=context, speaker=speaker)
+        detail = self.recall_detail(query, timeout, tenant_id, context=context, speaker=speaker, history=history)
         return detail["results"] if detail else []
 
     def remember_messages(self, messages, deadline=None, tenant_id=None, *, context=None):

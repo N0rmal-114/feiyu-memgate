@@ -1,0 +1,28 @@
+{
+  "id": "foreign-platform-account",
+  "title": "客户端报了不属于自己平台的账号，写入和召回都被拒绝",
+  "checks": ["platform_rule"],
+  "setup": {
+    "people": {"owner": {"owner": true, "accounts": ["dsh:local", "aiocqhttp:10001"]}},
+    "stores": {"private": {"audience": "owner"}},
+    "clients": {
+      "dsh_bot": {"recall": ["private"], "write": "private", "platforms": ["dsh"]},
+      "chat_bot": {"recall": ["private"], "write": "private", "platforms": ["aiocqhttp"]}
+    }
+  },
+  "steps": [
+    {"do": "remember", "client": "dsh_bot", "as": "aiocqhttp:10001", "text": "Refused line one about a blue umbrella", "status": 403,
+     "why": "只给了 dsh 平台的客户端报 aiocqhttp 的账号，写入必须被拒绝（403）"},
+    {"do": "remember", "client": "chat_bot", "as": "dsh:local", "text": "Refused line two about a green scarf", "status": 403,
+     "why": "只给了 aiocqhttp 平台的客户端报 dsh 的账号，写入必须被拒绝（403）"},
+    {"do": "recall", "client": "dsh_bot", "as": "aiocqhttp:10001", "query": "blue umbrella", "status": 403,
+     "why": "只给了 dsh 平台的客户端用 aiocqhttp 的账号召回，必须被拒绝（403）"},
+    {"do": "recall", "client": "chat_bot", "as": "dsh:local", "query": "green scarf", "status": 403,
+     "why": "只给了 aiocqhttp 平台的客户端用 dsh 的账号召回，必须被拒绝（403）"},
+    {"do": "remember", "client": "dsh_bot", "as": "dsh:local", "text": "Owner likes oolong tea after dinner"},
+    {"do": "recall", "client": "chat_bot", "as": "aiocqhttp:10001", "query": "Owner likes oolong tea after dinner",
+     "present": ["oolong tea"], "why": "各用各平台的账号时，两个客户端都被放行，主人的记忆读得到"},
+    {"do": "files", "lack": ["blue umbrella", "green scarf"], "have": ["oolong tea"],
+     "why": "被拒绝的两句话不许落进任何存储文件"}
+  ]
+}

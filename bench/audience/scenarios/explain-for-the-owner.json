@@ -1,0 +1,30 @@
+{
+  "id": "explain-for-the-owner",
+  "title": "带解释的召回只给主人级的客户端：群和公开客户端被拒绝，主人的解释里看得到记录的字段",
+  "checks": ["explain_owner_only"],
+  "setup": {
+    "stores": {"private": {"audience": "owner"}, "board": {"audience": "public"}},
+    "tenants": {"group": {"audience": "group", "ids": ["50001"]}},
+    "clients": {
+      "owner_bot": {"recall": ["private"], "write": "private", "explain": true},
+      "group_bot": {"tenants": "group", "recall": ["@tenant"], "write": "@tenant", "audience": "group"},
+      "public_bot": {"recall": ["board"], "write": "board", "audience": "public"}
+    }
+  },
+  "steps": [
+    {"do": "remember", "client": "owner_bot", "text": "Owner keeps a jar of jasmine tea beside the window",
+     "keys": {"kind": "preference"}},
+    {"do": "recall", "client": "owner_bot", "mode": "explain", "query": "Owner keeps a jar of jasmine tea beside the window",
+     "present": ["jasmine tea"],
+     "candidate_fields": {"jasmine tea": {"audience": "owner", "kind": "preference"}},
+     "why": "主人级的客户端可以要带解释的召回，解释里列出的候选带着记录的字段"},
+    {"do": "recall", "client": "group_bot", "tenant_id": "50001", "mode": "explain", "query": "Owner keeps a jar of jasmine tea beside the window",
+     "status": 403, "never": ["jasmine", "candidates"], "why": "群客户端要带解释的召回必须被拒绝（403）"},
+    {"do": "recall", "client": "public_bot", "mode": "explain", "query": "Owner keeps a jar of jasmine tea beside the window",
+     "status": 403, "never": ["jasmine", "candidates"], "why": "公开客户端要带解释的召回必须被拒绝（403）"},
+    {"do": "reconfigure", "patch": {"clients": {"group_bot": {"explain": true}}}, "refuse": "clients.group_bot.explain",
+     "why": "给群客户端开 explain，网关必须拒绝启动：解释会带出被挡掉的候选"},
+    {"do": "reconfigure", "patch": {"clients": {"public_bot": {"explain": true}}}, "refuse": "clients.public_bot.explain",
+     "why": "给公开客户端开 explain，网关必须拒绝启动：解释会带出被挡掉的候选"}
+  ]
+}

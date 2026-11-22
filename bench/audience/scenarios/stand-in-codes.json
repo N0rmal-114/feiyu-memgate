@@ -1,0 +1,37 @@
+{
+  "id": "stand-in-codes",
+  "title": "没登记的群友在每个存储里换成各自的替身码，原始账号不进任何存储文件，答案里也没有账号",
+  "checks": ["code_per_store", "raw_account_gone"],
+  "setup": {
+    "people": {
+      "owner": {"owner": true, "accounts": ["dsh:local", "aiocqhttp:10001"]},
+      "amy": {"accounts": ["aiocqhttp:20002"]}
+    },
+    "stores": {"board": {"audience": "public"}},
+    "tenants": {"group": {"audience": "group", "ids": ["50001", "60002"]}},
+    "clients": {
+      "group_bot": {"tenants": "group", "recall": ["@tenant"], "write": "@tenant", "audience": "group", "platforms": ["aiocqhttp"]},
+      "public_bot": {"recall": ["board"], "write": "board", "audience": "public", "platforms": ["aiocqhttp"]}
+    }
+  },
+  "steps": [
+    {"do": "remember", "client": "group_bot", "tenant_id": "50001", "as": "aiocqhttp:30003", "text": "Someone suggests tea at the lakeside cabin"},
+    {"do": "remember", "client": "group_bot", "tenant_id": "50001", "as": "aiocqhttp:30003", "text": "Someone suggests a walk around the lakeside cabin"},
+    {"do": "remember", "client": "group_bot", "tenant_id": "60002", "as": "aiocqhttp:30003", "text": "Someone suggests chess at the lakeside cabin"},
+    {"do": "remember", "client": "public_bot", "as": "aiocqhttp:30003", "text": "Someone suggests kites at the lakeside cabin"},
+    {"do": "remember", "client": "group_bot", "tenant_id": "50001", "as": "aiocqhttp:20002", "text": "Someone brings snacks to the lakeside cabin"},
+    {"do": "remember", "client": "group_bot", "tenant_id": "50001", "as": "aiocqhttp:10001", "text": "Someone brings a lantern to the lakeside cabin"},
+    {"do": "codes", "where": [{"store": "group", "tenant_id": "50001"}, {"store": "group", "tenant_id": "60002"}, {"store": "board"}],
+     "expect": "all_different",
+     "why": "同一个陌生账号在群 50001、群 60002 和公开存储里各有一个替身码，三个码互不相同，一个存储里只有一个码"},
+    {"do": "recall", "client": "group_bot", "tenant_id": "50001", "as": "aiocqhttp:30003", "query": "Someone suggests tea at the lakeside cabin",
+     "present": ["suggests tea"], "never": ["30003", "20002", "10001", "aiocqhttp", "dsh:local"],
+     "why": "群客户端的答案里不许出现任何账号"},
+    {"do": "recall", "client": "public_bot", "as": "aiocqhttp:30003", "query": "Someone suggests kites at the lakeside cabin",
+     "present": ["suggests kites"], "never": ["30003", "20002", "10001", "aiocqhttp", "dsh:local"],
+     "why": "公开客户端的答案里不许出现任何账号"},
+    {"do": "files", "lack": ["aiocqhttp:30003", "30003", "aiocqhttp:20002", "20002", "aiocqhttp:10001", "10001", "dsh:local"],
+     "have": ["anon:", "amy"],
+     "why": "原始账号（陌生人的、登记过的人的）不许出现在任何存储文件里，文件里只有替身码和人名"}
+  ]
+}

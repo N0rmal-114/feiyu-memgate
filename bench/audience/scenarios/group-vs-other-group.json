@@ -1,0 +1,28 @@
+{
+  "id": "group-vs-other-group",
+  "title": "一个群的记忆，另一个群读不到",
+  "checks": ["store_rule", "stamp_at_write"],
+  "setup": {
+    "stores": {},
+    "tenants": {"group": {"audience": "group", "ids": ["50001", "60002"]}},
+    "clients": {
+      "group_bot": {"tenants": "group", "recall": ["@tenant"], "write": "@tenant", "audience": "group"}
+    }
+  },
+  "steps": [
+    {"do": "remember", "client": "group_bot", "tenant_id": "50001", "text": "Group 50001 plans a picnic by the river weir"},
+    {"do": "remember", "client": "group_bot", "tenant_id": "60002", "text": "Group 60002 repairs bicycles on Saturday mornings"},
+    {"do": "recall", "client": "group_bot", "tenant_id": "50001", "query": "Group 50001 plans a picnic by the river weir",
+     "present": ["picnic by the river weir"], "why": "群 50001 读得到自己的记忆"},
+    {"do": "recall", "client": "group_bot", "tenant_id": "60002", "query": "Group 60002 repairs bicycles on Saturday mornings",
+     "present": ["repairs bicycles"], "why": "群 60002 读得到自己的记忆"},
+    {"do": "recall", "client": "group_bot", "tenant_id": "60002", "query": "Group 50001 plans a picnic by the river weir",
+     "absent": ["picnic by the river weir"], "why": "群 50001 的记忆不许出现在群 60002 的召回里"},
+    {"do": "recall", "client": "group_bot", "tenant_id": "50001", "query": "Group 60002 repairs bicycles on Saturday mornings",
+     "absent": ["repairs bicycles"], "why": "群 60002 的记忆不许出现在群 50001 的召回里"},
+    {"do": "reconfigure",
+     "patch": {"stores": {"club": {"audience": "group"}}, "clients": {"group_bot": {"recall": ["@tenant", "club"]}}},
+     "refuse": "clients.group_bot.recall",
+     "why": "一个替所有群服务的客户端读一个只属于某一个群的共享存储，网关必须拒绝启动"}
+  ]
+}

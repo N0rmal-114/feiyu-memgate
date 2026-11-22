@@ -11,6 +11,7 @@
 | `adapters/` | 各系统的适配器；`feiyu_memgate_*.py` 是本项目的四个。后加的四个项目（dsh-fish-memory、dsh-prime-memory、dsh-soul-md、Hindsight）的适配器没有放进仓库，它们的结果在 `results/raw` |
 | `results/` | `raw/` 是各系统的原始答案，`summary.md` 是打分后的总表；`design/features.md` 是各被测项目的功能事实对照（形态、检索方式、写入是否调模型、默认交付、遗忘、许可证），`design/self-check.md` 是本项目自己的设计自查 |
 | `design_probe.py` | 设计自查的探针：在进程内实际运行本项目，测十项设计性质，写 `results/design/feiyu-memgate.json`；只测 feiyu-memgate |
+| `audience/` | 受众隔离场景：十五个 JSON 场景，不用模型，用真的网关和 SQLite 文件核对一条记忆不会到达它不是给的受众、同一个人在每个宿主上是同一个人；`audience/run.py` 运行，说明见 `audience/README.md` |
 | `dev/` | 开发集：160 条记忆、110 个问题，选默认阈值用，说明见 `dev/README.md`，**不用来报告结果** |
 | `dev_eval.py` | 开发集评测和阈值网格搜索：选默认值用的工具，见下；每个后端的搜索结果在 `results/dev/` |
 | `run_all.sh` | 最后的留出集运行：逐个适配器、打分、遗忘模拟、图表，见“复现” |

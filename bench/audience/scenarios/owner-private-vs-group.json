@@ -1,0 +1,27 @@
+{
+  "id": "owner-private-vs-group",
+  "title": "主人的私聊记忆，在任何一个群里都召回不到",
+  "checks": ["store_rule", "stamp_at_write"],
+  "setup": {
+    "stores": {"private": {"audience": "owner"}},
+    "tenants": {"group": {"audience": "group", "ids": ["50001", "60002"]}},
+    "clients": {
+      "owner_bot": {"recall": ["private"], "write": "private"},
+      "group_bot": {"tenants": "group", "recall": ["@tenant"], "write": "@tenant", "audience": "group"}
+    }
+  },
+  "steps": [
+    {"do": "remember", "client": "owner_bot", "text": "Owner keeps a jar of jasmine tea beside the window"},
+    {"do": "remember", "client": "group_bot", "tenant_id": "50001", "text": "The reading circle meets at the lantern cafe on Friday"},
+    {"do": "recall", "client": "owner_bot", "query": "Owner keeps a jar of jasmine tea beside the window",
+     "present": ["jasmine tea"], "why": "主人自己的私聊客户端必须读得到自己的记忆，否则下面的空结果说明不了什么"},
+    {"do": "recall", "client": "group_bot", "tenant_id": "50001", "query": "The reading circle meets at the lantern cafe on Friday",
+     "present": ["lantern cafe"], "why": "群客户端必须读得到本群自己的记忆（写入时记录带上了存储的受众）"},
+    {"do": "recall", "client": "group_bot", "tenant_id": "50001", "query": "Owner keeps a jar of jasmine tea beside the window",
+     "absent": ["jasmine tea"], "why": "主人的私聊记忆不许出现在群 50001 的召回里"},
+    {"do": "recall", "client": "group_bot", "tenant_id": "60002", "query": "Owner keeps a jar of jasmine tea beside the window",
+     "absent": ["jasmine tea"], "why": "主人的私聊记忆不许出现在群 60002 的召回里"},
+    {"do": "reconfigure", "patch": {"clients": {"group_bot": {"recall": ["@tenant", "private"]}}}, "refuse": "clients.group_bot.recall",
+     "why": "群客户端把只给主人的存储列进召回，网关必须拒绝启动"}
+  ]
+}

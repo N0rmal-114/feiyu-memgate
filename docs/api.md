@@ -80,7 +80,7 @@ Authorization: Bearer <令牌>
 3. 限流：429 `rate_limited`；然后权限：403 `forbidden`（这个客户端不能召回或不能写）。这两步不看请求体。`tenant_binding = "token"` 的客户端在这里就按令牌里的租户限流。
 4. 请求体：没有 `Content-Length` 411，`Content-Length` 不是非负整数 400 `bad_request`，超过 64 KiB 413；这些都通过了，才回 `100 Continue`（见 [`Expect: 100-continue`](#expect-100-continue)）；读完后不是 JSON 对象 400 `bad_request`。
 5. 租户（`tenant_id` 的规则见上）；默认模式的多租户客户端在这里按租户限流，所以编造不存在的租户也会用掉额度。
-6. 各接口自己的字段：`bad_query`、`bad_limit`、`bad_context`、`bad_speaker`、`bad_messages`、`bad_used`。
+6. 各接口自己的字段：`bad_query`、`bad_limit`、`bad_context`、`bad_speaker`、`bad_history`、`bad_messages`、`bad_used`。
 7. 工作线程和租户名额：503 `busy`。
 8. 真正做事，各接口的结果见下。
 
@@ -120,6 +120,7 @@ Authorization: Bearer <令牌>
 | `tenant_id` | 字符串 | 看客户端 | 见上面的“租户字段” |
 | `context` | 对象 | 否 | 见下 |
 | `speaker` | 字符串或 `null` | 否 | 谁在问，一个账号（见“账号和身份”）。只有网关配置了 `[identity]` 才看它；没有 `[identity]` 时和别的不认识的键一样被忽略 |
+| `history` | 列表或 `null` | 否 | 最近几句话，见下 |
 
 - `limit` 可以不写；超出 1 到 10 的按 1 或 10 算，不是整数是 `bad_limit`（`true`/`false`、`5.0` 这样的小数、`"5"` 这样的字符串都不是整数）。
 - `tenant_id` 只有多租户客户端要写，而且必须写；别的客户端写了是 `bad_tenant`。`tenant_binding = "token"` 的客户端可以不写（就是令牌绑定的租户），写了必须和令牌里的一样，否则 403 `tenant_mismatch`。
@@ -127,6 +128,7 @@ Authorization: Bearer <令牌>
 
   约定一下常用的三个键（只是约定，不是格式，网关不解释它们；自己写的步骤和守卫可以用）：`channel`（对话发生在哪里，例如 `"dsh"`、AstrBot 的平台名、`"voice"`）、`chat`（`"private"` 或 `"group"`）、`via`（是什么触发了这次请求）。`context` 是客户端自己报的，不能当作身份使用。
 - `speaker`（只在配置了 `[identity]` 时）：不是账号 400 `bad_speaker`；账号的平台不在这个客户端的 `platforms` 里，或者客户端设了 `only_for` 而这次没带 `speaker`、带的账号不属于 `only_for` 里的人，都是 403 `forbidden`（客户端没设 `platforms` 就不能带 `speaker`）。账号换成对应的人名（没登记的账号换成给这个存储的替身码）后，作为 `RecallContext.person` 交给召回步骤；这次请求没带 `speaker` 时 `person` 是 `None`。自带的召回步骤都不用它。
+- `history` 可以不写，写 `null` 等于没写：最近几轮对话，给自己写的召回步骤用。它是一个列表，最多 6 项，每项 `{"role": "user" 或 "assistant", "content": 字符串}`，`content` 1 到 500 字、去掉空白后不能是空的；项里别的键丢掉。不合规（不是列表、超过 6 项、某项不是对象、`role` 不对、`content` 不是字符串、空的、全是空白或超过 500 字）整个请求 400 `bad_history`。通过检查的列表作为 `RecallContext.history` 交给召回步骤（一个 `{"role", "content"}` 字典的列表，请求没带时是 `[]`），不交给别的任何东西：自带的召回步骤都不读它，网关不存它、不写进日志，所以带不带 `history`，同一个请求的回答完全一样；它只是给自己写的步骤的入口，自带的行为没有变。
 
 ```json
 {
@@ -164,6 +166,7 @@ Authorization: Bearer <令牌>
 | 400 | `bad_request` | 请求体不是 JSON 对象，或者 `Content-Length` 不对 |
 | 400 | `bad_query`、`bad_limit`、`bad_context`、`bad_tenant` | 见上 |
 | 400 | `bad_speaker` | 配置了 `[identity]`，而 `speaker` 不是账号 |
+| 400 | `bad_history` | `history` 不合规（见上） |
 | 401 | `unauthorized` | 令牌不对或没带 |
 | 403 | `forbidden` | 这个客户端没有 `recall`；配置了 `[identity]` 时，`speaker` 的平台不在客户端的 `platforms` 里，或者没过 `only_for` |
 | 403 | `unknown_tenant`、`tenant_mismatch` | 见“租户字段” |
@@ -183,7 +186,7 @@ Authorization: Bearer <令牌>
 {"query": "周末去哪玩了", "limit": 5, "tenant_id": "10001", "context": {"channel": "voice"}}
 ```
 
-请求体、各项检查和错误回答都和 `/v1/recall` 完全一样（`query`、`limit`、`tenant_id`、`context`、`speaker`，同样的 `bad_*`、`unknown_tenant`、`tenant_mismatch`，`speaker` 的规则也一样）。限流、总时限、存储的并发名额、各种 503 也一样；它和召回共用同一份每分钟的额度。
+请求体、各项检查和错误回答都和 `/v1/recall` 完全一样（`query`、`limit`、`tenant_id`、`context`、`speaker`、`history`，同样的 `bad_*`、`unknown_tenant`、`tenant_mismatch`，`speaker` 的规则也一样）。限流、总时限、存储的并发名额、各种 503 也一样；它和召回共用同一份每分钟的额度。
 
 ```json
 {
@@ -387,6 +390,7 @@ Authorization: Bearer <令牌>
 | `bad_messages` | 400 | 消息格式不对、太长或太多 |
 | `bad_context` | 400 | `context` 不合规 |
 | `bad_speaker` | 400 | 配置了 `[identity]`，召回或解释的 `speaker` 不是账号 |
+| `bad_history` | 400 | 召回或解释的 `history` 不合规：不是列表、超过 6 项、某项的 `role` 或 `content` 不对（`content` 1 到 500 字、不能是空白） |
 | `bad_tenant` | 400 | `tenant_id` 格式不对，或者这个客户端不该带 `tenant_id` |
 | `bad_used` | 400 | `/v1/used` 的 `used` 不合规：不是列表、超过 20 项、某项缺 `source` 或 `id`、类型不对或太长 |
 | `unauthorized` | 401 | 令牌不对或没带（铸造密钥本身当令牌用也是这个） |
@@ -428,6 +432,7 @@ from feiyu_memgate.client import (MemoryClient, LocalClient, BlockFormatter, for
 - **不发的情况**：没配置好（`configured` 为假）、参数不合规、截止时间已过，都是“没发出去”：`recall_detail` 得 `None`，`recall` 得 `[]`，写入得 `"failed"`，`report_used` 得 `False`。
 - **消息的键**：`remember_messages` 的每条消息除了 `role`、`content`、`time`、`speaker`，还可以带 `about`、`channel`、`origin`、`kind`、`event_date`、`audience`（字符串，`None` 等于没写），原样发给网关，值的规则和网关的一样（客户端直接用网关的检查函数）：不合规的整个调用得 `"failed"`，什么都不发。不写这些键时，请求体和以前完全一样。客户端只检查形状，不检查 `speaker`、`about` 是不是账号：配置了 `[identity]` 的网关才要求账号，由它回 400。
 - **`speaker`**：`recall_detail`、`recall`、`explain` 有只能按名字传的 `speaker=None`，给了就作为请求里的 `"speaker"` 发出（谁在问，一个账号 `<平台>:<编号>`，最多 64 字，见“账号和身份”）；不给，请求体和以前完全一样。不是字符串、是空的或超过 64 字：不发，得 `None`（`recall` 得 `[]`）。配置了 `[identity]` 的网关替这个账号认人，客户端的 `platforms` 或 `only_for` 不允许时回 403，客户端当作失败；没有 `[identity]` 的网关忽略它。
+- **`history`**：`recall_detail`、`recall`、`explain` 有只能按名字传的 `history=None`，给了就作为请求里的 `"history"` 发出（最近几轮对话，最多 6 项，每项 `{"role": "user" 或 "assistant", "content": 1 到 500 字、不能是空白}`，项里别的键去掉，规则见 [`POST /v1/recall`](#post-v1recall)，网关和客户端用同一个检查函数 `model.clean_history`）；不给，请求体和以前完全一样。不合规的不发，和超长的查询词一样：`recall_detail` 和 `explain` 得 `None`，`recall` 得 `[]`，日志里一行警告，不含内容。`history` 只交给自己写的召回步骤（`RecallContext.history`），自带的步骤不读它。`MemoryClient` 和 `LocalClient` 的参数一致。
 - **请求体按 UTF-8 发**，中文不转义成 `\uXXXX`。每次调用一个新连接；不读代理环境变量，不跟随重定向，不重试。回答超过 256 KiB 按失败处理。
 - **看错误码，不看错误文字**：网关的错误回答只用它的 `code` 分类。
 - **`context`**：召回和写入的方法（`recall_detail`、`recall`、`remember_messages`、`remember_status`、`remember`）都有一个只能按名字传的 `context=None`。给了就原样作为请求里的 `"context"` 发出（约定的键见 [`POST /v1/recall`](#post-v1recall)）；不给，请求体和以前完全一样。客户端不检查内容，不合规的由网关回 400 `bad_context`，和别的失败一样处理。`MemoryClient` 和 `LocalClient` 的参数一致。
@@ -459,13 +464,13 @@ MemoryClient(base_url, token, tenant_token=None, logger=None, recall_limit=5, te
 方法：
 
 ```python
-recall_detail(query, timeout=8.5, tenant_id=None, *, context=None, speaker=None) -> dict | None
-recall(query, timeout=8.5, tenant_id=None, *, context=None, speaker=None) -> list
+recall_detail(query, timeout=8.5, tenant_id=None, *, context=None, speaker=None, history=None) -> dict | None
+recall(query, timeout=8.5, tenant_id=None, *, context=None, speaker=None, history=None) -> list
 remember_messages(messages, deadline=None, tenant_id=None, *, context=None) -> str
 remember_status(text, deadline=None, tenant_id=None, *, context=None, speaker=None, origin=None, kind=None, event_date=None) -> str
 remember(text, tenant_id=None, *, context=None, speaker=None, origin=None, kind=None, event_date=None) -> bool
 report_used(items, tenant_id=None, timeout=5.0) -> bool
-explain(query, timeout=8.5, tenant_id=None, *, limit=None, context=None, speaker=None) -> dict | None
+explain(query, timeout=8.5, tenant_id=None, *, limit=None, context=None, speaker=None, history=None) -> dict | None
 ```
 
 **`recall_detail(query, timeout=8.5, tenant_id=None)`**：返回网关的整个召回回答 `{"results": [...], "more": int, "failed": int, "busy": int}`；任何失败得 `None`（503 也是）。`results` 里每项是网关回的字典（`id`、`source`、`text`、`score`，有日期时还有 `date`），没有字符串 `text` 的项被丢掉；`more`、`failed`、`busy` 不是正整数时算 0。`query` 不是字符串、去掉空白后是空的，或者超过 500 字（记一行警告）：不发送，得 `None`；太长的要自己缩短，`build_query` 就是做这个的。`timeout` 是整次调用（连接加读回答）的总秒数，不是每一步的。
@@ -504,7 +509,7 @@ explain(query, timeout=8.5, tenant_id=None, *, limit=None, context=None, speaker
 | 请求发出之前就失败：没配置、参数不合规、连不上网关（连接被拒、域名解析失败）、截止时间已过 | `"failed"` |
 | 请求发出之后失败：超时、连接中断、200 的回答不是 JSON 对象或超过 256 KiB | `"unsure"` |
 
-**`explain(query, timeout=8.5, tenant_id=None, *, limit=None, context=None, speaker=None)`**：对应 `POST /v1/explain`，只有配置了 `explain = true` 的客户端能用。返回 `{"results": [...], "more": int, "failed": int, "busy": int, "stages": [...], "candidates": [...]}`（候选超过 100 条时还有 `"candidates_cut": True`），任何失败得 `None`（403 和 503 也是）。`limit` 不写时用 `recall_limit`；`query` 和 `context` 的规则、不发送的条件同 `recall_detail`，`limit` 不是整数也不发送。字段的意思见 `POST /v1/explain`。它不算一次“用到”。
+**`explain(query, timeout=8.5, tenant_id=None, *, limit=None, context=None, speaker=None, history=None)`**：对应 `POST /v1/explain`，只有配置了 `explain = true` 的客户端能用。返回 `{"results": [...], "more": int, "failed": int, "busy": int, "stages": [...], "candidates": [...]}`（候选超过 100 条时还有 `"candidates_cut": True`），任何失败得 `None`（403 和 503 也是）。`limit` 不写时用 `recall_limit`；`query`、`context`、`speaker`、`history` 的规则、不发送的条件同 `recall_detail`，`limit` 不是整数也不发送。字段的意思见 `POST /v1/explain`。它不算一次“用到”。
 
 ### `LocalClient`
 
@@ -904,7 +909,7 @@ class RecallStage:
 
 `Candidate`（`feiyu_memgate.pieces.Candidate`）：`score`、`source`、`store`、`ref`、`text=""`、`date=None`、`meta={}`、`fields={}`；`as_item()` 给出返回的 `{"id", "source", "text", "score", "date"?}`。
 
-`RecallContext`（`ctx`）的成员：`query`、`limit`、`client`、`tenant_id`、`tenant_source`、`public`、`audience`（这个客户端的受众 `reach`：`"owner"`、`"group"` 或 `"public"`，构造时是只能按名字传的参数，默认 `"owner"`）、`show_fields`（这个客户端配置的 `fields`，一个元组，默认 `()`：回答的每一项里带哪些记忆字段）、`person`（谁在问：请求里的 `speaker` 经 `[identity]` 换算后的人名，没登记的账号是 `"anon:"` 加一个码，请求没带 `speaker` 或网关没有 `[identity]` 时是 `None`，构造时是只能按名字传的参数；自带的步骤都不用它）、`redact`（`str -> str`）、`context`（请求里的 `context`，已检查）、`accepted`、`notes`、`state`（字典，放这一次请求里自己的状态；步骤对象是所有请求共用的，不要存在 `self` 上）、`time_left()`、`expired()`、`note(word)`、`run(fn, store=None)`（在工作线程上跑一个会阻塞的调用，返回 `(ok, result)`，`fn` 收到 `ctl`）。
+`RecallContext`（`ctx`）的成员：`query`、`limit`、`client`、`tenant_id`、`tenant_source`、`public`、`audience`（这个客户端的受众 `reach`：`"owner"`、`"group"` 或 `"public"`，构造时是只能按名字传的参数，默认 `"owner"`）、`show_fields`（这个客户端配置的 `fields`，一个元组，默认 `()`：回答的每一项里带哪些记忆字段）、`person`（谁在问：请求里的 `speaker` 经 `[identity]` 换算后的人名，没登记的账号是 `"anon:"` 加一个码，请求没带 `speaker` 或网关没有 `[identity]` 时是 `None`，构造时是只能按名字传的参数；自带的步骤都不用它）、`history`（请求里的 `history`，已检查：一个 `{"role": "user" 或 "assistant", "content": str}` 字典的列表，最多 6 项，请求没带时是 `[]`，构造时是只能按名字传的参数；这是给自己写的步骤的入口，自带的步骤都不读它，网关不存它、不写进日志）、`redact`（`str -> str`）、`context`（请求里的 `context`，已检查）、`accepted`、`notes`、`state`（字典，放这一次请求里自己的状态；步骤对象是所有请求共用的，不要存在 `self` 上）、`time_left()`、`expired()`、`note(word)`、`run(fn, store=None)`（在工作线程上跑一个会阻塞的调用，返回 `(ok, result)`，`fn` 收到 `ctl`）。
 
 ### `write_guard`：`WriteGuard`
 
