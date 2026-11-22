@@ -164,6 +164,19 @@ class MemoryBackend(abc.ABC):
                                            memory, in the order of items() (only backends that keep fields
                                            and have items() offer it).
         record(ref)                     -> that dict for one memory; KeyError when it does not exist.
+        stamp_audience(level)           -> how many memories got `level`. Only for backends that keep
+                                           fields. The first call gives every memory without an audience
+                                           `level` and remembers that the store was stamped; later calls do
+                                           nothing; a read-only store is not stamped. The gateway calls it
+                                           with the store's declared level when it is built (a tenant's
+                                           store each time the provider hands it out).
+        checks_audience                 -> read-only property, True once the store was stamped. The
+                                           `record_audience` recall stage then drops a memory whose
+                                           audience is narrower than the client's (none counts as "owner").
+        set_audience(level, only_missing=True)
+                                        -> how many memories changed: give the memories `level`, only the
+                                           ones without an audience or all of them (the `restamp` command).
+                                           Also marks the store stamped.
         receipt_refs(receipt)           -> list of the refs the write `receipt` produced,
                                            or None when not known (yet) or not supported.
         neighbours(ref, limit, timeout=None, ctl=None)

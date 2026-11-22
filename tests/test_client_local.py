@@ -76,7 +76,7 @@ def make_config(tmp):
             "group": {"token_env": "GATEWAY_TOKEN_GROUP", "tenants": "groups", "recall": ["@tenant"],
                       "write": "@tenant", "daily_writes": 5, "rate_limit": 1000, "public": True},
         },
-        "recall": {"stages": ["min_score", "redact", "dedupe", "budget"]},
+        "recall": {"stages": ["min_score", "redact", "record_audience", "dedupe", "budget"]},
         "write": {"guards": ["redact", "daily_cap"]},
         "forgetting": {"ledger": os.path.join(tmp, "ledger.db"), "archive": os.path.join(tmp, "archive.db"),
                        "stores": ["main"], "sweep_every_hours": 24},

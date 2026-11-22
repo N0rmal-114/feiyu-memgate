@@ -317,8 +317,8 @@ def default_stages(min_score=None, ratio=None):
     (as in a configuration)."""
     return [stages_module.MinScore(value=min_score, profile="broad"),
             stages_module.RelativeScore(ratio=ratio, profile="broad"),
-            stages_module.NewerFirst(), stages_module.FillText(), stages_module.DropOversize(),
-            stages_module.Redact(), stages_module.Dedupe(), stages_module.Budget()]
+            stages_module.NewerFirst(), stages_module.RecordAudience(), stages_module.FillText(),
+            stages_module.DropOversize(), stages_module.Redact(), stages_module.Dedupe(), stages_module.Budget()]
 
 
 class Engine:

@@ -388,8 +388,9 @@ class EngineSemanticsTests(StageTestCase):
 
     def test_drop_marker_is_not_a_default_stage(self):
         self.assertNotIn("drop_marker", stages.DEFAULT_STAGES)
-        self.assertEqual(stages.DEFAULT_STAGES, ("min_score", "relative_score", "newer_first", "linked", "fill_text",
-                                                 "drop_oversize", "redact", "dedupe", "budget"))
+        self.assertEqual(stages.DEFAULT_STAGES, ("min_score", "relative_score", "newer_first", "linked",
+                                                 "record_audience", "fill_text", "drop_oversize", "redact", "dedupe",
+                                                 "budget"))
 
     def test_accepted_is_visible_to_later_candidates(self):
         seen = []

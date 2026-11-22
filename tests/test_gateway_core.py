@@ -317,6 +317,7 @@ class ProvenanceTests(Case):
             return real(messages, timeout, ctl)
 
         store.remember = remember
+        store.stores_fields = False  # a store that keeps no fields gets exactly the message dicts it always got
         policy = ClientPolicy("o", recall=("s",), write="s")
         return self.gateway({"s": store}, {"o": policy}, guards=guards, stages=stages)
 

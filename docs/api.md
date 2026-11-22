@@ -145,6 +145,7 @@ Authorization: Bearer <令牌>
 | `results[].text` | 字符串 | 记忆的文字，已经过这个客户端该用的脱敏 |
 | `results[].score` | 数字 | 召回步骤处理后的分数 |
 | `results[].date` | 字符串 | `YYYY-MM-DD`；存储知道这条记忆是哪天的才有这个键 |
+| `results[].fields` | 对象 | 只有这个客户端的配置写了 `fields = [...]`（见 [configuration.md](configuration.md)）时才有：列出的字段里这条记忆有的那些，值是字符串；一个都没有时这个键不出现。公开客户端拿到的值也经过它的脱敏 |
 | `more` | 整数 | **最多**还有几条相关的没放下（条数、字数或时限到了）。是上限不是精确数：放不下的候选只经过便宜的步骤（`drop_marker`、`drop_oversize`、`dedupe`）筛过，其余步骤没有逐条看 |
 | `failed` | 整数 | 有几个存储这次出错或超时没查成 |
 | `busy` | 整数 | 有几个存储这次因为工作线程不够没去查（存储没坏，只是忙）。`failed` 或 `busy` 大于 0，说明结果可能不全 |
@@ -218,6 +219,7 @@ Authorization: Bearer <令牌>
 | `text` | 字符串 | 这条候选在得出结果那一刻的文字，一律经过这个客户端的脱敏，最多 300 字。没有文字时（后端只在 `read` 时给文字）这个键不出现 |
 | `cut` | 布尔 | 只在 `text` 被截断时才有，值为 `true` |
 | `date` | 字符串 | 候选有日期才有这个键，格式同 `results[].date` |
+| `fields` | 对象 | 这条记忆有的全部字段（`speaker`、`about`、`channel`、`audience`、`origin`、`event_date`、`kind` 中有的那些）；一个都没有时这个键不出现 |
 
 | `outcome` | 意思 |
 |---|---|
@@ -252,12 +254,19 @@ Authorization: Bearer <令牌>
 | `messages[].content` | 字符串 | 是 | 去掉空白后不能是空的，最多 4000 字 |
 | `messages[].time` | 字符串或 `null` | 否 | 最多 40 字 |
 | `messages[].speaker` | 字符串或 `null` | 否 | 最多 64 字 |
+| `messages[].channel` | 字符串或 `null` | 否 | 这句话在哪个频道说的：小写字母或数字开头，后面是小写字母、数字和 `_` `.` `:` `-`，最多 64 个字符 |
+| `messages[].origin` | 字符串或 `null` | 否 | 这条记忆是怎么来的，宿主自己报的：`"said"`、`"tool"`、`"curated"`、`"derived"` 之一 |
+| `messages[].event_date` | 字符串或 `null` | 否 | 这件事发生的日期，写成 `YYYY-MM-DD`，必须是真实存在的日期 |
+| `messages[].kind` | 字符串或 `null` | 否 | 这是哪一类事实：`"identity"`、`"preference"`、`"event"`、`"plan"`、`"entity"` 之一 |
+| `messages[].audience` | 字符串或 `null` | 否 | 这条记忆最多给谁看：`"owner"`、`"group"`、`"public"` 之一，只能比存储的受众窄或一样，不能更宽 |
 | `tenant_id` | 字符串 | 看客户端 | 见上面的“租户字段” |
 | `context` | 对象 | 否 | 同 `/v1/recall` |
 
 任何一条消息不合规，整个请求回 400 `bad_messages`，一条都不写。
 
 - `time`、`speaker` 可以不写，写 `null` 等于没写。`time` 是这句话什么时候说的，`speaker` 是谁说的。它们交给写入守卫和存储；公开客户端的这两项也会被脱敏。消息里的其他键丢掉。
+- 五个记忆的字段 `channel`、`origin`、`event_date`、`kind`、`audience` 同样可以不写，`null` 等于没写，值不合规整个请求 400 `bad_messages`。目标存储记录字段（`stores_fields`，见[扩展接口](#记忆的字段)）时，网关在写入守卫之前给每条消息加上一个键 `"fields"`，由它们合成：`audience` 是目标存储的受众（共享存储自己的，`"@tenant"` 是租户来源的），消息要求更窄的就用更窄的，要求更宽的整个请求 400 `bad_messages`，所以写进这样的存储的每条记忆都有受众；`channel` 用消息的，没有就用请求 `context` 里的字符串 `channel`（要符合上面的格式，否则不用），都没有就不记；`origin`、`event_date`、`kind` 照写的记。五个键本身从消息里拿掉，所以交给守卫和存储的消息只有 `role`、`content`、可选的 `time`、`speaker` 和 `fields`。目标存储不记录字段时，这五个键检查之后丢掉，守卫和存储收到的消息和以前一样。
+- `origin` 是宿主自己说的来历，网关只是记下，不凭它给任何权限。客户端能写哪些来历由它的配置 `origins` 决定（默认 `["said", "tool"]`）；消息写了别的来历，整个请求回 403 `forbidden`，一条都不写。
 - `time` 的开头是一个真实存在的 `YYYY-MM-DD` 日期（后面可以接 `T` 或空格再接时间，如 `2026-11-14T20:15:00+08:00`）时，`sqlite`、`embedding`、`hybrid`、`inmemory` 后端用这个日期作为这条记忆的日期，召回结果的 `date` 就是它；没有 `time` 或开头不是合格的日期时，仍用写入当天的 UTC 日期（`inmemory` 不记日期）。取的是 `time` 里写着的日期，不换算时区，所以客户端带上本地时间，记忆的日期就是用户所在地的日期。`openviking` 后端不涉及（日期由 OpenViking 决定）。已经发送 `time` 的客户端，升级后会在记忆上看到这个日期，而不再是 UTC 的当天。
 - `tenant_id`、`context` 同上。
 
@@ -281,7 +290,7 @@ Authorization: Bearer <令牌>
 | 400 | `bad_request` | 请求体不是 JSON 对象，或者 `Content-Length` 不对 |
 | 400 | `bad_messages`、`bad_context`、`bad_tenant` | 见上 |
 | 401 | `unauthorized` | 令牌不对或没带 |
-| 403 | `forbidden` | 这个客户端没有 `write` |
+| 403 | `forbidden` | 这个客户端没有 `write`，或者消息写了这个客户端不能写的 `origin` |
 | 403 | `unknown_tenant`、`tenant_mismatch` | 见“租户字段” |
 | 411、413 | `length_required`、`too_large` | 没有 `Content-Length`；请求体超过 64 KiB |
 | 429 | `rate_limited` | 请求太快 |
@@ -837,9 +846,31 @@ class Hit:
     text: str = ""
     date: str | None = None        # "YYYY-MM-DD"
     meta: dict = field(default_factory=dict)
+    fields: dict = field(default_factory=dict)
 ```
 
-`ref` 会作为召回结果里的 `id` 交给客户端。`meta` 给召回步骤看，不返回给客户端。
+`ref` 会作为召回结果里的 `id` 交给客户端。`meta` 给召回步骤看，不返回给客户端。`fields` 是这条记忆记着的字段（见下），只含有值的那些；不记录字段的后端留空 `{}`。
+
+#### 记忆的字段
+
+除了文字和日期，一条记忆还可以带七个可选的字段，每个都是一小段字符串：`model.FIELDS = ("speaker", "about", "channel", "audience", "origin", "event_date", "kind")`。其中 `speaker`（谁说的）和 `about`（说的是谁）现在只是记录里有的字段，还没有东西往里填；其余五个可以从 `POST /v1/remember` 的消息里带进来（见上）。`model.clean_fields(fields)` 检查一组字段：值是 `None` 的丢掉，键不在 `FIELDS` 里、值不是 1 到 128 个字符的字符串，抛 `ValueError`。值应该是什么由网关规定，存储只管记。
+
+记录字段的后端要做到：
+
+| 成员 | 说明 |
+|---|---|
+| `stores_fields = True` | 类属性。为 `True` 时网关才会把字段交给它；基类是 `False`。打开方式不能升级旧文件的后端（只读）把它设成 `False` |
+| `put(text, ref=None, date=None, fields=None)` | 多一个 `fields`；同一个 `ref` 重放会连字段一起替换（不带字段的 `put` 清掉旧的字段）。`put_many` 的字典项可以带 `"fields"` |
+| `remember(messages, ...)` | 消息里可以有键 `"fields"`（网关给的，见 `POST /v1/remember`），用 `backends.base.message_fields(message)` 取出并检查 |
+| `find`、`neighbours` | 返回的 `Hit.fields` 带上这条记忆的字段 |
+| `records()`、`record(ref)` | `records()` 按 `items()` 的顺序给出每条记忆的 `{"ref", "text", "date", "fields"}`；`record(ref)` 给一条，不存在抛 `KeyError` |
+| `stamp_audience(level)` | 第一次调用时，给每条没有受众的记忆设上 `level`，并记下这个存储已经打过标记（SQLite 类的存储是 `info` 表里的 `audience_stamp` 一行，内存存储是一个标志）；以后再调用什么都不做。只有可写的、带字段列的存储能打标记，别的什么都不做。返回这次设了几条。`hybrid` 对有这个方法的子后端逐个调用 |
+| `checks_audience` | 只读属性，打过标记后为 `True`。召回步骤 `record_audience` 靠它决定要不要逐条检查；没有它或者为假的存储，只受配置里存储这一层的受众规则管 |
+| `set_audience(level, only_missing=True)` | 把记忆的受众设成 `level`：只设没有受众的，或者全部。同时算作已打过标记。返回改了几条。`restamp` 命令用它 |
+
+网关在建好时给每个共享存储打一次标记（用存储声明的受众），租户的存储每次由提供方交出时打（第一次之后只是一个标志判断）。打了标记之后，不带受众写进去的记忆（直接 `put()` 不带字段、旧版本往文件里写、直接的 SQL）保持没有受众，召回时按 `"owner"` 处理：只给主人级的客户端看。
+
+`Candidate.fields` 是候选对应的 `Hit.fields` 的一份拷贝。`linked` 接上的候选带它们自己的字段。
 
 ### `recall_stage`：`RecallStage`
 
@@ -862,9 +893,9 @@ class RecallStage:
 | `admit(candidate, ctx)` | 按分数从高到低一条一条问，直到放满 `limit`。`KEEP` 留下；`DROP` 丢掉；`DEFER` 是好的但放不下，计入 `more`。基类返回 `KEEP` |
 | `finish(ctx)` | 全部候选看完以后调用一次，`ctx.accepted` 是要返回的。只做记账，不能改结果。解释召回（`POST /v1/explain`）不调用它，所以它记的“用到”不会因为解释而多记 |
 
-`Candidate`（`feiyu_memgate.pieces.Candidate`）：`score`、`source`、`store`、`ref`、`text=""`、`date=None`、`meta={}`；`as_item()` 给出返回的 `{"id", "source", "text", "score", "date"?}`。
+`Candidate`（`feiyu_memgate.pieces.Candidate`）：`score`、`source`、`store`、`ref`、`text=""`、`date=None`、`meta={}`、`fields={}`；`as_item()` 给出返回的 `{"id", "source", "text", "score", "date"?}`。
 
-`RecallContext`（`ctx`）的成员：`query`、`limit`、`client`、`tenant_id`、`tenant_source`、`public`、`audience`（这个客户端的受众 `reach`：`"owner"`、`"group"` 或 `"public"`，构造时是只能按名字传的参数，默认 `"owner"`）、`redact`（`str -> str`）、`context`（请求里的 `context`，已检查）、`accepted`、`notes`、`state`（字典，放这一次请求里自己的状态；步骤对象是所有请求共用的，不要存在 `self` 上）、`time_left()`、`expired()`、`note(word)`、`run(fn, store=None)`（在工作线程上跑一个会阻塞的调用，返回 `(ok, result)`，`fn` 收到 `ctl`）。
+`RecallContext`（`ctx`）的成员：`query`、`limit`、`client`、`tenant_id`、`tenant_source`、`public`、`audience`（这个客户端的受众 `reach`：`"owner"`、`"group"` 或 `"public"`，构造时是只能按名字传的参数，默认 `"owner"`）、`show_fields`（这个客户端配置的 `fields`，一个元组，默认 `()`：回答的每一项里带哪些记忆字段）、`redact`（`str -> str`）、`context`（请求里的 `context`，已检查）、`accepted`、`notes`、`state`（字典，放这一次请求里自己的状态；步骤对象是所有请求共用的，不要存在 `self` 上）、`time_left()`、`expired()`、`note(word)`、`run(fn, store=None)`（在工作线程上跑一个会阻塞的调用，返回 `(ok, result)`，`fn` 收到 `ctl`）。
 
 ### `write_guard`：`WriteGuard`
 
@@ -883,6 +914,8 @@ class WriteGuard:
 | `before(messages, ctx)` | 落库之前。返回消息列表（可以改过；空列表是“这次什么都不写”），或者抛 `WriteRejected` 拒绝。基类原样返回 |
 | `rollback(ctx)` | `before` 放行了，但这次写入最后没成时调用，撤回 `before` 做的事。基类什么都不做 |
 | `after(receipt, ctx)` | 存储确认收下之后调用。基类什么都不做 |
+
+一条消息是 `{"role", "content", "time"?, "speaker"?, "fields"?}`：目标存储记录字段时有 `"fields"`（见[记忆的字段](#记忆的字段)，里面有这条记忆的受众）。自己写的守卫如果重新造消息的字典，要把 `"fields"` 带过去，丢了它，存储里的这条记忆就没有受众。内置的 `redact` 和 `daily_cap` 都原样带着它；`fields` 里的值是网关按固定的集合或格式检查过的，不是自由文字，`redact` 不去改它。
 
 `WriteContext`（`ctx`）的成员：`client`、`tenant_id`、`policy`（`ClientPolicy`，`policy.reach` 是这个客户端的受众）、`public`、`redact`、`key`（客户端名，多租户时是 `客户端:租户`）、`context`、`state`。
 
@@ -937,7 +970,7 @@ class ForgettingCurve:
 | 名字 | 是什么 |
 |---|---|
 | `KEEP`、`DROP`、`DEFER` | `admit` 的三个回答 |
-| `ClientPolicy` | 一个客户端的权限，冻结的数据类：`name`、`recall`、`write`、`tenants`、`public`、`daily_writes`、`rate_limit`、`pin_writes`、`daily_writes_total`、`rate_limit_total`、`tenant_binding`、`tenant_token_generation`、`audience`（默认 `None` = 没声明）、`explain`（最后一个字段，默认 `False`：这个客户端可以用 `POST /v1/explain`），和属性 `token_bound`、`can_recall`、`can_write`、`total_rate_limit`、`reach`（客户端的受众：声明了就是声明的；没声明时不公开的是 `"owner"`，公开且带 `tenants` 的是 `"group"`，公开且不带的是 `"public"`）。`feiyu_memgate.model.AUDIENCES` 是 `("owner", "group", "public")`，顺序就是从窄到宽 |
+| `ClientPolicy` | 一个客户端的权限，冻结的数据类：`name`、`recall`、`write`、`tenants`、`public`、`daily_writes`、`rate_limit`、`pin_writes`、`daily_writes_total`、`rate_limit_total`、`tenant_binding`、`tenant_token_generation`、`audience`（默认 `None` = 没声明）、`explain`（默认 `False`：这个客户端可以用 `POST /v1/explain`）、`origins`（默认 `("said", "tool")`：消息里可以写的来历）、`fields`（最后一个字段，默认 `()`：召回的每一项里带上的记忆字段），和属性 `token_bound`、`can_recall`、`can_write`、`total_rate_limit`、`reach`（客户端的受众：声明了就是声明的；没声明时不公开的是 `"owner"`，公开且带 `tenants` 的是 `"group"`，公开且不带的是 `"public"`）。`feiyu_memgate.model.AUDIENCES` 是 `("owner", "group", "public")`，顺序就是从窄到宽 |
 | `Gateway` 的 `audiences=` | `Gateway(stores, clients, tokens, ..., audiences=None)`：`{名字: 级别}`，名字是存储或租户来源的名字；没写的存储是 `"owner"`，租户来源是 `"group"`。名字不是存储也不是租户来源、级别不在 `AUDIENCES` 里，都抛 `ConfigError`。`gateway.audience_of(名字)` 返回这个存储或租户来源的级别。受众的两条规则和配置文件建出来的网关一样，在 `Gateway` 里检查，见 [configuration.md](configuration.md#受众存储给谁看客户端被谁看) |
 | `BackendError` | 后端失败时抛，不带上游的文字 |
 | `ConfigError` | 配置不能用；消息里说是哪一项，不带密钥的值 |
@@ -960,6 +993,7 @@ class ForgettingCurve:
 | [`eval`](#eval) | 用示例记忆评测召回，帮助选分数线 |
 | [`tenants`](#tenants) | 管理租户密钥文件；铸造租户令牌 |
 | [`forget`](#forget) | 遗忘曲线的状态、清理、存档、恢复、钉住 |
+| [`restamp`](#restamp) | 给存储里的记忆重新打上受众 |
 
 ### `serve`
 
@@ -981,7 +1015,7 @@ feiyu-memgate serve --config FILE [--host HOST] [--port PORT]
 feiyu-memgate check --config FILE
 ```
 
-加载并建出网关，打印存储、租户来源（都带受众）、客户端（带它的受众）、召回步骤（按顺序）、分数线档位、写入守卫（按顺序），配了遗忘的还有遗忘的设置；对放错位置的召回步骤、自报租户号的多租户客户端、看起来不随机的铸造密钥、只设了合计每日上限的绑定客户端各打印一行提醒；受众不是主人的客户端写入受众是主人的存储时也提醒一行；开了 `explain` 的客户端那一行末尾多一句“可以查看召回的解释”。不显示令牌，只说有没有可用的。退出码 0；配置有问题时打印 `配置有问题：<说明>`，退出码 1。
+加载并建出网关，打印存储、租户来源（都带受众）、客户端（带它的受众）、召回步骤（按顺序）、分数线档位、写入守卫（按顺序），配了遗忘的还有遗忘的设置；对放错位置的召回步骤、自报租户号的多租户客户端、看起来不随机的铸造密钥、只设了合计每日上限的绑定客户端各打印一行提醒；受众不是主人的客户端写入受众是主人的存储时也提醒一行；开了 `explain` 的客户端那一行末尾多一句“可以查看召回的解释”；配了 `fields` 的客户端那一行写着它拿到哪些字段；受众不是主人的客户端召回的存储里，有不逐条记录受众的（不记录字段，或者只读而且没打过标记），对这个客户端提醒一行：只有存储这一层的受众规则保护它。不显示令牌，只说有没有可用的。退出码 0；配置有问题时打印 `配置有问题：<说明>`，退出码 1。
 
 ### `pieces`
 
@@ -1068,6 +1102,24 @@ feiyu-memgate forget explain --config FILE STORE REF
 | `explain` | 账本记着这条记忆什么、两个保持率各多少、什么时候越过降权线、最早什么时候可以被删 | 存储不是被管理的，或存储、账本、存档里都没有这条时为 1，否则 0 |
 
 没有配置 `[forgetting]` 时，所有动作打印怎么打开它，退出码 1。存储或文件出错：打印 `错误：<异常类型>`，退出码 1。
+
+`restore` 恢复一条存档时，存储记录字段的话字段一起写回；存档里这条没有受众（这个改动之前存的档），就用这个存储声明的受众（租户存储用租户来源声明的），不会没有受众地写回去。
+
+### `restamp`
+
+```
+feiyu-memgate restamp --config FILE --store NAME [--tenant ID] (--missing | --all)
+```
+
+| 参数 | 说明 |
+|---|---|
+| `--config FILE` | 必须。TOML 配置文件 |
+| `--store NAME` | 必须。共享存储的名字；加了 `--tenant` 时是租户来源的名字 |
+| `--tenant ID` | 改这个租户自己的存储 |
+| `--missing` | 只给没有受众的记忆设上这个存储声明的受众 |
+| `--all` | 给每一条记忆都设上它：配置里改了存储的声明之后，有意放宽或收窄整个存储的办法 |
+
+`--missing` 和 `--all` 必须二选一。打印改了几条（只有数字和名字，不显示记忆正文）。存储不存在、租户不合格或不存在、存储不记录字段（没有 `set_audience`）或者是只读的，打印原因，退出码 1；成功退出码 0。命令从配置建出网关，所以第一次建的时候会先给存储打一次标记；`--missing` 处理的是打标记之后才进来的没有受众的记忆。说明见 [configuration.md](configuration.md#每条记录的受众)。
 
 ## DSH 插件的接口
 

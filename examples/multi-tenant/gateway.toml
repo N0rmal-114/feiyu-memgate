@@ -60,6 +60,7 @@ daily_writes_total = 500              # 所有群加起来每天；换着群号�
 stages = [
     "min_score",
     { type = "source_weight", weights = { private = 1.0, public_list = 0.9, group = 0.6 } },
+    "record_audience",
     "redact",
     "dedupe",
     "budget",

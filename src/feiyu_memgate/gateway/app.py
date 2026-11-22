@@ -29,6 +29,7 @@ from ..core.watch import ExtractionWatch, RecallFailures
 from ..errors import WriteRejected
 from ..model import TENANT_STORE
 from . import policies
+from .fields import Refused, request_fields
 # The names below were defined in this module before it was split. They are imported here for
 # the callers and tests that still reach them as attributes of gateway.app (re-exports).
 from ..errors import ConfigError  # noqa: F401
@@ -148,6 +149,7 @@ class Gateway:
         self._sweep_thread = None
         self._started = []
         self._closed = False
+        self._stamp_shared_stores()
 
     def _load_audiences(self, audiences):
         """name -> level for every store and tenants provider; what was not declared gets its default."""
@@ -160,6 +162,29 @@ class Gateway:
             return self.audiences[name]
         except KeyError:
             raise KeyError("no store or tenants provider named %r" % name) from None
+
+    @staticmethod
+    def _stamp(store, level):
+        """Give the records of `store` that have no audience the store's `level`, once: the first time a
+        store keeps fields and is stamped, its records get `level` and its recall check (record_audience)
+        starts. A store without `stamp_audience` is left alone; a stamped one costs a flag test."""
+        stamp = getattr(store, "stamp_audience", None)
+        if callable(stamp):
+            stamp(level)
+
+    def _stamp_shared_stores(self):
+        """Stamp every shared store with its declared level, once, when the gateway is built."""
+        for name, store in self.stores.items():
+            self._stamp(store, self.audiences[name])
+
+    def tenant_store(self, name, tenant_id):
+        """The store the tenants provider `name` has for `tenant_id`, stamped with the provider's level
+        (see _stamp), or None for an unknown tenant. The provider's cache stays the provider's: nothing
+        here is held under a lock."""
+        store = self.tenants[name].store(tenant_id)
+        if store is not None:
+            self._stamp(store, self.audiences[name])
+        return store
 
     def _check_audience(self, where, policy):
         """The two audience rules: a client reads only stores at least as wide as its own audience,
@@ -349,7 +374,7 @@ class Gateway:
         if not policy.token_bound and not self.limiter.allow(
                 self._tenant_rate_key(policy, tenant_id), policy.rate_limit):
             return error_reply(429, "rate_limited", "rate limited")
-        store = provider.store(tenant_id)
+        store = self.tenant_store(policy.tenants, tenant_id)
         if store is None:
             return error_reply(403, "unknown_tenant", "unknown tenant")
         return tenant_id, store
@@ -465,7 +490,8 @@ class Gateway:
                             public=policy.public, redact=self._redactor(policy), client=policy.name,
                             tenant_id=tenant_id, notes=notes, context=context, log=self._log,
                             tenant_source=policy.tenants if TENANT_STORE in policy.recall else None,
-                            slots=self.store_slots, keep=self._keep(policy), audience=policy.reach, trace=trace)
+                            slots=self.store_slots, keep=self._keep(policy), audience=policy.reach, trace=trace,
+                            show_fields=policy.fields)
         try:
             out = recall(stores, self.stages, ctx)
         except StageError:
@@ -537,7 +563,7 @@ class Gateway:
         deadline = self.clock() + USED_DEADLINE
         recorded = 0
         for (key, source, tenant), refs in by_key.items():
-            store = self.tenants[source].store(tenant_id) if tenant else self.stores[source]
+            store = self.tenant_store(source, tenant_id) if tenant else self.stores[source]
             if store is None:
                 continue
             known = f.ledger.get_many(key, refs)
@@ -550,8 +576,12 @@ class Gateway:
     # ---------------------------------------------------------------- remember
 
     def remember(self, name, body, bound_tenant=None):
-        """Store {"messages": [{"role", "content", "time"?, "speaker"?}], "tenant_id": str,
-        "context": {...}} for the client `name`. bound_tenant: as for recall()."""
+        """Store {"messages": [{"role", "content", "time"?, "speaker"?, "channel"?, "origin"?, "event_date"?,
+        "kind"?, "audience"?}], "tenant_id": str, "context": {...}} for the client `name`. bound_tenant: as
+        for recall().
+
+        The last five keys are record fields (gateway/fields.py): a store that keeps fields stores them,
+        together with the audience of every record; the guards see them as the message key "fields"."""
         return self._guarded(self._remember, name, body, bound_tenant)
 
     def _remember(self, name, body, bound_tenant):
@@ -568,11 +598,16 @@ class Gateway:
         context = _valid_context(body.get("context"))
         if context is None:
             return error_reply(400, "bad_context", "bad context")
+        store = tenant_store if policy.write == TENANT_STORE else self.stores[policy.write]
+        try:
+            messages = request_fields(messages, level=self.audiences[self._write_source(policy)], policy=policy,
+                                      context=context, keeps=getattr(store, "stores_fields", False) is True)
+        except Refused as refused:
+            return error_reply(refused.status, refused.code, refused.text)
         key = self._admit_tenant(policy, tenant_id)
         if key is False:
             return error_reply(503, "busy", "busy", "tenant-budget")
         try:
-            store = tenant_store if policy.write == TENANT_STORE else self.stores[policy.write]
             ctx = write_module.WriteContext(policy, tenant_id, self._redactor(policy), context)
             return self._write(policy, store, messages, ctx)
         finally:
@@ -684,7 +719,7 @@ class Gateway:
             if not self.forgetting.manages(name) or not callable(getattr(provider, "list", None)):
                 continue
             for tenant_id in provider.list():
-                store = provider.store(tenant_id)
+                store = self.tenant_store(name, tenant_id)
                 if store is not None:
                     targets[self.forgetting.key(name, tenant_id)] = store
         return targets

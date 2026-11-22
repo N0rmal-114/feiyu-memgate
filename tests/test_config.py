@@ -58,11 +58,12 @@ class BuildGatewayTests(ConfigTestCase):
     def test_defaults_are_the_built_in_stages_and_guards(self):
         gw = self.build(base_config())
         self.assertEqual([type(s) for s in gw.stages],
-                         [stages.MinScore, stages.RelativeScore, stages.NewerFirst, stages.Linked, stages.FillText,
-                          stages.DropOversize, stages.Redact, stages.Dedupe, stages.Budget])
+                         [stages.MinScore, stages.RelativeScore, stages.NewerFirst, stages.Linked,
+                          stages.RecordAudience, stages.FillText, stages.DropOversize, stages.Redact, stages.Dedupe,
+                          stages.Budget])
         self.assertEqual([s.name for s in gw.stages],
-                         ["min_score", "relative_score", "newer_first", "linked", "fill_text", "drop_oversize",
-                          "redact", "dedupe", "budget"])
+                         ["min_score", "relative_score", "newer_first", "linked", "record_audience", "fill_text",
+                          "drop_oversize", "redact", "dedupe", "budget"])
         self.assertEqual([type(g) for g in gw.guards], [write.RedactGuard, write.DailyCapGuard])
 
     def test_the_gateway_works_end_to_end(self):
@@ -115,7 +116,7 @@ class BuildGatewayTests(ConfigTestCase):
         self.assertIn("no_such_backend", str(ctx.exception))
 
     def test_a_custom_stage_by_dotted_path(self):
-        cfg = base_config(recall={"stages": [{"type": __name__ + ":Tagging", "tag": "x"}, "redact"]})
+        cfg = base_config(recall={"stages": [{"type": __name__ + ":Tagging", "tag": "x"}, "redact", "record_audience"]})
         gw = self.build(cfg)
         self.assertIsInstance(gw.stages[0], Tagging)
         self.assertEqual(gw.stages[0].tag, "x")
@@ -223,7 +224,7 @@ class EnforcedTests(ConfigTestCase):
         self.assertEqual(len(gw.guards), 1)
 
     def test_a_custom_piece_can_declare_what_it_enforces(self):
-        cfg = base_config(recall={"stages": [__name__ + ":OwnRedaction"]},
+        cfg = base_config(recall={"stages": [__name__ + ":OwnRedaction", "record_audience"]},
                           write={"guards": [__name__ + ":OwnCap", "redact"]})
         gw = self.build(cfg)
         self.assertIsInstance(gw.stages[0], OwnRedaction)
@@ -269,7 +270,7 @@ class TokenAndTenantPolicyTests(ConfigTestCase):
     def test_recall_sources_follow_the_order_of_the_list(self):
         cfg = base_config()
         cfg["stores"]["shared"]["memories"] = ["likes green tea a lot"]
-        cfg["recall"] = {"stages": [{"type": "min_score", "value": 0.0}, "redact"]}
+        cfg["recall"] = {"stages": [{"type": "min_score", "value": 0.0}, "redact", "record_audience"]}
         cfg["clients"]["owner"]["recall"] = ["shared", "private"]
         gw = self.build(cfg)
         self.assertEqual(list(gw._recall_stores(gw.clients["owner"], None)), ["shared", "private"])
@@ -395,7 +396,7 @@ class EnvOptionTests(ConfigTestCase):
         self.assertNotIn(SECRET_KEY, str(ctx.exception))
 
     def test_env_options_inside_a_stage_table(self):
-        cfg = base_config(recall={"stages": [{"type": __name__ + ":Tagging", "tag_env": "TAG"}, "redact"]})
+        cfg = base_config(recall={"stages": [{"type": __name__ + ":Tagging", "tag_env": "TAG"}, "redact", "record_audience"]})
         gw = self.build(cfg, env=dict(ENV, TAG="from-env"))
         self.assertEqual(gw.stages[0].tag, "from-env")
 

@@ -363,8 +363,8 @@ class OptionsTest(unittest.TestCase):
 
     def test_the_default_stages_have_it_between_newer_first_and_fill_text(self):
         names = list(stages.DEFAULT_STAGES)
-        self.assertEqual(names, ["min_score", "relative_score", "newer_first", "linked", "fill_text", "drop_oversize",
-                                 "redact", "dedupe", "budget"])
+        self.assertEqual(names, ["min_score", "relative_score", "newer_first", "linked", "record_audience", "fill_text",
+                                 "drop_oversize", "redact", "dedupe", "budget"])
         gateway = self.build(None)
         self.assertEqual([s.name for s in gateway.stages], names)
         self.assertEqual(stages.misplaced(gateway.stages), [])

@@ -8,7 +8,7 @@ import math
 from typing import Any
 
 from ..errors import ConfigError
-from ..model import Candidate
+from ..model import AUDIENCES, Candidate
 from ..registry import register
 from . import tidy
 from .recall import DEFER, DROP, KEEP, RecallStage, _hits
@@ -486,6 +486,36 @@ class Linked(RecallStage):
         return out
 
 
+@register("recall_stage", "record_audience")
+class RecordAudience(RecallStage):
+    """Leave out a memory whose own audience is narrower than the client's: the second check, beside the
+    store-level rule of the configuration (a client reads only stores at least as wide as its audience).
+
+    A memory is stamped with an audience when it is written (and every older one when its store is first
+    stamped, see the backends' `stamp_audience`). A record that has none, or one this code does not know,
+    counts as "owner": it is shown to an owner-level client only. It catches what the store-level rule
+    cannot: a copied store file configured under a wider name, two names for one file, a record that
+    arrived without a stamp. A store that does not check audiences (`checks_audience` is not True: it keeps
+    no record fields, it is read-only and was never stamped, a third-party backend) keeps everything here:
+    the store-level rule is the only one there. An owner-level client is never affected. It works in
+    admit(), so memories the `linked` stage added are checked too. No options.
+    """
+
+    cheap = True
+    enforces = ("record_audience",)
+
+    def admit(self, candidate, ctx):
+        if getattr(candidate.store, "checks_audience", False) is not True:
+            return KEEP
+        level = candidate.fields.get("audience") if isinstance(candidate.fields, dict) else None
+        if level not in AUDIENCES:
+            level = "owner"
+        asked = getattr(ctx, "audience", "owner")
+        if asked not in AUDIENCES:
+            asked = "owner"
+        return DROP if AUDIENCES.index(level) < AUDIENCES.index(asked) else KEEP
+
+
 def misplaced(stages):
     """Names of the stages in `stages` that stand before a stage they must come after. Works on
     stage objects (the order of a built gateway); newer_first and linked declare such a rule, in `after`."""
@@ -508,5 +538,7 @@ def misplaced(stages):
 # linked acts after the lines (it never changes whether the gateway stays quiet) and before fill_text, so what it
 # appends is read, redacted and counted like any other candidate; it does nothing for stores without `neighbours`.
 # (drop_marker is not a default: add it after fill_text when something writes such markers.)
-DEFAULT_STAGES = ("min_score", "relative_score", "newer_first", "linked", "fill_text", "drop_oversize", "redact",
-                  "dedupe", "budget")
+# record_audience stands right after linked, so what linked adds is checked too, and before fill_text, so a
+# memory that is not shown is never read.
+DEFAULT_STAGES = ("min_score", "relative_score", "newer_first", "linked", "record_audience", "fill_text",
+                  "drop_oversize", "redact", "dedupe", "budget")

@@ -120,6 +120,24 @@
 
 **代价**：每找一次邻居，`embedding` 要把全部已存的向量扫一遍（和一次搜索的扫描一样，约 1 万条 0.14 秒、5 万条 0.9 秒，见下面 `embedding` 一节），但不需要取查询向量。`linked` 默认跟着最前面 2 条候选去找，所以一次召回最多多 2 遍扫描，只有候选数还没到 `limit` 时才做；没有候选（保持安静的那一轮）一遍也不扫。记忆很多时这笔开销要算进召回的总时限里：`linked` 最多等 1 秒、不超过剩余时间的一半，超过就当作没找到。
 
+## 记忆的字段
+
+除了文字和日期，一条记忆还可以带七个可选的字段（`model.FIELDS`）：`speaker`、`about`、`channel`、`audience`、`origin`、`event_date`、`kind`，每个是 1 到 128 个字符的字符串。`speaker` 和 `about` 现在只是记录里有的字段，还没有东西填它们；`channel`、`audience`、`origin`、`event_date`、`kind` 来自 `POST /v1/remember` 的消息（见 [api.md](api.md)）。
+
+| 后端 | 记录字段吗 | 怎么存 |
+|---|---|---|
+| `sqlite` | 记 | `memories` 表里每个字段一列（可以为空的文本列），`info` 表里 `record_version` 是 `"2"` |
+| `embedding` | 记 | 同上；向量只由文字算出，字段不会发给 embeddings 接口 |
+| `hybrid` | 子后端有一个记就记 | 字段只交给记录字段的子后端，别的子后端的调用和以前一样；召回结果的字段取按子后端顺序第一个返回了字段的；`records()`、`record(ref)` 取第一个记录字段的子后端 |
+| `inmemory` | 记 | 另有一张 `ref` 到字段的表，原来的 `(文字, 日期)` 表不变 |
+| `openviking` | 不记 | 记忆由 OpenViking 整理，字段没有地方放 |
+
+`find`、`neighbours` 返回的 `Hit.fields` 带上字段，`records()` 和 `record(ref)` 按 `items()` 的顺序给出整条记录。`put(..., fields=)` 同一个 `ref` 重放时连字段一起替换，不带字段的 `put` 清掉旧的字段；遗忘存档的 `fields` 列把字段存成一个 JSON，恢复时写回。
+
+**旧文件怎么升级。** 没有这些列的旧 `sqlite` 或 `embedding` 文件，以可写方式打开时用 `ALTER TABLE` 加上列（已有的记忆一条不丢，字段都是空的），并写上 `record_version`；两个进程同时升级也没有问题。以只读方式打开时什么都不改：这个存储读出的记忆没有字段，`stores_fields` 是 `False`，不打标记（见下），网关对它只用存储这一层的受众规则。旧版本的代码仍然可以读写升级后的文件：它不认识新列，用 `INSERT OR REPLACE INTO memories (ref, text, created_at, date ...)` 重写一条记忆时，这一行的字段（包括受众）被清空；这样的记忆没有受众，按 `"owner"` 处理，只给主人级的客户端看，可以用 `feiyu-memgate restamp --missing` 补上。
+
+**受众的标记。** `sqlite`、`embedding`、`hybrid`、`inmemory` 有 `stamp_audience(level)`、`checks_audience`、`set_audience(level, only_missing)`（接口见 [api.md](api.md#记忆的字段)）。网关建好时对每个共享存储调用一次 `stamp_audience`（用存储声明的受众）：第一次把没有受众的记忆设成这个级别并在存储里记下，以后什么都不做。只有可写的、有字段列的存储能打标记；只读的存储不改，召回时只受存储这一层的规则管。`hybrid` 对有这个方法的子后端逐个打，它的 `checks_audience` 在任何一个子后端检查时为真；只有一个不记录字段的子后端返回的记忆没有受众，对主人以下的客户端按 `"owner"` 处理，不给。
+
 ## 写入时记忆的日期
 
 `sqlite`、`embedding`、`hybrid`、`inmemory` 的 `remember()` 用消息自己的 `time` 定这条记忆的日期：`time` 是字符串，开头十个字符是真实存在的 `YYYY-MM-DD` 日期，第十一个字符（有的话）是 `T` 或空格（`2026-11-17`、`2026-11-17T08:30:00+08:00`、`2026-11-17 08:30` 都行；`2026-11-171`、`2026-02-30`、`2026/11/17` 不行），日期就取这十个字符，不做时区换算。没有 `time` 或不合格时和以前一样：`sqlite`、`embedding`、`hybrid` 用当天的 UTC 日期，`inmemory` 不记日期。`put()` 不变，还是用传入的 `date`。`time` 和 `speaker` 本身仍然不存。

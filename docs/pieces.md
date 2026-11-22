@@ -109,7 +109,7 @@ stages = [
 - `redact` 要在 `dedupe` 和 `budget` 前面，这样去重和字数算的是真正返回的文字。
 - `budget` 放最后。
 
-不写 `stages` 时用的默认一套（`DEFAULT_STAGES`）是：`min_score`、`relative_score`、`newer_first`、`linked`、`fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`。
+不写 `stages` 时用的默认一套（`DEFAULT_STAGES`）是：`min_score`、`relative_score`、`newer_first`、`linked`、`record_audience`、`fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`。
 
 内置步骤一览：
 
@@ -119,6 +119,7 @@ stages = [
 | `relative_score` | 丢掉分数远低于本次请求里最高分的：低于 `ratio` × 最高分（可选再低于最高分 − `gap`）的不要。最高分是走到这一步的候选里最高的，放在 `min_score` 后面时就是过了分数线的最高分 | `ratio`（0..1，不写时按 `profile` 用存储声明的比例，存储也没有就是 0.6）、`gap`（默认不用）、`profile`（同 `min_score`，`"broad"` 默认用存储的 `broad_relative_ratio`，`"precise"` 用 `default_relative_ratio`；`ratio` 优先） |
 | `newer_first` | 同一次请求里，分数不低于最高分 × `band` 的候选中，带日期的按“新的在前”交换分数；分数的多重集合不变，不丢任何候选。没有日期的记忆不受影响 | `band`（默认 0.85）、`related`（0..1，默认 0 = 不用：大于 0 时，两条记忆的文字字符二元组重叠不低于它才交换）、`min_days`（默认 1，日期相差不到这么多天算同一时间） |
 | `linked` | 分数线之后，看最前面 `top` 条候选，向它们的存储要最相似的记忆（后端的可选方法 `neighbours`），把相似度不低于 `minimum` 的、还不是候选的最多 `max_added` 条接在最后，且只在候选数低于本次请求的 `limit` 时；没有 `neighbours` 的存储什么都不加。它在分数线之后才起作用，一条候选都没有就什么也不加（该安静时仍然安静） | `top`（默认 2，1 到 5）、`max_added`（默认 2，0 到 5，0 就是关掉）、`minimum`（默认 0.60，0 到 1） |
+| `record_audience` | 记忆自己的受众（字段 `audience`）比这个客户端的受众窄就丢掉，没有受众按 `owner` 算；存储不记录字段或没打过标记（`checks_audience` 不是 `True`）时放行；`linked` 接上的记忆也检查。`enforces` 是 `("record_audience",)`：受众不是 `owner` 的客户端要有它，见 [configuration.md](configuration.md#每条记录的受众)。放在 `fill_text` 前面，不显示的记忆就不用读全文 | 无 |
 | `source_weight` | 分数乘上来源权重，让一种来源排在另一种前面 | `weights`、`default` |
 | `drop_marker` | 丢掉带标记串的记忆（比如写入自检留下的）。不在默认的一套里 | `markers` |
 | `fill_text` | 搜索结果没带全文的，去存储里读（每次请求最多读几条，超时不读） | `max_reads`（默认 3） |
@@ -127,7 +128,7 @@ stages = [
 | `dedupe` | 近似重复的只留分数最高的一条 | `overlap`（默认 0.8） |
 | `budget` | 返回的总字数封顶；放不下的整条不放，计入 `more` | `max_chars`（默认 1500） |
 
-`drop_marker`、`drop_oversize`、`dedupe`、`relative_score` 是 `cheap` 的。
+`drop_marker`、`drop_oversize`、`dedupe`、`relative_score`、`record_audience` 是 `cheap` 的。
 
 **`relative_score` 是怎么来的。** 向量检索里，对的记忆通常明显高于其余的，一个全局分数线要么放进太多杂项、要么丢掉对的；
 按“离最高分多远”切，能去掉大部分杂项而不用把分数线定死。它在 `prepare` 里工作，只和同一次请求里的候选比较：

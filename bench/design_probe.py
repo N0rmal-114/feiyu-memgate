@@ -320,7 +320,8 @@ def probe_public_stricter_redaction():
             planted = "planted card for the neighbour: phone %s email %s id %s at %s" % (
                 FAKE_PHONE, FAKE_MAIL, FAKE_ID, "北京市海淀区" + FAKE_STREET_ZH)
             s.store("private").put(planted, ref="planted-private")
-            s.tenant_store("group", "10001").put(planted, ref="planted-public")
+            # A direct put has no audience and counts as owner-only: seed with the tenants' level, "group".
+            s.tenant_store("group", "10001").put(planted, ref="planted-public", fields={"audience": "group"})
             pub = s.gw.recall("group", {"query": "planted card neighbour", "tenant_id": "10001"})
             pub_texts = [r["text"] for r in pub.body.get("results", [])] if pub.status == 200 else []
             c.add("public_recall_masks", pub.status == 200 and pub_texts
@@ -332,7 +333,7 @@ def probe_public_stricter_redaction():
                   "status=%d results=%d" % (priv.status, len(priv_texts)))
             # Known limits (docs/security.md): reported, not hidden.
             gap = "landline memo: 010-12345678 and full-width ８００１２３４５"
-            s.tenant_store("group", "10001").put(gap, ref="gap-1")
+            s.tenant_store("group", "10001").put(gap, ref="gap-1", fields={"audience": "group"})
             gap_reply = s.gw.recall("group", {"query": "landline memo", "tenant_id": "10001"})
             gap_texts = [r["text"] for r in gap_reply.body.get("results", [])] if gap_reply.status == 200 else []
             c.limit("landline_and_fullwidth_digits_not_masked",
@@ -460,7 +461,7 @@ def _probe_bound_tokens(c, s, q):
     says; the minting secret alone is refused. Tokens are made here and never written to the evidence."""
     http, secret = s.http, token_for("bound")
     token_a, token_b = (mint_tenant_token(secret, "bound", "group", 1, t) for t in ("10001", "10002"))
-    s.tenant_store("group", "10002").put("pelican ledger quartz notes", ref="two-1")
+    s.tenant_store("group", "10002").put("pelican ledger quartz notes", ref="two-1", fields={"audience": "group"})
     q2 = {"query": "pelican ledger quartz"}
     st_a, body_a = http.request("POST", "/v1/recall", token_a, q)
     c.add("bound_token_reads_its_tenant_without_naming_it", st_a == 200 and len(body_a["results"]) >= 1,

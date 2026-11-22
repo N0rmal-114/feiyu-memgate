@@ -69,6 +69,12 @@ text is embedded. A store made before they existed gets the columns when it is o
 record_version "2"); opened read-only it is left alone, answers without fields and `stores_fields` is False.
 Today's named-column `INSERT OR REPLACE INTO memories (ref, text, created_at, date, vector) ...` still works on
 the new table (the row then has no fields).
+
+Audiences: `stamp_audience(level)` gives every memory without an audience `level` the first time it is called and
+records that in `info` (row `audience_stamp`); `checks_audience` is True from then on, and the `record_audience`
+recall stage drops a memory narrower than its client (a memory without an audience counts as "owner").
+`set_audience(level, only_missing)` changes it later on purpose (the `restamp` command). Neither touches a vector or
+the generation counter.
 """
 import array
 import collections
@@ -350,6 +356,7 @@ class EmbeddingBackend(MemoryBackend):
         try:
             self._check_model()
             self.stores_fields = self._stored = _sqlfile.ensure_fields(self._db, self.writable)
+            self._stamped = self._stored and _sqlfile.is_stamped(self._db)
         except Exception:
             self._db.close()
             raise
@@ -548,6 +555,41 @@ class EmbeddingBackend(MemoryBackend):
     def items(self):
         """Iterate (ref, text, date) over everything stored, oldest first."""
         return _sqlfile.items(self._read)
+
+    # ------------------------------------------------------------ audiences
+
+    @property
+    def checks_audience(self):
+        """True once the store was stamped (stamp_audience, set_audience): the recall stage
+        `record_audience` then reads the audience of each record. A record without one counts as "owner"."""
+        return self._stamped
+
+    def stamp_audience(self, level):
+        """The first time it is called on a store: give every memory without an audience `level` and
+        remember that the store was stamped (info row `audience_stamp`). Later calls do nothing. Only a
+        writable store that has the field columns can be stamped; on any other this does nothing. Returns
+        how many memories got the level."""
+        _sqlfile.check_level(level)
+        if self._stamped or not (self.writable and self._stored):
+            return 0
+        with self._lock:
+            if self._stamped:
+                return 0
+            changed = _sqlfile.stamp(self._db, level)
+            self._stamped = True
+        return changed
+
+    def set_audience(self, level, only_missing=True):
+        """Give the memories `level` as their audience: only those without one (`only_missing`), or every
+        memory. Also marks the store stamped. Returns how many memories changed; 0, and nothing done, on a
+        store that is read-only or has no field columns."""
+        _sqlfile.check_level(level)
+        if not (self.writable and self._stored):
+            return 0
+        with self._lock:
+            changed = _sqlfile.restamp(self._db, level, only_missing)
+            self._stamped = True
+        return changed
 
     def records(self):
         """Iterate {"ref", "text", "date", "fields"} over everything stored, in the order of items()."""

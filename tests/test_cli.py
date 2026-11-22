@@ -337,7 +337,7 @@ stages = [%s]
         self.assertNotIn("要放在", text)
         self.assertIn("linked", text)  # shown in the stage list, and part of the default one
         code, text = self.check(GOOD)
-        self.assertIn("newer_first -> linked -> fill_text", text)
+        self.assertIn("newer_first -> linked -> record_audience -> fill_text", text)
 
     def test_the_default_order_needs_no_reminder(self):
         code, text = self.check(GOOD)

@@ -41,6 +41,11 @@ the children that store them (the others are called exactly as before, so a chil
 first child, in child order, that returned any for that memory; `records()` and `record(ref)` come from the
 first child that stores fields (else from the first child that has the method).
 
+Audiences: `stamp_audience(level)` and `set_audience(level, only_missing)` go to the children that have them, and
+`checks_audience` is True when any of them checks. A memory that only a child without record fields returned has
+no audience in the answer, so for a client below owner level it counts as "owner" and is not shown: the check
+fails closed.
+
 Secrets: the `children` list is not walked by the configuration's `<name>_env` rule, so
 a child option ending in `_env` (for example `key_env`) is resolved here from the process
 environment, the same way.
@@ -531,6 +536,25 @@ class HybridBackend(MemoryBackend):
             if getattr(child, "stores_fields", False) is True and hasattr(child, name):
                 return getattr(child, name)
         return self._first(name)
+
+    @property
+    def checks_audience(self):
+        """True when any child checks audiences (it was stamped)."""
+        return any(getattr(child, "checks_audience", False) is True for child in self.children)
+
+    def stamp_audience(self, level):
+        """Call stamp_audience(level) on every child that has it. Returns the largest count (the children
+        hold the same memories, so the counts are one number seen once per child)."""
+        counts = [child.stamp_audience(level) for child in self.children
+                  if callable(getattr(child, "stamp_audience", None))]
+        return max(counts, default=0)
+
+    def set_audience(self, level, only_missing=True):
+        """Call set_audience on every child that has it. Returns the largest count (the children hold the
+        same memories, so the counts are one number seen once per child)."""
+        counts = [child.set_audience(level, only_missing) for child in self.children
+                  if callable(getattr(child, "set_audience", None))]
+        return max(counts, default=0)
 
     def records(self):
         """{"ref", "text", "date", "fields"} of every memory, from the first child that stores fields."""

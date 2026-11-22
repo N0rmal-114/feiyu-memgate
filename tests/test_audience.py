@@ -346,7 +346,8 @@ class IsolationTests(Built):
         self.assertTrue(private.find(MARKER, 5))
         target = ENTRIES[entry][0]
         store = gw.stores["s"] if target == "s" else gw.tenants["g"].store(GROUP_ID)
-        store.put(FACT)
+        # a record put straight into a stamped store has no audience (owner-only): give the seed its store's
+        store.put(FACT, fields={"audience": gw.audience_of("s" if target == "s" else "g")})
         body = {"query": MARKER}
         if KINDS[kind][2]:
             body["tenant_id"] = GROUP_ID
@@ -374,7 +375,7 @@ class IsolationTests(Built):
                      {"owner": owner, "c": client_policy("public", "store public")},
                      {"owner": ENV["TOKEN_OWNER"], "c": TOKEN}, audiences={"s": "public"}, log=lambda line: None)
         self.addCleanup(gw.close)
-        gw.stores["s"].put(FACT)
+        gw.stores["s"].put(FACT, fields={"audience": "public"})  # a direct put has no audience: owner-only
         server = gateway_server.make_server(gw, "127.0.0.1", 0)
         thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.02}, daemon=True)
         thread.start()

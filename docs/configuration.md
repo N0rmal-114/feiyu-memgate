@@ -119,6 +119,8 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 | `public` | `false` | 内容会被别人看到：改用公开脱敏。只写了 `audience` 不写 `public` 时由它推出 |
 | `audience` | 见“受众”一节 | 这个客户端展示的内容会被谁看到：`"owner"`、`"group"`、`"public"`。启动时拿它和 `recall` 里每个存储的受众核对 |
 | `explain` | `false` | 允许这个客户端用 `POST /v1/explain`：召回之外还能看到每条候选的分数和被哪一步拿掉。必须是布尔值；只给主人级别的客户端：要有 `recall`，受众是 `owner`，否则启动报错，见 [security.md](security.md) |
+| `origins` | `["said", "tool"]` | 这个客户端写入的消息可以写哪些 `origin`（来历）：`"said"`、`"tool"`、`"curated"`、`"derived"` 里的若干个，其他的值启动报错；可以写 `[]`（一个来历都不许写）。消息写了不在这里的来历，整个请求 403 `forbidden`。来历只是宿主自己说的记录，网关不凭它给任何权限 |
+| `fields` | `[]` | 召回的每一项里带上哪些记忆字段（`"speaker"`、`"about"`、`"channel"`、`"audience"`、`"origin"`、`"event_date"`、`"kind"` 里的若干个，其他的值启动报错）。不写时召回的回答和以前一模一样。受众不是 `owner` 的客户端不能列 `speaker` 和 `about`（只有主人级的客户端能看到一条记忆说的是谁），启动报错 |
 | `daily_writes` | 不限 | 每天最多写几次（多租户按租户分别计） |
 | `daily_writes_total` | 不限 | 整个客户端每天最多写几次（多租户是所有租户合计） |
 | `rate_limit` | `60` | 每分钟最多几次请求（多租户按租户分别计） |
@@ -208,6 +210,23 @@ feiyu-memgate tenants token --config gateway.toml --client group_bot --tenant 10
 
 `daily_writes` 和 `daily_writes_total` 要 `[write]` 里有 `daily_cap` 守卫；`public = true` 的客户端能召回时要有 `redact` 召回步骤，能写时要有 `redact` 写入守卫。缺了启动报错，报错会说该加哪一块。
 
+### 每条记录的受众
+
+上面的受众是存储这一层的声明。它只在启动时核对配置对不对得上，核对不了存储里实际放着什么：把主人的存储文件复制一份、在配置里当成 `public` 存储用，或者两个名字指向同一个文件、一个写 `owner` 一个写 `public`，声明都对得上，里面的内容却会给公开客户端看。所以每条记忆还带着自己的受众（记忆的字段 `audience`），召回时再检查一次。
+
+- **写入时盖章。** 写进记录字段的存储（`sqlite`、`embedding`、`hybrid`、`inmemory`）的每条记忆，都带着这个存储的受众（租户的存储用租户来源的受众），消息可以要求更窄的，不能更宽（见 api.md 的 `POST /v1/remember`）。
+- **旧记忆补章。** 一个存储第一次被网关打开时（可写、有字段列），里面没有受众的记忆都得到这个存储声明的受众，并在存储里记下“已经打过标记”（SQLite 类的存储是 `info` 表里的 `audience_stamp`）。共享存储在网关建好时打，租户的存储每次由提供方交出时打（第一次之后什么都不做）。只读打开的旧文件不改，也没有字段，只受存储这一层的规则管。
+- **没有受众就是 `owner`。** 打过标记之后，不带受众进来的记忆（直接 `put()` 不带字段、旧版本往文件里写、直接的 SQL）保持没有受众，召回时按 `"owner"` 处理：只给主人级的客户端看，不给任何别人看（宁可少给）。给这样的记忆补上受众，用 `feiyu-memgate restamp`。
+- **召回时检查。** 召回步骤 `record_audience`（默认的一套里有）拿掉受众比这个客户端窄的记忆；`linked` 接上的记忆同样检查；主人级的客户端不受影响。存储不记录字段，或者没打过标记（只读的旧存储、第三方后端），这一步放行，只有存储这一层的规则管它。解释召回里它拿掉的候选，`stage` 写 `record_audience`。
+
+```bash
+feiyu-memgate restamp --config gateway.toml --store public_list --missing   # 只给没有受众的记忆补上
+feiyu-memgate restamp --config gateway.toml --store public_list --all       # 改了声明之后，整个存储都改成声明的受众
+feiyu-memgate restamp --config gateway.toml --store group --tenant 10001 --all   # 一个租户自己的存储
+```
+
+`--missing` 给没有受众的记忆设上这个存储声明的受众；`--all` 给每一条设上它，是配置里改了存储的声明之后有意放宽或收窄整个存储的办法。命令打印改了几条。`check` 会对“受众不是主人的客户端召回的存储里有不逐条记录受众的”提醒一行。
+
 ## `[recall]`
 
 | 设置 | 默认 | 意思 |
@@ -235,7 +254,7 @@ stages = [
 ]
 ```
 
-不写 `stages` 时用默认的一套：`min_score`、`relative_score`、`newer_first`、`linked`、`fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`。`drop_marker`（丢掉写入自检留下的标记）不在默认里，要用就加在 `fill_text` 后面。要用遗忘曲线的 `freshness`（选项 `floor` 默认 0.7、`credit` 默认 `"top"`、`credit_ratio` 默认 0.9，见 [forgetting.md](forgetting.md)），放在 `min_score` 后面、`relative_score` 前面（它们都改分数或按分数比较，顺序见 [pieces.md](pieces.md)）。每个步骤的选项见 [pieces.md](pieces.md)。
+不写 `stages` 时用默认的一套：`min_score`、`relative_score`、`newer_first`、`linked`、`record_audience`、`fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`。`record_audience` 逐条检查记忆自己的受众（见“每条记录的受众”）：记忆的受众比这个客户端的窄就拿掉，不用选项；写了自己的 `stages`、又有受众不是 `owner` 且能召回的客户端时，必须把它列进去，否则启动报错：`clients.NAME shows what it recalls to other people, but no recall stage checks each record's audience: add "record_audience" to [recall] stages`。`drop_marker`（丢掉写入自检留下的标记）不在默认里，要用就加在 `fill_text` 后面。要用遗忘曲线的 `freshness`（选项 `floor` 默认 0.7、`credit` 默认 `"top"`、`credit_ratio` 默认 0.9，见 [forgetting.md](forgetting.md)），放在 `min_score` 后面、`relative_score` 前面（它们都改分数或按分数比较，顺序见 [pieces.md](pieces.md)）。每个步骤的选项见 [pieces.md](pieces.md)。
 
 **`linked`：把和最相关的几条连着的记忆一起带回来。** 默认在 `newer_first` 后面、`fill_text` 前面。分数线决定了交哪些之后，它看排在最前面的 `top` 条候选，向它们所在的存储要“和这一条最像的记忆”（后端的可选方法 `neighbours`，见 [pieces.md](pieces.md)），把相似度不低于 `minimum` 的、还不在候选里的最多 `max_added` 条接在后面，而且只在候选数还没到这次请求的 `limit` 时才接：`limit` 仍然是“最多这么多条”。接上的候选和别的候选一样走后面的 `fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`，所以脱敏和字数上限照常管着它们；它们的分数排在所有第一轮候选后面；HTTP 回答的字段不变（回答里看不出哪条是接上的）。它在分数线之后才起作用，所以不改变“什么时候保持安静”：一条候选都没有就什么也不加。
 

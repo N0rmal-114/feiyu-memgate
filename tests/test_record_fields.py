@@ -898,7 +898,8 @@ class GatewayAnswersTest(unittest.TestCase):
         self.assertEqual((reply.status, reply.body), (200, {
             "busy": 0, "failed": 0, "more": 0,
             "results": [{"id": receipt + "-2", "score": 1.0, "source": "s", "text": "oolong is nice too"}]}))
-        self.assertEqual(store.record(receipt + "-0")["fields"], {})  # nothing fills the fields yet
+        # nothing fills the fields yet, except the audience the gateway gives every record (its store's level)
+        self.assertEqual(store.record(receipt + "-0")["fields"], {"audience": "owner"})
 
 
 if __name__ == "__main__":
