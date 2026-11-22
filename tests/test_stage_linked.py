@@ -394,6 +394,98 @@ class OptionsTest(unittest.TestCase):
         self.assertEqual(store.calls, [])
 
 
+class ProfileTest(Case):
+    """Under the precise profile `linked` adds nothing unless `max_added` is written: it was measured only with the
+    broad profile, and an answer that is meant to be short is not the place for more memories."""
+
+    def store(self):
+        return LinkStore(found=[hit("a", 0.90), hit("b", 0.80)],
+                         links={"a": [hit("c", 0.80), hit("d", 0.70)], "b": [hit("f", 0.95), hit("c", 0.85)]})
+
+    def added(self, stage):
+        store = self.store()
+        out, _, _ = self.run_recall({"s": store}, [stage])
+        return self.ids(out), store
+
+    def test_no_profile_and_broad_behave_as_before(self):
+        for stage in (stages.Linked(), stages.Linked(profile="broad"), stages.Linked(profile=None)):
+            self.assertEqual(stage.max_added, 2)
+            self.assertEqual(self.added(stage)[0], ["a", "b", "f", "c"])
+        self.assertIsNone(stages.Linked().follows)
+        self.assertEqual(stages.Linked(profile="broad").follows, "broad")
+
+    def test_precise_adds_nothing_and_asks_nothing(self):
+        stage = stages.Linked(profile="precise")
+        self.assertEqual(stage.max_added, 0)
+        self.assertEqual(stage.follows, "precise")
+        ids, store = self.added(stage)
+        self.assertEqual(ids, ["a", "b"])
+        self.assertEqual(store.calls, [])
+
+    def test_a_given_max_added_wins_under_any_profile(self):
+        self.assertEqual(self.added(stages.Linked(profile="precise", max_added=2))[0], ["a", "b", "f", "c"])
+        self.assertEqual(self.added(stages.Linked(profile="precise", max_added=1))[0], ["a", "b", "f"])
+        self.assertEqual(stages.Linked(profile="broad", max_added=0).max_added, 0)
+
+    def test_a_wrong_profile_is_refused_naming_the_setting(self):
+        for profile in ("strict", "", 1, True):
+            with self.assertRaises(ConfigError, msg=profile) as caught:
+                stages.Linked(profile=profile)
+            self.assertIn("linked: profile must be one of", str(caught.exception))
+
+    def test_the_profile_is_not_named_profile_so_describe_does_not_list_it_as_a_score_line(self):
+        self.assertFalse(hasattr(stages.Linked(profile="precise"), "profile"))
+
+    # -- through the configuration
+    def gateway(self, recall=None):
+        cfg = {"stores": {"private": {"type": "inmemory"}},
+               "clients": {"owner": {"token_env": "GATEWAY_TOKEN_OWNER", "recall": ["private"], "write": "private"}}}
+        if recall is not None:
+            cfg["recall"] = recall
+        gateway = config.build_gateway(cfg, env={"GATEWAY_TOKEN_OWNER": FAKE_TOKEN}, log=lambda line: None)
+        self.addCleanup(gateway.close)
+        return gateway
+
+    def built(self, recall=None):
+        return next(s for s in self.gateway(recall).stages if s.name == "linked")
+
+    def test_the_recall_profile_reaches_the_default_linked_stage(self):
+        self.assertEqual(self.added(self.built({"profile": "precise"}))[0], ["a", "b"])
+        for section in (None, {}, {"profile": "broad"}):
+            self.assertEqual(self.added(self.built(section))[0], ["a", "b", "f", "c"], section)
+        self.assertEqual(self.built({"profile": "precise"}).follows, "precise")
+        self.assertIsNone(self.built().follows)
+
+    def test_an_explicit_max_added_under_precise_still_adds(self):
+        stage_list = ["min_score", "relative_score", {"type": "linked", "max_added": 1}, "fill_text"]
+        stage = self.built({"profile": "precise", "stages": stage_list})
+        self.assertEqual((stage.max_added, stage.follows), (1, "precise"))
+        self.assertEqual(self.added(stage)[0], ["a", "b", "f"])
+        stage = self.built({"profile": "precise", "stages": [{"type": "linked", "max_added": 2}]})
+        self.assertEqual(self.added(stage)[0], ["a", "b", "f", "c"])
+
+    def test_the_stage_own_profile_wins_over_the_recall_profile(self):
+        stage = self.built({"profile": "precise", "stages": [{"type": "linked", "profile": "broad"}]})
+        self.assertEqual((stage.max_added, stage.follows), (2, "broad"))
+        stage = self.built({"profile": "broad", "stages": [{"type": "linked", "profile": "precise"}]})
+        self.assertEqual(stage.max_added, 0)
+
+    def test_describe_says_what_linked_does(self):
+        from feiyu_memgate import cli
+        line_of = lambda recall: [x for x in cli.describe(self.gateway(recall)) if x.startswith("关联召回")]  # noqa: E731
+        self.assertEqual(line_of(None), ["关联召回：最多加 2 条"])
+        self.assertEqual(line_of({"profile": "broad"}), ["关联召回：最多加 2 条"])
+        self.assertEqual(line_of({"profile": "precise"}), ["关联召回：precise 档下不加（要加就在 linked 上写 max_added）"])
+        explicit = {"profile": "precise", "stages": ["min_score", {"type": "linked", "max_added": 1}]}
+        self.assertEqual(line_of(explicit), ["关联召回：最多加 1 条"])
+        written_zero = {"profile": "precise", "stages": ["min_score", {"type": "linked", "max_added": 0}]}
+        self.assertEqual(line_of(written_zero), ["关联召回：最多加 0 条"])
+        self.assertEqual(line_of({"stages": ["min_score", "fill_text"]}), [])
+        # linked is not a score line
+        lines = cli.describe(self.gateway({"profile": "precise"}))
+        self.assertIn("分数线档位：min_score precise、relative_score precise", lines)
+
+
 class EndToEndTest(unittest.TestCase):
     """The gateway with the embedding backend and the fake embeddings server: a remark close to one memory brings
     the memory that is close to that one. Floor 0 and ceil 1 make the score the cosine of the fake vectors."""
@@ -447,6 +539,23 @@ class EndToEndTest(unittest.TestCase):
         self.assertEqual(linked[1]["text"], self.LINKED)
         self.assertLess(linked[1]["score"], linked[0]["score"])
         self.assertEqual(set(linked[1]), {"id", "source", "text", "score", "date"})  # no new field in the answer
+
+    def test_the_precise_profile_adds_nothing_where_the_broad_one_does(self):
+        # one store, one question; only [recall] profile differs. The lines are written out (the default lines
+        # of the precise profile would not let this remark through), so the profile reaches `linked` alone.
+        def ask_with(profile):
+            stage_list = self.LINES + [{"type": "linked", "minimum": 0.4}, "fill_text", "redact", "dedupe", "budget"]
+            cfg = self.cfg(stage_list)
+            cfg["recall"]["profile"] = profile
+            gateway = config.build_gateway(cfg, env={"GATEWAY_TOKEN_OWNER": FAKE_TOKEN}, log=lambda line: None)
+            self.addCleanup(gateway.close)
+            for ref, text in [("near", self.NEAR), ("linked", self.LINKED)] + [
+                    ("o%d" % i, t) for i, t in enumerate(self.OTHERS)]:
+                gateway.stores["private"].put(text, ref=ref, date="2026-01-01")
+            return [r["id"] for r in self.ask(gateway)]
+
+        self.assertEqual(ask_with("broad"), ["near", "linked"])
+        self.assertEqual(ask_with("precise"), ["near"])
 
     def test_hybrid_store_too(self):
         stage_list = self.LINES + [{"type": "linked", "minimum": 0.4}, "fill_text", "redact"]

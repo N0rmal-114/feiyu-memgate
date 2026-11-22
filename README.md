@@ -59,7 +59,7 @@
 </p>
 
 - **信任边界**。虚线框内是网关进程，只有它持有各存储的密钥。聊天程序拿到的是网关令牌，令牌泄露时能做的事不超过这个客户端的策略。
-- **召回路径**。认证、限流、权限检查之后，并行查询该客户端可读的每个存储，候选依次经过召回步骤（默认是 `min_score` → `relative_score` → `newer_first` → `linked` → `fill_text` → `drop_oversize` → `redact` → `dedupe` → `budget`），返回带分数、日期和来源的结果。
+- **召回路径**。认证、限流、权限检查之后，并行查询该客户端可读的每个存储，候选依次经过召回步骤（默认是 `min_score` → `relative_score` → `newer_first` → `linked` → `record_audience` → `fill_text` → `drop_oversize` → `redact` → `dedupe` → `budget`），返回带分数、日期和来源的结果。
 - **写入路径**。校验长度和格式，依次经过写入守卫（默认是 `redact` 和 `daily_cap`），落到一个共享存储或当前租户自己的存储。
 - **遗忘路径**（可选）。账本只记地址、时间和使用次数，不存正文。清理器按保持率把到期的记忆先写进归档再删除。
 - **接口面**。只有五个路由：`GET /healthz`、`POST /v1/recall`、`POST /v1/remember`、`POST /v1/used`，和只读的 `POST /v1/explain`（说明一次召回里每条候选的去向；默认关闭，只有配置里打开了它的主人级客户端能用）。没有删除、列出、导出的网络接口，这些操作只能在本机用命令行做。
@@ -81,7 +81,7 @@
 | 插槽 | 契约 | 内置实现 |
 |---|---|---|
 | `backend` | 记忆存在哪、怎么检索 | `sqlite`（关键词，不需要任何服务）、`embedding`（向量）、`hybrid`（多路融合）、`openviking`、`inmemory` |
-| `recall_stage` | 候选怎么筛、怎么排、放多少 | `min_score`、`relative_score`、`newer_first`、`linked`、`source_weight`、`freshness`、`fill_text`、`drop_marker`、`drop_oversize`、`redact`、`dedupe`、`budget` |
+| `recall_stage` | 候选怎么筛、怎么排、放多少 | `min_score`、`relative_score`、`newer_first`、`linked`、`record_audience`、`source_weight`、`freshness`、`fill_text`、`drop_marker`、`drop_oversize`、`redact`、`dedupe`、`budget` |
 | `write_guard` | 写入落库前的检查 | `redact`、`daily_cap` |
 | `redactor` | 文字怎么清洗 | `secrets`、`public`、`none` |
 | `tenants` | 每个租户的独立存储从哪来 | `directory`、`keyfile` |
@@ -415,7 +415,7 @@ DSH 插件商店里另外看了三个插件，没有测，因为基准的契约�
 - “不正确”按标注的期望记忆判定，没有标注但沾边的条目也算噪声。
 - dsh-fish-memory 和 dsh-prime-memory 的产品写入由模型决定存什么、怎么整理（前者经 remember 工具，后者从对话蒸馏），这里每条记忆逐字写入，没有测这一步；dsh-soul-md 这里每条记忆写成一个 topic，产品里一个 topic 通常合并几条，它的人设卡不是记忆，没有测。
 - Hindsight 的插件默认注入的是模型写的 reflect 文字，不是记忆列表，没有测；测的是服务端的召回，请求体和插件的只召回选项相同。这个召回只受 2000 token 预算限制，没有条数上限和分数线，所以每题交 84 – 94 条。嵌入模型换成了 bge-m3（服务端默认是英文模型），数据库用容器里的 PostgreSQL 17 加 pgvector。两个模型配置交付的 observation 没有自己的来源编号，适配器取来源事实里最早的那条记忆的编号，规则和计数写在结果文件的 `notes` 里（`bench/results/raw/hindsight-llm-*.json`）。
-- 本项目的数字是在加入 `linked` 步骤之前测的。这个步骤现在默认开启：用向量或混合后端时，一次召回可能在条数上限之内多交最多两条和前两条相连的记忆，所以这两类配置现在的默认交付会比表里多一点；关键词后端不受影响。这些表没有为此重测。它在闲聊场景的效果见 [docs/design/2026-11-18-linked-recall.md](docs/design/2026-11-18-linked-recall.md)。
+- 本项目的数字是在加入 `linked` 步骤之前测的。这个步骤在默认的 `broad` 档下开启：用向量或混合后端时，一次召回可能在条数上限之内多交最多两条和前两条相连的记忆；`precise` 档下它默认不加，所以表里各 `-precise` 行不受影响，关键词后端也不受影响。之后在两套公开题库上重测过 `broad` 档：前 1、5、10 条的命中率和安静率不变，交出去的条数变多、精确率下降（PerLTQA 的混合配置：每题 3.44 条变成 4.07 条，精确率 35.4% 变成 26.2%，综合分 51.3% 变成 41.0%；LoCoMo 的混合配置：4.81 条变成 4.94 条，13.3% 变成 12.3%，21.5% 变成 20.1%）。把这一步关掉（`{ type = "linked", max_added = 0 }`），数字回到表里的值。表本身没有改。它在闲聊场景的效果和这次重测见 [docs/design/2026-11-18-linked-recall.md](docs/design/2026-11-18-linked-recall.md)。
 - 各项目的版本是测试时的版本，之后可能已经改变。
 
 ### 公开数据集：PerLTQA 与 LoCoMo

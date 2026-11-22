@@ -412,16 +412,25 @@ class Linked(RecallStage):
     time left, so a store that hangs costs the request that much and not the answer it already has.
 
     Put it after `min_score`, `relative_score` and `newer_first` (misplaced() reports the opposite order)
-    and before `fill_text`. Options: top (default 2, 1..5), max_added (default 2, 0..5; 0 switches the
-    stage off), minimum (default 0.60, 0..1; on the store's own 0..1 score scale: 0.60 was measured with
-    bge-m3 on the embedding backend, other models use it unmeasured).
+    and before `fill_text`. Options: top (default 2, 1..5), max_added (0..5; 0 switches the stage off; not
+    given: 2, or 0 when `profile` is "precise"; one that is given wins under any profile), minimum (default
+    0.60, 0..1; on the store's own 0..1 score scale: 0.60 was measured with bge-m3 on the embedding backend,
+    other models use it unmeasured), profile (None, "precise" or "broad": the recall profile this stage follows,
+    which `[recall] profile` sets like it does for the score lines; it only decides the default of max_added).
+    Why: the stage was measured only with the broad profile; under precise it would add to an answer that is
+    meant to be short, so there it adds nothing unless `max_added` is written.
     """
 
     after = ("min_score", "relative_score", "newer_first")
 
-    def __init__(self, top=LINKED_TOP, max_added=LINKED_MAX_ADDED, minimum=LINKED_MINIMUM):
+    def __init__(self, top=LINKED_TOP, max_added=None, minimum=LINKED_MINIMUM, profile=None):
         if not _whole(top, 1, 5):
             raise ConfigError("linked: top must be a whole number from 1 to 5")
+        if profile is not None:
+            check_profile("linked", profile)
+        self.max_added_given = max_added is not None  # describe() tells "precise holds it back" from "written 0"
+        if max_added is None:
+            max_added = 0 if profile == "precise" else LINKED_MAX_ADDED
         if not _whole(max_added, 0, 5):
             raise ConfigError("linked: max_added must be a whole number from 0 to 5")
         if not _fraction(minimum):
@@ -429,6 +438,7 @@ class Linked(RecallStage):
         self.top = top
         self.max_added = max_added
         self.minimum = float(minimum)
+        self.follows = profile  # not named `profile`: that name marks a score line (cli.describe)
 
     def prepare(self, candidates, ctx):
         room = min(self.max_added, ctx.limit - len(candidates))

@@ -340,6 +340,8 @@ stages = [
 
 只有存储有 `neighbours` 才起作用：`embedding` 和 `hybrid`（里面有 `embedding` 子后端时）有，`sqlite`、`inmemory`、`openviking` 没有，只用关键词存储时什么都不变。每跟着一条候选，`embedding` 要把全部已存的向量过一遍（不请求 embeddings 接口），所以一次召回最多多 `top` 遍，见 [backends.md](backends.md)。出错、超时、存储没有这个方法都当作“什么也没加”，出错和超时在访问日志里记一次 `linked-failed`（不带内容）；这一步最多等 1 秒、不超过剩余时间的一半，卡住的存储不会拖掉已经查到的结果。`0.60` 是在 bge-m3 上量出来的，别的模型沿用它没有量过；数字和取舍见 [design/2026-11-18-linked-recall.md](design/2026-11-18-linked-recall.md)。
 
+`[recall] profile = "precise"` 时，`linked` 默认什么也不加：它只在 `broad` 档下量过，`precise` 要的是少而准的答案，不该再往里添。这一档下想要它，在 `linked` 上自己写 `max_added`（写了的数永远优先，任何档位都一样），例如 `{ type = "linked", max_added = 2 }`。`feiyu-memgate check` 会在“分数线档位”后面多一行“关联召回”，写明最多加几条，或者“precise 档下不加”。
+
 不想要它：`max_added = 0`，或者自己写一套不含 `linked` 的 `stages`（写了自己的 `stages` 的配置不会因此多出这一步）：
 
 ```toml
@@ -355,10 +357,10 @@ stages = [
 
 `min_score` 不写 `value` 时，每条候选的分数线依次看：`per_store` 里这个存储的值，`value`，存储按分数线档位声明的分数线：默认档位 `broad` 用 `broad_min_score`（`sqlite`、`inmemory` 是 0.25，`embedding` 按模型预设（bge-m3 是 0.30，其余见 [backends.md](backends.md)），`hybrid` 是 0.40，`openviking` 是 0.55），`precise` 档用 `default_min_score`（`sqlite`、`inmemory` 是 0.30，bge-m3 是 0.50，`hybrid` 是 0.70，`openviking` 是 0.55；每个数是怎么来的见 [backends.md](backends.md)）；存储没有声明某一档就用它的 `default_min_score`，都没有就是 0.5。`relative_score` 不写 `ratio` 时同理：`broad` 档用 `broad_relative_ratio`（`sqlite`、`inmemory` 是 0.70，bge-m3 是 0.60，`hybrid` 是 0.65，`openviking` 是 0.90），`precise` 档用 `default_relative_ratio`（`sqlite`、`inmemory` 是 0.75，bge-m3 是 0.85，`hybrid` 是 0.85，`openviking` 是 0.95），都没有就是 0.6。`default_` 前缀是历史命名，指的是 `precise` 这一档，不是默认档位。所以一般不用手写分数线；要调，最好用 `feiyu-memgate eval` 或 `bench/dev_eval.py` 在自己的数据上量一下再定：
 
-`profile` 是 `min_score` 和 `relative_score` 两步共用的快捷方式，默认是 `"broad"`：用存储声明的宽松分数线（`broad_min_score`、`broad_relative_ratio`），
+`profile` 是 `min_score`、`relative_score` 和 `linked` 三步共用的快捷方式，默认是 `"broad"`：用存储声明的宽松分数线（`broad_min_score`、`broad_relative_ratio`），
 聊天里一个话题通常牵到好几条记忆，所以默认每题交得多一些（用向量存储时约 2.5 条，`precise` 约 1 条）；代价是交出去的条目更杂、对没有答案的问题更容易开口（每个后端在开发集上的得失见 [backends.md](backends.md) 的“两档分数线”）。
-写 `profile = "precise"` 就回到以前的分数线：每题约 1 条，交出去的大部分是对的，漏答更多。
-不写它就是 `"broad"`。它只加到**自己没有写 `profile` 的** `min_score` 和 `relative_score` 上，
+写 `profile = "precise"` 就回到以前的分数线：每题约 1 条，交出去的大部分是对的，漏答更多；`linked` 在这一档下默认也不再接记忆（见上面 `linked` 一节）。
+不写它就是 `"broad"`。它只加到**自己没有写 `profile` 的** `min_score`、`relative_score` 和 `linked` 上（`linked` 的 `profile` 只决定 `max_added` 不写时的默认：`precise` 是 0，其余是 2），
 不管 `stages` 是默认的还是自己写出来的；某一步自己写了 `profile = "precise"` 或 `"broad"`，就以它自己的为准；写了 `value` / `ratio` 的，数字永远优先于档位。
 存储没有声明宽松值时（比如自己写的后端），两档对它都用 `default_min_score` / `default_relative_ratio`。`profile` 不是这两个名字之一是配置错误；`feiyu-memgate check` 会打印当前档位。
 

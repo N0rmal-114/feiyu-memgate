@@ -284,12 +284,13 @@ def _pieces(kind, specs, env, where, defaults, services=None):
     return out
 
 
-_PROFILE_STAGES = ("min_score", "relative_score")
+_PROFILE_STAGES = ("min_score", "relative_score", "linked")
 
 
 def _with_profile(specs, profile):
-    """`specs` (a recall stage list, or None for the default one) with `profile` added to every min_score and
-    relative_score entry that does not set its own `profile`. No profile (None) leaves the entries alone: the
+    """`specs` (a recall stage list, or None for the default one) with `profile` added to every min_score,
+    relative_score and linked entry that does not set its own `profile` (for linked it only decides the default of
+    max_added: 0 under "precise"). No profile (None) leaves the entries alone: the
     stages then use their own default, "broad". An explicit "precise" is added like any other. Entries that are not a
     name or a table are left for _pieces to refuse."""
     if profile is None:

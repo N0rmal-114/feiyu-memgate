@@ -46,7 +46,7 @@
 所以每个后端还声明了第二组值 `broad_min_score` 和 `broad_relative_ratio`，用 `min_score` / `relative_score` 的选项 `profile = "broad"` 选用，
 或者在配置里写 `[recall] profile = "broad"`（见 [configuration.md](configuration.md)）。**`broad` 现在是默认档位**：项目用在聊天陪伴上，
 一个话题通常牵到好几条记忆，每轮只交 1 条太少。`broad` 有代价：多答对一些题，交出去的条目更杂，对没有答案的问题也更容易开口。
-要回到以前的行为，写 `[recall] profile = "precise"`。两档的数值没有改动。
+要回到以前的行为，写 `[recall] profile = "precise"`。两档的数值没有改动。`precise` 档下默认的 `linked` 也不加记忆（它只在 `broad` 档下量过）；要加就在 `linked` 上写 `max_added`。
 
 选值的规则和默认值一样事先写定，用同一份开发集 `bench/dev`、同一份候选列表、同一张网格和同一套真实的召回步骤
 （`python bench/dev_eval.py --backend <后端> --search --profile broad`，输出在 `bench/results/dev/<后端>.md`，不带后缀的名字是默认档位的记录）：
