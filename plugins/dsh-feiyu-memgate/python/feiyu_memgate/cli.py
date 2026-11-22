@@ -35,7 +35,7 @@ def _wall():
 KIND_TITLES = {
     "backend": "存储（backend）", "recall_stage": "召回阶段（recall_stage）", "write_guard": "写入关卡（write_guard）",
     "redactor": "脱敏（redactor）", "tenants": "租户（tenants）",
-    "forgetting_curve": "遗忘曲线（forgetting_curve）",
+    "forgetting_curve": "遗忘曲线（forgetting_curve）", "identity": "身份（identity）",
 }
 
 
@@ -80,6 +80,13 @@ def describe(gateway):
                                          _AUDIENCE_LABELS[gateway.audience_of(name)]))
     if not gateway.tenants:
         lines.append("  （没有）")
+    identity = gateway.identity
+    if identity is not None:
+        lines.append("身份：")
+        key = "有" if identity.has_key else "没有"
+        lines.append("  %s；说话人散列密钥 %s" % (_piece_name("identity", identity), key))
+        for person, count in identity.people().items():
+            lines.append("  %s%s: %d 个账号" % (person, "（主人）" if person == identity.owner else "", count))
     lines.append("客户端：")
     warnings = []
     for name, policy in gateway.clients.items():
@@ -111,6 +118,12 @@ def describe(gateway):
             line += "；可以查看召回的解释"
         if policy.fields:
             line += "；召回结果带的字段 %s" % ", ".join(policy.fields)
+        if policy.platforms:
+            line += "；可报的平台 %s" % ", ".join(policy.platforms)
+        if policy.only_for:
+            line += "；只替 %s 说话" % ", ".join(policy.only_for)
+        if identity is not None and policy.can_write and not policy.platforms:
+            warnings.append("  提醒：%s 可以写入，却没有设 platforms：它报的每个说话人都会被拒绝（403）" % name)
         unchecked = [entry for entry in policy.recall or () if entry != TENANT_STORE
                      and getattr(gateway.stores.get(entry), "checks_audience", False) is not True]
         if policy.reach != "owner" and unchecked:

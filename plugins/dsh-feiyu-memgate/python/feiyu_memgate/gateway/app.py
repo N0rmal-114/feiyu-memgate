@@ -27,7 +27,7 @@ from ..core.pool import POOL_SIZE, Pool
 from ..core.recall import BUSY, OK, RECALL_DEADLINE, MAX_WAIT, RecallContext, StageError, call, piece_name, recall
 from ..core.watch import ExtractionWatch, RecallFailures
 from ..errors import WriteRejected
-from ..model import TENANT_STORE
+from ..model import TENANT_STORE, platform_of, valid_account
 from . import policies
 from .fields import Refused, request_fields
 # The names below were defined in this module before it was split. They are imported here for
@@ -97,6 +97,9 @@ class Gateway:
                 store), "group" (default for a tenants provider) or "public"; see audience_of
     forgetting  an optional forgetting.Forgetting: ranks older memories lower and, every
                 sweep_every_hours hours (0 = never), archives and removes the forgotten ones
+    identity    an optional identity provider (feiyu_memgate.identity): with one, a message's speaker and
+                about are accounts, resolved to people before any guard or store sees them, and the
+                clients' platforms and only_for are enforced; without one, speaker is handled as it was
 
     Workers: pool_size calls to the stores at once; tenant_pool_total tenant requests in
     flight (default pool_size - 2), tenant_pool_per_tenant per tenant (default 2), and
@@ -108,12 +111,14 @@ class Gateway:
                  clock=time.monotonic, log=stderr_log, recall_deadline=RECALL_DEADLINE,
                  cold_recall_deadline=None, cold_after=COLD_AFTER, remember_deadline=REMEMBER_DEADLINE,
                  pool_size=POOL_SIZE, tenant_pool_total=None, tenant_pool_per_tenant=TENANT_PER_TENANT,
-                 store_max_inflight=None, forgetting=None, sweep_every_hours=24, audiences=None):
+                 store_max_inflight=None, forgetting=None, sweep_every_hours=24, audiences=None, identity=None):
         self.stores = dict(stores)
         self.clients = dict(clients)
         self.tenants = dict(tenants or {})
         self.audiences = self._load_audiences(audiences)
         self._check_policies()
+        self.identity = identity
+        policies.check_identity(self.clients, identity)
         self._tokens, self._minting = self._load_tokens(tokens)
         self.stages = list(stages) if stages is not None else default_stages()
         self.guards = list(guards) if guards is not None else default_guards()
@@ -460,13 +465,18 @@ class Gateway:
         context = _valid_context(body.get("context"))
         if context is None:
             return error_reply(400, "bad_context", "bad context")
+        person = None
+        if self.identity is not None:
+            person = self._asker(policy, tenant_id, body)
+            if isinstance(person, Reply):
+                return person
         key = self._admit_tenant(policy, tenant_id)
         if key is False:
             self.recall_busy.record()
             return error_reply(503, "busy", "busy", "tenant-budget")
         try:
             return self._search(policy, tenant_id, tenant_store, query, max(1, min(limit, MAX_LIMIT)), context,
-                                trace)
+                                trace, person)
         finally:
             if key:
                 self.tenant_budget.release(key)
@@ -482,7 +492,7 @@ class Gateway:
                 stores[name] = self.stores[name]
         return stores
 
-    def _search(self, policy, tenant_id, tenant_store, query, limit, context, trace=False):
+    def _search(self, policy, tenant_id, tenant_store, query, limit, context, trace=False, person=None):
         stores = self._recall_stores(policy, tenant_store)
         notes = ["explain"] if trace else []
         deadline_s = self.recall_deadline_now() if stores else self.recall_deadline
@@ -491,7 +501,7 @@ class Gateway:
                             tenant_id=tenant_id, notes=notes, context=context, log=self._log,
                             tenant_source=policy.tenants if TENANT_STORE in policy.recall else None,
                             slots=self.store_slots, keep=self._keep(policy), audience=policy.reach, trace=trace,
-                            show_fields=policy.fields)
+                            show_fields=policy.fields, person=person)
         try:
             out = recall(stores, self.stages, ctx)
         except StageError:
@@ -592,7 +602,7 @@ class Gateway:
         if isinstance(tenant, Reply):
             return tenant
         tenant_id, tenant_store = tenant
-        messages = _valid_messages(body.get("messages"))
+        messages = _valid_messages(body.get("messages"), accounts=self.identity is not None)
         if messages is None:
             return error_reply(400, "bad_messages", "bad messages")
         context = _valid_context(body.get("context"))
@@ -601,7 +611,8 @@ class Gateway:
         store = tenant_store if policy.write == TENANT_STORE else self.stores[policy.write]
         try:
             messages = request_fields(messages, level=self.audiences[self._write_source(policy)], policy=policy,
-                                      context=context, keeps=getattr(store, "stores_fields", False) is True)
+                                      context=context, keeps=getattr(store, "stores_fields", False) is True,
+                                      identity=self.identity, scope=self._scope(policy, tenant_id, policy.write))
         except Refused as refused:
             return error_reply(refused.status, refused.code, refused.text)
         key = self._admit_tenant(policy, tenant_id)
@@ -683,6 +694,33 @@ class Gateway:
     @staticmethod
     def _write_source(policy):
         return policy.tenants if policy.write == TENANT_STORE else policy.write
+
+    @staticmethod
+    def _scope(policy, tenant_id, entry):
+        """The scope of the stand-in codes for the store a policy entry names: the store's name, and for the
+        tenant's own store the provider's name, ":" and the tenant id."""
+        return "%s:%s" % (policy.tenants, tenant_id) if entry == TENANT_STORE else entry
+
+    def _asker(self, policy, tenant_id, body):
+        """The resolved speaker of a recall or explain body (None when it names none), or a Reply to refuse
+        it. Only with an identity table: the body's "speaker" must be an account of a platform the client
+        lists, and a client with only_for must name one of those people. A speaker nobody listed is the
+        stand-in code for the store the client writes to, else the first it recalls from ("anon" when there
+        is none, or no key)."""
+        asked = body.get("speaker")
+        if asked is not None and not valid_account(asked):
+            return error_reply(400, "bad_speaker", "bad speaker")
+        if asked is not None and platform_of(asked) not in policy.platforms:
+            return error_reply(403, "forbidden", "forbidden")
+        person = None if asked is None else self.identity.resolve(asked)
+        if policy.only_for and (person is None or person not in policy.only_for):
+            return error_reply(403, "forbidden", "forbidden")
+        if asked is None or person is not None:
+            return person
+        entry = policy.write if policy.can_write else (policy.recall or (None,))[0]
+        if entry is None or not self.identity.has_key:
+            return "anon"
+        return self.identity.code(asked, self._scope(policy, tenant_id, entry))
 
     def _pin_write(self, policy, store, tenant_id, receipt):
         """Pin what a pin_writes client just wrote. Returns a callback for the write watch
@@ -779,7 +817,8 @@ class Gateway:
         """(kind, piece) of every piece with a lifecycle, each object once, in start order."""
         seen, out = set(), []
         groups = (("store", self.stores.values()), ("tenants", self.tenants.values()),
-                  ("stage", self.stages), ("guard", self.guards))
+                  ("stage", self.stages), ("guard", self.guards),
+                  ("identity", [] if self.identity is None else [self.identity]))
         for kind, pieces in groups:
             for piece in pieces:
                 if id(piece) not in seen:

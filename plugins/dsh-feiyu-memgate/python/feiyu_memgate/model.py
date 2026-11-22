@@ -1,5 +1,7 @@
 """The small data shapes that pieces hand to each other. Standard library only."""
 import collections.abc
+import re
+import unicodedata
 from dataclasses import dataclass, field
 
 TENANT_STORE = "@tenant"
@@ -15,6 +17,39 @@ MAX_FIELD = 128  # characters in one field value
 ORIGINS = ("said", "tool", "curated", "derived")
 KINDS = ("identity", "preference", "event", "plan", "entity")
 DEFAULT_ORIGINS = ("said", "tool")  # the origins a client may write unless its policy says otherwise
+
+# Who is speaking, as a host reports it: an account "<platform>:<id>" (see identity.py). One definition, used by
+# the request checks, the configuration and the identity table alike.
+MAX_ACCOUNT_CHARS = 64
+PLATFORM = re.compile(r"[a-z0-9][a-z0-9_.-]{0,31}")
+PERSON = re.compile(r"[a-z0-9][a-z0-9_-]{0,31}")  # a name the operator gives someone in the identity table
+RESERVED_PEOPLE = ("self", "anon")  # "self" speaks for the assistant, "anon" marks an account nobody listed
+
+
+def valid_platform(value):
+    """True when `value` is a platform name: [a-z0-9][a-z0-9_.-]{0,31}."""
+    return isinstance(value, str) and PLATFORM.fullmatch(value) is not None
+
+
+def valid_person(value):
+    """True when `value` can name a person: [a-z0-9][a-z0-9_-]{0,31}, and is not reserved."""
+    return isinstance(value, str) and PERSON.fullmatch(value) is not None and value not in RESERVED_PEOPLE
+
+
+def valid_account(value):
+    """True when `value` is an account: a platform, ":", then an id of at least one character without
+    whitespace or control characters; at most MAX_ACCOUNT_CHARS characters in all."""
+    if not isinstance(value, str) or len(value) > MAX_ACCOUNT_CHARS:
+        return False
+    platform, colon, ident = value.partition(":")
+    if not colon or not ident or PLATFORM.fullmatch(platform) is None:
+        return False
+    return not any(ch.isspace() or unicodedata.category(ch) == "Cc" for ch in ident)
+
+
+def platform_of(account):
+    """The platform part of an account (the text before the first ":")."""
+    return account.partition(":")[0]
 
 
 def clean_fields(fields):
@@ -121,6 +156,11 @@ class ClientPolicy:
     fields      the record fields (see FIELDS) added to every item this client recalls, "fields": {...},
                 for the ones the memory has. Empty by default: items carry no fields. A client whose
                 audience is not "owner" may not list "speaker" or "about".
+    platforms   the platforms (the part of an account before ":") whose accounts this client may name as the
+                speaker or subject of a message, or as the speaker of a recall. Empty by default: it can name
+                none. Needs an identity table (see identity.py).
+    only_for    names of people in the identity table: when set, every request this client makes is on behalf
+                of one of them (every user message, every recall names a speaker who is one of them).
     """
     name: str
     recall: tuple | None = None
@@ -138,6 +178,8 @@ class ClientPolicy:
     explain: bool = False
     origins: tuple = DEFAULT_ORIGINS
     fields: tuple = ()
+    platforms: tuple = ()
+    only_for: tuple = ()
 
     @property
     def reach(self):
