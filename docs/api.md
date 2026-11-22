@@ -80,7 +80,7 @@ Authorization: Bearer <令牌>
 3. 限流：429 `rate_limited`；然后权限：403 `forbidden`（这个客户端不能召回或不能写）。这两步不看请求体。`tenant_binding = "token"` 的客户端在这里就按令牌里的租户限流。
 4. 请求体：没有 `Content-Length` 411，`Content-Length` 不是非负整数 400 `bad_request`，超过 64 KiB 413；这些都通过了，才回 `100 Continue`（见 [`Expect: 100-continue`](#expect-100-continue)）；读完后不是 JSON 对象 400 `bad_request`。
 5. 租户（`tenant_id` 的规则见上）；默认模式的多租户客户端在这里按租户限流，所以编造不存在的租户也会用掉额度。
-6. 各接口自己的字段：`bad_query`、`bad_limit`、`bad_context`、`bad_messages`、`bad_used`。
+6. 各接口自己的字段：`bad_query`、`bad_limit`、`bad_context`、`bad_speaker`、`bad_messages`、`bad_used`。
 7. 工作线程和租户名额：503 `busy`。
 8. 真正做事，各接口的结果见下。
 
@@ -98,7 +98,7 @@ Authorization: Bearer <令牌>
 | 一次写入的消息数 | 1 到 20 条 |
 | 一条消息 | 4000 字（超过就拒绝，不截断；去掉空白后不能是空的） |
 | 一次写入合计 | 16000 字 |
-| 消息的 `time` / `speaker` | 40 字 / 64 字 |
+| 消息的 `time` / `speaker` / `about` | 40 字 / 64 字 / 64 字（配置了 `[identity]` 时，`speaker` 和 `about` 还必须是账号：见“账号和身份”） |
 | `context` | 16 个键；键 1 到 64 字；值是最多 200 字的字符串、有限的数字或 `true`/`false` |
 | `/v1/used` 的 `used` | 20 项；`source` 最多 128 字，`id` 最多 512 字 |
 | `/v1/used` 向存储核对 id 的总时限 | 3 秒 |
@@ -119,12 +119,14 @@ Authorization: Bearer <令牌>
 | `limit` | 整数 | 否 | 默认 5 |
 | `tenant_id` | 字符串 | 看客户端 | 见上面的“租户字段” |
 | `context` | 对象 | 否 | 见下 |
+| `speaker` | 字符串或 `null` | 否 | 谁在问，一个账号（见“账号和身份”）。只有网关配置了 `[identity]` 才看它；没有 `[identity]` 时和别的不认识的键一样被忽略 |
 
 - `limit` 可以不写；超出 1 到 10 的按 1 或 10 算，不是整数是 `bad_limit`（`true`/`false`、`5.0` 这样的小数、`"5"` 这样的字符串都不是整数）。
 - `tenant_id` 只有多租户客户端要写，而且必须写；别的客户端写了是 `bad_tenant`。`tenant_binding = "token"` 的客户端可以不写（就是令牌绑定的租户），写了必须和令牌里的一样，否则 403 `tenant_mismatch`。
 - `context` 可以不写，写了必须是对象，不合规 400 `bad_context`（上限见上表；值不能是 `null`、数组或嵌套的对象）。它原样交给召回步骤和写入守卫（`ctx.context`），比如“这是语音频道”；网关自己不看内容，也不写进日志。
 
   约定一下常用的三个键（只是约定，不是格式，网关不解释它们；自己写的步骤和守卫可以用）：`channel`（对话发生在哪里，例如 `"dsh"`、AstrBot 的平台名、`"voice"`）、`chat`（`"private"` 或 `"group"`）、`via`（是什么触发了这次请求）。`context` 是客户端自己报的，不能当作身份使用。
+- `speaker`（只在配置了 `[identity]` 时）：不是账号 400 `bad_speaker`；账号的平台不在这个客户端的 `platforms` 里，或者客户端设了 `only_for` 而这次没带 `speaker`、带的账号不属于 `only_for` 里的人，都是 403 `forbidden`（客户端没设 `platforms` 就不能带 `speaker`）。账号换成对应的人名（没登记的账号换成给这个存储的替身码）后，作为 `RecallContext.person` 交给召回步骤；这次请求没带 `speaker` 时 `person` 是 `None`。自带的召回步骤都不用它。
 
 ```json
 {
@@ -161,8 +163,9 @@ Authorization: Bearer <令牌>
 | 200 | | 正常 |
 | 400 | `bad_request` | 请求体不是 JSON 对象，或者 `Content-Length` 不对 |
 | 400 | `bad_query`、`bad_limit`、`bad_context`、`bad_tenant` | 见上 |
+| 400 | `bad_speaker` | 配置了 `[identity]`，而 `speaker` 不是账号 |
 | 401 | `unauthorized` | 令牌不对或没带 |
-| 403 | `forbidden` | 这个客户端没有 `recall` |
+| 403 | `forbidden` | 这个客户端没有 `recall`；配置了 `[identity]` 时，`speaker` 的平台不在客户端的 `platforms` 里，或者没过 `only_for` |
 | 403 | `unknown_tenant`、`tenant_mismatch` | 见“租户字段” |
 | 411、413 | `length_required`、`too_large` | 没有 `Content-Length`；请求体超过 64 KiB |
 | 429 | `rate_limited` | 请求太快 |
@@ -180,7 +183,7 @@ Authorization: Bearer <令牌>
 {"query": "周末去哪玩了", "limit": 5, "tenant_id": "10001", "context": {"channel": "voice"}}
 ```
 
-请求体、各项检查和错误回答都和 `/v1/recall` 完全一样（`query`、`limit`、`tenant_id`、`context`，同样的 `bad_*`、`unknown_tenant`、`tenant_mismatch`）。限流、总时限、存储的并发名额、各种 503 也一样；它和召回共用同一份每分钟的额度。
+请求体、各项检查和错误回答都和 `/v1/recall` 完全一样（`query`、`limit`、`tenant_id`、`context`、`speaker`，同样的 `bad_*`、`unknown_tenant`、`tenant_mismatch`，`speaker` 的规则也一样）。限流、总时限、存储的并发名额、各种 503 也一样；它和召回共用同一份每分钟的额度。
 
 ```json
 {
@@ -253,7 +256,8 @@ Authorization: Bearer <令牌>
 | `messages[].role` | 字符串 | 是 | `"user"` 或 `"assistant"` |
 | `messages[].content` | 字符串 | 是 | 去掉空白后不能是空的，最多 4000 字 |
 | `messages[].time` | 字符串或 `null` | 否 | 最多 40 字 |
-| `messages[].speaker` | 字符串或 `null` | 否 | 最多 64 字 |
+| `messages[].speaker` | 字符串或 `null` | 否 | 最多 64 字。配置了 `[identity]` 时必须是账号（`<平台>:<编号>`），见“账号和身份” |
+| `messages[].about` | 字符串或 `null` | 否 | 这句话说的是谁，一个账号；规则同 `speaker`。没有 `[identity]` 时检查一下（字符串，最多 64 字）就丢掉 |
 | `messages[].channel` | 字符串或 `null` | 否 | 这句话在哪个频道说的：小写字母或数字开头，后面是小写字母、数字和 `_` `.` `:` `-`，最多 64 个字符 |
 | `messages[].origin` | 字符串或 `null` | 否 | 这条记忆是怎么来的，宿主自己报的：`"said"`、`"tool"`、`"curated"`、`"derived"` 之一 |
 | `messages[].event_date` | 字符串或 `null` | 否 | 这件事发生的日期，写成 `YYYY-MM-DD`，必须是真实存在的日期 |
@@ -266,6 +270,7 @@ Authorization: Bearer <令牌>
 
 - `time`、`speaker` 可以不写，写 `null` 等于没写。`time` 是这句话什么时候说的，`speaker` 是谁说的。它们交给写入守卫和存储；公开客户端的这两项也会被脱敏。消息里的其他键丢掉。
 - 五个记忆的字段 `channel`、`origin`、`event_date`、`kind`、`audience` 同样可以不写，`null` 等于没写，值不合规整个请求 400 `bad_messages`。目标存储记录字段（`stores_fields`，见[扩展接口](#记忆的字段)）时，网关在写入守卫之前给每条消息加上一个键 `"fields"`，由它们合成：`audience` 是目标存储的受众（共享存储自己的，`"@tenant"` 是租户来源的），消息要求更窄的就用更窄的，要求更宽的整个请求 400 `bad_messages`，所以写进这样的存储的每条记忆都有受众；`channel` 用消息的，没有就用请求 `context` 里的字符串 `channel`（要符合上面的格式，否则不用），都没有就不记；`origin`、`event_date`、`kind` 照写的记。五个键本身从消息里拿掉，所以交给守卫和存储的消息只有 `role`、`content`、可选的 `time`、`speaker` 和 `fields`。目标存储不记录字段时，这五个键检查之后丢掉，守卫和存储收到的消息和以前一样。
+- 配置了 `[identity]` 时，`speaker` 和 `about` 是账号，在写入守卫之前、脱敏之前换成人名（见“账号和身份”）：消息的 `speaker` 变成换算后的值，目标存储记录字段时，`fields` 里多一项 `speaker`，写了 `about` 的还有 `about`；`about` 这个键本身从消息里拿掉，没写就没有（网关不猜）。原来的账号从这里起不再出现，守卫、存储和日志都看不到。没有 `[identity]` 时，`speaker` 照旧：检查、交给守卫、不存；`about` 丢掉。
 - `origin` 是宿主自己说的来历，网关只是记下，不凭它给任何权限。客户端能写哪些来历由它的配置 `origins` 决定（默认 `["said", "tool"]`）；消息写了别的来历，整个请求回 403 `forbidden`，一条都不写。
 - `time` 的开头是一个真实存在的 `YYYY-MM-DD` 日期（后面可以接 `T` 或空格再接时间，如 `2026-11-14T20:15:00+08:00`）时，`sqlite`、`embedding`、`hybrid`、`inmemory` 后端用这个日期作为这条记忆的日期，召回结果的 `date` 就是它；没有 `time` 或开头不是合格的日期时，仍用写入当天的 UTC 日期（`inmemory` 不记日期）。取的是 `time` 里写着的日期，不换算时区，所以客户端带上本地时间，记忆的日期就是用户所在地的日期。`openviking` 后端不涉及（日期由 OpenViking 决定）。已经发送 `time` 的客户端，升级后会在记忆上看到这个日期，而不再是 UTC 的当天。
 - `tenant_id`、`context` 同上。
@@ -290,7 +295,7 @@ Authorization: Bearer <令牌>
 | 400 | `bad_request` | 请求体不是 JSON 对象，或者 `Content-Length` 不对 |
 | 400 | `bad_messages`、`bad_context`、`bad_tenant` | 见上 |
 | 401 | `unauthorized` | 令牌不对或没带 |
-| 403 | `forbidden` | 这个客户端没有 `write`，或者消息写了这个客户端不能写的 `origin` |
+| 403 | `forbidden` | 这个客户端没有 `write`，或者消息写了这个客户端不能写的 `origin`；配置了 `[identity]` 时，还有 `speaker`、`about` 的平台不在客户端的 `platforms` 里、`about` 是别人而客户端的受众不是 `owner`、没过 `only_for` |
 | 403 | `unknown_tenant`、`tenant_mismatch` | 见“租户字段” |
 | 411、413 | `length_required`、`too_large` | 没有 `Content-Length`；请求体超过 64 KiB |
 | 429 | `rate_limited` | 请求太快 |
@@ -317,7 +322,7 @@ Authorization: Bearer <令牌>
 | `used[].id` | 字符串 | 是 | 非空，最多 512 字 |
 | `tenant_id` | 字符串 | 看客户端 | 见上面的“租户字段” |
 
-这个接口不看 `context`。
+这个接口不看 `context`，也不带 `speaker`：它不受 `only_for` 管（它只能刷新记忆的时钟，见下）。
 
 - `used`：最多 20 项，每项是召回结果里的 `source` 和 `id`（别的键忽略，所以可以把召回结果原样放进去）。空列表可以，什么也不记。同一条写两次算一次。
 - `source` 写召回结果里的 `source`：共享存储是它的名字，租户存储是租户提供方的名字（不是 `"@tenant"`）。每一项的 `source` 都必须是这个客户端能召回的来源，否则整个请求回 403 `forbidden`；不存在的来源和没有权限的来源回答一样，所以不会泄露哪些存储存在。
@@ -381,10 +386,11 @@ Authorization: Bearer <令牌>
 | `bad_limit` | 400 | `limit` 不是整数 |
 | `bad_messages` | 400 | 消息格式不对、太长或太多 |
 | `bad_context` | 400 | `context` 不合规 |
+| `bad_speaker` | 400 | 配置了 `[identity]`，召回或解释的 `speaker` 不是账号 |
 | `bad_tenant` | 400 | `tenant_id` 格式不对，或者这个客户端不该带 `tenant_id` |
 | `bad_used` | 400 | `/v1/used` 的 `used` 不合规：不是列表、超过 20 项、某项缺 `source` 或 `id`、类型不对或太长 |
 | `unauthorized` | 401 | 令牌不对或没带（铸造密钥本身当令牌用也是这个） |
-| `forbidden` | 403 | 这个客户端不许做这件事（`/v1/used` 里：来源不是它能召回的；`/v1/explain` 里：没有 `explain = true`） |
+| `forbidden` | 403 | 这个客户端不许做这件事（`/v1/used` 里：来源不是它能召回的；`/v1/explain` 里：没有 `explain = true`；配置了 `[identity]` 时：账号的平台不在它的 `platforms` 里，或者没过 `only_for`，或者 `about` 是别人而它的受众不是 `owner`） |
 | `unknown_tenant` | 403 | 这个租户没登记 |
 | `tenant_mismatch` | 403 | 令牌绑定了一个租户，请求体里的 `tenant_id` 是别的（或者不是字符串）；什么都没做 |
 | `not_found` | 404 | 没有这个路径 |
@@ -783,6 +789,7 @@ bad -> '' ''
 | `redactor` | 没有基类：一个工厂，返回 `str -> str` 的函数 | `[redaction]` 的 `private`、`public` | 工厂本身 | [做一块 redactor](pieces.md#做一块-redactor脱敏) |
 | `tenants` | `TenantProvider`（抽象类） | `[tenants.<名字>]` 的 `type` | `valid_id`、`store`（必须），`list`、`close` | [做一块 tenants](pieces.md#做一块-tenants租户) |
 | `forgetting_curve` | `ForgettingCurve` | `[forgetting.curve]` 的 `type` | `retention` | [forgetting.md](forgetting.md#写自己的曲线)（`pieces.md` 里没有这一块的专节） |
+| `identity` | `IdentityProvider` | `[identity]` 的 `type` | `resolve`、`owner`、`code`、`people` | [extending.md](extending.md#写自己的身份来源) |
 
 ### 注册和查找
 
@@ -790,7 +797,7 @@ bad -> '' ''
 register(kind, name)      # 类或函数的装饰器
 ```
 
-`kind` 是 `backend`、`recall_stage`、`write_guard`、`redactor`、`tenants`、`forgetting_curve` 之一，不是则抛 `ConfigError`。`name` 是不含 `:` 的非空字符串。同一个插槽里，同一个名字注册给两个不同的东西抛 `ConfigError`；重复注册同一个对象没有问题。配置里的 `type` 的查找顺序（带冒号的路径、`register` 的名字、安装包的入口点 `feiyu_memgate.<kind>`）见 [pieces.md](pieces.md#拼图怎么被找到)。配置表里除 `type` 以外的每一项都作为关键字参数传给拼图的构造函数（工厂），`_env` 结尾的项先换成环境变量的值。
+`kind` 是 `backend`、`recall_stage`、`write_guard`、`redactor`、`tenants`、`forgetting_curve`、`identity` 之一，不是则抛 `ConfigError`。`name` 是不含 `:` 的非空字符串。同一个插槽里，同一个名字注册给两个不同的东西抛 `ConfigError`；重复注册同一个对象没有问题。配置里的 `type` 的查找顺序（带冒号的路径、`register` 的名字、安装包的入口点 `feiyu_memgate.<kind>`）见 [pieces.md](pieces.md#拼图怎么被找到)。配置表里除 `type` 以外的每一项都作为关键字参数传给拼图的构造函数（工厂），`_env` 结尾的项先换成环境变量的值。
 
 ### 每块拼图都可以有的属性和方法
 
@@ -895,7 +902,7 @@ class RecallStage:
 
 `Candidate`（`feiyu_memgate.pieces.Candidate`）：`score`、`source`、`store`、`ref`、`text=""`、`date=None`、`meta={}`、`fields={}`；`as_item()` 给出返回的 `{"id", "source", "text", "score", "date"?}`。
 
-`RecallContext`（`ctx`）的成员：`query`、`limit`、`client`、`tenant_id`、`tenant_source`、`public`、`audience`（这个客户端的受众 `reach`：`"owner"`、`"group"` 或 `"public"`，构造时是只能按名字传的参数，默认 `"owner"`）、`show_fields`（这个客户端配置的 `fields`，一个元组，默认 `()`：回答的每一项里带哪些记忆字段）、`redact`（`str -> str`）、`context`（请求里的 `context`，已检查）、`accepted`、`notes`、`state`（字典，放这一次请求里自己的状态；步骤对象是所有请求共用的，不要存在 `self` 上）、`time_left()`、`expired()`、`note(word)`、`run(fn, store=None)`（在工作线程上跑一个会阻塞的调用，返回 `(ok, result)`，`fn` 收到 `ctl`）。
+`RecallContext`（`ctx`）的成员：`query`、`limit`、`client`、`tenant_id`、`tenant_source`、`public`、`audience`（这个客户端的受众 `reach`：`"owner"`、`"group"` 或 `"public"`，构造时是只能按名字传的参数，默认 `"owner"`）、`show_fields`（这个客户端配置的 `fields`，一个元组，默认 `()`：回答的每一项里带哪些记忆字段）、`person`（谁在问：请求里的 `speaker` 经 `[identity]` 换算后的人名，没登记的账号是 `"anon:"` 加一个码，请求没带 `speaker` 或网关没有 `[identity]` 时是 `None`，构造时是只能按名字传的参数；自带的步骤都不用它）、`redact`（`str -> str`）、`context`（请求里的 `context`，已检查）、`accepted`、`notes`、`state`（字典，放这一次请求里自己的状态；步骤对象是所有请求共用的，不要存在 `self` 上）、`time_left()`、`expired()`、`note(word)`、`run(fn, store=None)`（在工作线程上跑一个会阻塞的调用，返回 `(ok, result)`，`fn` 收到 `ctl`）。
 
 ### `write_guard`：`WriteGuard`
 
@@ -956,6 +963,42 @@ class TenantProvider(abc.ABC):
 
 可选：`list()` 返回所有租户编号（只要编号，不要密钥），这样遗忘清理才能逐个访问每个租户的存储；没有它的提供方会被清理跳过。
 
+### `identity`：`IdentityProvider`
+
+基类在 `feiyu_memgate.identity`（不在 `feiyu_memgate.pieces` 里）：
+
+```python
+class IdentityProvider:
+    owner                       # 属性：主人的名字
+    def resolve(self, account): ...         # 人名，或者 None
+    def code(self, account, scope): ...     # 没登记的账号的替身码
+    def people(self): ...                   # {人名: 账号数}
+    has_key                     # 属性，默认 True
+    ready                       # 属性，默认 True
+```
+
+| 成员 | 说明 |
+|---|---|
+| `resolve(account)` | 账号所属的人的名字；这个账号在谁的名单里都没有时返回 `None`。要快，对奇怪的输入返回 `None`，不抛异常 |
+| `owner` | 主人的名字 |
+| `code(account, scope)` | 没登记的账号的替身：`"anon:"` 加 16 个十六进制字符。`scope` 是这条记忆要写进的存储的名字（租户的存储是租户来源的名字、`:`、租户编号），所以同一个账号在不同的存储里码不同。内置的 `table` 是 `HMAC-SHA256(密钥, scope + 换行 + account)` 的前 16 个十六进制字符 |
+| `people()` | `{人名: 账号数}`，给 `check` 用，从来不给账号本身 |
+| `has_key` | 有没有配置密钥（只是有没有，`check` 显示）。默认 `True` |
+| `ready` | `code()` 能不能放心用：有密钥而且够长。有客户端能写而它为 `False` 时网关启动报错。默认 `True` |
+
+内置的 `table`（`feiyu_memgate.identity.TableIdentity`）：`TableIdentity(people, hash_key=None)`，`people` 是 `{名字: {"owner": 布尔, "accounts": [账号, ...]}}`。名字、账号、保留名（`self`、`anon`）、一个账号列给两个人、主人不是正好一个，都抛 `ConfigError`，消息里没有账号也没有密钥。账号的格式在 `feiyu_memgate.model` 里：`valid_account`、`platform_of`、`valid_platform`、`valid_person`。
+
+### 账号和身份
+
+宿主报告谁在说话时，用账号：`<平台>:<编号>`，例如 `aiocqhttp:10001`。平台是 `[a-z0-9][a-z0-9_.-]{0,31}`，编号至少一个字符、没有空白和控制字符，整个账号最多 64 个字符。网关配置了 `[identity]`（见 [configuration.md](configuration.md#identity身份表)）后：
+
+- `POST /v1/remember`：消息的 `speaker` 和 `about` 必须是账号（否则 400 `bad_messages`），账号的平台必须在这个客户端的 `platforms` 里（否则 403 `forbidden`；没设 `platforms` 的客户端报不了任何账号）。`about` 是别人（不是这条消息自己的说话人）时，只有受众是 `owner` 的客户端可以写，否则 403。角色是 `assistant` 的消息，说话人一律是 `self`，不管宿主发了什么。客户端设了 `only_for` 时，每条 `user` 消息的 `speaker` 都必须属于 `only_for` 里的人，不是、或者没有 `speaker`，整个请求 403。
+- 账号在写入守卫之前、脱敏之前换算：登记在表里的换成人名，没登记的换成 `code(账号, 存储名)`。换算以后原来的账号就没有了：消息的 `speaker` 是换算后的值，记录字段 `speaker`（写了 `about` 的还有 `about`）也是，守卫、存储、日志都看不到账号。没有 `about` 就没有 `about` 字段。
+- `POST /v1/recall`、`POST /v1/explain`：可选的 `speaker`（账号）。不是账号 400 `bad_speaker`；平台规则和 `only_for` 同上，403；换算后的值给召回步骤，是 `RecallContext.person`。
+- `POST /v1/used` 不带 `speaker`，不受 `only_for` 管。
+
+没有 `[identity]` 的网关，一切照旧：`speaker` 检查长度、交给守卫、不存，`about` 检查后丢掉，召回体里的 `speaker` 和别的不认识的键一样被忽略。
+
 ### `forgetting_curve`：`ForgettingCurve`
 
 ```python
@@ -970,8 +1013,9 @@ class ForgettingCurve:
 | 名字 | 是什么 |
 |---|---|
 | `KEEP`、`DROP`、`DEFER` | `admit` 的三个回答 |
-| `ClientPolicy` | 一个客户端的权限，冻结的数据类：`name`、`recall`、`write`、`tenants`、`public`、`daily_writes`、`rate_limit`、`pin_writes`、`daily_writes_total`、`rate_limit_total`、`tenant_binding`、`tenant_token_generation`、`audience`（默认 `None` = 没声明）、`explain`（默认 `False`：这个客户端可以用 `POST /v1/explain`）、`origins`（默认 `("said", "tool")`：消息里可以写的来历）、`fields`（最后一个字段，默认 `()`：召回的每一项里带上的记忆字段），和属性 `token_bound`、`can_recall`、`can_write`、`total_rate_limit`、`reach`（客户端的受众：声明了就是声明的；没声明时不公开的是 `"owner"`，公开且带 `tenants` 的是 `"group"`，公开且不带的是 `"public"`）。`feiyu_memgate.model.AUDIENCES` 是 `("owner", "group", "public")`，顺序就是从窄到宽 |
+| `ClientPolicy` | 一个客户端的权限，冻结的数据类：`name`、`recall`、`write`、`tenants`、`public`、`daily_writes`、`rate_limit`、`pin_writes`、`daily_writes_total`、`rate_limit_total`、`tenant_binding`、`tenant_token_generation`、`audience`（默认 `None` = 没声明）、`explain`（默认 `False`：这个客户端可以用 `POST /v1/explain`）、`origins`（默认 `("said", "tool")`：消息里可以写的来历）、`fields`（默认 `()`：召回的每一项里带上的记忆字段）、`platforms`（默认 `()`：这个客户端可以报的账号平台，需要 `[identity]`）、`only_for`（最后一个字段，默认 `()`：设了以后这个客户端只替这些人说话，值是 `[identity]` 里的人名），和属性 `token_bound`、`can_recall`、`can_write`、`total_rate_limit`、`reach`（客户端的受众：声明了就是声明的；没声明时不公开的是 `"owner"`，公开且带 `tenants` 的是 `"group"`，公开且不带的是 `"public"`）。`feiyu_memgate.model.AUDIENCES` 是 `("owner", "group", "public")`，顺序就是从窄到宽 |
 | `Gateway` 的 `audiences=` | `Gateway(stores, clients, tokens, ..., audiences=None)`：`{名字: 级别}`，名字是存储或租户来源的名字；没写的存储是 `"owner"`，租户来源是 `"group"`。名字不是存储也不是租户来源、级别不在 `AUDIENCES` 里，都抛 `ConfigError`。`gateway.audience_of(名字)` 返回这个存储或租户来源的级别。受众的两条规则和配置文件建出来的网关一样，在 `Gateway` 里检查，见 [configuration.md](configuration.md#受众存储给谁看客户端被谁看) |
+| `Gateway` 的 `identity=` | `Gateway(stores, clients, tokens, ..., identity=None)`：一个身份来源（`IdentityProvider`，见上面“`identity`”一节；内置的是 `feiyu_memgate.identity.TableIdentity`），默认 `None` = 没有 `[identity]`。有它时，消息的 `speaker` 和 `about` 必须是账号并在守卫之前换算，召回和解释接受 `speaker`；客户端的 `platforms`、`only_for` 由它执行。没有它时设了 `platforms` 或 `only_for` 的客户端抛 `ConfigError`；有它时，`platforms` 里不是平台名、`only_for` 里不是人名或不在表里的，以及有客户端能写而 `ready` 为假（密钥缺了或不够长），都抛 `ConfigError`。属性 `gateway.identity` |
 | `BackendError` | 后端失败时抛，不带上游的文字 |
 | `ConfigError` | 配置不能用；消息里说是哪一项，不带密钥的值 |
 | `WriteRejected` | 守卫拒绝一次写入，见上 |

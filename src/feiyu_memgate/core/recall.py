@@ -98,6 +98,9 @@ class RecallContext:
     public            True when the answer is shown to other people
     audience          who sees the answer: the client's reach, "owner", "group" or "public"
     show_fields       the record fields (model.FIELDS) the answer adds to each item (the client's `fields`)
+    person            who is asking, as the identity table resolves the request's "speaker": a person's name, or
+                      "anon:" and a code for an account nobody listed; None when the request named no speaker
+                      (and always without an identity table). No built-in stage uses it
     redact            the text cleaner chosen for this client (str -> str)
     context           the request's optional "context" object (small, already checked)
     accepted          the candidates kept so far, in order
@@ -111,7 +114,8 @@ class RecallContext:
 
     def __init__(self, query, limit, *, pool, clock=time.monotonic, deadline=None, public=False,
                  redact=None, client=None, tenant_id=None, notes=None, tenant_source=None, context=None,
-                 log=None, slots=None, keep=0, audience="owner", trace=False, show_fields=()):
+                 log=None, slots=None, keep=0, audience="owner", trace=False, show_fields=(),
+                 person=None):
         self.query = query
         self.limit = limit
         self.pool = pool
@@ -123,6 +127,7 @@ class RecallContext:
         self.public = public
         self.audience = audience
         self.show_fields = tuple(show_fields)
+        self.person = person
         self.redact = redact or (lambda text: text)
         self.client = client
         self.tenant_id = tenant_id

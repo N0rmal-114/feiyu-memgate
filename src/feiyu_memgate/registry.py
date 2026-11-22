@@ -19,7 +19,7 @@ from typing import Any
 
 from .errors import ConfigError
 
-KINDS = ("backend", "recall_stage", "write_guard", "redactor", "tenants", "forgetting_curve")
+KINDS = ("backend", "recall_stage", "write_guard", "redactor", "tenants", "forgetting_curve", "identity")
 
 _pieces: dict[str, dict[str, Any]] = {kind: {} for kind in KINDS}
 _lock = threading.Lock()

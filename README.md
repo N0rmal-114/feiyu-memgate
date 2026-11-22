@@ -86,6 +86,7 @@
 | `redactor` | 文字怎么清洗 | `secrets`、`public`、`none` |
 | `tenants` | 每个租户的独立存储从哪来 | `directory`、`keyfile` |
 | `forgetting_curve` | 保持率怎么随时间和使用变化 | `ebbinghaus` |
+| `identity` | 账号是谁，没登记的账号怎么做替身 | `table` |
 
 网关、客户端和全部内置实现只用 Python 标准库；只有加密备份需要 `cryptography`。
 

@@ -35,7 +35,7 @@ from feiyu_memgate.pieces import RecallStage, KEEP, DROP, DEFER, WriteGuard, Wri
    mine = "my_pkg.my_module:MyBackend"
    ```
 
-   入口点的组名是 `feiyu_memgate.` 加插槽名：`backend`、`recall_stage`、`write_guard`、`redactor`、`tenants`、`forgetting_curve`。
+   入口点的组名是 `feiyu_memgate.` 加插槽名：`backend`、`recall_stage`、`write_guard`、`redactor`、`tenants`、`forgetting_curve`、`identity`。
 
 配置表里除了 `type` 以外的每一项，都会作为关键字参数传给拼图的构造函数。名字以 `_env` 结尾的项会先换成环境变量的值：`key_env = "MY_KEY"` 到了构造函数里是 `key="<MY_KEY 的值>"`。密钥就这样进来，不用写进配置文件。
 

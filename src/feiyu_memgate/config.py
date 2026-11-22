@@ -57,13 +57,15 @@ from .forgetting.engine import REQUIRED as FORGETTING_CAPABILITIES, Forgetting
 from .forgetting.ledger import Ledger
 from .gateway import policies
 from .gateway.app import Gateway, stderr_log, usable_token, MIN_TOKEN_CHARS
-from .model import AUDIENCES, DEFAULT_ORIGINS, FIELDS, ORIGINS, TENANT_BINDINGS, ClientPolicy
+from .model import (AUDIENCES, DEFAULT_ORIGINS, FIELDS, ORIGINS, TENANT_BINDINGS, ClientPolicy, valid_person,
+                    valid_platform)
 
 SERVER_DEFAULTS = {"host": "127.0.0.1", "port": 8080}
 _POLICY_KEYS = {"token_env", "recall", "write", "tenants", "public", "daily_writes", "daily_writes_total",
                 "rate_limit", "rate_limit_total", "pin_writes", "tenant_binding", "tenant_token_generation",
-                "audience", "explain", "origins", "fields"}
-_TOP_KEYS = {"server", "stores", "tenants", "clients", "recall", "write", "redaction", "forgetting"}
+                "audience", "explain", "origins", "fields", "platforms", "only_for"}
+_TOP_KEYS = {"server", "stores", "tenants", "clients", "recall", "write", "redaction", "forgetting", "identity"}
+_IDENTITY_KEYS = {"type", "hash_key_env", "people"}
 
 # What each fixed section may hold: key -> checker(where, value). "stages"/"guards" are piece lists.
 _POSITIVE_INT, _POSITIVE_NUMBER, _NUMBER_AT_LEAST_0 = "positive integer", "positive number", "number >= 0"
@@ -192,6 +194,15 @@ def _names_of(where, key, value, known, default, kind):
     return tuple(value)
 
 
+def _checked_names(where, key, value, valid, kind):
+    """A list setting whose entries each pass `valid`, as a tuple (empty when absent)."""
+    if value is None:
+        return ()
+    if not isinstance(value, list) or not all(valid(item) for item in value):
+        raise ConfigError("%s.%s must be a list of %s" % (where, key, kind))
+    return tuple(value)
+
+
 def client_policy(name, spec):
     """The ClientPolicy of one [clients.<name>] table, every setting checked (ConfigError naming it)."""
     where = "clients.%s" % name
@@ -229,6 +240,10 @@ def client_policy(name, spec):
                           % where)
     origins = _names_of(where, "origins", spec.get("origins"), ORIGINS, DEFAULT_ORIGINS, "an origin")
     fields = _names_of(where, "fields", spec.get("fields"), FIELDS, (), "a record field")
+    platforms = _checked_names(where, "platforms", spec.get("platforms"), valid_platform,
+                               "platform names (lower case letters, digits, _ . -)")
+    only_for = _checked_names(where, "only_for", spec.get("only_for"), valid_person,
+                              "names of people in [identity.people]")
     audience = _audience(where, spec["audience"]) if "audience" in spec else None
     public = spec.get("public")
     if public is None:
@@ -240,6 +255,7 @@ def client_policy(name, spec):
         rate_limit_total=spec.get("rate_limit_total"), pin_writes=spec.get("pin_writes", False),
         explain=spec.get("explain", False), tenant_binding=binding,
         tenant_token_generation=spec.get("tenant_token_generation", 1), origins=origins, fields=fields,
+        platforms=platforms, only_for=only_for,
     )
 
 
@@ -391,6 +407,33 @@ def _forgetting(cfg, stores, tenants, wall, audiences=None):
     return forgetting, hours
 
 
+def _identity(cfg, env, clients):
+    """The identity provider from [identity], or None when there is no such section.
+
+    A client that may write can meet an account nobody listed, so then the key named by hash_key_env must be
+    set; for a gateway whose clients only read it is optional (a variable that is not set is then no key)."""
+    if "identity" not in cfg:
+        return None
+    spec = _table(cfg, "identity")
+    if spec.get("type") == "table":
+        unknown = set(spec) - _IDENTITY_KEYS
+        if unknown:
+            raise ConfigError("identity: unknown setting %s (known: %s)" % (
+                ", ".join(sorted(unknown)), ", ".join(sorted(_IDENTITY_KEYS))))
+    name = spec.get("hash_key_env")
+    if name is not None:
+        if not isinstance(name, str) or not name:
+            raise ConfigError("identity.hash_key_env must name an environment variable")
+        if not env.get(name) and not any(policy.can_write for policy in clients.values()):
+            spec = {key: value for key, value in spec.items() if key != "hash_key_env"}
+    # The table of people is not resolved: nothing in it names the environment, and an error about a stray
+    # "<name>_env" key there would quote its value, which may be an account.
+    resolved = resolve_env({key: value for key, value in spec.items() if key != "people"}, env, "identity")
+    if "people" in spec:
+        resolved["people"] = spec["people"]
+    return registry.create("identity", resolved)
+
+
 def _close_all(pieces):
     """Close what a failed build already opened (files, connections). Never raises."""
     for piece in pieces:
@@ -471,6 +514,7 @@ def build_gateway(cfg, env=None, log=stderr_log, wall=None, **overrides):
                          write_module.DEFAULT_GUARDS, services)
         opened.extend(stages + guards)
         _check_enforced(clients, stages, guards)
+        identity = _identity(cfg, env, clients)
         options = {
             "tenants": tenants,
             "audiences": audiences,
@@ -482,6 +526,8 @@ def build_gateway(cfg, env=None, log=stderr_log, wall=None, **overrides):
             },
             "log": log,
         }
+        if identity is not None:
+            options["identity"] = identity
         if forgetting is not None:
             options["forgetting"] = forgetting
             options["sweep_every_hours"] = sweep_hours

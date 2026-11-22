@@ -126,6 +126,8 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 | `rate_limit` | `60` | 每分钟最多几次请求（多租户按租户分别计） |
 | `rate_limit_total` | `rate_limit` 的 10 倍 | 多租户客户端整个每分钟最多几次请求（所有租户合计）。`tenant_binding = "token"` 时一个租户最多用掉其中 `rate_limit` 次；默认模式下一个调用方就能用完 |
 | `pin_writes` | `false` | 这个客户端写入的记忆自动钉住，不会被遗忘，见 [forgetting.md](forgetting.md) |
+| `platforms` | `[]` | 这个客户端可以报的账号平台（账号 `aiocqhttp:10001` 的平台是 `aiocqhttp`），每个符合 `[a-z0-9][a-z0-9_.-]{0,31}`。写入消息的 `speaker` 和 `about`、召回的 `speaker` 的平台必须在这里，否则 403 `forbidden`；不写就一个账号都报不了。必须有 `[identity]`，否则启动报错（没有谁来执行它），见下面“`[identity]`：身份表” |
+| `only_for` | `[]` | 只替这几个人说话：`[identity.people]` 里的人名。写了以后，这个客户端写入的每条 `user` 消息、每次召回都必须带一个属于这几个人的 `speaker`，否则整个请求 403 `forbidden`。必须有 `[identity]`，名字必须在表里，否则启动报错 |
 
 租户的存储只有在 `recall` 里写了 `"@tenant"` 才会被搜，位置就是它在列表里的位置；没有 `tenants` 的客户端写 `"@tenant"` 启动报错。一个群聊机器人通常这样写：
 
@@ -177,6 +179,77 @@ public = true                           # 带 tenants，所以客户端的受众
 已有的配置里，公开客户端读着的存储现在要补一行 `audience`；写成 `public` 就是你确认它里面的内容可以给任何人看。网关检查的是这些声明对不对得上，声明本身由你负责，见 [security.md](security.md)。
 
 默认（`tenant_binding = "request"`）时 `tenant_id` 是客户端自己报的。网关只保证一个请求只碰到它报的那个租户的存储；客户端能不能代表这个租户，要由客户端自己（比如机器人框架给的群号）保证。这只适合一个可信的进程拿着这个令牌；`feiyu-memgate check` 对这样的客户端会打印一行提醒。令牌要交给别的程序时，用下面的令牌绑定。两种模式的取舍见 [security.md](security.md)。
+
+### `[identity]`：身份表
+
+宿主报告谁在说话，用账号 `<平台>:<编号>`（`aiocqhttp:10001`）。同一个人在两个宿主上是两个陌生人，各个宿主还各自存一份“谁是主人”。`[identity]` 让网关有一张人和账号的表，所有来问的宿主得到同一个答案，并拦住宿主替不属于它的账号说话。
+
+```toml
+[identity]
+type = "table"
+hash_key_env = "GATEWAY_IDENTITY_KEY"     # 给没登记的账号做替身码的密钥，放环境变量里
+
+[identity.people.owner]
+owner = true                              # 整张表正好一个主人
+accounts = ["dsh:local", "aiocqhttp:10001"]
+
+[identity.people.amy]
+accounts = ["aiocqhttp:20002"]
+```
+
+| 设置 | 默认 | 意思 |
+|---|---|---|
+| `type` | 必填 | 目前只有 `"table"`；自己写的来源见 [extending.md](extending.md#写自己的身份来源) |
+| `hash_key_env` | 无 | 放密钥的环境变量名，和 `token_env` 一样只写变量名。有客户端能写时必填，变量必须已设置，而且和令牌一样**至少 32 个字符、不能是 `change-me`**；所有客户端都只读时可以不写，变量没设置也不报错 |
+| `people.<名字>` | | 一个人一张表。名字是 `[a-z0-9][a-z0-9_-]{0,31}`，`self` 和 `anon` 是保留的 |
+| `people.<名字>.owner` | `false` | 是不是主人。整张表正好一个人写 `true` |
+| `people.<名字>.accounts` | `[]` | 这个人的账号。账号是 `<平台>:<编号>`：平台是 `[a-z0-9][a-z0-9_.-]{0,31}`，冒号后至少一个字符、没有空白和控制字符，整个账号最多 64 个字符。一个账号只能列给一个人 |
+
+启动时检查，不对就报错，错误消息说是哪一项，不显示账号，也不显示密钥：名字或账号不符合格式、用了保留名、一个账号列给了两个人、主人不是正好一个、不认识的设置名、`hash_key_env` 指的变量没设置或密钥太短（有客户端能写时）、`type` 不是登记过的来源。密钥不能写在文件里（`hash_key = "..."` 是不认识的设置）。
+
+有 `[identity]` 时，写入消息里的 `speaker` 和 `about` 必须是账号，网关在写入守卫和脱敏之前把它们换成人名：登记在表里的换成名字，没登记的换成替身码 `anon:` 加 16 个十六进制字符，由密钥、存储名和账号算出，所以同一个账号在同一个存储里总是同一个码，换一个存储、换一个账号或换一个密钥，码就不同。换算以后原来的账号不会再出现在守卫、存储和日志里。目标存储记录字段时，换算后的 `speaker`（写了 `about` 的还有 `about`）进记忆的字段，主人级的客户端用 `fields = ["speaker"]` 能在召回结果里看到。角色是 `assistant` 的消息，说话人一律是 `self`。没有 `[identity]` 时一切照旧。请求和回答的细节见 [api.md](api.md#账号和身份)。
+
+两个规则管着客户端能说什么：
+
+- **`platforms`**：客户端只能报它列出的平台的账号。每个宿主一个客户端、各配各的 `platforms`，一个宿主就不能替别的宿主的账号说话。
+- **`only_for`**：客户端只替名单里的人说话。一个只服务某一个人的宿主（比如这个人的私聊），其余的人说的话进不来。
+
+一个完整的小例子：两个宿主（DSH 和 QQ 机器人）共用一个存储，同一个人在两边各有一个账号：
+
+```toml
+[stores.main]
+type = "sqlite"
+path = "data/main.db"
+
+[identity]
+type = "table"
+hash_key_env = "GATEWAY_IDENTITY_KEY"
+
+[identity.people.owner]
+owner = true
+accounts = ["dsh:local", "aiocqhttp:10001"]
+
+[identity.people.amy]
+accounts = ["aiocqhttp:20002"]
+
+[clients.dsh]
+token_env = "GATEWAY_TOKEN_DSH"
+recall = ["main"]
+write = "main"
+platforms = ["dsh"]                       # 只能报 dsh: 开头的账号
+fields = ["speaker"]                      # 主人级的客户端，召回结果里带上是谁说的
+
+[clients.qq]
+token_env = "GATEWAY_TOKEN_QQ"
+recall = ["main"]
+write = "main"
+platforms = ["aiocqhttp"]
+only_for = ["owner", "amy"]               # 只替这两个人说话：别人的消息整个请求被拒
+```
+
+`dsh` 写入 `speaker = "dsh:local"` 和 `qq` 写入 `speaker = "aiocqhttp:10001"` 的记忆，记的都是 `owner`；`qq` 报 `dsh:local` 得到 403。
+
+`POST /v1/used` 不带 `speaker`，不受 `only_for` 管；它只能刷新记忆的时钟，不读出任何记忆。`feiyu-memgate check` 显示身份来源、每个人有几个账号（不显示账号）、谁是主人、有没有密钥（只说有或没有），客户端那一行显示它的 `platforms` 和 `only_for`；能写入、有 `[identity]` 却没设 `platforms` 的客户端会提醒一行：它报的每个说话人都会被拒绝。
 
 ### 令牌绑定租户
 

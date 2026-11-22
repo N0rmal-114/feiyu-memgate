@@ -8,7 +8,8 @@ handling. The Gateway keeps thin methods of the same names that call them.
 Standard library only.
 """
 from ..errors import ConfigError
-from ..model import AUDIENCES, FIELDS, ORIGINS, TENANT_BINDINGS, TENANT_STORE
+from ..model import AUDIENCES, FIELDS, ORIGINS, TENANT_BINDINGS, TENANT_STORE, valid_person, valid_platform
+from .tokens import MIN_TOKEN_CHARS
 
 
 def _audience_choices():
@@ -92,6 +93,33 @@ def check_fields(where, policy):
     if policy.reach != "owner" and any(name in ("speaker", "about") for name in policy.fields):
         raise ConfigError("%s.fields may not include \"speaker\" or \"about\": only an owner-level client sees "
                           "who a memory is about" % where)
+
+
+def check_identity(clients, identity):
+    """The identity settings of every client against the identity table (None when there is none).
+
+    `platforms` and `only_for` need a table to enforce them; each platform and person is a well-formed name,
+    and every person of `only_for` is in the table. With a table, a client that may write needs a hash key
+    that passes the floor of a token: it can meet an account nobody listed, and its stand-in code is only as
+    private as the key. Messages name settings, never an account or the key."""
+    for name, policy in clients.items():
+        where = "clients.%s" % name
+        for setting, check in (("platforms", valid_platform), ("only_for", valid_person)):
+            value = getattr(policy, setting)
+            if not isinstance(value, (tuple, list)) or not all(check(item) for item in value):
+                raise ConfigError("%s.%s must be a list of %s" % (
+                    where, setting, "platform names (lower case letters, digits, _ . -)" if setting == "platforms"
+                    else "names of people in [identity.people]"))
+            if value and identity is None:
+                raise ConfigError("%s.%s needs an [identity] section: without one nothing would enforce it"
+                                  % (where, setting))
+        if identity is not None:
+            table = identity.people()
+            if any(person not in table for person in policy.only_for):
+                raise ConfigError("%s.only_for names a person who is not in [identity.people]" % where)
+    if identity is not None and not identity.ready and any(policy.can_write for policy in clients.values()):
+        raise ConfigError("identity.hash_key_env: a client may write, so the key for the stand-in codes is "
+                          "required, at least %d characters and not the placeholder" % MIN_TOKEN_CHARS)
 
 
 def check_binding(where, policy):

@@ -257,6 +257,27 @@ saved
 
 第一条被守卫整条去掉，客户端得到 `skipped`（网关看过、什么都没留）；要明确拒绝，就抛 `WriteRejected(400, "links are not stored", "has-link", code="has_link")`，客户端得到 `failed`。
 
+### 写自己的身份来源
+
+身份来源回答“这个账号是谁”。内置的 `table` 是配置里写死的一张表；要从别处查（一个文件、一个通讯录服务），自己写一个：继承 `IdentityProvider`（`from feiyu_memgate.identity import IdentityProvider`，注册用 `from feiyu_memgate.pieces import register`），实现 `resolve`、`owner`、`code`、`people`：
+
+```python
+@register("identity", "mybook")
+class MyBook(IdentityProvider):
+    owner = "me"
+
+    def resolve(self, account):               # 人名，或者 None
+        return self.book.get(account)
+
+    def code(self, account, scope):           # 没登记的账号的替身：anon: 加 16 个十六进制字符
+        ...
+
+    def people(self):                         # {人名: 账号数}，给 check 看，不要给账号
+        return {name: len(accounts) for name, accounts in self.names.items()}
+```
+
+配置里写 `[identity]` 的 `type = "mybook"`，别的设置原样传给构造函数（`_env` 结尾的先换成环境变量的值）。每个方法要快，对奇怪的账号返回 `None` 而不是抛异常；返回的人名要符合 `[a-z0-9][a-z0-9_-]{0,31}` 并且不是 `self`、`anon`；`code` 要有密钥，`scope` 不同码就不同；`people()` 里要有 `only_for` 会用到的每个名字。有客户端能写时，网关看 `ready`（默认 `True`，没有密钥或密钥太短时要返回 `False`）。接口见 [api.md](api.md#identityidentityprovider)，账号和替身码的规则见 [security.md](security.md#谁在说话账号人名和替身码)。
+
 ### 怎么让网关认到它
 
 按这个顺序查（`registry.py`）：
@@ -289,7 +310,7 @@ saved
    同一个插槽里，同一个名字注册给两个不同的东西会报 `ConfigError`，内置的名字也不能顶替。
 3. **安装包的入口点**，见下一节。
 
-插槽的名字是 `backend`、`recall_stage`、`write_guard`、`redactor`、`tenants`、`forgetting_curve`。配置表里除 `type` 以外的每一项，都作为关键字参数传给构造函数；名字以 `_env` 结尾的项先换成环境变量的值，密钥就这样进来。
+插槽的名字是 `backend`、`recall_stage`、`write_guard`、`redactor`、`tenants`、`forgetting_curve`、`identity`。配置表里除 `type` 以外的每一项，都作为关键字参数传给构造函数；名字以 `_env` 结尾的项先换成环境变量的值，密钥就这样进来。
 
 ### 怎么测试
 

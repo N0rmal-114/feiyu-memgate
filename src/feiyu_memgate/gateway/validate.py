@@ -10,7 +10,7 @@ import math
 import re
 
 from ..backends.base import message_date
-from ..model import AUDIENCES, KINDS, ORIGINS
+from ..model import AUDIENCES, KINDS, ORIGINS, valid_account
 
 MAX_QUERY_CHARS = 500
 MAX_MESSAGES = 20
@@ -89,11 +89,12 @@ def _valid_field(key, value):
     return isinstance(value, str) and value in choices
 
 
-def _valid_messages(messages):
-    """The messages as [{"role", "content", optional "time", "speaker", and the REQUEST_FIELDS given}], or
-    None when the shape is wrong. Over-long content is rejected, not truncated; other keys are dropped. A
+def _valid_messages(messages, accounts=False):
+    """The messages as [{"role", "content", optional "time", "speaker", "about", and the REQUEST_FIELDS given}],
+    or None when the shape is wrong. Over-long content is rejected, not truncated; other keys are dropped. A
     null value counts as absent. The request keys are only checked here: the gateway turns them into the
-    memory's record fields (gateway.fields)."""
+    memory's record fields (gateway.fields). `accounts` is True when the gateway has an identity table: then
+    a speaker and an about must each be an account (model.valid_account), not just a short string."""
     if not isinstance(messages, list) or not 0 < len(messages) <= MAX_MESSAGES:
         return None
     clean = []
@@ -110,11 +111,13 @@ def _valid_messages(messages):
         if total > MAX_TOTAL_CHARS:
             return None
         item = {"role": role, "content": content}
-        for key, cap in (("time", MAX_TIME_CHARS), ("speaker", MAX_SPEAKER_CHARS)):
+        for key, cap in (("time", MAX_TIME_CHARS), ("speaker", MAX_SPEAKER_CHARS), ("about", MAX_SPEAKER_CHARS)):
             value = m.get(key)
             if value is None:
                 continue
             if not isinstance(value, str) or len(value) > cap:
+                return None
+            if accounts and key != "time" and not valid_account(value):
                 return None
             item[key] = value
         for key in REQUEST_FIELDS:
