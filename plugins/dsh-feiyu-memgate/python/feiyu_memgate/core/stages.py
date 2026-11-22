@@ -482,7 +482,7 @@ class Linked(RecallStage):
             meta["similarity"] = ceiling
             meta["linked_from"] = parent.ref
             out.append(Candidate(score=ceiling, source=parent.source, store=parent.store, ref=hit.ref,
-                                 text=hit.text, date=hit.date, meta=meta))
+                                 text=hit.text, date=hit.date, meta=meta, fields=dict(hit.fields)))
         return out
 
 

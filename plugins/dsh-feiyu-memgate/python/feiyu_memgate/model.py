@@ -1,4 +1,5 @@
 """The small data shapes that pieces hand to each other. Standard library only."""
+import collections.abc
 from dataclasses import dataclass, field
 
 TENANT_STORE = "@tenant"
@@ -6,6 +7,32 @@ TENANT_STORE = "@tenant"
 TENANT_BINDINGS = ("request", "token")
 # Who may see a store's content or a client's output, narrowest first: the order is the width.
 AUDIENCES = ("owner", "group", "public")
+# The facts a memory may carry beside its text and date; each a short string, all optional.
+FIELDS = ("speaker", "about", "channel", "audience", "origin", "event_date", "kind")
+MAX_FIELD = 128  # characters in one field value
+
+
+def clean_fields(fields):
+    """The fields of one memory as a new dict, or ValueError.
+
+    None or an empty mapping gives {}. Entries whose value is None are dropped. A key that is not in
+    FIELDS, or a value that is not a non-empty string of at most MAX_FIELD characters, raises ValueError
+    naming the key. Stores keep what they are given; what a value may be is the gateway's rule.
+    """
+    if not fields:
+        return {}
+    if not isinstance(fields, collections.abc.Mapping):
+        raise ValueError("fields must be a mapping")
+    out = {}
+    for key, value in fields.items():
+        if key not in FIELDS:
+            raise ValueError("unknown field: %r" % (key,))
+        if value is None:
+            continue
+        if not isinstance(value, str) or not value or len(value) > MAX_FIELD:
+            raise ValueError("field %s must be a non-empty string of at most %d characters" % (key, MAX_FIELD))
+        out[key] = value
+    return out
 
 
 @dataclass
@@ -17,18 +44,21 @@ class Hit:
     returns it through read(); `date` is "YYYY-MM-DD" when the backend knows when the
     memory is from; `meta` is anything the backend wants the recall stages to see
     (where the memory came from, who said it). It is copied into Candidate.meta and
-    never returned to clients.
+    never returned to clients. `fields` holds the memory's recorded facts (see FIELDS), only the ones
+    that are set; {} for a memory without any and for a backend that keeps none.
     """
     ref: str
     score: float
     text: str = ""
     date: str | None = None
     meta: dict = field(default_factory=dict)
+    fields: dict = field(default_factory=dict)
 
 
 @dataclass
 class Candidate:
-    """A hit on its way through the recall stages. Stages may change score, text and meta."""
+    """A hit on its way through the recall stages. Stages may change score, text and meta.
+    `fields` is a copy of the hit's recorded facts (see FIELDS)."""
     score: float
     source: str
     store: object
@@ -36,6 +66,7 @@ class Candidate:
     text: str = ""
     date: str | None = None
     meta: dict = field(default_factory=dict)
+    fields: dict = field(default_factory=dict)
 
     def as_item(self):
         # "id" is the memory's ref in its store: opaque to clients, stable for one memory.

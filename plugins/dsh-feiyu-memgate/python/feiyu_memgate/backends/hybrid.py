@@ -35,6 +35,12 @@ are deleted again from every child (best effort; replacing an existing ref and f
 removes it, so re-put it). Children must be able to `put(text, ref=..., date=...)` and
 `delete` when the hybrid is writable.
 
+Record fields (model.FIELDS): `stores_fields` is True when any child's is. A write hands the fields only to
+the children that store them (the others are called exactly as before, so a child written for the old
+`put(text, ref=None, date=None)` keeps working). Fused hits and merged neighbours carry the fields of the
+first child, in child order, that returned any for that memory; `records()` and `record(ref)` come from the
+first child that stores fields (else from the first child that has the method).
+
 Secrets: the `children` list is not walked by the configuration's `<name>_env` rule, so
 a child option ending in `_env` (for example `key_env`) is resolved here from the process
 environment, the same way.
@@ -49,8 +55,8 @@ from typing import Any
 from .. import registry
 from ..errors import BackendError, ConfigError
 from ..registry import register
-from .base import (DEFAULT_BUDGET, MemoryBackend, as_roles, clamp01, kept_messages, make_hit, new_receipt,
-                   parse_item, receipt_ref, require_writable)
+from .base import (DEFAULT_BUDGET, MemoryBackend, as_roles, clamp01, kept_messages, make_hit, message_fields,
+                   new_receipt, parse_record, receipt_ref, require_writable)
 from .base import today as _today
 
 OVERFETCH = 3  # each child is asked for limit * 3 hits so that fusion has material to rank
@@ -241,6 +247,8 @@ class HybridBackend(MemoryBackend):
                 for i, child in enumerate(self.children):
                     if not (hasattr(child, "put") and hasattr(child, "delete")):
                         raise ValueError("child %d cannot store a memory under a given ref (needs put and delete)" % i)
+            # True when any child keeps the record fields (see the module docstring).
+            self.stores_fields = any(getattr(child, "stores_fields", False) is True for child in self.children)
         except Exception:
             self.close()
             raise
@@ -256,14 +264,16 @@ class HybridBackend(MemoryBackend):
                 except Exception:  # noqa: BLE001 - the original failure is what the caller must see
                     pass
 
-    def put(self, text, ref=None, date=None, timeout=None, ctl=None):
-        """Store one memory in every child under one ref and return it."""
-        return self.put_many([(text, ref, date)], timeout=timeout, ctl=ctl)[0]
+    def put(self, text, ref=None, date=None, timeout=None, ctl=None, fields=None):
+        """Store one memory in every child under one ref and return it. `fields` go to the children that
+        store them."""
+        item = {"text": text, "ref": ref, "date": date, "fields": fields}
+        return self.put_many([item], timeout=timeout, ctl=ctl)[0]
 
     def put_many(self, items, timeout=None, ctl=None):
         """Store several memories in every child (batched where the child can) and return the refs."""
         require_writable(self)
-        rows = [parse_item(item) for item in items]
+        rows = [parse_record(item) for item in items]
         if not rows:
             return []
         refs = [r[1] for r in rows]
@@ -277,11 +287,21 @@ class HybridBackend(MemoryBackend):
 
     @staticmethod
     def _child_put(child, rows, timeout, ctl):
+        """Write `rows` ((text, ref, date, fields)) to one child; only a child that stores fields sees them."""
+        keeps = getattr(child, "stores_fields", False) is True
         if hasattr(child, "put_many"):
-            child.put_many(rows, **_extras(child.put_many, timeout, ctl))
+            batch: list[Any]
+            if keeps:
+                batch = [{"text": text, "ref": ref, "date": date, "fields": fields} for text, ref, date, fields in rows]
+            else:
+                batch = [(text, ref, date) for text, ref, date, _ in rows]
+            child.put_many(batch, **_extras(child.put_many, timeout, ctl))
             return
-        for text, ref, date in rows:
-            child.put(text, ref=ref, date=date)
+        for text, ref, date, fields in rows:
+            if keeps:
+                child.put(text, ref=ref, date=date, fields=fields)
+            else:
+                child.put(text, ref=ref, date=date)
 
     def delete(self, ref):
         """Remove a memory from every child. True when any child had it; a failing child
@@ -308,8 +328,13 @@ class HybridBackend(MemoryBackend):
         if not kept:
             return None
         receipt = new_receipt()
-        self.put_many([(content, receipt_ref(receipt, i), date) for i, content, date in kept],
-                      timeout=timeout, ctl=ctl)
+        items: list[Any] = []
+        for i, content, date in kept:
+            fields = message_fields(messages[i])
+            ref = receipt_ref(receipt, i)
+            items.append({"text": content, "ref": ref, "date": date, "fields": fields} if fields
+                         else (content, ref, date))
+        self.put_many(items, timeout=timeout, ctl=ctl)
         return receipt
 
     def receipt_refs(self, receipt):
@@ -412,14 +437,15 @@ class HybridBackend(MemoryBackend):
         return self._fuse(answers)[:limit]
 
     def _fuse(self, answers):
-        merged: dict[Any, dict[str, Any]] = {}  # ref -> {"text", "date", "scores": [per child], "cosine"}
+        merged: dict[Any, dict[str, Any]] = {}  # ref -> {"text", "date", "scores": [per child], "cosine", "fields"}
         for index, hits in answers:
             for hit in hits:
                 entry = merged.setdefault(hit.ref, {"text": "", "date": None, "scores": [None] * len(self.children),
-                                                    "cosine": None})
+                                                    "cosine": None, "fields": {}})
                 entry["scores"][index] = clamp01(float(hit.score))
                 entry["text"] = entry["text"] or hit.text
                 entry["date"] = entry["date"] or hit.date
+                entry["fields"] = entry["fields"] or dict(getattr(hit, "fields", None) or {})  # first child wins
                 cosine = (getattr(hit, "meta", None) or {}).get("cosine")
                 if cosine is not None:
                     entry["cosine"] = cosine
@@ -432,7 +458,7 @@ class HybridBackend(MemoryBackend):
             meta = {"child_scores": entry["scores"]}
             if entry["cosine"] is not None:
                 meta["cosine"] = entry["cosine"]
-            fused.append(make_hit(ref, 1.0 - miss, entry["text"], entry["date"], meta))
+            fused.append(make_hit(ref, 1.0 - miss, entry["text"], entry["date"], meta, entry["fields"]))
         fused.sort(key=lambda h: (-h.score, h.ref))
         return fused
 
@@ -463,22 +489,23 @@ class HybridBackend(MemoryBackend):
             return [(h.ref, clamp01(float(h.score)), h) for h in hits]
 
         jobs = [(index, lambda left, cctl, c=child: rows_of(c, left, cctl)) for index, child in capable]
-        # ref -> [highest score, its hit, first text found, first date found]
+        # ref -> [highest score, its hit, first text found, first date found, first fields found]
         best: dict[Any, list[Any]] = {}
         answers = self._gather(jobs, total, ctl)[0] if jobs else []
         for _, rows in answers:
             for hit_ref, score, hit in rows:
                 if hit_ref == ref:
                     continue
-                entry = best.setdefault(hit_ref, [score, hit, "", None])
+                entry = best.setdefault(hit_ref, [score, hit, "", None, {}])
                 if score > entry[0]:
                     entry[0], entry[1] = score, hit
                 entry[2] = entry[2] or hit.text
                 entry[3] = entry[3] or hit.date
+                entry[4] = entry[4] or dict(getattr(hit, "fields", None) or {})  # first child wins
         out = []
-        for hit_ref, (score, hit, text, date) in best.items():
+        for hit_ref, (score, hit, text, date, fields) in best.items():
             meta = dict(getattr(hit, "meta", None) or {})
-            out.append(make_hit(hit_ref, score, text, date, meta))
+            out.append(make_hit(hit_ref, score, text, date, meta, fields))
         out.sort(key=lambda h: (-h.score, h.ref))
         return out[:max(0, int(limit))]
 
@@ -497,6 +524,22 @@ class HybridBackend(MemoryBackend):
 
     def items(self):
         return self._first("items")()
+
+    def _keeper(self, name):
+        """`name` of the first child that stores fields and has it, else of the first child that has it."""
+        for child in self.children:
+            if getattr(child, "stores_fields", False) is True and hasattr(child, name):
+                return getattr(child, name)
+        return self._first(name)
+
+    def records(self):
+        """{"ref", "text", "date", "fields"} of every memory, from the first child that stores fields."""
+        return self._keeper("records")()
+
+    def record(self, ref):
+        """{"ref", "text", "date", "fields"} of one memory (KeyError when not stored), from the first child
+        that stores fields."""
+        return self._keeper("record")(ref)
 
     # ------------------------------------------------------------ lifecycle
 

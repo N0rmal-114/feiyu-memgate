@@ -38,6 +38,14 @@ above DF_PROBE memories); the store size N in the weights is the exact row count
 Index versions: stores written before CJK single characters were indexed hold bigrams only. A
 writable open rebuilds the index once (a pass over the stored texts); a read-only open of such a
 file keeps working on bigrams alone.
+
+Record fields: the `memories` table also has a nullable TEXT column for each of model.FIELDS (speaker,
+about, channel, audience, origin, event_date, kind). `put` and the messages of `remember` (key "fields")
+may carry them; `find` returns them in `Hit.fields`, `records()` / `record(ref)` return them with
+the memory. A store made before they existed gets the columns when it is opened writable (and `info`
+record_version "2"); opened read-only it is left alone, answers without fields and `stores_fields` is
+False. Today's `INSERT OR REPLACE INTO memories (ref, text, created_at, date) ...` still works on the new
+table (the row then has no fields).
 """
 import contextlib
 import json
@@ -48,13 +56,13 @@ from typing import Any
 
 from ..core.tidy import PreparedQuery, gram_weights, index_grams, normalize
 from ..errors import BackendError
-from ..model import Hit
+from ..model import Hit, clean_fields
 from ..registry import register
 from . import _sqlfile
 from ._sqlfile import SCAN_BATCH
 from ._sqlfile import Readers as _Readers  # noqa: F401 - the pool lives in _sqlfile, shared with the embedding backend
-from .base import (DEFAULT_BUDGET, MemoryBackend, as_roles, message_date, new_receipt, new_ref, receipt_ref,
-                   require_writable)
+from .base import (DEFAULT_BUDGET, MemoryBackend, as_roles, message_date, message_fields, new_receipt, new_ref,
+                   receipt_ref, require_writable)
 from .base import today as _today
 
 MAX_QUERY_GRAMS = 600  # distinct query grams looked at (their document frequency is probed)
@@ -125,6 +133,9 @@ class SQLiteBackend(MemoryBackend):
     # (--search --profile broad): precision >= 50 % and half of the default's quiet rate, best deployed hit.
     broad_min_score = 0.25
     broad_relative_ratio = 0.70
+    # Keeps the record fields (see the module docstring); an instance over an old file it may not upgrade
+    # (read-only) sets it False.
+    stores_fields = True
 
     def __init__(self, path, writable=True, roles=("user",), max_candidates=2000, max_postings=20000,
                  max_readers=16):
@@ -140,6 +151,7 @@ class SQLiteBackend(MemoryBackend):
         self._db = _sqlfile.open_store(self._path, _SCHEMA)
         try:
             self._unigrams = self._open_scheme()
+            self.stores_fields = self._stored = _sqlfile.ensure_fields(self._db, self.writable)
         except Exception:
             self._db.close()
             raise
@@ -196,21 +208,27 @@ class SQLiteBackend(MemoryBackend):
 
     # ------------------------------------------------------------ writing
 
-    def put(self, text, ref=None, date=None):
+    def put(self, text, ref=None, date=None, fields=None):
         """Store one memory text as it is and return its ref. An existing ref is replaced
-        together with its index rows."""
+        together with its index rows and its fields (a put without fields clears them)."""
         require_writable(self)
+        fields = clean_fields(fields)
         ref = ref or new_ref()
         grams = [(g, ref) for g in index_grams(normalize(text), self._unigrams)]
         with self._lock:
             with self._db:  # one transaction: a memory and its index rows go together
                 self._db.execute("DELETE FROM grams WHERE ref = ?", (ref,))
-                self._db.execute(
-                    "INSERT OR REPLACE INTO memories (ref, text, created_at, date) VALUES (?, ?, ?, ?)",
-                    (ref, text, int(time.time()), date),
-                )
+                self._insert(ref, text, int(time.time()), date, fields)
                 self._db.executemany("INSERT OR IGNORE INTO grams (gram, ref) VALUES (?, ?)", grams)
         return ref
+
+    def _insert(self, ref, text, created_at, date, fields):
+        """Write one memory row, with its fields (inside the caller's transaction and lock)."""
+        self._db.execute(
+            "INSERT OR REPLACE INTO memories (ref, text, created_at, date, %s) VALUES (?, ?, ?, ?, %s)"
+            % (_sqlfile.FIELD_LIST, _sqlfile.FIELD_MARKS),
+            (ref, text, created_at, date) + _sqlfile.field_values(fields),
+        )
 
     def delete(self, ref):
         """Remove one memory and its index rows. True when it existed."""
@@ -231,24 +249,21 @@ class SQLiteBackend(MemoryBackend):
         require_writable(self)
         receipt = new_receipt()
         today = _today()
-        rows = []  # (ref, text, date, gram rows)
+        rows = []  # (ref, text, date, gram rows, fields)
         for index, message in enumerate(messages):
             if message["role"] in self.roles:
                 ref = receipt_ref(receipt, index)
                 text = message["content"]
                 grams = [(g, ref) for g in index_grams(normalize(text), self._unigrams)]
-                rows.append((ref, text, message_date(message, today), grams))
+                rows.append((ref, text, message_date(message, today), grams, message_fields(message)))
         if not rows:
             return None
         now = int(time.time())
         with self._lock:
             with self._db:  # one transaction for every memory and its index rows
-                for ref, text, date, grams in rows:
+                for ref, text, date, grams, fields in rows:
                     self._db.execute("DELETE FROM grams WHERE ref = ?", (ref,))
-                    self._db.execute(
-                        "INSERT OR REPLACE INTO memories (ref, text, created_at, date) VALUES (?, ?, ?, ?)",
-                        (ref, text, now, date),
-                    )
+                    self._insert(ref, text, now, date, fields)
                     self._db.executemany("INSERT OR IGNORE INTO grams (gram, ref) VALUES (?, ?)", grams)
                 if ctl is not None and ctl.cancelled:
                     raise BackendError("cancelled")  # leaving the block rolls everything back
@@ -262,6 +277,17 @@ class SQLiteBackend(MemoryBackend):
     def items(self):
         """Iterate (ref, text, date) over everything stored, oldest first."""
         return _sqlfile.items(self._read)
+
+    def records(self):
+        """Iterate {"ref", "text", "date", "fields"} over everything stored, in the order of items()."""
+        return iter(_sqlfile.record_rows(self._read, self._stored))
+
+    def record(self, ref):
+        """{"ref", "text", "date", "fields"} of one memory; KeyError when it is not stored."""
+        rows = _sqlfile.record_rows(self._read, self._stored, ref)
+        if not rows:
+            raise KeyError(ref)
+        return rows[0]
 
     def refs(self):
         """Iterate (ref, date or None) over every memory, ordered by ref, without texts.
@@ -377,8 +403,8 @@ class SQLiteBackend(MemoryBackend):
             chunk = refs[start:start + SCORE_BATCH]
             try:
                 rows = json.loads(db.execute(
-                    "SELECT json_group_array(json_array(ref, text, date)) FROM memories WHERE ref IN (%s)"
-                    % ",".join("?" * len(chunk)), chunk
+                    "SELECT json_group_array(json_array(ref, text, date%s)) FROM memories WHERE ref IN (%s)"
+                    % (_sqlfile.field_columns(self._stored), ",".join("?" * len(chunk))), chunk
                 ).fetchone()[0])
             except sqlite3.OperationalError:
                 if run.cancelled:
@@ -386,10 +412,13 @@ class SQLiteBackend(MemoryBackend):
                 if run.time_up():
                     break
                 raise
-            for ref, text, date in rows:
+            for ref, text, date, *values in rows:
                 score = prepared.score(text)
                 if score > 0:
-                    hits.append(Hit(ref=ref, score=score, text=text, date=date))
+                    hit = Hit(ref=ref, score=score, text=text, date=date)
+                    if values:
+                        hit.fields = _sqlfile.fields_of(values)
+                    hits.append(hit)
                 if run.should_stop():
                     break
         if run.cancelled:

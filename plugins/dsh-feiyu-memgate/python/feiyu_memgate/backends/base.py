@@ -10,7 +10,7 @@ import abc
 import datetime
 import uuid
 
-from ..model import Hit
+from ..model import Hit, clean_fields
 
 DEFAULT_BUDGET = 10.0  # seconds for one find() when the caller gives none (the backends that use it)
 
@@ -44,14 +44,16 @@ def today():
     return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
 
 
-def make_hit(ref, score, text, date, meta):
-    """A Hit, with `meta` (a dict) when this version of Hit has a meta field."""
+def make_hit(ref, score, text, date, meta, fields=None):
+    """A Hit, with `meta` (a dict) when this version of Hit has a meta field, and with a copy of `fields`
+    (the memory's recorded facts) when there are any."""
+    extra = {"fields": dict(fields)} if fields else {}
     if HAS_META:
         try:
-            return Hit(ref=ref, score=score, text=text, date=date, meta=meta)
+            return Hit(ref=ref, score=score, text=text, date=date, meta=meta, **extra)
         except TypeError:  # pragma: no cover - a Hit whose meta has another shape
             pass
-    return Hit(ref=ref, score=score, text=text, date=date)
+    return Hit(ref=ref, score=score, text=text, date=date, **extra)
 
 
 def require_writable(backend):
@@ -93,19 +95,33 @@ def kept_messages(messages, roles, today):
     return [(i, m["content"], message_date(m, today)) for i, m in enumerate(messages) if m["role"] in roles]
 
 
-def parse_item(item):
-    """(text, ref, date) of one item given to put_many(): a text, a (text, ref, date) tuple (ref and
-    date optional) or a dict with "text" and optionally "ref" and "date". The ref is made when missing.
-    ValueError when the text is not a non-empty string."""
+def message_fields(message):
+    """The cleaned `fields` of a message (ValueError when they are not valid); {} when it has none."""
+    return clean_fields(message.get("fields")) if isinstance(message, dict) else {}
+
+
+def parse_record(item):
+    """(text, ref, date, fields) of one item given to put_many(): a text, a (text, ref, date) tuple (ref
+    and date optional) or a dict with "text" and optionally "ref", "date" and "fields" (a dict, see
+    model.FIELDS). The ref is made when missing; only a dict item can carry fields. ValueError when the
+    text is not a non-empty string or the fields are not valid."""
     if isinstance(item, str):
         item = (item,)
+    fields = {}
     if isinstance(item, dict):
         text, ref, date = item.get("text"), item.get("ref"), item.get("date")
+        fields = clean_fields(item.get("fields"))
     else:
         text, ref, date = (tuple(item) + (None, None))[:3]
     if not isinstance(text, str) or not text.strip():
         raise ValueError("a memory text must be a non-empty string")
-    return text, ref or new_ref(), date
+    return text, ref or new_ref(), date, fields
+
+
+def parse_item(item):
+    """(text, ref, date) of one item given to put_many(): see parse_record, which also gives the fields."""
+    text, ref, date, _ = parse_record(item)
+    return text, ref, date
 
 
 class MemoryBackend(abc.ABC):
@@ -142,7 +158,12 @@ class MemoryBackend(abc.ABC):
         delete(ref)                     -> True when the memory existed and is gone now.
                                            Needs writable=True (PermissionError otherwise).
         put(text, ref=None, date=None)  -> ref. Stores one memory text as it is (creates or
-                                           replaces). Needs writable=True.
+                                           replaces). Needs writable=True. A backend with
+                                           `stores_fields` True also takes `fields=None` (see below).
+        records()                       -> iterable of {"ref", "text", "date", "fields"} dicts for every
+                                           memory, in the order of items() (only backends that keep fields
+                                           and have items() offer it).
+        record(ref)                     -> that dict for one memory; KeyError when it does not exist.
         receipt_refs(receipt)           -> list of the refs the write `receipt` produced,
                                            or None when not known (yet) or not supported.
         neighbours(ref, limit, timeout=None, ctl=None)
@@ -156,6 +177,10 @@ class MemoryBackend(abc.ABC):
                                            best ones; a backend without it is simply left out of that.
     """
 
+    # True when the backend keeps the `fields` of a memory (put(..., fields=...), a dict item of put_many(), a
+    # message key "fields" of remember(); see model.FIELDS) and returns them in the Hit.fields of find() and
+    # neighbours() and in records() / record(). A backend without it is never given fields.
+    stores_fields = False
     # False makes remember() refuse; the gateway also checks it before writing.
     writable = False
     # True when write_state() can tell what became of a write. The gateway then
