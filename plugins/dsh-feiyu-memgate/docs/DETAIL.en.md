@@ -45,7 +45,7 @@ Every setting can be changed in three places: this plugin's settings page on the
 | `retrieval.hybrid` | Also search by keyword in the vector tiers and fuse the results (no effect under `keyword`) | off |
 | `advanced.recallLimit` | Most memories added per turn | 5 |
 | `advanced.skipRepeats` | Do not add a memory that a block still in the history already shows | on |
-| `advanced.linkedRecall` | With vector retrieval, follow the first two memories found to the memories closest to them and add at most two, never beyond `advanced.recallLimit`; nothing under `keyword`. Changing it restarts the managed gateway | on |
+| `advanced.linkedRecall` | With vector retrieval, follow the first two memories found to the memories closest to them and add at most two, never beyond `advanced.recallLimit`; nothing under `keyword`, and nothing with `advanced.profile` set to `precise`. Changing it restarts the managed gateway | on |
 | `advanced.showAge` | The block says today's date and how long ago each memory is | on |
 | `advanced.failureNote` | Tell the model when the lookup of a turn failed | on |
 | `advanced.captureMinChars` | Automatic capture skips a message with fewer meaningful characters (0 to 50; 0 turns the length test off) | 4 |

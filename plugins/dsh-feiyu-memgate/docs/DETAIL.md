@@ -45,7 +45,7 @@ dsh plugin --profile <name> add dsh-feiyu-memgate
 | `retrieval.hybrid` | 语义检索下同时用关键词检索并合并结果（`keyword` 下不起作用） | 关 |
 | `advanced.recallLimit` | 每轮最多加入几条记忆 | 5 |
 | `advanced.skipRepeats` | 历史里的记忆块已经给过的记忆，不再给第二次 | 开 |
-| `advanced.linkedRecall` | 用语义检索时，顺着查到的前两条记忆去找和它们最接近的记忆，最多再加两条，总数不超过 `advanced.recallLimit`；用 `keyword` 时什么都不做。改动它会重启内置网关 | 开 |
+| `advanced.linkedRecall` | 用语义检索时，顺着查到的前两条记忆去找和它们最接近的记忆，最多再加两条，总数不超过 `advanced.recallLimit`；用 `keyword` 时什么都不做，`advanced.profile` 为 `precise` 时也不加。改动它会重启内置网关 | 开 |
 | `advanced.showAge` | 记忆块写明今天的日期和每条记忆是多久以前的事 | 开 |
 | `advanced.failureNote` | 这一轮的查询失败时告诉模型 | 开 |
 | `advanced.captureMinChars` | 自动记录跳过有效字符少于这个数的消息（0 到 50；0 表示不按字数过滤） | 4 |

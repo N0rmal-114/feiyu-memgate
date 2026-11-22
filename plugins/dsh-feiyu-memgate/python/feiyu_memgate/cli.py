@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from . import config, registry
+from .core.stages import Linked
 from .errors import ConfigError
 from .model import TENANT_STORE
 from .forgetting.engine import DAY, REQUIRED as FORGETTING_REQUIRED, date_to_epoch, supports
@@ -136,6 +137,13 @@ def describe(gateway):
     profiles = ["%s %s" % (_piece_name("recall_stage", s), s.profile) for s in gateway.stages
                 if isinstance(getattr(s, "profile", None), str)]
     lines.append("分数线档位：" + ("、".join(profiles) or "（没有 min_score 或 relative_score）"))
+    for stage in gateway.stages:
+        if isinstance(stage, Linked):
+            if stage.follows == "precise" and not stage.max_added_given:
+                lines.append("关联召回：precise 档下不加（要加就在 linked 上写 max_added）")
+            else:
+                lines.append("关联召回：最多加 %d 条" % stage.max_added)
+            break
     lines.append("写入关卡（按顺序）：" + (
         " -> ".join(_piece_name("write_guard", g) for g in gateway.guards) or "（没有）"))
     return lines

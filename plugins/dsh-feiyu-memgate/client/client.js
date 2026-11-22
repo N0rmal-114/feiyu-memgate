@@ -623,8 +623,8 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
               "zh": "召回相关联的记忆"
             },
             "help": {
-              "en": "With vector retrieval (the endpoint and local tiers, with or without retrieval.hybrid), after the usual lookup the gateway follows the first two memories it found to the memories closest to them and adds at most two, never beyond advanced.recallLimit. Under keyword retrieval it does nothing.",
-              "zh": "使用语义检索时（endpoint 和 local 两档，是否开启 retrieval.hybrid 均适用），网关在常规检索之后，以找到的前两条记忆为起点查找与它们最接近的记忆，最多再加入两条，总数不超过 advanced.recallLimit。使用 keyword 检索时无效。"
+              "en": "With vector retrieval (the endpoint and local tiers, with or without retrieval.hybrid), after the usual lookup the gateway follows the first two memories it found to the memories closest to them and adds at most two, never beyond advanced.recallLimit. Under keyword retrieval it does nothing, and with advanced.profile set to precise it adds nothing.",
+              "zh": "使用语义检索时（endpoint 和 local 两档，是否开启 retrieval.hybrid 均适用），网关在常规检索之后，以找到的前两条记忆为起点查找与它们最接近的记忆，最多再加入两条，总数不超过 advanced.recallLimit。使用 keyword 检索时无效；advanced.profile 为 precise 时也不加入。"
             }
           },
           {

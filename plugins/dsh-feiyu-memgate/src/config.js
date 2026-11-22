@@ -174,8 +174,8 @@ const GROUPS = [
         zh: '本对话中，之前的记忆块仍包含的记忆不再重复提供（按记忆的文字比较）。没有新记忆时不加入记忆块。关闭：仅当与上一个记忆块完全相同时才不加入。',
       }),
       bool('linkedRecall', true, { en: 'Recall linked memories', zh: '召回相关联的记忆' }, {
-        en: 'With vector retrieval (the endpoint and local tiers, with or without retrieval.hybrid), after the usual lookup the gateway follows the first two memories it found to the memories closest to them and adds at most two, never beyond advanced.recallLimit. Under keyword retrieval it does nothing.',
-        zh: '使用语义检索时（endpoint 和 local 两档，是否开启 retrieval.hybrid 均适用），网关在常规检索之后，以找到的前两条记忆为起点查找与它们最接近的记忆，最多再加入两条，总数不超过 advanced.recallLimit。使用 keyword 检索时无效。',
+        en: 'With vector retrieval (the endpoint and local tiers, with or without retrieval.hybrid), after the usual lookup the gateway follows the first two memories it found to the memories closest to them and adds at most two, never beyond advanced.recallLimit. Under keyword retrieval it does nothing, and with advanced.profile set to precise it adds nothing.',
+        zh: '使用语义检索时（endpoint 和 local 两档，是否开启 retrieval.hybrid 均适用），网关在常规检索之后，以找到的前两条记忆为起点查找与它们最接近的记忆，最多再加入两条，总数不超过 advanced.recallLimit。使用 keyword 检索时无效；advanced.profile 为 precise 时也不加入。',
       }),
       bool('showAge', true, { en: "Show today's date and each memory's age", zh: '显示今天的日期和每条记忆的时间' }, {
         en: "The memory block says today's date (the date on this computer) and how long ago each dated memory is, for example 3 weeks ago. Off: the block shows only the absolute dates.",

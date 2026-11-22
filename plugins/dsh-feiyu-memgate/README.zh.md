@@ -111,7 +111,7 @@ dsh plugin --profile desktop add dsh-feiyu-memgate
 | `advanced.recallTimeoutMs` | 每轮最多等自动召回多少毫秒（500 到 20000）。更慢的查找跳过。 | 4000 | |
 | `advanced.language` | 记忆块、工具回复、系统提示词那一段、失败说明和 `/memgate` 用的语言：`auto`（跟随系统语言）、`zh` 或 `en`。 | `auto` | 记忆本身不会被翻译。 |
 | `advanced.skipRepeats` | 这个对话的历史里还留着的记忆块已经给过的记忆，不再给第二次（按文字比较）；没有新的就不加记忆块。 | 开 | 关：只有和上一个记忆块完全相同的块才不加（0.3.0 及以前的做法）。比较时不解析标签，所以一条记忆的文字如果是另一条记忆在右括号之后的那一段（例如“（备注）喝茶”和“喝茶”），也算给过。 |
-| `advanced.linkedRecall` | 用语义检索时（`endpoint` 和 `local` 两种检索方式，开不开 `retrieval.hybrid` 都一样）：平常的查找之后，顺着查到的前两条记忆去找和它们最接近的记忆，最多再加两条。 | 开 | 总数不超过 `advanced.recallLimit`。用 `keyword` 时什么都不做。关：只给平常的查找查到的记忆，和 0.3.1 一样。改动它会重启内置网关。只用于 managed 模式。 |
+| `advanced.linkedRecall` | 用语义检索时（`endpoint` 和 `local` 两种检索方式，开不开 `retrieval.hybrid` 都一样）：平常的查找之后，顺着查到的前两条记忆去找和它们最接近的记忆，最多再加两条。 | 开 | 总数不超过 `advanced.recallLimit`。用 `keyword` 时什么都不做；`advanced.profile` 为 `precise` 时也不加。关：只给平常的查找查到的记忆，和 0.3.1 一样。改动它会重启内置网关。只用于 managed 模式。 |
 | `advanced.showAge` | 记忆块写明今天的日期（这台电脑上的日期），以及每条有日期的记忆是多久以前的事。 | 开 | 关：和 0.3.0 一样，只写具体日期。`memgate_search` 的结果也一样。 |
 | `advanced.failureNote` | 这一轮的查询超时或出错，或者内置网关还在启动时，在你的消息之后加一行说明。 | 开 | 只在连续失败的第一轮加。记忆功能没开、或者结果为空时不加。 |
 | `advanced.captureMinChars` | `modules.autoCapture` 打开时：有效字符少于这个数的消息不保存（0 到 50）。 | 4 | 0 表示不按字数过滤；命令、`ok` 和语气词不论取值都跳过。标点、空格、表情和 `[图片]` 这类占位不算字数。 |
