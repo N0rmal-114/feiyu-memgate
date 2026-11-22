@@ -16,7 +16,7 @@ import threading
 import time
 
 from ..errors import BackendError
-from ..model import FIELDS
+from ..model import AUDIENCES, FIELDS
 
 SCAN_BATCH = 500  # rows read per step when walking the whole store
 
@@ -111,6 +111,58 @@ def record_rows(read, stored, ref=None):
     with read() as db:
         rows = db.execute(sql, args).fetchall()
     return [{"ref": r[0], "text": r[1], "date": r[2], "fields": fields_of(r[3:])} for r in rows]
+
+
+STAMP_KEY = "audience_stamp"  # info row: the store was stamped (its value is the level it was stamped with)
+
+
+def check_level(level):
+    """`level` when it is one of model.AUDIENCES, else ValueError."""
+    if level not in AUDIENCES:
+        raise ValueError("an audience must be one of %s" % ", ".join(AUDIENCES))
+    return level
+
+
+def is_stamped(db):
+    """True when the `info` table of `db` has the audience stamp."""
+    return db.execute("SELECT 1 FROM info WHERE key = ?", (STAMP_KEY,)).fetchone() is not None
+
+
+def stamp(db, level):
+    """Give every memory without an audience `level` and mark the store stamped, unless it is marked
+    already. Returns how many memories got the level (0 when it was stamped before). One write
+    transaction takes the file's write lock first, so the check and the update are one step even beside
+    another process. The caller holds the store's writer lock and has checked that the table has the field
+    columns and that the store is writable."""
+    db.execute("BEGIN IMMEDIATE")
+    try:
+        if is_stamped(db):
+            db.rollback()
+            return 0
+        changed = db.execute("UPDATE memories SET audience = ? WHERE audience IS NULL", (level,)).rowcount
+        db.execute("INSERT OR REPLACE INTO info (key, value) VALUES (?, ?)", (STAMP_KEY, level))
+        db.commit()
+    except BaseException:
+        db.rollback()
+        raise
+    return changed
+
+
+def restamp(db, level, only_missing):
+    """Set the audience of the memories to `level`: only those without one, or every one that has another.
+    Marks the store stamped. Returns how many memories changed. Same conditions as stamp()."""
+    db.execute("BEGIN IMMEDIATE")
+    try:
+        if only_missing:
+            changed = db.execute("UPDATE memories SET audience = ? WHERE audience IS NULL", (level,)).rowcount
+        else:
+            changed = db.execute("UPDATE memories SET audience = ? WHERE audience IS NOT ?", (level, level)).rowcount
+        db.execute("INSERT OR REPLACE INTO info (key, value) VALUES (?, ?)", (STAMP_KEY, level))
+        db.commit()
+    except BaseException:
+        db.rollback()
+        raise
+    return changed
 
 
 def open_store(path, schema):

@@ -55,13 +55,14 @@ from .errors import ConfigError
 from .forgetting.archive import Archive
 from .forgetting.engine import REQUIRED as FORGETTING_CAPABILITIES, Forgetting
 from .forgetting.ledger import Ledger
+from .gateway import policies
 from .gateway.app import Gateway, stderr_log, usable_token, MIN_TOKEN_CHARS
-from .model import AUDIENCES, TENANT_BINDINGS, ClientPolicy
+from .model import AUDIENCES, DEFAULT_ORIGINS, FIELDS, ORIGINS, TENANT_BINDINGS, ClientPolicy
 
 SERVER_DEFAULTS = {"host": "127.0.0.1", "port": 8080}
 _POLICY_KEYS = {"token_env", "recall", "write", "tenants", "public", "daily_writes", "daily_writes_total",
                 "rate_limit", "rate_limit_total", "pin_writes", "tenant_binding", "tenant_token_generation",
-                "audience", "explain"}
+                "audience", "explain", "origins", "fields"}
 _TOP_KEYS = {"server", "stores", "tenants", "clients", "recall", "write", "redaction", "forgetting"}
 
 # What each fixed section may hold: key -> checker(where, value). "stages"/"guards" are piece lists.
@@ -181,6 +182,16 @@ def _split_audience(kind, name, spec):
     return rest, _audience("%s.%s" % (kind, name), spec["audience"])
 
 
+def _names_of(where, key, value, known, default, kind):
+    """A list setting whose entries are each one of `known`, as a tuple (`default` when absent)."""
+    if value is None:
+        return default
+    if not isinstance(value, list) or not all(isinstance(item, str) and item in known for item in value):
+        raise ConfigError("%s.%s must be a list of %s, each one of %s" % (
+            where, key, kind, ", ".join('"%s"' % item for item in known)))
+    return tuple(value)
+
+
 def client_policy(name, spec):
     """The ClientPolicy of one [clients.<name>] table, every setting checked (ConfigError naming it)."""
     where = "clients.%s" % name
@@ -216,6 +227,8 @@ def client_policy(name, spec):
     if token_env is None and binding == "token":
         raise ConfigError("%s.token_env is required with tenant_binding = \"token\": it names the minting secret"
                           % where)
+    origins = _names_of(where, "origins", spec.get("origins"), ORIGINS, DEFAULT_ORIGINS, "an origin")
+    fields = _names_of(where, "fields", spec.get("fields"), FIELDS, (), "a record field")
     audience = _audience(where, spec["audience"]) if "audience" in spec else None
     public = spec.get("public")
     if public is None:
@@ -226,7 +239,7 @@ def client_policy(name, spec):
         daily_writes_total=spec.get("daily_writes_total"), rate_limit=spec.get("rate_limit", 60),
         rate_limit_total=spec.get("rate_limit_total"), pin_writes=spec.get("pin_writes", False),
         explain=spec.get("explain", False), tenant_binding=binding,
-        tenant_token_generation=spec.get("tenant_token_generation", 1),
+        tenant_token_generation=spec.get("tenant_token_generation", 1), origins=origins, fields=fields,
     )
 
 
@@ -303,14 +316,16 @@ def _check_enforced(clients, stages, guards):
                 and not _enforced(guards, "daily_writes"):
             raise ConfigError("%s has a daily write cap, but no write guard enforces daily_writes: "
                               "add \"daily_cap\" to [write] guards" % where)
-        if not policy.public:
-            continue
-        if policy.can_recall and not _enforced(stages, "redaction"):
-            raise ConfigError("%s is public and may recall, but no recall stage enforces redaction: "
-                              "add \"redact\" to [recall] stages" % where)
-        if policy.can_write and not _enforced(guards, "redaction"):
-            raise ConfigError("%s is public and may write, but no write guard enforces redaction: "
-                              "add \"redact\" to [write] guards" % where)
+        if policy.public:
+            if policy.can_recall and not _enforced(stages, "redaction"):
+                raise ConfigError("%s is public and may recall, but no recall stage enforces redaction: "
+                                  "add \"redact\" to [recall] stages" % where)
+            if policy.can_write and not _enforced(guards, "redaction"):
+                raise ConfigError("%s is public and may write, but no write guard enforces redaction: "
+                                  "add \"redact\" to [write] guards" % where)
+        if policy.reach != "owner" and policy.can_recall and not _enforced(stages, "record_audience"):
+            raise ConfigError("%s shows what it recalls to other people, but no recall stage checks each record's "
+                              "audience: add \"record_audience\" to [recall] stages" % where)
 
 
 _FORGETTING_KEYS = {"ledger", "archive", "stores", "demote_below", "forget_below", "archive_days",
@@ -325,7 +340,7 @@ def _number(where, value, low=None, high=None):
     return value
 
 
-def _forgetting(cfg, stores, tenants, wall):
+def _forgetting(cfg, stores, tenants, wall, audiences=None):
     """The Forgetting service from [forgetting], or None when there is no such section.
     Returns (forgetting, sweep_every_hours)."""
     if "forgetting" not in cfg:
@@ -371,7 +386,7 @@ def _forgetting(cfg, stores, tenants, wall):
         raise ConfigError("forgetting: cannot open the ledger or archive file: %s" % type(error).__name__) from None
     forgetting = Forgetting(ledger, archive, curve, stores=managed, demote_below=demote, forget_below=forget,
                             archive_days=days, pin_refs=pin_refs, max_forget_fraction=max_fraction,
-                            max_forget_min=int(max_min),
+                            max_forget_min=int(max_min), audiences=audiences,
                             wall=wall or time.time)
     return forgetting, hours
 
@@ -444,7 +459,8 @@ def build_gateway(cfg, env=None, log=stderr_log, wall=None, **overrides):
         if not clients:
             raise ConfigError("no clients configured: add a [clients.<name>] table")
 
-        forgetting, sweep_hours = _forgetting(cfg, stores, tenants, wall)
+        levels, _ = policies.load_audiences(stores, tenants, audiences)  # a restored memory gets its store's level
+        forgetting, sweep_hours = _forgetting(cfg, stores, tenants, wall, levels)
         if forgetting is not None:
             opened.append(forgetting)
         services = {"forgetting": forgetting}

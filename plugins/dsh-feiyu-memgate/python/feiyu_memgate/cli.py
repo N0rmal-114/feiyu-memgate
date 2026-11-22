@@ -21,6 +21,7 @@ from typing import Any
 
 from . import config, registry
 from .errors import ConfigError
+from .model import TENANT_STORE
 from .forgetting.engine import DAY, REQUIRED as FORGETTING_REQUIRED, date_to_epoch, supports
 
 # The clock of the forgetting commands. Tests replace it; it is not a user option.
@@ -108,6 +109,13 @@ def describe(gateway):
                             "令牌要交给别的程序时，改用 tenant_binding = \"token\"" % name)
         if policy.explain:
             line += "；可以查看召回的解释"
+        if policy.fields:
+            line += "；召回结果带的字段 %s" % ", ".join(policy.fields)
+        unchecked = [entry for entry in policy.recall or () if entry != TENANT_STORE
+                     and getattr(gateway.stores.get(entry), "checks_audience", False) is not True]
+        if policy.reach != "owner" and unchecked:
+            warnings.append("  提醒：%s 的内容会被别人看到，召回的存储 %s 没有逐条记录的受众（不记录字段，"
+                            "或只读且没打过标记）：只有存储这一层的受众规则保护它" % (name, "、".join(unchecked)))
         lines.append(line)
     lines.extend(warnings)
     lines.append("召回阶段（按顺序）：" + (
@@ -660,6 +668,53 @@ def cmd_forget(args):
         gateway.close()
 
 
+# ---------------------------------------------------------------- restamp
+
+def _restamp_store(gateway, args):
+    """(store, level, label) for `restamp`, or (None, None, message) when the command cannot go on."""
+    if args.tenant is None:
+        if args.store not in gateway.stores:
+            return None, None, "错误：没有这个存储：%s" % args.store
+        return gateway.stores[args.store], gateway.audience_of(args.store), args.store
+    provider = gateway.tenants.get(args.store)
+    if provider is None:
+        return None, None, "错误：没有这个租户来源：%s" % args.store
+    if not provider.valid_id(args.tenant):
+        return None, None, "错误：租户编号不合格：%s" % args.tenant
+    store = gateway.tenant_store(args.store, args.tenant)
+    if store is None:
+        return None, None, "错误：没有这个租户：%s" % args.tenant
+    return store, gateway.audience_of(args.store), "%s:%s" % (args.store, args.tenant)
+
+
+def cmd_restamp(args):
+    """Give the records of one store the audience its configuration declares: the ones that have none
+    (--missing), or every one (--all: the deliberate way to widen or narrow a whole store)."""
+    cfg = config.load(args.config)
+    gateway = config.build_gateway(cfg, log=lambda line: None)
+    try:
+        store, level, label = _restamp_store(gateway, args)
+        if store is None:
+            print(label)
+            return 1
+        if getattr(store, "stores_fields", False) is not True or not callable(getattr(store, "set_audience", None)):
+            print("错误：存储 %s 不记录每条记忆的受众（不记录字段，或没有重新打标记的方法），不能重新打标记" % label)
+            return 1
+        if not getattr(store, "writable", False):
+            print("错误：存储 %s 是只读的，不能重新打标记" % label)
+            return 1
+        try:
+            changed = store.set_audience(level, only_missing=args.missing)
+        except Exception as error:  # noqa: BLE001 - a store or file failure is a message, never a traceback
+            print("错误：%s" % type(error).__name__)
+            return 1
+        print("已把 %s 里 %d 条记忆的受众改成 %s（%s）" % (
+            label, changed, level, "只改原来没有受众的" if args.missing else "全部记忆"))
+        return 0
+    finally:
+        gateway.close()
+
+
 # ---------------------------------------------------------------- parser
 
 def build_parser():
@@ -718,6 +773,15 @@ def build_parser():
     p.add_argument("--tenant", metavar="ID",
                    help="租户编号（token 用）：只在标准输出打印一个绑定这个租户的令牌，铸造密钥从客户端的 token_env 读")
     p.set_defaults(func=cmd_tenants)
+
+    p = sub.add_parser("restamp", help="给存储里的记忆重新打上配置里声明的受众（输出只有数字）")
+    p.add_argument("--config", required=True, metavar="FILE", help="TOML 配置文件")
+    p.add_argument("--store", required=True, metavar="NAME", help="共享存储的名字；加 --tenant 时是租户来源的名字")
+    p.add_argument("--tenant", metavar="ID", help="租户编号：改这个租户自己的存储")
+    mode = p.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--missing", action="store_true", help="只给没有受众的记忆打上")
+    mode.add_argument("--all", action="store_true", help="给每一条记忆都打上（有意放宽或收窄整个存储）")
+    p.set_defaults(func=cmd_restamp)
 
     p = sub.add_parser("forget", help="遗忘曲线：查看状态、清理、存档、恢复、钉住"
                                       "（输出只有数字和地址，不显示记忆正文）")

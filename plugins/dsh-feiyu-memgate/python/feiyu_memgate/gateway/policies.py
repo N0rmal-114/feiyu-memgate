@@ -8,7 +8,7 @@ handling. The Gateway keeps thin methods of the same names that call them.
 Standard library only.
 """
 from ..errors import ConfigError
-from ..model import AUDIENCES, TENANT_BINDINGS, TENANT_STORE
+from ..model import AUDIENCES, FIELDS, ORIGINS, TENANT_BINDINGS, TENANT_STORE
 
 
 def _audience_choices():
@@ -78,6 +78,22 @@ def check_explain(where, policy):
                           "with their scores (the client's audience is \"%s\")" % (where, policy.reach))
 
 
+def _names(values):
+    return ", ".join('"%s"' % value for value in values)
+
+
+def check_fields(where, policy):
+    """The record fields a client lists, and the origins it may write, are known ones; only an owner-level
+    client sees who a memory is about."""
+    for setting, known, kind in (("origins", ORIGINS, "an origin"), ("fields", FIELDS, "a record field")):
+        value = getattr(policy, setting)
+        if not isinstance(value, (tuple, list)) or not all(isinstance(item, str) and item in known for item in value):
+            raise ConfigError("%s.%s must be a list of %s, each one of %s" % (where, setting, kind, _names(known)))
+    if policy.reach != "owner" and any(name in ("speaker", "about") for name in policy.fields):
+        raise ConfigError("%s.fields may not include \"speaker\" or \"about\": only an owner-level client sees "
+                          "who a memory is about" % where)
+
+
 def check_binding(where, policy):
     if policy.tenant_binding not in TENANT_BINDINGS:
         raise ConfigError("%s.tenant_binding must be \"request\" or \"token\"" % where)
@@ -115,3 +131,4 @@ def check_policies(stores, tenants, clients, audiences, declared):
                 raise ConfigError("%s.write names the read-only store %r" % (where, policy.write))
         check_audience(where, policy, audiences, declared)
         check_explain(where, policy)
+        check_fields(where, policy)

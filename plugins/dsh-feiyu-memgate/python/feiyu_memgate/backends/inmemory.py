@@ -9,6 +9,11 @@ memories held here contain it (the counts are kept up to date by put and delete)
 
 The record fields of a memory (model.FIELDS) are kept in a second mapping beside `_items`, which keeps its
 (text, date) shape; `find` returns them in `Hit.fields` and `records()` / `record(ref)` with the memory.
+
+Audiences: `stamp_audience(level)` gives every memory without an audience `level` the first time it is called
+and sets a flag; `checks_audience` is True from then on (the `record_audience` recall stage then reads each
+memory's audience, one without counting as "owner"). `set_audience(level, only_missing)` changes it later on
+purpose. Memories put without an audience after the stamp stay without one.
 """
 import collections
 import threading
@@ -16,7 +21,7 @@ import threading
 from ..core.tidy import PreparedQuery, gram_weights, index_grams, normalize
 from ..errors import BackendError
 from ..registry import register
-from ..model import Hit, clean_fields
+from ..model import AUDIENCES, Hit, clean_fields
 from .base import (MemoryBackend, message_date, message_fields, new_receipt, new_ref, receipt_ref,
                    require_writable)
 
@@ -39,6 +44,7 @@ class InMemoryBackend(MemoryBackend):
         self._items = {}  # ref -> (text, date or None)
         self._fields = {}  # ref -> the record fields of that memory (only memories that have some)
         self._frequency: collections.Counter[str] = collections.Counter()  # gram -> how many memories hold it
+        self._stamped = False  # stamp_audience() has run (see checks_audience)
         for text in memories:
             self._store(text)  # seeding works for a read-only store too
 
@@ -121,6 +127,54 @@ class InMemoryBackend(MemoryBackend):
         with self._lock:
             return iter([{"ref": ref, "text": text, "date": date, "fields": dict(self._fields.get(ref, {}))}
                          for ref, (text, date) in self._items.items()])
+
+    @property
+    def checks_audience(self):
+        """True once the store was stamped (stamp_audience, set_audience)."""
+        return self._stamped
+
+    @staticmethod
+    def _level(level):
+        if level not in AUDIENCES:
+            raise ValueError("an audience must be one of %s" % ", ".join(AUDIENCES))
+        return level
+
+    def stamp_audience(self, level):
+        """The first time it is called: give every memory without an audience `level` and remember that the
+        store was stamped. Later calls do nothing, and a read-only store is not stamped. Returns how many
+        memories got the level."""
+        self._level(level)
+        if self._stamped or not self.writable:
+            return 0
+        with self._lock:
+            if self._stamped:
+                return 0
+            changed = self._set_audience(level, True)
+            self._stamped = True
+        return changed
+
+    def set_audience(self, level, only_missing=True):
+        """Give the memories `level` as their audience: only those without one (`only_missing`), or every
+        memory. Also marks the store stamped. Returns how many memories changed (0 on a read-only store)."""
+        self._level(level)
+        if not self.writable:
+            return 0
+        with self._lock:
+            changed = self._set_audience(level, only_missing)
+            self._stamped = True
+        return changed
+
+    def _set_audience(self, level, only_missing):
+        """Under the lock: set the audience of the memories and count the ones that changed."""
+        changed = 0
+        for ref in self._items:
+            fields = self._fields.setdefault(ref, {})
+            current = fields.get("audience")
+            if current == level or (only_missing and current is not None):
+                continue
+            fields["audience"] = level
+            changed += 1
+        return changed
 
     def record(self, ref):
         """{"ref", "text", "date", "fields"} of one memory; KeyError when it is not stored."""

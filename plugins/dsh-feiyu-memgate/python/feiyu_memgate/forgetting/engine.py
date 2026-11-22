@@ -44,7 +44,8 @@ def supports(store):
 
 class Forgetting:
     def __init__(self, ledger, archive, curve, *, stores=(), demote_below=0.3, forget_below=0.05,
-                 archive_days=90, pin_refs=(), max_forget_fraction=0.02, max_forget_min=5, wall=time.time):
+                 archive_days=90, pin_refs=(), max_forget_fraction=0.02, max_forget_min=5, audiences=None,
+                 wall=time.time):
         self.ledger = ledger
         self.archive = archive
         self.curve = curve
@@ -55,6 +56,9 @@ class Forgetting:
         self.pin_refs = tuple(pin_refs)
         self.max_forget_fraction = max_forget_fraction
         self.max_forget_min = max_forget_min
+        # {store or tenants provider name: its declared audience}: what a restored memory that was archived
+        # without an audience gets. None (a service built in code) restores such a memory as it was.
+        self.audiences = dict(audiences) if audiences else None
         self.wall = wall
 
     # ---------------------------------------------------------------- keys and scores
@@ -288,13 +292,28 @@ class Forgetting:
             pass
         return True
 
+    def audience_of(self, key):
+        """The declared audience of the store behind the ledger key ("name" or "provider:tenant"), or None
+        when this service was not told the levels."""
+        if not self.audiences:
+            return None
+        level = self.audiences.get(key)
+        return level if level is not None else self.audiences.get(key.partition(":")[0])
+
     def restore(self, key, ref, store):
-        """Write an archived memory back to its store and address. False when it is not archived."""
+        """Write an archived memory back to its store and address. False when it is not archived.
+
+        A store that keeps record fields gets the memory's archived fields back; one archived before records
+        had an audience is restored with the store's declared audience (never with none)."""
         record = self.archive.get(key, ref)
         if record is None:
             return False
-        if record.fields and getattr(store, "stores_fields", False) is True:
-            store.put(record.text, ref=ref, date=record.date, fields=record.fields)
+        keeps = getattr(store, "stores_fields", False) is True
+        fields = dict(record.fields)
+        if keeps and "audience" not in fields and self.audience_of(key) is not None:
+            fields["audience"] = self.audience_of(key)
+        if fields and keeps:
+            store.put(record.text, ref=ref, date=record.date, fields=fields)
         else:
             store.put(record.text, ref=ref, date=record.date)
         self.ledger.revive(key, ref, self.wall())

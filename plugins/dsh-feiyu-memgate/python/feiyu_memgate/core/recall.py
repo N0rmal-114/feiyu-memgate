@@ -97,6 +97,7 @@ class RecallContext:
                       (None when there is none): a candidate from that source belongs to tenant_id
     public            True when the answer is shown to other people
     audience          who sees the answer: the client's reach, "owner", "group" or "public"
+    show_fields       the record fields (model.FIELDS) the answer adds to each item (the client's `fields`)
     redact            the text cleaner chosen for this client (str -> str)
     context           the request's optional "context" object (small, already checked)
     accepted          the candidates kept so far, in order
@@ -110,7 +111,7 @@ class RecallContext:
 
     def __init__(self, query, limit, *, pool, clock=time.monotonic, deadline=None, public=False,
                  redact=None, client=None, tenant_id=None, notes=None, tenant_source=None, context=None,
-                 log=None, slots=None, keep=0, audience="owner", trace=False):
+                 log=None, slots=None, keep=0, audience="owner", trace=False, show_fields=()):
         self.query = query
         self.limit = limit
         self.pool = pool
@@ -121,6 +122,7 @@ class RecallContext:
         self.find_deadline = self.deadline - min(MAX_STAGE_RESERVE, STAGE_SHARE * max(self.deadline - now, 0.0))
         self.public = public
         self.audience = audience
+        self.show_fields = tuple(show_fields)
         self.redact = redact or (lambda text: text)
         self.client = client
         self.tenant_id = tenant_id
@@ -254,7 +256,30 @@ class Trace:
                 row["text"] = text
         if candidate.date:
             row["date"] = candidate.date
+        if candidate.fields:
+            row["fields"] = dict(candidate.fields)
         return row
+
+
+def _item(candidate, ctx):
+    """The answer's item for an accepted candidate: as_item() and, when the client lists record fields
+    (ctx.show_fields), "fields" with the listed ones the memory has (left out when it has none of them).
+    For a public answer each value goes through the redactor too; one that comes out empty is left out."""
+    item = candidate.as_item()
+    shown = {}
+    for name in getattr(ctx, "show_fields", ()):
+        value = candidate.fields.get(name)
+        if isinstance(value, str) and value:
+            if getattr(ctx, "public", False):
+                try:
+                    value = ctx.redact(value)
+                except Exception:  # noqa: BLE001 - a redactor that fails shows nothing (fail closed)
+                    value = ""
+            if isinstance(value, str) and value:
+                shown[name] = value
+    if shown:
+        item["fields"] = shown
+    return item
 
 
 def submit(pool, fn, *, wait=0.0, keep=0, slots=None, store=None):
@@ -496,7 +521,7 @@ def recall(stores, stages, ctx):
         candidates = out
     candidates.sort(key=lambda c: -c.score)
     more = _admit_all(candidates, stages, ctx)
-    answer = {"results": [c.as_item() for c in ctx.accepted], "more": more, "failed": failed, "busy": busy}
+    answer = {"results": [_item(c, ctx) for c in ctx.accepted], "more": more, "failed": failed, "busy": busy}
     if trace is None:
         _finish(stages, ctx)
         return answer

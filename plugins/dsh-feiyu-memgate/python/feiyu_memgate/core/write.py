@@ -30,6 +30,11 @@ class WriteGuard:
     name      the registered name; registry.create fills it in (None: the class name is used)
     enforces  what the guard guarantees, for the configuration check: ("redaction",),
               ("daily_writes",)
+
+    A message is a dict with "role", "content" and optionally "time" and "speaker", and, when the store it
+    goes to keeps record fields, "fields": a dict of model.FIELDS (the audience of the record among them).
+    A guard that builds new message dicts must carry "fields" over; a guard that drops it drops what the
+    store would keep, and the record then has no audience.
     """
 
     name = None
@@ -68,7 +73,8 @@ class WriteContext:
         self.state = {}
 
 
-# The message fields that hold free text: the redact guard cleans all of them.
+# The message keys that hold free text: the redact guard cleans all of them. "fields" holds no free text (each
+# value was checked against a fixed set or pattern by the gateway) and is carried over as it is.
 TEXT_FIELDS = ("content", "speaker", "time")
 
 

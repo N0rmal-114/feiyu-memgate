@@ -10,6 +10,11 @@ AUDIENCES = ("owner", "group", "public")
 # The facts a memory may carry beside its text and date; each a short string, all optional.
 FIELDS = ("speaker", "about", "channel", "audience", "origin", "event_date", "kind")
 MAX_FIELD = 128  # characters in one field value
+# Where a memory came from, as the host says it (a record of what was claimed, never a grant of anything),
+# and what sort of fact it is. A request may carry these two, and the channel, event_date and audience.
+ORIGINS = ("said", "tool", "curated", "derived")
+KINDS = ("identity", "preference", "event", "plan", "entity")
+DEFAULT_ORIGINS = ("said", "tool")  # the origins a client may write unless its policy says otherwise
 
 
 def clean_fields(fields):
@@ -110,6 +115,12 @@ class ClientPolicy:
     explain     True when this client may ask for an explained recall (POST /v1/explain): the
                 candidates a recall left out, with their scores and the step that removed them.
                 Off by default; only for owner-level clients.
+    origins     the origins (see ORIGINS) a message this client writes may name; a message naming
+                another one is refused (403). Default ("said", "tool"). An origin is a record of what the
+                host says, nothing more: nothing is granted because of it.
+    fields      the record fields (see FIELDS) added to every item this client recalls, "fields": {...},
+                for the ones the memory has. Empty by default: items carry no fields. A client whose
+                audience is not "owner" may not list "speaker" or "about".
     """
     name: str
     recall: tuple | None = None
@@ -125,6 +136,8 @@ class ClientPolicy:
     tenant_token_generation: int = 1
     audience: str | None = None
     explain: bool = False
+    origins: tuple = DEFAULT_ORIGINS
+    fields: tuple = ()
 
     @property
     def reach(self):
