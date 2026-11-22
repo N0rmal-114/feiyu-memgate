@@ -309,6 +309,7 @@ def _hits(result):
     for hit in result:
         ref, score = getattr(hit, "ref", None), getattr(hit, "score", None)
         text, date, meta = getattr(hit, "text", ""), getattr(hit, "date", None), getattr(hit, "meta", None)
+        fields = getattr(hit, "fields", None)
         if text is None:
             text = ""
         if (not isinstance(ref, str) or isinstance(score, bool) or not isinstance(score, (int, float))
@@ -316,7 +317,8 @@ def _hits(result):
                 or (date is not None and not isinstance(date, str))):
             return None
         out.append(Hit(ref=ref, score=float(score), text=text, date=date,
-                       meta=dict(meta) if isinstance(meta, dict) else {}))
+                       meta=dict(meta) if isinstance(meta, dict) else {},
+                       fields=dict(fields) if isinstance(fields, dict) else {}))
     return out
 
 
@@ -483,7 +485,7 @@ def recall(stores, stages, ctx):
     for source, hits in found.items():
         for hit in hits:
             candidates.append(Candidate(score=hit.score, source=source, store=stores[source], ref=hit.ref,
-                                        text=hit.text, date=hit.date, meta=hit.meta))
+                                        text=hit.text, date=hit.date, meta=hit.meta, fields=dict(hit.fields)))
     trace = getattr(ctx, "trace", None)
     if trace is not None:
         trace.found(candidates)

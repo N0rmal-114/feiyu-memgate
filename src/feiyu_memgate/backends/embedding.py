@@ -60,6 +60,15 @@ same and reloaded when it is not. A write of this backend applies itself to the 
 another backend object or process (to the same file) raises `gen` and is noticed by the next search. (SQLite's
 `PRAGMA data_version` is not used: it is per connection and counts every other connection's commits, the
 backend's own writer included, so it cannot be compared between pooled readers.)
+
+Record fields: the `memories` table also has a nullable TEXT column for each of model.FIELDS (speaker, about,
+channel, audience, origin, event_date, kind). `put`, the dict items of `put_many` ("fields") and the messages of
+`remember` (key "fields") may carry them; the hits of `find` and `neighbours` return them in `Hit.fields`, and
+`records()` / `record(ref)` return them with the memory. Fields never reach the embeddings endpoint: only the
+text is embedded. A store made before they existed gets the columns when it is opened writable (and `info`
+record_version "2"); opened read-only it is left alone, answers without fields and `stores_fields` is False.
+Today's named-column `INSERT OR REPLACE INTO memories (ref, text, created_at, date, vector) ...` still works on
+the new table (the row then has no fields).
 """
 import array
 import collections
@@ -81,8 +90,8 @@ from ..errors import BackendError
 from ..registry import register
 from . import _sqlfile
 from ._sqlfile import SCAN_BATCH, Readers
-from .base import (DEFAULT_BUDGET, MemoryBackend, as_roles, clamp01, kept_messages, make_hit, new_receipt,  # noqa: F401
-                   parse_item, receipt_ref, require_writable)
+from .base import (DEFAULT_BUDGET, MemoryBackend, as_roles, clamp01, kept_messages, make_hit,  # noqa: F401
+                   message_fields, new_receipt, parse_item, parse_record, receipt_ref, require_writable)
 from .base import today as _today
 
 PRESETS = (
@@ -280,6 +289,9 @@ class EmbeddingBackend(MemoryBackend):
     # below, from `bench/dev_eval.py --search --profile broad` (experiments: bench/results/dev/*-broad.md).
     broad_min_score = GENERIC["broad_min_score"]
     broad_relative_ratio = GENERIC["broad_ratio"]
+    # Keeps the record fields (see the module docstring); an instance over an old file it may not upgrade
+    # (read-only) sets it False.
+    stores_fields = True
 
     def __init__(self, path, url, model, key=None, writable=True, roles=("user",), timeout=10.0,
                  batch=32, floor=None, ceil=None, query_prefix=None, document_prefix=None,
@@ -337,6 +349,7 @@ class EmbeddingBackend(MemoryBackend):
         self._db = _sqlfile.open_store(self._path, _SCHEMA)
         try:
             self._check_model()
+            self.stores_fields = self._stored = _sqlfile.ensure_fields(self._db, self.writable)
         except Exception:
             self._db.close()
             raise
@@ -413,26 +426,30 @@ class EmbeddingBackend(MemoryBackend):
 
     # ------------------------------------------------------------ writing
 
-    def put(self, text, ref=None, date=None, timeout=None, ctl=None):
-        """Store one memory text as it is and return its ref (an existing ref is replaced)."""
-        return self.put_many([(text, ref, date)], timeout=timeout, ctl=ctl)[0]
+    def put(self, text, ref=None, date=None, timeout=None, ctl=None, fields=None):
+        """Store one memory text as it is and return its ref (an existing ref is replaced, its fields
+        too: a put without fields clears them)."""
+        item = {"text": text, "ref": ref, "date": date, "fields": fields}
+        return self.put_many([item], timeout=timeout, ctl=ctl)[0]
 
     def put_many(self, items, timeout=None, ctl=None):
         """Store several memories with batched embedding requests and return their refs.
 
         Each item is a text, a (text, ref, date) tuple (ref and date optional) or a dict with
-        "text" and optionally "ref" and "date". All embeddings are fetched before anything is
+        "text" and optionally "ref", "date" and "fields" (a dict of model.FIELDS; text and tuple items have
+        none). All embeddings are fetched before anything is
         written, so a failing endpoint leaves the store unchanged."""
         require_writable(self)
-        rows = [parse_item(i) for i in items]
+        rows = [parse_record(i) for i in items]
         if not rows:
             return []
         vectors = self._embed([r[0] for r in rows], timeout, ctl, self._doc_prefix)
-        self._store([(ref, text, date, vec) for (text, ref, date), vec in zip(rows, vectors)])
+        self._store([(ref, text, date, vec, fields) for (text, ref, date, fields), vec in zip(rows, vectors)])
         return [r[1] for r in rows]
 
     def _store(self, rows):
-        """Write `rows` ((ref, text, date, vector), at least one) in one transaction and bring the cache along."""
+        """Write `rows` ((ref, text, date, vector, fields), at least one) in one transaction and bring the
+        cache along."""
         now = int(time.time())
         with self._lock:
             self._db.execute("BEGIN IMMEDIATE")  # the file's write lock: the counter read below is exact
@@ -440,16 +457,17 @@ class EmbeddingBackend(MemoryBackend):
                 self._bind_dim(len(rows[0][3]))
                 before = _generation(self._db)
                 self._db.execute("INSERT OR REPLACE INTO info (key, value) VALUES ('gen', ?)", (str(before + 1),))
-                for ref, text, date, vec in rows:
+                for ref, text, date, vec, fields in rows:
                     self._db.execute(
-                        "INSERT OR REPLACE INTO memories (ref, text, created_at, date, vector) VALUES (?, ?, ?, ?, ?)",
-                        (ref, text, now, date, vec.tobytes()),
+                        "INSERT OR REPLACE INTO memories (ref, text, created_at, date, vector, %s) "
+                        "VALUES (?, ?, ?, ?, ?, %s)" % (_sqlfile.FIELD_LIST, _sqlfile.FIELD_MARKS),
+                        (ref, text, now, date, vec.tobytes()) + _sqlfile.field_values(fields),
                     )
                 self._db.commit()
             except BaseException:
                 self._db.rollback()
                 raise
-            self._apply(before, [(ref, vec) for ref, _, _, vec in rows], ())
+            self._apply(before, [(ref, vec) for ref, _, _, vec, _ in rows], ())
 
     def _apply(self, before, upserts, removed):
         """Bring the cache along with a write that took the counter from `before` to `before + 1`. A cache
@@ -493,9 +511,10 @@ class EmbeddingBackend(MemoryBackend):
         texts = [content for _, content, _ in kept]
         if any(not isinstance(t, str) or not t.strip() for t in texts):
             raise ValueError("a memory text must be a non-empty string")
+        kept_fields = [message_fields(messages[index]) for index, _, _ in kept]
         vectors = self._embed(texts, timeout, ctl, self._doc_prefix)
-        self._store([(receipt_ref(receipt, index), content, date, vec)
-                     for (index, content, date), vec in zip(kept, vectors)])
+        self._store([(receipt_ref(receipt, index), content, date, vec, fields)
+                     for (index, content, date), vec, fields in zip(kept, vectors, kept_fields)])
         return receipt
 
     # ------------------------------------------------------------ reading
@@ -529,6 +548,17 @@ class EmbeddingBackend(MemoryBackend):
     def items(self):
         """Iterate (ref, text, date) over everything stored, oldest first."""
         return _sqlfile.items(self._read)
+
+    def records(self):
+        """Iterate {"ref", "text", "date", "fields"} over everything stored, in the order of items()."""
+        return iter(_sqlfile.record_rows(self._read, self._stored))
+
+    def record(self, ref):
+        """{"ref", "text", "date", "fields"} of one memory; KeyError when it is not stored."""
+        rows = _sqlfile.record_rows(self._read, self._stored, ref)
+        if not rows:
+            raise KeyError(ref)
+        return rows[0]
 
     def refs(self):
         """Iterate (ref, date or None) over every memory, ordered by ref, without texts or vectors.
@@ -641,8 +671,8 @@ class EmbeddingBackend(MemoryBackend):
         hits = []
         for cosine, ref in best:
             if ref in texts:  # deleted by another connection between scan and fetch: skip
-                text, date = texts[ref]
-                hits.append(make_hit(ref, self._score(cosine), text, date, {"cosine": cosine}))
+                text, date, fields = texts[ref]
+                hits.append(make_hit(ref, self._score(cosine), text, date, {"cosine": cosine}, fields))
         return hits
 
     def _texts(self, refs, deadline=None):
@@ -650,10 +680,11 @@ class EmbeddingBackend(MemoryBackend):
         with self._read(deadline) as db:
             for start in range(0, len(refs), SCAN_BATCH):
                 chunk = refs[start:start + SCAN_BATCH]
-                for ref, text, date in db.execute(
-                    "SELECT ref, text, date FROM memories WHERE ref IN (%s)" % ",".join("?" * len(chunk)), chunk
+                for ref, text, date, *values in db.execute(
+                    "SELECT ref, text, date%s FROM memories WHERE ref IN (%s)"
+                    % (_sqlfile.field_columns(self._stored), ",".join("?" * len(chunk))), chunk
                 ):
-                    out[ref] = (text, date)
+                    out[ref] = (text, date, _sqlfile.fields_of(values))
         return out
 
     # ------------------------------------------------------------ lifecycle

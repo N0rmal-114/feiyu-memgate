@@ -251,11 +251,24 @@ class Forgetting:
 
     def _forget(self, key, store, ref, date, entry, now):
         try:
-            text = store.read(ref)
+            fields = {}
+            record = getattr(store, "record", None)
+            if callable(record):
+                try:
+                    row = record(ref)
+                    text, fields = row["text"], dict(row.get("fields") or {})
+                except Exception:  # noqa: BLE001 - a store that cannot give the record is archived as before
+                    text, fields = store.read(ref), {}
+            else:
+                text = store.read(ref)
             if not isinstance(text, str):
                 return False
-            self.archive.add(key, ref, text, date, entry.uses if entry else 0, now,
-                             now + self.archive_days * DAY)
+            if fields:
+                self.archive.add(key, ref, text, date, entry.uses if entry else 0, now,
+                                 now + self.archive_days * DAY, fields=fields)
+            else:
+                self.archive.add(key, ref, text, date, entry.uses if entry else 0, now,
+                                 now + self.archive_days * DAY)
         except Exception:  # noqa: BLE001 - nothing was deleted, so nothing is lost
             return False
         try:
@@ -280,7 +293,10 @@ class Forgetting:
         record = self.archive.get(key, ref)
         if record is None:
             return False
-        store.put(record.text, ref=ref, date=record.date)
+        if record.fields and getattr(store, "stores_fields", False) is True:
+            store.put(record.text, ref=ref, date=record.date, fields=record.fields)
+        else:
+            store.put(record.text, ref=ref, date=record.date)
         self.ledger.revive(key, ref, self.wall())
         self.archive.remove(key, ref)
         return True
