@@ -10,16 +10,33 @@ Configuration comes only from the environment:
                                  aiocqhttp:10001; the platform is event.get_platform_name(). Entries without
                                  a ":" are ignored (one warning at start). The same number on another
                                  platform is another account and does not match
+    FEIYU_MEMGATE_OWNER_BY_GATEWAY
+                                 "1" lets the gateway decide who the owner is, but only while
+                                 FEIYU_MEMGATE_OWNER_IDS is unset or empty; see "Who is the owner"
     FEIYU_MEMGATE_FALLBACK       where the memory block goes on an AstrBot without temporary message
                                  parts: "message" (default), "system" or "off"; see attach_memory
 
 Who gets memory:
-  - a private chat whose "<platform>:<sender id>" is listed in FEIYU_MEMGATE_OWNER_IDS: the owner token;
+  - a private chat of the owner (see below): the owner token;
   - a group chat: the tenant token, with the group id as tenant_id (so every group has a
     store of its own), and at most one remember per reply;
   - anyone else: no recall and no remember.
 
-Recall and remember also send context={"channel": <platform name>, "chat": "private" | "group"}.
+Who is the owner, in one of three modes:
+  1. FEIYU_MEMGATE_OWNER_IDS set (not empty): only a private chat whose "<platform>:<sender id>" is listed
+     there is the owner's; every other private chat gets no memory. FEIYU_MEMGATE_OWNER_BY_GATEWAY is then
+     ignored. This is the mode before the identity table existed, unchanged.
+  2. FEIYU_MEMGATE_OWNER_IDS unset or empty and FEIYU_MEMGATE_OWNER_BY_GATEWAY=1: every private chat that has
+     a platform name and a sender id is sent with the owner token and its speaker, and the gateway decides.
+     A gateway with an identity table and only_for on that client answers 403 to anyone else, which this
+     plugin treats as a failure: nothing is shown and nothing is stored. A gateway WITHOUT an identity table
+     would hand the owner's memory to every private chat: use this mode only with one.
+  3. Neither variable: private chats get no memory.
+
+Every recall and every stored message names the speaker, "<platform>:<sender id>" (the same string the
+owner check uses); an event without a platform name or a sender id names none. The remember tool also
+sends origin="tool". Recall and remember also send
+context={"channel": <platform name>, "chat": "private" | "group"}.
 """
 import asyncio
 import datetime
@@ -52,6 +69,13 @@ def owner_ids(env=os.environ):
         logger.warning("FEIYU_MEMGATE_OWNER_IDS: %d entries ignored, each must be <platform>:<id>, "
                        "for example aiocqhttp:12345", skipped)
     return kept
+
+
+def owner_by_gateway(env=os.environ):
+    """True when the gateway is to decide who the owner is: FEIYU_MEMGATE_OWNER_BY_GATEWAY is "1" and
+    FEIYU_MEMGATE_OWNER_IDS is unset or empty. A list that is set always wins, even a badly written one."""
+    return env.get("FEIYU_MEMGATE_OWNER_BY_GATEWAY", "").strip() == "1" and not env.get(
+        "FEIYU_MEMGATE_OWNER_IDS", "").strip()
 
 
 FALLBACKS = ("message", "system", "off")
@@ -110,19 +134,27 @@ class FeiyuMemgateRecall(Star):
         super().__init__(context)
         self.client = MemoryClient.from_env()
         self.owners = owner_ids()
+        self.by_gateway = owner_by_gateway()
         self.fallback = fallback_mode()
         if not self.client.configured and not self.client.tenant_configured:
             logger.warning("feiyu memgate is off: set FEIYU_MEMGATE_URL and FEIYU_MEMGATE_TOKEN")
+
+    @staticmethod
+    def _speaker(event: AstrMessageEvent):
+        """The speaker, "<platform>:<sender id>", or None when the event lacks either (never half an account)."""
+        platform, sender = event.get_platform_name(), event.get_sender_id()
+        return "%s:%s" % (platform, sender) if platform and sender else None
 
     def _scope(self, event: AstrMessageEvent):
         """(allowed, tenant_id) for this event. The ids come from the event only, never from the model."""
         group_id = event.get_group_id() or None
         if group_id is not None:
             return self.client.tenant_configured, str(group_id)
-        platform, sender = event.get_platform_name(), event.get_sender_id()
-        account = "%s:%s" % (platform, sender) if platform and sender else None  # never half an account
-        owner = event.is_private_chat() and account in self.owners and self.client.configured
-        return owner, None
+        account = self._speaker(event)
+        if not event.is_private_chat() or account is None or not self.client.configured:
+            return False, None
+        # With a list, only a listed account; without one (and only when asked for) the gateway decides.
+        return (account in self.owners if not self.by_gateway else True), None
 
     @staticmethod
     def _context(event: AstrMessageEvent):
@@ -143,7 +175,7 @@ class FeiyuMemgateRecall(Star):
                 return
             detail = await asyncio.wait_for(
                 asyncio.to_thread(self.client.recall_detail, query, RECALL_TIMEOUT, tenant_id,
-                                  context=self._context(event)), RECALL_BUDGET)
+                                  context=self._context(event), speaker=self._speaker(event)), RECALL_BUDGET)
             if detail is None:
                 logger.warning("memory recall skipped: failed")  # never the query
                 return
@@ -173,8 +205,11 @@ class FeiyuMemgateRecall(Star):
                 return "这次回复里已经记过一条了，这条没有记。"
             event.set_extra(REMEMBERED_KEY, True)
         # The local date and time with offset: the memory is dated by where the user is, not by UTC.
-        message = {"role": "user", "content": text,
+        message = {"role": "user", "content": text, "origin": "tool",
                    "time": datetime.datetime.now().astimezone().isoformat(timespec="seconds")}
+        speaker = self._speaker(event)
+        if speaker is not None:
+            message["speaker"] = speaker
         deadline = time.monotonic() + REMEMBER_BUDGET
         try:
             outcome = await asyncio.wait_for(

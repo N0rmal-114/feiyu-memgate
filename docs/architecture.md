@@ -141,7 +141,7 @@ src/feiyu_memgate/
   client/            给聊天程序用的客户端
   tools/             备份、评测、租户管理
 integrations/astrbot AstrBot 接入示例
-examples/            配置示例（quickstart、hybrid、multi-tenant、openviking、embedded）、自己写召回步骤和存储后端的示例
+examples/            配置示例（quickstart、hybrid、multi-tenant、two-hosts、openviking、embedded）、自己写召回步骤和存储后端的示例
                      （custom-stage、custom-backend）、一轮对话的完整流程（chat-loop）、评测用的假数据（eval）
 bench/               记忆检索基准：数据、各系统的适配器和结果
 research/            同类记忆项目的调研和对比

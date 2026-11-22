@@ -6,6 +6,7 @@
 
 - [examples/quickstart/gateway.toml](../examples/quickstart/gateway.toml)：一个 SQLite 文件，不用向量模型
 - [examples/multi-tenant/gateway.toml](../examples/multi-tenant/gateway.toml)：每个群一个 SQLite 文件，外加可公开清单
+- [examples/two-hosts/gateway.toml](../examples/two-hosts/gateway.toml)：DSH 和 QQ 机器人共用一个网关，身份表认出同一个主人，群里的记忆另放
 - [examples/openviking/gateway.toml](../examples/openviking/gateway.toml)：OpenViking 向量后端，每个群一个账号
 - [examples/hybrid/gateway.toml](../examples/hybrid/gateway.toml)：关键词和向量合在一起的混合后端
 - [examples/custom-stage/gateway.toml](../examples/custom-stage/gateway.toml)：放在配置旁边的自制召回步骤

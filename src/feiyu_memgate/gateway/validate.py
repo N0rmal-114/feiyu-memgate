@@ -7,10 +7,9 @@ their own file, away from the request handling that calls them.
 Standard library only.
 """
 import math
-import re
 
-from ..backends.base import message_date
-from ..model import AUDIENCES, KINDS, ORIGINS, valid_account
+from ..model import REQUEST_FIELDS, valid_account, valid_channel  # noqa: F401 - re-exported for gateway.fields
+from ..model import valid_request_field as _valid_field
 
 MAX_QUERY_CHARS = 500
 MAX_MESSAGES = 20
@@ -24,9 +23,6 @@ MAX_CONTEXT_VALUE_CHARS = 200
 MAX_USED = 20
 MAX_USED_SOURCE_CHARS = 128
 MAX_USED_ID_CHARS = 512
-CHANNEL = re.compile(r"[a-z0-9][a-z0-9_.:-]{0,63}")  # a message's "channel" (matched whole)
-# The optional message keys that become record fields of the memory (see gateway/fields.py).
-REQUEST_FIELDS = ("channel", "origin", "event_date", "kind", "audience")
 
 
 def _valid_context(value):
@@ -67,26 +63,6 @@ def _valid_used(items):
             return None
         clean.append((source, ref))
     return clean
-
-
-def valid_channel(value):
-    """True when `value` is a channel name: lower-case letters, digits and _ . : -, at most 64 characters."""
-    return isinstance(value, str) and CHANNEL.fullmatch(value) is not None
-
-
-def _valid_event_date(value):
-    """True when `value` is a real calendar date written YYYY-MM-DD and nothing else."""
-    return isinstance(value, str) and len(value) == 10 and message_date({"time": value}) == value
-
-
-def _valid_field(key, value):
-    """True when `value` is a valid value of the request key `key` (one of REQUEST_FIELDS)."""
-    if key == "channel":
-        return valid_channel(value)
-    if key == "event_date":
-        return _valid_event_date(value)
-    choices = {"origin": ORIGINS, "kind": KINDS, "audience": AUDIENCES}[key]
-    return isinstance(value, str) and value in choices
 
 
 def _valid_messages(messages, accounts=False):

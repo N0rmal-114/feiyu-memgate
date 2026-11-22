@@ -402,6 +402,82 @@ class RememberTests(ClientTestCase):
             self.assertFalse(self.client.remember("hello"))
 
 
+class SpeakerAndKeyTests(ClientTestCase):
+    """The speaker on a recall and the message keys the gateway turns into record fields."""
+
+    def test_the_speaker_is_sent_on_recall_detail_recall_and_explain_when_given(self):
+        self.client.recall_detail("hello", speaker="dsh:local")
+        self.client.recall("hello", speaker="aiocqhttp:10001")
+        self.client.explain("hello", speaker="dsh:local")
+        self.assertEqual([r["body"].get("speaker") for r in self.gw.requests],
+                         ["dsh:local", "aiocqhttp:10001", "dsh:local"])
+        self.assertEqual(self.gw.requests[0]["body"], {"query": "hello", "limit": 5, "speaker": "dsh:local"})
+
+    def test_without_a_speaker_the_bodies_are_what_they_were(self):
+        self.client.recall_detail("hello", context={"chat": "private"})
+        self.client.explain("hello")
+        self.assertEqual(self.gw.requests[0]["body"], {"query": "hello", "limit": 5, "context": {"chat": "private"}})
+        self.assertEqual(self.gw.requests[1]["body"], {"query": "hello", "limit": 5})
+
+    def test_a_speaker_the_gateway_cannot_take_is_not_sent(self):
+        for bad in ("", "s" * 65, 5, ["dsh:local"]):
+            self.assertIsNone(self.client.recall_detail("hello", speaker=bad))
+            self.assertEqual(self.client.recall("hello", speaker=bad), [])
+            self.assertIsNone(self.client.explain("hello", speaker=bad))
+        self.assertEqual(self.gw.requests, [])
+
+    def test_remember_sends_speaker_origin_kind_and_event_date_on_its_one_message(self):
+        self.assertEqual(self.client.remember_status("likes oolong", speaker="dsh:local", origin="tool",
+                                                     kind="preference", event_date="2026-11-17"), "saved")
+        self.assertTrue(self.client.remember("likes oolong", speaker="dsh:local", origin="tool"))
+        self.assertEqual(self.gw.requests[0]["body"], {"messages": [
+            {"role": "user", "content": "likes oolong", "speaker": "dsh:local", "origin": "tool",
+             "kind": "preference", "event_date": "2026-11-17"}]})
+        self.assertEqual(self.gw.requests[1]["body"]["messages"][0],
+                         {"role": "user", "content": "likes oolong", "speaker": "dsh:local", "origin": "tool"})
+
+    def test_remember_messages_passes_every_key_the_gateway_knows(self):
+        message = {"role": "user", "content": "hi", "time": "2026-11-14 12:00", "speaker": "dsh:local",
+                   "about": "aiocqhttp:10001", "channel": "qq.group", "origin": "said", "kind": "event",
+                   "event_date": "2026-11-14", "audience": "group", "extra": "dropped", "kind_none": None}
+        self.assertEqual(self.client.remember_messages([message]), "saved")
+        sent = self.gw.requests[0]["body"]["messages"][0]
+        self.assertEqual(sent, {k: v for k, v in message.items() if k not in ("extra", "kind_none")})
+        self.gw.requests.clear()
+        nulls = {"role": "user", "content": "hi", "channel": None, "origin": None, "kind": None,
+                 "event_date": None, "audience": None, "about": None}
+        self.assertEqual(self.client.remember_messages([nulls]), "saved")
+        self.assertEqual(self.gw.requests[0]["body"], {"messages": [{"role": "user", "content": "hi"}]})
+
+    def test_a_key_that_breaks_the_rule_fails_the_call_and_sends_nothing(self):
+        for bad in ({"channel": "Bad Channel"}, {"channel": "c" * 65}, {"origin": "guessed"}, {"origin": 5},
+                    {"kind": "mood"}, {"audience": "everyone"}, {"event_date": "2026-02-30"},
+                    {"event_date": "2026-11-17T08:00"}, {"about": "a" * 65}, {"about": 5}):
+            self.assertEqual(self.client.remember_messages([dict({"role": "user", "content": "hi"}, **bad)]),
+                             "failed", repr(bad))
+        self.assertEqual(self.client.remember_status("hi", origin="guessed"), "failed")
+        self.assertEqual(self.client.remember_status("hi", kind="mood"), "failed")
+        self.assertEqual(self.client.remember_status("hi", event_date="yesterday"), "failed")
+        self.assertEqual(self.client.remember_status("hi", speaker="s" * 65), "failed")
+        self.assertEqual(self.gw.requests, [])
+
+    def test_the_client_and_the_gateway_agree_on_every_message(self):
+        """The client checks with the gateway's own rule (one definition); this keeps it that way."""
+        from feiyu_memgate.gateway.validate import _valid_messages
+        base = {"role": "user", "content": "hi"}
+        extras = [{}, {"time": "2026-11-14"}, {"time": "t" * 41}, {"speaker": "dsh:local"}, {"speaker": "s" * 65},
+                  {"speaker": 5}, {"about": "aiocqhttp:10001"}, {"about": "a" * 65}, {"channel": "qq.group:1"},
+                  {"channel": "QQ"}, {"channel": ""}, {"origin": "curated"}, {"origin": "other"}, {"kind": "plan"},
+                  {"kind": "other"}, {"event_date": "2026-11-14"}, {"event_date": "2026-13-01"},
+                  {"event_date": "2026-1-1"}, {"audience": "public"}, {"audience": "nobody"},
+                  {"channel": None, "origin": None}, {"role": "system"}, {"content": " "}]
+        for extra in extras:
+            message = dict(base, **extra)
+            self.assertEqual(client_http._clean_messages([message]) is None, _valid_messages([message]) is None,
+                             repr(extra))
+            self.assertEqual(client_http._clean_messages([message]), _valid_messages([message]), repr(extra))
+
+
 class ReportUsedTests(ClientTestCase):
     ITEMS = [{"id": "a", "source": "private", "text": "never sent", "score": 0.9}, {"id": "b", "source": "private"}]
 

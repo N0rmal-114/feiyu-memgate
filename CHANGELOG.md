@@ -91,6 +91,9 @@
 - `[redaction]` 的每一项可以写成带 `type` 和选项的表。
 - 深度健康检查多了 `recall_busy_1h` 和写入的 `untracked`。
 - 支持 `Expect: 100-continue`：检查都过了才让客户端发请求体，没过直接回答。
+- Python 客户端（`MemoryClient`、`LocalClient`）能带上身份和记录字段了：`recall_detail`、`recall`、`explain` 多了只能按名字传的 `speaker=None`；`remember_status`、`remember` 多了 `speaker`、`origin`、`kind`、`event_date`；`remember_messages` 的消息可以带 `about`、`channel`、`origin`、`kind`、`event_date`、`audience`，值用网关自己的检查函数核对，不合规整个调用得 `"failed"`，什么都不发。不给这些参数时，发出的请求和以前完全一样。说明见 docs/api.md 的“Python 客户端”。
+- AstrBot 示例插件现在给每次召回和每条写入的记忆带说话人 `平台名:发送者 ID`，`remember` 工具还带 `origin = "tool"`。主人可以由网关判断：新变量 `FEIYU_MEMGATE_OWNER_BY_GATEWAY=1`，只在 `FEIYU_MEMGATE_OWNER_IDS` 没设置或为空时生效，这时每个有平台名和发送者 ID 的私聊都带着主人的令牌和说话人发给网关，由身份表和 `only_for` 决定（别人得 403，不显示也不存）。原有的配置行为不变：设了 `FEIYU_MEMGATE_OWNER_IDS` 的照旧只认名单里的账号，两个变量都没设的私聊照旧没有记忆，只是请求里多了说话人。网关没有身份表时不要用新变量，见插件的 README。
+- 新的例子 `examples/two-hosts/`：DSH 和 QQ 机器人共用一个网关，身份表给主人两个账号，两个宿主各一个客户端、都只替主人说话，群聊另有自己的存储；`tests/test_two_hosts.py` 用这份配置验证同一个人在两个宿主上是同一个人、群里读不到主人的记忆、陌生人被拒、群里没登记的人只以替身码入库。
 - 一次写入几条消息，在 `sqlite` 和 `inmemory` 存储里现在是全有或全无：以前逐条写，第三条失败时前两条已经存下，调用方只知道失败，重发会存两遍。现在先全部准备好再一次写入，中途出错或者调用方已经超时放弃，一条都不留。`embedding` 和 `hybrid` 本来就是这样；`openviking` 做不到（docs/backends.md“一次写入几条消息”）。
 - `hybrid` 存储搜索时同时问它的子后端，每个都拿到完整的时限（以前一个问完再问下一个，各分一份时间），延迟是最慢的那个。某个子后端出错或超时，以前只是悄悄跳过；现在记进 `child_failures`，并在这次请求的访问日志里留下 `child-failed`。搜索结果和以前一样。
 - `embedding` 存储的搜索和读取不再等写入：读走只读连接（新设置 `max_readers`，默认 8），把向量读进内存也不占写入的锁。库里多了一个写入计数（`info` 表的 `gen`），用来发现别的进程写过；旧版本打开这样的库不受影响。搜索结果和以前一样。

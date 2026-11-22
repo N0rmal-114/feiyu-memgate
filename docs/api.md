@@ -424,8 +424,10 @@ from feiyu_memgate.client import (MemoryClient, LocalClient, BlockFormatter, for
 ### 调用的共同规则
 
 - **租户**：带 `tenant_id` 的调用只用 `tenant_token`（`LocalClient` 里是 `tenant_client`），并且一定把 `tenant_id` 放进请求；不带的调用只用主令牌（`client`），从不发 `tenant_id`。两个令牌之间没有回退：没有 `tenant_token` 时带 `tenant_id` 的调用不发出去。`tenant_id` 可以是字符串或整数（不能是 `True`/`False`），去掉空白后不能是空的，否则不发出去。
-- **不截断**：超过网关上限的查询词、消息，不发送，也不截短：截掉一半的话会变成另一句话。查询词最多 500 字；消息 1 到 20 条，每条 `role` 是 `"user"` 或 `"assistant"`、`content` 去掉空白后非空且最多 4000 字，合计最多 16000 字，`time` 最多 40 字，`speaker` 最多 64 字。
+- **不截断**：超过网关上限的查询词、消息，不发送，也不截短：截掉一半的话会变成另一句话。查询词最多 500 字；消息 1 到 20 条，每条 `role` 是 `"user"` 或 `"assistant"`、`content` 去掉空白后非空且最多 4000 字，合计最多 16000 字，`time` 最多 40 字，`speaker` 和 `about` 最多 64 字；`channel`、`origin`、`event_date`、`kind`、`audience` 用网关自己的检查（同一份代码，见 `POST /v1/remember`）。
 - **不发的情况**：没配置好（`configured` 为假）、参数不合规、截止时间已过，都是“没发出去”：`recall_detail` 得 `None`，`recall` 得 `[]`，写入得 `"failed"`，`report_used` 得 `False`。
+- **消息的键**：`remember_messages` 的每条消息除了 `role`、`content`、`time`、`speaker`，还可以带 `about`、`channel`、`origin`、`kind`、`event_date`、`audience`（字符串，`None` 等于没写），原样发给网关，值的规则和网关的一样（客户端直接用网关的检查函数）：不合规的整个调用得 `"failed"`，什么都不发。不写这些键时，请求体和以前完全一样。客户端只检查形状，不检查 `speaker`、`about` 是不是账号：配置了 `[identity]` 的网关才要求账号，由它回 400。
+- **`speaker`**：`recall_detail`、`recall`、`explain` 有只能按名字传的 `speaker=None`，给了就作为请求里的 `"speaker"` 发出（谁在问，一个账号 `<平台>:<编号>`，最多 64 字，见“账号和身份”）；不给，请求体和以前完全一样。不是字符串、是空的或超过 64 字：不发，得 `None`（`recall` 得 `[]`）。配置了 `[identity]` 的网关替这个账号认人，客户端的 `platforms` 或 `only_for` 不允许时回 403，客户端当作失败；没有 `[identity]` 的网关忽略它。
 - **请求体按 UTF-8 发**，中文不转义成 `\uXXXX`。每次调用一个新连接；不读代理环境变量，不跟随重定向，不重试。回答超过 256 KiB 按失败处理。
 - **看错误码，不看错误文字**：网关的错误回答只用它的 `code` 分类。
 - **`context`**：召回和写入的方法（`recall_detail`、`recall`、`remember_messages`、`remember_status`、`remember`）都有一个只能按名字传的 `context=None`。给了就原样作为请求里的 `"context"` 发出（约定的键见 [`POST /v1/recall`](#post-v1recall)）；不给，请求体和以前完全一样。客户端不检查内容，不合规的由网关回 400 `bad_context`，和别的失败一样处理。`MemoryClient` 和 `LocalClient` 的参数一致。
@@ -457,20 +459,20 @@ MemoryClient(base_url, token, tenant_token=None, logger=None, recall_limit=5, te
 方法：
 
 ```python
-recall_detail(query, timeout=8.5, tenant_id=None, *, context=None) -> dict | None
-recall(query, timeout=8.5, tenant_id=None, *, context=None) -> list
+recall_detail(query, timeout=8.5, tenant_id=None, *, context=None, speaker=None) -> dict | None
+recall(query, timeout=8.5, tenant_id=None, *, context=None, speaker=None) -> list
 remember_messages(messages, deadline=None, tenant_id=None, *, context=None) -> str
-remember_status(text, deadline=None, tenant_id=None, *, context=None) -> str
-remember(text, tenant_id=None, *, context=None) -> bool
+remember_status(text, deadline=None, tenant_id=None, *, context=None, speaker=None, origin=None, kind=None, event_date=None) -> str
+remember(text, tenant_id=None, *, context=None, speaker=None, origin=None, kind=None, event_date=None) -> bool
 report_used(items, tenant_id=None, timeout=5.0) -> bool
-explain(query, timeout=8.5, tenant_id=None, *, limit=None, context=None) -> dict | None
+explain(query, timeout=8.5, tenant_id=None, *, limit=None, context=None, speaker=None) -> dict | None
 ```
 
 **`recall_detail(query, timeout=8.5, tenant_id=None)`**：返回网关的整个召回回答 `{"results": [...], "more": int, "failed": int, "busy": int}`；任何失败得 `None`（503 也是）。`results` 里每项是网关回的字典（`id`、`source`、`text`、`score`，有日期时还有 `date`），没有字符串 `text` 的项被丢掉；`more`、`failed`、`busy` 不是正整数时算 0。`query` 不是字符串、去掉空白后是空的，或者超过 500 字（记一行警告）：不发送，得 `None`；太长的要自己缩短，`build_query` 就是做这个的。`timeout` 是整次调用（连接加读回答）的总秒数，不是每一步的。
 
 **`recall(query, timeout=8.5, tenant_id=None)`**：`recall_detail` 的 `results` 列表，任何失败得 `[]`。分不清“什么都没找到”和“没能去找”；要分，用 `recall_detail`。
 
-**`remember_messages(messages, deadline=None, tenant_id=None)`**：写入一个消息列表，每条是 `{"role": "user" 或 "assistant", "content": str}`，可以带字符串 `time`、`speaker`（`None` 等于没写）。返回下面五个词之一，从不抛异常。列表不合规（条数、长度、形状）：返回 `"failed"`，什么都不发。`deadline` 是绝对的 `time.monotonic()` 时间，不写是现在起 12 秒（网关自己的写入时限是 10 秒）；到点之后不再发。
+**`remember_messages(messages, deadline=None, tenant_id=None)`**：写入一个消息列表，每条是 `{"role": "user" 或 "assistant", "content": str}`，可以带字符串 `time`、`speaker`、`about`、`channel`、`origin`、`kind`、`event_date`、`audience`（`None` 等于没写，规则见上面“消息的键”）。返回下面五个词之一，从不抛异常。列表不合规（条数、长度、形状）：返回 `"failed"`，什么都不发。`deadline` 是绝对的 `time.monotonic()` 时间，不写是现在起 12 秒（网关自己的写入时限是 10 秒）；到点之后不再发。
 
 | 返回 | 意思 |
 |---|---|
@@ -480,9 +482,9 @@ explain(query, timeout=8.5, tenant_id=None, *, limit=None, context=None) -> dict
 | `"limited"` | 今天的写入次数用完了（429 `daily_limit`）；确定没存 |
 | `"unsure"` | 发出去了，但没有收到确认，可能存了 |
 
-**`remember_status(text, deadline=None, tenant_id=None)`**：存一条用户这一侧的记忆，等于 `remember_messages([{"role": "user", "content": text}], ...)`。`text` 不是字符串或去掉空白后是空的：`"failed"`。返回值同上。
+**`remember_status(text, deadline=None, tenant_id=None)`**：存一条用户这一侧的记忆，等于 `remember_messages([{"role": "user", "content": text}], ...)`；只能按名字传的 `speaker`、`origin`、`kind`、`event_date` 写在这一条消息上（不给就不发）。`text` 不是字符串或去掉空白后是空的，或者这几项里有不合规的：`"failed"`。返回值同上。
 
-**`remember(text, tenant_id=None)`**：只在 `remember_status` 是 `"saved"` 时返回 `True`。没有 `deadline` 参数。
+**`remember(text, tenant_id=None)`**：只在 `remember_status` 是 `"saved"` 时返回 `True`，同样有 `speaker`、`origin`、`kind`、`event_date`。没有 `deadline` 参数。
 
 **`report_used(items, tenant_id=None, timeout=5.0)`**：告诉网关这次回复真正依赖了哪几条召回结果，对应 `POST /v1/used`。`items` 是召回结果（或者任何带非空字符串 `source` 和 `id` 的字典）的列表或元组，1 到 20 项，别的键不发。网关确认了（200 且 `status` 是 `ok`）返回 `True`，任何失败返回 `False`；不是列表、条数不对、某项缺 `source` 或 `id`：不发，返回 `False`。`recorded` 不在返回值里；配了遗忘才会真的记，没配时也返回 `True`。`timeout` 是整次调用的总秒数。配了遗忘和 `freshness` 时，网关自己也会在召回时给最相关的那几条记一次“用到”（`credit` 默认是 `"top"`，见 [forgetting.md](forgetting.md)），所以回报是可选的。
 
@@ -502,7 +504,7 @@ explain(query, timeout=8.5, tenant_id=None, *, limit=None, context=None) -> dict
 | 请求发出之前就失败：没配置、参数不合规、连不上网关（连接被拒、域名解析失败）、截止时间已过 | `"failed"` |
 | 请求发出之后失败：超时、连接中断、200 的回答不是 JSON 对象或超过 256 KiB | `"unsure"` |
 
-**`explain(query, timeout=8.5, tenant_id=None, *, limit=None, context=None)`**：对应 `POST /v1/explain`，只有配置了 `explain = true` 的客户端能用。返回 `{"results": [...], "more": int, "failed": int, "busy": int, "stages": [...], "candidates": [...]}`（候选超过 100 条时还有 `"candidates_cut": True`），任何失败得 `None`（403 和 503 也是）。`limit` 不写时用 `recall_limit`；`query` 和 `context` 的规则、不发送的条件同 `recall_detail`，`limit` 不是整数也不发送。字段的意思见 `POST /v1/explain`。它不算一次“用到”。
+**`explain(query, timeout=8.5, tenant_id=None, *, limit=None, context=None, speaker=None)`**：对应 `POST /v1/explain`，只有配置了 `explain = true` 的客户端能用。返回 `{"results": [...], "more": int, "failed": int, "busy": int, "stages": [...], "candidates": [...]}`（候选超过 100 条时还有 `"candidates_cut": True`），任何失败得 `None`（403 和 503 也是）。`limit` 不写时用 `recall_limit`；`query` 和 `context` 的规则、不发送的条件同 `recall_detail`，`limit` 不是整数也不发送。字段的意思见 `POST /v1/explain`。它不算一次“用到”。
 
 ### `LocalClient`
 

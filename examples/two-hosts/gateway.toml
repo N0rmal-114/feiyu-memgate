@@ -1,0 +1,61 @@
+# 两个宿主、一个网关：DSH 和 QQ 机器人（AstrBot 的 aiocqhttp）共用同一份主人记忆，
+# 同一个人在两边各有一个账号，网关的身份表认出他们是同一个人。群里的记忆另放，不和主人的混在一起。
+#
+# 先设两个环境变量，每个至少 32 个字符（令牌和替身码密钥都一样）：
+#   GATEWAY_IDENTITY_KEY    没登记的账号换成替身码用的密钥
+#   GATEWAY_TOKEN_DSH、GATEWAY_TOKEN_CHAT_OWNER、GATEWAY_TOKEN_CHAT_GROUP    三个客户端的令牌
+# 然后：feiyu-memgate check --config examples/two-hosts/gateway.toml
+# 下面的账号都是编出来的例子，换成你自己的。
+
+[stores.private]
+type = "sqlite"
+path = "data/private.db"
+audience = "owner"                    # 只给主人看
+
+[tenants.group]
+type = "directory"
+path = "data/groups"                  # 每个群一个 <群号>.db
+id_pattern = "[0-9]{5,12}"
+create = false                        # 只有登记过的群才有记忆
+audience = "group"                    # 每个群的存储只给这个群看
+
+[identity]
+type = "table"
+hash_key_env = "GATEWAY_IDENTITY_KEY" # 给没登记的账号做替身码的密钥；群里的陌生人以替身码入库，原来的账号不会进存储
+
+[identity.people.owner]
+owner = true                          # 整张表正好一个主人
+accounts = ["dsh:local", "aiocqhttp:10001"]   # 同一个人：DSH 上一个账号，QQ 上一个账号
+
+[clients.dsh]                         # DSH 用：只替主人说话，只能报 dsh: 开头的账号
+token_env = "GATEWAY_TOKEN_DSH"
+recall = ["private"]
+write = "private"
+platforms = ["dsh"]
+only_for = ["owner"]                  # 别的人说的话整个请求被拒（403）
+explain = true                        # 允许 /v1/explain，看召回为什么这样排
+fields = ["speaker"]                  # 召回结果里带上是谁说的
+daily_writes = 50
+
+[clients.chat_owner]                  # QQ 机器人的私聊：同一份主人记忆，只替主人说话
+token_env = "GATEWAY_TOKEN_CHAT_OWNER"
+recall = ["private"]
+write = "private"
+platforms = ["aiocqhttp"]
+only_for = ["owner"]                  # 私聊里来的陌生人：召回和写入都是 403，什么也不会存
+fields = ["speaker"]
+daily_writes = 50
+
+[clients.chat_group]                  # QQ 机器人的群聊：每个群自己的存储，读不到主人的私聊记忆
+token_env = "GATEWAY_TOKEN_CHAT_GROUP"
+tenants = "group"
+# 默认 tenant_binding = "request"：群号由请求里的 tenant_id 自报，只适合一个可信的机器人进程替所有群服务。
+recall = ["@tenant"]                  # "@tenant" = 本群自己的存储
+write = "@tenant"
+public = true
+platforms = ["aiocqhttp"]             # 群友的账号可以不在身份表里：写入时换成这个群里的替身码
+daily_writes = 20                     # 每个群每天
+daily_writes_total = 500              # 所有群加起来每天
+
+# 召回步骤和写入守卫都用默认的一套：默认的召回步骤里有 record_audience（逐条看记忆的受众）和 redact，
+# 默认的写入守卫是 redact 加 daily_cap。

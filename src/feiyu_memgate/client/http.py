@@ -29,13 +29,17 @@ import os
 import time
 import urllib.parse
 
+# The gateway's own rule for a message's optional keys, one definition (a small file of pure checks:
+# it loads the model and nothing of the gateway's running parts).
+from ..model import REQUEST_FIELDS, valid_request_field
+
 RECALL_LIMIT = 5
 MAX_QUERY_CHARS = 500       # gateway limit for /v1/recall
 MAX_REMEMBER_CHARS = 4000   # gateway limit per message for /v1/remember
 MAX_TOTAL_CHARS = 16000     # gateway limit for all messages of one /v1/remember
 MAX_MESSAGES = 20           # gateway limit of messages per /v1/remember
 MAX_TIME_CHARS = 40         # gateway limit of a message's optional "time"
-MAX_SPEAKER_CHARS = 64      # gateway limit of a message's optional "speaker"
+MAX_SPEAKER_CHARS = 64      # gateway limit of a message's optional "speaker" and "about"
 MAX_USED = 20               # gateway limit of items per /v1/used
 USED_TIMEOUT = 5.0
 REMEMBER_TIMEOUT = 12.0     # gateway's own deadline is 10s
@@ -93,6 +97,11 @@ def _failure(status, code):
     return REJECTED if 400 <= status < 500 else UNSURE
 
 
+def _speaker_ok(speaker):
+    """True when `speaker` is absent or a string the gateway can take (non-empty, at most 64 characters)."""
+    return speaker is None or (isinstance(speaker, str) and 0 < len(speaker) <= MAX_SPEAKER_CHARS)
+
+
 def _count(value):
     return value if isinstance(value, int) and not isinstance(value, bool) and value > 0 else 0
 
@@ -114,11 +123,18 @@ def _clean_messages(messages):
         if total > MAX_TOTAL_CHARS:
             return None
         item = {"role": m["role"], "content": content}
-        for key, cap in (("time", MAX_TIME_CHARS), ("speaker", MAX_SPEAKER_CHARS)):
+        for key, cap in (("time", MAX_TIME_CHARS), ("speaker", MAX_SPEAKER_CHARS), ("about", MAX_SPEAKER_CHARS)):
             value = m.get(key)
             if value is None:
                 continue
             if not isinstance(value, str) or len(value) > cap:
+                return None
+            item[key] = value
+        for key in REQUEST_FIELDS:  # channel, origin, event_date, kind, audience: the gateway's own check
+            value = m.get(key)
+            if value is None:
+                continue
+            if not valid_request_field(key, value):
                 return None
             item[key] = value
         clean.append(item)
@@ -238,20 +254,27 @@ class MemoryClient:
                 conn.close()
         return None, (UNSURE if sent else NOT_SENT)
 
-    def recall_detail(self, query, timeout=8.5, tenant_id=None, *, context=None):
+    def recall_detail(self, query, timeout=8.5, tenant_id=None, *, context=None, speaker=None):
         """The gateway's whole recall reply as {"results": [...], "more": int, "failed": int,
         "busy": int}, None on any failure (503 included). A query over 500 characters is
         not sent (None): shorten it yourself, as build_query does. `context` is an optional
         flat dict (say channel, chat) sent as it is; stages and guards may read it, the gateway
-        never treats it as identity."""
+        never treats it as identity. `speaker` is who is asking, an account "<platform>:<id>" (at most 64
+        characters), sent only when given. A gateway with an identity table resolves it (a speaker the
+        client may not name is refused: None); without one it is ignored."""
         if not isinstance(query, str) or not query.strip():
             return None
         if len(query) > MAX_QUERY_CHARS:
             self.log.warning("memory recall not sent: query over %d characters", MAX_QUERY_CHARS)
             return None
+        if not _speaker_ok(speaker):
+            self.log.warning("memory recall not sent: bad speaker")
+            return None
         payload = {"query": query, "limit": self.recall_limit}
         if context is not None:
             payload["context"] = context
+        if speaker is not None:
+            payload["speaker"] = speaker
         data, _ = self._post("/v1/recall", payload, time.monotonic() + timeout, "recall", tenant_id)
         results = data.get("results") if data else None
         if not isinstance(results, list):
@@ -260,12 +283,12 @@ class MemoryClient:
                 "more": _count(data.get("more")), "failed": _count(data.get("failed")),
                 "busy": _count(data.get("busy"))}
 
-    def explain(self, query, timeout=8.5, tenant_id=None, *, limit=None, context=None):
+    def explain(self, query, timeout=8.5, tenant_id=None, *, limit=None, context=None, speaker=None):
         """An explained recall (POST /v1/explain, only for a client configured with explain = true):
         the recall reply plus "stages" (the recall stages' names, in order) and "candidates" (every
         candidate the recall looked at, with its scores, outcome and the stage that removed it), as a
         dict; None on any failure (403 included). It counts as no use of a memory. `limit` defaults to
-        the client's recall_limit; the other arguments are as for recall_detail."""
+        the client's recall_limit; the other arguments (`speaker` too) are as for recall_detail."""
         if not isinstance(query, str) or not query.strip():
             return None
         if len(query) > MAX_QUERY_CHARS:
@@ -273,9 +296,14 @@ class MemoryClient:
             return None
         if limit is not None and (isinstance(limit, bool) or not isinstance(limit, int)):
             return None
+        if not _speaker_ok(speaker):
+            self.log.warning("memory explain not sent: bad speaker")
+            return None
         payload = {"query": query, "limit": self.recall_limit if limit is None else limit}
         if context is not None:
             payload["context"] = context
+        if speaker is not None:
+            payload["speaker"] = speaker
         data, _ = self._post("/v1/explain", payload, time.monotonic() + timeout, "explain", tenant_id)
         results, stages, candidates = (data.get(k) if data else None for k in ("results", "stages", "candidates"))
         if not isinstance(results, list) or not isinstance(stages, list) or not isinstance(candidates, list):
@@ -288,15 +316,16 @@ class MemoryClient:
             out["candidates_cut"] = True
         return out
 
-    def recall(self, query, timeout=8.5, tenant_id=None, *, context=None):
+    def recall(self, query, timeout=8.5, tenant_id=None, *, context=None, speaker=None):
         """Return a list of {"id","source","text","score"} dicts (plus "date" when the memory has one),
         [] on any failure."""
-        detail = self.recall_detail(query, timeout, tenant_id, context=context)
+        detail = self.recall_detail(query, timeout, tenant_id, context=context, speaker=speaker)
         return detail["results"] if detail else []
 
     def remember_messages(self, messages, deadline=None, tenant_id=None, *, context=None):
         """Store a list of {"role": "user"|"assistant", "content": str} messages (optional
-        "time" and "speaker" strings). Returns the same words as remember_status. A list
+        "time", "speaker", "about", "channel", "origin", "event_date", "kind" and "audience" strings, each
+        checked by the gateway's own rule; a null counts as absent). Returns the same words as remember_status. A list
         that breaks a gateway limit (count, length, shape) is "failed" and nothing is sent.
         `context` is an optional flat dict, sent as it is (see recall_detail)."""
         clean = _clean_messages(messages)
@@ -314,21 +343,28 @@ class MemoryClient:
             return {"ok": "saved", "skipped": "skipped"}.get(status, "unsure")
         return {UNSURE: "unsure", LIMITED: "limited"}.get(outcome, "failed")
 
-    def remember_status(self, text, deadline=None, tenant_id=None, *, context=None):
+    def remember_status(self, text, deadline=None, tenant_id=None, *, context=None, speaker=None, origin=None,
+                        kind=None, event_date=None):
         """Store one user-side memory. Returns "saved", "skipped" (the gateway looked at it
         and kept nothing: a guard or the store filtered it out), "failed" (definitely not
         stored), "limited" (the day's cap is used up; definitely not stored) or "unsure"
         (sent, but no confirmation; it may have been stored).
 
-        deadline is an absolute time.monotonic() value; nothing is sent after it.
+        deadline is an absolute time.monotonic() value; nothing is sent after it. `speaker`, `origin`,
+        `kind` and `event_date` go on that one message when given (see remember_messages); one that
+        breaks the gateway's rule makes the call "failed".
         """
         if not isinstance(text, str) or not text.strip():
             return "failed"
-        return self.remember_messages([{"role": "user", "content": text}], deadline, tenant_id, context=context)
+        message = {"role": "user", "content": text, "speaker": speaker, "origin": origin, "kind": kind,
+                   "event_date": event_date}
+        return self.remember_messages([message], deadline, tenant_id, context=context)
 
-    def remember(self, text, tenant_id=None, *, context=None):
+    def remember(self, text, tenant_id=None, *, context=None, speaker=None, origin=None, kind=None,
+                 event_date=None):
         """True when the gateway confirmed the write."""
-        return self.remember_status(text, tenant_id=tenant_id, context=context) == "saved"
+        return self.remember_status(text, tenant_id=tenant_id, context=context, speaker=speaker, origin=origin,
+                                    kind=kind, event_date=event_date) == "saved"
 
     def report_used(self, items, tenant_id=None, timeout=USED_TIMEOUT):
         """Tell the gateway which recalled memories the reply really relied on, so only those

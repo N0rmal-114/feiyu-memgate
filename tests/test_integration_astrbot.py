@@ -91,10 +91,12 @@ class FakeClient:
         self.results = results
         self.queries = []
         self.contexts = []
+        self.speakers = []
 
-    def recall_detail(self, query, timeout=None, tenant_id=None, context=None):
+    def recall_detail(self, query, timeout=None, tenant_id=None, context=None, speaker=None):
         self.queries.append((query, tenant_id))
         self.contexts.append(context)
+        self.speakers.append(speaker)
         return {"results": self.results, "more": 0, "failed": 0, "busy": 0}
 
 
@@ -145,8 +147,9 @@ class PluginCase(unittest.TestCase):
         # the plugin passes the local date, so the block it builds says today's date and the age
         self.block = self.plugin.FORMATTER.format(RESULTS, today=datetime.date.today().isoformat())
 
-    def star(self, fallback="message", client=None):
-        with mock.patch.dict("os.environ", {"FEIYU_MEMGATE_OWNER_IDS": "aiocqhttp:10001", "FEIYU_MEMGATE_FALLBACK": fallback}):
+    def star(self, fallback="message", client=None, env=None):
+        env = {"FEIYU_MEMGATE_OWNER_IDS": "aiocqhttp:10001"} if env is None else env
+        with mock.patch.dict("os.environ", dict(env, FEIYU_MEMGATE_FALLBACK=fallback), clear=True):
             star = self.plugin.FeiyuMemgateRecall(object())
         star.client = client or FakeClient()
         return star
@@ -358,6 +361,95 @@ class OwnerAccountTests(PluginCase):
         asyncio.run(star.remember_tool(Event(group="20002", platform="telegram"), "喜欢乌龙茶"))
         self.assertEqual(client.sent, [{"channel": "aiocqhttp", "chat": "private"},
                                        {"channel": "telegram", "chat": "group"}])
+
+
+class Recorder(FakeClient):
+    """A fake client that also records what the remember tool sends."""
+
+    def __init__(self):
+        super().__init__()
+        self.sent = []
+
+    def remember_messages(self, messages, deadline=None, tenant_id=None, context=None):
+        self.sent.append((messages, tenant_id))
+        return "saved"
+
+
+class SpeakerTests(PluginCase):
+    def test_every_recall_names_the_speaker_as_platform_and_sender(self):
+        client = FakeClient()
+        star = self.star(client=client)
+        self.ask(star, Event(), Request())
+        self.ask(star, Event(group="20002", sender="30003", platform="telegram"), Request())
+        self.assertEqual(client.speakers, ["aiocqhttp:10001", "telegram:30003"])
+
+    def test_an_event_without_a_platform_or_a_sender_names_no_speaker(self):
+        client = FakeClient()
+        star = self.star(client=client)
+        for group_event in (Event(group="20002", platform=""), Event(group="20002", sender=None)):
+            self.ask(star, group_event, Request())
+        self.assertEqual(client.speakers, [None, None])
+
+    def test_the_remember_tool_sends_the_speaker_and_the_tool_origin(self):
+        client = Recorder()
+        star = self.star(client=client)
+        asyncio.run(star.remember_tool(Event(), "喜欢乌龙茶"))
+        asyncio.run(star.remember_tool(Event(group="20002", sender="30003"), "喜欢乌龙茶"))
+        asyncio.run(star.remember_tool(Event(group="20003", sender=None), "喜欢乌龙茶"))
+        (private, _), (group, group_tenant), (nameless, _) = client.sent
+        self.assertEqual(private[0]["speaker"], "aiocqhttp:10001")
+        self.assertEqual((group[0]["speaker"], group_tenant), ("aiocqhttp:30003", "20002"))
+        self.assertNotIn("speaker", nameless[0])
+        for messages in (private, group, nameless):
+            self.assertEqual(messages[0]["origin"], "tool")
+
+
+class OwnerModeTests(PluginCase):
+    """Who the owner is: the list, the gateway, or nobody."""
+
+    def recalls(self, env, event):
+        client = FakeClient()
+        self.ask(self.star(client=client, env=env), event, Request())
+        return client
+
+    def test_the_helper_needs_the_flag_and_an_empty_list(self):
+        by_gateway = self.plugin.owner_by_gateway
+        self.assertFalse(by_gateway({}))
+        self.assertTrue(by_gateway({"FEIYU_MEMGATE_OWNER_BY_GATEWAY": "1"}))
+        self.assertTrue(by_gateway({"FEIYU_MEMGATE_OWNER_BY_GATEWAY": " 1 ", "FEIYU_MEMGATE_OWNER_IDS": "  "}))
+        for flag in ("", "0", "true", "yes"):
+            self.assertFalse(by_gateway({"FEIYU_MEMGATE_OWNER_BY_GATEWAY": flag}), flag)
+        # a list that is set wins, even one with nothing usable in it
+        self.assertFalse(by_gateway({"FEIYU_MEMGATE_OWNER_BY_GATEWAY": "1", "FEIYU_MEMGATE_OWNER_IDS": "10001"}))
+
+    def test_with_neither_variable_a_private_chat_gets_no_memory(self):
+        client = self.recalls({}, Event())
+        self.assertEqual(client.queries, [])
+
+    def test_the_flag_alone_sends_every_private_chat_with_its_speaker(self):
+        env = {"FEIYU_MEMGATE_OWNER_BY_GATEWAY": "1"}
+        for sender in ("10001", "99999"):  # the gateway, not the plugin, tells them apart
+            client = self.recalls(env, Event(sender=sender))
+            self.assertEqual(client.queries, [("what tea do I like", None)])
+            self.assertEqual(client.speakers, ["aiocqhttp:" + sender])
+
+    def test_the_flag_does_not_open_an_event_without_an_account(self):
+        env = {"FEIYU_MEMGATE_OWNER_BY_GATEWAY": "1"}
+        for event in (Event(platform=""), Event(sender=None)):
+            self.assertEqual(self.recalls(env, event).queries, [])
+
+    def test_a_list_that_is_set_wins_over_the_flag(self):
+        env = {"FEIYU_MEMGATE_OWNER_BY_GATEWAY": "1", "FEIYU_MEMGATE_OWNER_IDS": "aiocqhttp:10001"}
+        self.assertEqual(len(self.recalls(env, Event()).queries), 1)
+        self.assertEqual(self.recalls(env, Event(sender="99999")).queries, [])
+
+    def test_the_remember_tool_follows_the_same_modes(self):
+        for env, allowed in (({}, False), ({"FEIYU_MEMGATE_OWNER_BY_GATEWAY": "1"}, True)):
+            client = Recorder()
+            star = self.star(client=client, env=env)
+            reply = asyncio.run(star.remember_tool(Event(sender="99999"), "喜欢乌龙茶"))
+            self.assertEqual(len(client.sent), 1 if allowed else 0)
+            self.assertEqual("没有开放记忆功能" in reply, not allowed)
 
 
 if __name__ == "__main__":

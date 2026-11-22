@@ -242,7 +242,7 @@ class ExampleConfigs(unittest.TestCase):
                 for i, client in enumerate(cfg["clients"].values()):
                     env[client["token_env"]] = "example-test-token-%02d-" % i + "x" * 32
                 for var in _env_names(cfg):
-                    env.setdefault(var, "fake-key-for-example-tests")
+                    env.setdefault(var, "fake-key-for-example-tests-" + "x" * 32)  # long enough to pass the key floor
                 gw = config.build_gateway(cfg, env=env, log=lambda line: None)
                 gw.close()
 

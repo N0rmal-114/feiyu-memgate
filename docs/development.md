@@ -89,7 +89,7 @@ curl -s http://127.0.0.1:8080/healthz                                          #
 | `tests/` | 网关的测试，`unittest`；`test_<模块>.py` 对应源码里的模块，`test_bench_*.py` 测 `bench/` 里的脚本，`test_examples.py` 保证 `examples/` 里的示例一直能用 |
 | `plugins/` | 两个 DSH 聊天宿主的插件（Node.js），见下面 |
 | `integrations/astrbot/` | AstrBot 的接入示例（Python 插件），测试在 `tests/test_integration_astrbot.py`，用模拟的 AstrBot 接口 |
-| `examples/` | 配置示例和可以运行的小例子：`quickstart`、`hybrid`、`openviking`、`multi-tenant`、`embedded`（进程内）、`custom-stage`（自己写召回步骤）、`custom-backend`（自己写存储后端）、`chat-loop`（一轮对话的完整流程）、`eval`（评测用的假数据） |
+| `examples/` | 配置示例和可以运行的小例子：`quickstart`、`hybrid`、`openviking`、`multi-tenant`、`two-hosts`（两个宿主共用一个网关）、`embedded`（进程内）、`custom-stage`（自己写召回步骤）、`custom-backend`（自己写存储后端）、`chat-loop`（一轮对话的完整流程）、`eval`（评测用的假数据） |
 | `docs/` | 面向用户和开发者的文档；`docs/design/` 是设计文档，`docs/assets/` 是图 |
 | `bench/` | 记忆检索基准：数据、各系统的适配器、打分脚本和结果，见 `bench/README.md` |
 | `research/` | 对同类记忆项目的调研报告 |
