@@ -104,11 +104,11 @@ test('status shows gateway, Python, retrieval, store, add-on, copy and features'
 })
 
 test('config lists every setting with value and default, secrets only as set or not set', async () => {
-  const { run } = harness({ values: { external: { token: TOKEN }, advanced: { recallLimit: 8 } } })
+  const { run } = harness({ values: { external: { token: TOKEN }, advanced: { recallLimit: 6 } } })
   const reply = await run('config')
   assert.equal(reply.kind, 'success')
   for (const group of FIELDS) for (const field of group.fields) assert.ok(reply.text.includes(`${group.group}.${field.key} = `), field.key)
-  assert.ok(reply.text.includes('advanced.recallLimit = 8  (5)'))
+  assert.ok(reply.text.includes('advanced.recallLimit = 6  (8)'))
   assert.ok(reply.text.includes('external.token = set  (not set) [secret]'))
   assert.ok(!reply.text.includes(TOKEN))
 })
@@ -118,7 +118,7 @@ test('set writes one checked value through the Settings service', async () => {
   const reply = await run(' set advanced.recallLimit 7')
   assert.deepEqual(writes, [[{ op: 'set', path: ['advanced', 'recallLimit'], value: 7 }]])
   assert.equal(reply.kind, 'success')
-  assert.equal(reply.text, 'Saved: advanced.recallLimit = 7 (was 5).')
+  assert.equal(reply.text, 'Saved: advanced.recallLimit = 7 (was 8).')
   assert.equal((await run('set recalllimit 3')).text, 'Saved: advanced.recallLimit = 3 (was 7).', 'a bare key in any case when it is unique')
   assert.equal((await run('set gateway.dataDir   D:/my memories ')).text, 'Saved: gateway.dataDir = D:/my memories (was (empty)).')
   assert.match((await run('set advanced.recallLimit 3')).text, /already 3; nothing changed/)

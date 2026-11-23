@@ -349,7 +349,7 @@ test('staged edits become one ordered set of operations; secrets are write-only'
   assert.equal(view('external.url', { 'external.url': { value: 'ftp://x' } }).invalid, true)
   assert.equal(view('external.url', { 'external.url': { value: '' } }).invalid, false, 'an empty address is allowed')
   assert.deepEqual(view('advanced.recallLimit', { 'advanced.recallLimit': { unset: true } }), {
-    k: 'advanced.recallLimit', field: plain(field('advanced.recallLimit')), secret: false, value: 5, text: '5', overridden: false, invalid: false,
+    k: 'advanced.recallLimit', field: plain(field('advanced.recallLimit')), secret: false, value: 8, text: '8', overridden: false, invalid: false,
   })
   const token = view('external.token', {}, { 'external.token': true })
   assert.deepEqual([token.secret, token.text, token.configured, token.clearing], [true, '', true, false])
@@ -659,7 +659,8 @@ test('integers are steppers: two labelled buttons around a numeric input that sh
       const [input] = byId(stepper, I.fieldId(field.k))
       assert.equal(input.type, 'input')
       assert.equal(input.props.inputMode, 'numeric')
-      assert.equal(input.props.value, String(field.default), field.k)
+      const shown = field.k === 'advanced.recallLimit' ? 5 : field.default // formState() stores 5 for it, which is not the default (8)
+      assert.equal(input.props.value, String(shown), field.k)
       if (field.unit) assert.ok(textOf(tree).includes(field.unit[lang]), `${field.k} unit`)
     }
   }

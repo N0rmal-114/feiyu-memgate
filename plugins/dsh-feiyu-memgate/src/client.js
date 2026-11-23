@@ -225,7 +225,7 @@ async function errorCode(response) {
   }
 }
 
-export function createClient({ url, token, fetch: fetchImpl = globalThis.fetch, logger, recallLimit = 5 } = {}) {
+export function createClient({ url, token, fetch: fetchImpl = globalThis.fetch, logger, recallLimit = 8 } = {}) {
   const base = normaliseBase(url)
   const secret = typeof token === 'string' ? pyStrip(token) : ''
   const configured = Boolean(base && secret)

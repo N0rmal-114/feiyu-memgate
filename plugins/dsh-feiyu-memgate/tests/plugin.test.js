@@ -61,6 +61,17 @@ test('registers every default module and nothing for autoCapture', () => {
   assert.equal(host.count('loader/volatile-update'), 1)
 })
 
+test('the gateway is asked for 8 memories by default, and a stored value is respected', async () => {
+  const asked = async (config) => {
+    const { host, clients } = setup({ config, handlers: { recall: recallFound } })
+    await host.preStep(preStepPayload())
+    return clients.calls.recall[0].limit
+  }
+  assert.equal(await asked({}), 8)
+  assert.equal(await asked({ advanced: { language: 'en', recallLimit: 5 } }), 5)
+  assert.equal(await asked({ advanced: { language: 'en', recallLimit: 10 } }), 10)
+})
+
 test('recall runs on step 1 of a user turn and places the block right after the user message', async () => {
   const { host, clients } = setup({ handlers: { recall: recallFound } })
   const payload = preStepPayload()
@@ -262,7 +273,7 @@ test('memgate_search returns the block, or tells "nothing found" from "unavailab
   assert.ok(hit.text.startsWith('<memory_data>') && hit.text.includes(MEMORY))
   assert.equal(found.clients.calls.recall[0].limit, 3)
   assert.equal((await tool.execute({ query: 'tea', limit: 99 }, {})).status, 'found')
-  assert.equal(found.clients.calls.recall[1].limit, 5, 'an out-of-range limit falls back to the setting')
+  assert.equal(found.clients.calls.recall[1].limit, 8, 'an out-of-range limit falls back to the setting (8 by default)')
 
   const none = setup()
   const empty = await none.host.tools.get(TOOL_SEARCH).execute({ query: 'tea' }, {})

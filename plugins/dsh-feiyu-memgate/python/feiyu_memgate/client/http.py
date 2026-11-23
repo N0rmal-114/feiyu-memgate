@@ -33,7 +33,7 @@ import urllib.parse
 # it loads the model and nothing of the gateway's running parts).
 from ..model import REQUEST_FIELDS, clean_history, valid_request_field
 
-RECALL_LIMIT = 5
+RECALL_LIMIT = 8
 MAX_QUERY_CHARS = 500       # gateway limit for /v1/recall
 MAX_REMEMBER_CHARS = 4000   # gateway limit per message for /v1/remember
 MAX_TOTAL_CHARS = 16000     # gateway limit for all messages of one /v1/remember

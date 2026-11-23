@@ -530,7 +530,7 @@ window.__ModuleLoader__.load({ id: 'dsh-feiyu-memgate', factory: (hostRequire) =
           {
             "key": "recallLimit",
             "kind": "integer",
-            "default": 5,
+            "default": 8,
             "min": 1,
             "max": 10,
             "unit": {

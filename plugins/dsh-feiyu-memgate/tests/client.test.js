@@ -71,7 +71,7 @@ test('recall: route, headers and body as the gateway expects', () =>
     assert.equal(req.headers.authorization, `Bearer ${TOKEN}`)
     assert.equal(req.headers['content-type'], 'application/json')
     assert.equal(req.headers['content-length'], String(req.raw.length))
-    assert.deepEqual(req.json, { query: '我喜欢喝什么茶？', limit: 5 })
+    assert.deepEqual(req.json, { query: '我喜欢喝什么茶？', limit: 8 })
     // UTF-8 as it is, not \uXXXX escapes.
     assert.ok(req.raw.includes(Buffer.from('我喜欢喝什么茶')))
     assert.ok(!req.raw.toString('latin1').includes('\\u'))
@@ -453,15 +453,15 @@ test('recall and remember: a valid context goes in the body, without one the bod
     await client.rememberStatus('a fact', { context, time: '2026-11-17T20:15:03+09:00' })
     await client.rememberStatus('a fact')
     assert.deepEqual(server.requests.map((r) => r.json), [
-      { query: 'hello', limit: 5, context },
-      { query: 'hello', limit: 5 },
-      { query: 'hello', limit: 5 },
+      { query: 'hello', limit: 8, context },
+      { query: 'hello', limit: 8 },
+      { query: 'hello', limit: 8 },
       { messages: [{ role: 'user', content: 'a fact' }], context },
       { messages: [{ role: 'user', content: 'a fact' }] },
       { messages: [{ role: 'user', content: 'a fact', time: '2026-11-17T20:15:03+09:00' }], context },
       { messages: [{ role: 'user', content: 'a fact' }] },
     ])
-    assert.equal(server.requests[1].raw.toString('utf8'), '{"query":"hello","limit":5}')
+    assert.equal(server.requests[1].raw.toString('utf8'), '{"query":"hello","limit":8}')
     assert.equal(server.requests[4].raw.toString('utf8'), '{"messages":[{"role":"user","content":"a fact"}]}')
   }))
 
@@ -474,7 +474,7 @@ test('an invalid context is dropped with one warning that does not show it, and 
     assert.equal(await client.rememberStatus('a fact', { context: bad }), 'saved')
     assert.equal(await client.rememberMessages([{ role: 'user', content: 'a fact' }], { context: [secret] }), 'saved')
     assert.deepEqual(server.requests.map((r) => r.json), [
-      { query: 'hello', limit: 5 },
+      { query: 'hello', limit: 8 },
       { messages: [{ role: 'user', content: 'a fact' }] },
       { messages: [{ role: 'user', content: 'a fact' }] },
     ])
@@ -515,7 +515,7 @@ test('explainRecall: POST /v1/explain with the query, the limit and the context;
     assert.equal(req.method, 'POST')
     assert.equal(req.url, '/v1/explain')
     assert.equal(req.headers.authorization, `Bearer ${TOKEN}`)
-    assert.deepEqual(req.json, { query: '我喜欢喝什么茶？', limit: 5, context: { channel: 'dsh', via: 'trial' } })
+    assert.deepEqual(req.json, { query: '我喜欢喝什么茶？', limit: 8, context: { channel: 'dsh', via: 'trial' } })
   }))
 
 test('explainRecall: the limit option wins over the client limit; no context means none is sent', () =>
@@ -603,10 +603,10 @@ test('recall and explain: the speaker goes in the body when it is a string of at
     await client.explainRecall('hello there', { speaker: 'dsh:local', limit: 2 })
     await client.explainRecall('hello there', { speaker: 'x'.repeat(64) })
     assert.deepEqual(server.requests.map((r) => r.json), [
-      { query: 'hello', limit: 5, speaker: 'dsh:local' },
-      { query: 'hello', limit: 5, speaker: 'dsh:local', context },
+      { query: 'hello', limit: 8, speaker: 'dsh:local' },
+      { query: 'hello', limit: 8, speaker: 'dsh:local', context },
       { query: 'hello there', limit: 2, speaker: 'dsh:local' },
-      { query: 'hello there', limit: 5, speaker: 'x'.repeat(64) },
+      { query: 'hello there', limit: 8, speaker: 'x'.repeat(64) },
     ])
     server.requests.length = 0
     // Not a usable speaker: left out, the call still goes out.
@@ -614,13 +614,13 @@ test('recall and explain: the speaker goes in the body when it is a string of at
       await client.recallDetail('hello', { speaker })
       await client.explainRecall('hello there', { speaker })
     }
-    assert.deepEqual(server.requests.map((r) => r.json), Array.from({ length: 6 }, () => [{ query: 'hello', limit: 5 }, { query: 'hello there', limit: 5 }]).flat())
+    assert.deepEqual(server.requests.map((r) => r.json), Array.from({ length: 6 }, () => [{ query: 'hello', limit: 8 }, { query: 'hello there', limit: 8 }]).flat())
     // Without the option the body is byte for byte what it was.
     server.requests.length = 0
     await client.recallDetail('hello')
     await client.explainRecall('hello there')
-    assert.equal(server.requests[0].raw.toString('utf8'), '{"query":"hello","limit":5}')
-    assert.equal(server.requests[1].raw.toString('utf8'), '{"query":"hello there","limit":5}')
+    assert.equal(server.requests[0].raw.toString('utf8'), '{"query":"hello","limit":8}')
+    assert.equal(server.requests[1].raw.toString('utf8'), '{"query":"hello there","limit":8}')
   }))
 
 test('rememberStatus: speaker, origin, kind and eventDate go into its one message as speaker, origin, kind and event_date', () =>

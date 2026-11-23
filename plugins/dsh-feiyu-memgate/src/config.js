@@ -155,7 +155,7 @@ const GROUPS = [
       zh: '召回细节和内置网关的规则（规则仅用于 managed 模式；外部网关按其自身配置）。',
     },
     fields: [
-      { key: 'recallLimit', kind: 'integer', default: 5, min: 1, max: 10, unit: { en: 'memories', zh: '条' },
+      { key: 'recallLimit', kind: 'integer', default: 8, min: 1, max: 10, unit: { en: 'memories', zh: '条' },
         label: { en: 'Memories per turn', zh: '每轮记忆条数' },
         help: { en: 'Most memories added per turn (1 to 10); also the default number of memgate_search results.', zh: '每轮最多加入的记忆条数（1 到 10），也是 memgate_search 默认返回的条数。' } },
       { key: 'recallTimeoutMs', kind: 'integer', default: 4000, min: 500, max: 20000, unit: { en: 'ms', zh: '毫秒' },

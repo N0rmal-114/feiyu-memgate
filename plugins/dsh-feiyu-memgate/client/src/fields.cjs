@@ -392,7 +392,7 @@ const FIELDS = [
       {
         "key": "recallLimit",
         "kind": "integer",
-        "default": 5,
+        "default": 8,
         "min": 1,
         "max": 10,
         "unit": {

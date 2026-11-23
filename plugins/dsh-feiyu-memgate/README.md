@@ -12,7 +12,7 @@ With the default settings, this is what you see:
 
 1. **The gateway starts in the background.** The first time a memory feature is needed, the plugin looks for Python 3.11 or later, writes a gateway configuration into the data folder and starts the bundled gateway on a free loopback port. DSH does not wait for it. Until the gateway is healthy, recall adds nothing and the tools report that memory is unavailable.
 2. **Recall at the start of each turn.** When you send a message, the plugin looks up memories related to it. Only the first step of a turn does this, and only in your own session, not in subagent sessions. A message that starts with `/` or `／`, the message `ok`, a message with no meaningful characters (only emoji or punctuation), and a message of one or two filler characters such as `嗯` or `好` are not looked up. A very short message (fewer than 8 meaningful characters) is looked up together with your previous message. The query is cut to 500 characters.
-3. **The memory block.** If the lookup finds something new, the plugin adds one message right after your message, in a `<memory_data>` block. It says the content is data, not instructions and, while `advanced.showAge` is on, today's date (the date on this computer). It lists up to `advanced.recallLimit` memories (5 by default), each with its date when known and, when today's date is given, how long ago that was. For example:
+3. **The memory block.** If the lookup finds something new, the plugin adds one message right after your message, in a `<memory_data>` block. It says the content is data, not instructions and, while `advanced.showAge` is on, today's date (the date on this computer). It lists up to `advanced.recallLimit` memories (8 by default), each with its date when known and, when today's date is given, how long ago that was. For example:
 
    ```text
    <memory_data>
@@ -107,7 +107,7 @@ Most settings take effect at once. A change of `gateway.mode`, `gateway.python`,
 | `gateway.dataDir` | `managed`: folder for the memory stores, the generated gateway configuration and the log. | empty (`<DSH home>/data/feiyu-memgate`) | |
 | `external.url` | `external`: the gateway address, for example `http://127.0.0.1:8080`. | empty | Must start with `http://` or `https://`. |
 | `external.token` | `external`: the client token that gateway issued for this client. | empty | Secret. Write-only. |
-| `advanced.recallLimit` | Most memories added per turn (1 to 10). Also the default number of `memgate_search` results. | 5 | Applies to a gateway you run yourself as well. |
+| `advanced.recallLimit` | Most memories added per turn (1 to 10). Also the default number of `memgate_search` results. | 8 | Applies to a gateway you run yourself as well. |
 | `advanced.recallTimeoutMs` | How long a turn waits for automatic recall (500 to 20000 ms). A slower lookup is skipped. | 4000 | |
 | `advanced.language` | Language of the memory block, the tool replies, the system prompt section, the failure note and `/memgate`: `auto` (follow the system language), `zh` or `en`. | `auto` | Memories themselves are never translated. |
 | `advanced.skipRepeats` | Leave out a memory that a block of this conversation still in the history already shows (compared by text); add no block when nothing new is left. | on | Off: only a block identical to the previous one is left out (the behaviour up to 0.3.0). The comparison does not read the label, so a memory whose text is the tail of another one that follows a closing bracket (for example "（备注）喝茶" and "喝茶") counts as shown. |

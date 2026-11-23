@@ -14,12 +14,21 @@ test('defaults', () => {
     gateway: { mode: 'managed', python: '', dataDir: '' },
     external: { url: '', token: '' },
     advanced: {
-      recallLimit: 5, recallTimeoutMs: 4000, language: 'auto', skipRepeats: true, linkedRecall: true, showAge: true, failureNote: true, captureMinChars: 4, blockTone: 'normal', maxNewPerTurn: 0, relevanceCheck: false, relevanceProvider: '', relevanceModel: '', relevanceTimeoutMs: 3000,
+      recallLimit: 8, recallTimeoutMs: 4000, language: 'auto', skipRepeats: true, linkedRecall: true, showAge: true, failureNote: true, captureMinChars: 4, blockTone: 'normal', maxNewPerTurn: 0, relevanceCheck: false, relevanceProvider: '', relevanceModel: '', relevanceTimeoutMs: 3000,
       afterthought: false, afterthoughtMax: 2, conversationPool: false, poolSize: 3, recentPool: false, recentSize: 3, recentDays: 7,
       profile: 'broad', dailyWrites: 50, redaction: true, newerFirst: true, forgetting: false, speakerAccount: 'dsh:local', toolFields: false,
     },
   })
   assert.ok(Object.isFrozen(DEFAULTS.modules))
+})
+
+test('advanced.recallLimit: the default is 8 (1 to 10), and a stored 5 stays 5', () => {
+  const field = FIELDS.find((g) => g.group === 'advanced').fields.find((f) => f.key === 'recallLimit')
+  assert.deepEqual([field.default, field.min, field.max], [8, 1, 10])
+  assert.equal(DEFAULTS.advanced.recallLimit, 8)
+  assert.equal(readConfig({ advanced: {} }).advanced.recallLimit, 8)
+  assert.equal(readConfig({ advanced: { recallLimit: 5 } }).advanced.recallLimit, 5)
+  assert.equal(readConfig({ advanced: { recallLimit: 10 } }).advanced.recallLimit, 10)
 })
 
 test('bad values fall back to the default, strings are trimmed', () => {
@@ -37,7 +46,7 @@ test('bad values fall back to the default, strings are trimmed', () => {
   assert.equal(s.gateway.mode, 'managed')
   assert.equal(s.external.url, 'http://127.0.0.1:8080')
   assert.equal(s.external.token, '')
-  assert.equal(s.advanced.recallLimit, 5)
+  assert.equal(s.advanced.recallLimit, 8)
   assert.equal(s.advanced.recallTimeoutMs, 4000)
   assert.equal(s.advanced.language, 'auto')
   assert.equal(s.advanced.profile, 'broad')
