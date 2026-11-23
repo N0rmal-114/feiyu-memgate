@@ -45,7 +45,7 @@ from .validate import (  # noqa: F401
     MAX_QUERY_CHARS, MAX_SPEAKER_CHARS, MAX_TIME_CHARS, MAX_TOTAL_CHARS, MAX_USED, MAX_USED_ID_CHARS,
     MAX_USED_SOURCE_CHARS, _BadMessages, _check_shape, _valid_context, _valid_history, _valid_messages, _valid_used)
 
-DEFAULT_LIMIT = 5
+DEFAULT_LIMIT = 8
 MAX_LIMIT = 10
 USED_DEADLINE = 3.0
 COLD_RECALL_DEADLINE = 8.0

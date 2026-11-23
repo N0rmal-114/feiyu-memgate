@@ -117,8 +117,15 @@ class RecallTests(ClientTestCase):
         req = self.gw.requests[0]
         self.assertEqual(req["path"], "/v1/recall")
         self.assertEqual(req["auth"], "Bearer " + TOKEN)
-        self.assertEqual(req["body"], {"query": "hello", "limit": 5})
+        self.assertEqual(req["body"], {"query": "hello", "limit": 8})
         self.assertEqual(req["ctype"], "application/json")
+
+    def test_the_default_recall_limit_is_8_and_is_what_gets_sent(self):
+        self.assertEqual((client_http.RECALL_LIMIT, self.client.recall_limit), (8, 8))
+        self.client.recall("hello")
+        self.client.recall_detail("hello")
+        self.client.explain("hello")
+        self.assertEqual([r["body"]["limit"] for r in self.gw.requests], [8, 8, 8])
 
     def test_recall_limit_option(self):
         MemoryClient(self.gw.url, TOKEN, recall_limit=3).recall("hello")
@@ -411,13 +418,13 @@ class SpeakerAndKeyTests(ClientTestCase):
         self.client.explain("hello", speaker="dsh:local")
         self.assertEqual([r["body"].get("speaker") for r in self.gw.requests],
                          ["dsh:local", "aiocqhttp:10001", "dsh:local"])
-        self.assertEqual(self.gw.requests[0]["body"], {"query": "hello", "limit": 5, "speaker": "dsh:local"})
+        self.assertEqual(self.gw.requests[0]["body"], {"query": "hello", "limit": 8, "speaker": "dsh:local"})
 
     def test_without_a_speaker_the_bodies_are_what_they_were(self):
         self.client.recall_detail("hello", context={"chat": "private"})
         self.client.explain("hello")
-        self.assertEqual(self.gw.requests[0]["body"], {"query": "hello", "limit": 5, "context": {"chat": "private"}})
-        self.assertEqual(self.gw.requests[1]["body"], {"query": "hello", "limit": 5})
+        self.assertEqual(self.gw.requests[0]["body"], {"query": "hello", "limit": 8, "context": {"chat": "private"}})
+        self.assertEqual(self.gw.requests[1]["body"], {"query": "hello", "limit": 8})
 
     def test_a_speaker_the_gateway_cannot_take_is_not_sent(self):
         for bad in ("", "s" * 65, 5, ["dsh:local"]):

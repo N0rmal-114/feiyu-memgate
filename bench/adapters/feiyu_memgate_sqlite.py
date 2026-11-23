@@ -39,6 +39,7 @@ OUT_PATH = os.path.join(ROOT, "bench", "results", "raw", "feiyu-memgate-sqlite.j
 FAKE_TOKEN = "bench-only-fake-token-0000000000000000"
 WARMUP_QUERY = "这是一个用来热身的问题"
 TOP = 10
+LIMIT = 5  # the recorded results were made with a limit of 5; the gateway default is now 8, so it is asked for explicitly
 
 
 def load(name):
@@ -86,7 +87,7 @@ def run(out_path=OUT_PATH, profile=None):
     for qid, q in queries.items():
         ranked = [item(h.ref, h.score) for h in backend.find(q["query"], TOP)]
         t0 = time.perf_counter()
-        reply = gw.recall("owner", {"query": q["query"]})
+        reply = gw.recall("owner", {"query": q["query"], "limit": LIMIT})
         ms = (time.perf_counter() - t0) * 1000.0
         deployed = []
         if reply.status == 200:

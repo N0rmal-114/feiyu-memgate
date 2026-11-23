@@ -44,7 +44,7 @@ python bench/dev_eval.py --backend embedding --embed-url ... --option floor=0.4 
 
 `--backend` 是 `sqlite`、`inmemory`、`embedding`、`hybrid`；后两个需要一个兼容 OpenAI 的 embeddings 接口。
 `--stages` 写逗号分隔的名字或 JSON 列表；`--min-score`、`--ratio`、`--gap` 设对应步骤的选项。
-每一行输出：Hit@1、Hit@5（后端自己的排名，没有阈值）、交付命中（网关按这套步骤和默认的 5 条真正会交出去的里有没有对的）、
+每一行输出：Hit@1、Hit@5（后端自己的排名，没有阈值）、交付命中（网关按这套步骤和 5 条真正会交出去的里有没有对的；脚本在每次召回里写明 limit 5，记录的结果都是这样量的，网关的默认现在是 8）、
 对的记忆拿到的比例、噪声（交出去的里不是对的占比）、安静率（没有答案的问题什么都不交的比例）、每题平均条数。
 定义和 `score.py` 一致（指标代码就是从那里导入的）。`--data DIR` 选开发集（默认 `bench/dev`），它拒绝读 `data/`。
 

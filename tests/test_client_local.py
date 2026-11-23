@@ -19,6 +19,7 @@ from pathlib import Path
 from feiyu_memgate import config
 from feiyu_memgate.backends.base import MemoryBackend
 from feiyu_memgate.client import LocalClient, MemoryClient, format_block
+from feiyu_memgate.client.http import RECALL_LIMIT
 from feiyu_memgate.errors import BackendError, ConfigError
 from feiyu_memgate.gateway import server as gateway_server
 from feiyu_memgate.registry import register
@@ -353,6 +354,22 @@ class LocalOnly(unittest.TestCase):
         client.close()
         self.assertFalse(gateway._closed)
         self.assertEqual(len(LocalClient(gateway, client="reader").recall("oolong tea")), 1)
+
+    def test_the_default_recall_limit_is_8_and_is_what_the_gateway_is_asked_for(self):
+        client = self.build()
+        self.assertEqual((client.recall_limit, RECALL_LIMIT), (8, 8))
+        seen = []
+        original = client._post
+
+        def spy(path, payload, *args, **kwargs):
+            seen.append((path, payload))
+            return original(path, payload, *args, **kwargs)
+
+        client._post = spy
+        client.recall("oolong tea")
+        client.explain("oolong tea")
+        self.assertEqual([(path, payload["limit"]) for path, payload in seen], [("/v1/recall", 8), ("/v1/explain", 8)])
+        self.assertEqual(self.build(recall_limit=5).recall_limit, 5)
 
     def test_health(self):
         client = self.build()

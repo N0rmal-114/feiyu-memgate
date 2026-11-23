@@ -74,7 +74,7 @@ WARMUP_QUERY = "这是一个用来热身的问题"
 DEFAULT_EMBED_URL = "http://127.0.0.1:11434/v1"
 DEFAULT_MODEL = "bge-m3"
 BACKENDS = ("sqlite", "inmemory", "embedding", "hybrid", "openviking")
-LIMIT = 5
+LIMIT = 5  # asked for explicitly in every recall: the recorded results were made with 5, the gateway default is now 8
 FETCH = LIMIT * 3  # what Gateway.recall asks every store for
 TOP = 10
 GRID_SCORES = tuple(round(0.05 * i, 2) for i in range(1, 17))                # 0.05 .. 0.80
@@ -294,7 +294,7 @@ def run_questions(gateway, cand, queries):
                 continue
             seen.add(mid)
             ranked.append({"id": mid, "score": c["score"]})
-        reply = gateway.recall("owner", {"query": q["query"]})
+        reply = gateway.recall("owner", {"query": q["query"], "limit": LIMIT})  # LIMIT = 5: the recorded results were made with 5, the gateway default is now 8
         if reply.status != 200:
             raise SystemExit("recall failed for %s with status %s" % (qid, reply.status))
         deployed = [{"id": ids.get(r["id"]), "score": r["score"]} for r in reply.body["results"]]

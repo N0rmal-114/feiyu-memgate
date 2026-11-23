@@ -124,6 +124,8 @@ python -B bench/chat/run.py --split bench/chat/dev --backend sqlite --table
 python -B bench/chat/run.py --split bench/chat/dev --backend hybrid --url <embeddings 接口> --model bge-m3 --linked off --table
 ```
 
+`run.py` 的 `--limit` 默认是 5，记录的结果都是这样量的。网关的默认条数现在是 8，加 `--limit 8` 量的就是这个默认值。
+
 `--linked off` 是去掉 `linked` 步骤的默认管线，用来和现在的默认（`on`）比。`methods.py`、`sweep.py`、`vector_lab.py`、`model_lab.py`、`session_lab.py` 是实验用的：把一种改法做成可以对比的变体，在开发集上扫参数。它们不是产品代码。`model_lab.py` 比的是要靠语言模型的做法，模型写的文字作为文件交给它，它自己不调用模型。`session_lab.py` 按轮回放 `sessions`，量的是一段对话里的事：晚一轮才到的记忆、历史被压缩、隔天新开对话。`noise.py` 是这两个脚本共用的几种过滤规则（只从结果里往下拿记忆）。已经量过的做法和结果见 [docs/design/2026-11-18-linked-recall.md](../../docs/design/2026-11-18-linked-recall.md) 、[docs/design/2026-11-18-recall-with-a-model.md](../../docs/design/2026-11-18-recall-with-a-model.md) 、[docs/design/2026-11-18-sessions.md](../../docs/design/2026-11-18-sessions.md) 和 [docs/design/2026-11-21-noise.md](../../docs/design/2026-11-21-noise.md)。
 
 ## 回复质量

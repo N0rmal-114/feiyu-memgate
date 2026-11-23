@@ -550,7 +550,7 @@ class EndToEndTests(ConfigCase):
         self.assertEqual(report["private"]["held"], 0)
         self.assertEqual(report["private"]["demoted"], 10)  # old: demoted in ranking ...
         self.assertEqual(len(store.items), 10)  # ... but all present
-        found = gw.recall("owner", {"query": "green tea"})
+        found = gw.recall("owner", {"query": "green tea", "limit": 5})
         self.assertEqual(len(found.body["results"]), 5)  # and recalled (limit 5)
         # the whole lifetime later (default half-life 90 days: 389 days) the unused ones are due, all at once:
         # the default rate limit (5 per sweep) spreads them over sweeps, and the rest is held, not lost

@@ -517,9 +517,9 @@ class ContextTests(unittest.TestCase):
 
     def test_http_client_body_is_unchanged_without_it(self):
         self.client.recall("hello")
-        self.assertEqual(self.last(), {"query": "hello", "limit": 5})
+        self.assertEqual(self.last(), {"query": "hello", "limit": 8})
         self.client.recall_detail("hello", context=None)
-        self.assertEqual(self.last(), {"query": "hello", "limit": 5})
+        self.assertEqual(self.last(), {"query": "hello", "limit": 8})
         self.client.remember("hello")
         self.assertEqual(self.last(), {"messages": [{"role": "user", "content": "hello"}]})
 

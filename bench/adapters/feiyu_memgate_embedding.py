@@ -52,6 +52,7 @@ DEFAULT_MODEL = "bge-m3"
 FAKE_TOKEN = "bench-only-fake-token-0000000000000000"
 WARMUP_QUERY = "这是一个用来热身的问题"
 TOP = 10
+LIMIT = 5  # the recorded results were made with a limit of 5; the gateway default is now 8, so it is asked for explicitly
 # The first call may load the model (about 8 s on CPU); the backend's own timeout must allow that.
 BACKEND_TIMEOUT = 60.0
 
@@ -125,7 +126,7 @@ def run_system(spec, out_dir, system, mode, how, notes_head, stages=None, forget
         answers = {}
         for qid, q in queries.items():
             t0 = time.perf_counter()
-            reply = gw.recall("owner", {"query": q["query"]})
+            reply = gw.recall("owner", {"query": q["query"], "limit": LIMIT})
             ms = (time.perf_counter() - t0) * 1000.0
             deployed = []
             if reply.status == 200:

@@ -36,7 +36,8 @@ The four arms were decided before the first run of this version and are not chan
 
 Measurements ("probes") are taken on day 0, day 1 and every 30 days, with a recall that does NOT count as
 a use, so measuring never changes what is measured: every answerable question is asked through the
-gateway's own stages and pool with the default limit of 5.
+gateway's own stages and pool with a limit of 5 (LIMIT, set explicitly: the results were made with 5, the
+gateway default is now 8).
 
 The scenario below (seed, rates, split, days, arms, the per-backend recall settings) was fixed before any
 result of this version was looked at; it is not adjusted afterwards.

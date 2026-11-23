@@ -94,7 +94,7 @@ Authorization: Bearer <令牌>
 |---|---|
 | 请求体 | 64 KiB（65536 字节） |
 | 查询词 | 500 字 |
-| 一次召回的条数 | 默认 5，最多 10 |
+| 一次召回的条数 | 默认 8，最多 10 |
 | 一次写入的消息数 | 1 到 20 条 |
 | 一条消息 | 4000 字（超过就拒绝，不截断；去掉空白后不能是空的） |
 | 一次写入合计 | 16000 字 |
@@ -116,7 +116,7 @@ Authorization: Bearer <令牌>
 | 字段 | 类型 | 必须 | 说明 |
 |---|---|---|---|
 | `query` | 字符串 | 是 | 去掉空白后不能是空的，最多 500 字。不合规 400 `bad_query` |
-| `limit` | 整数 | 否 | 默认 5 |
+| `limit` | 整数 | 否 | 默认 8 |
 | `tenant_id` | 字符串 | 看客户端 | 见上面的“租户字段” |
 | `context` | 对象 | 否 | 见下 |
 | `speaker` | 字符串或 `null` | 否 | 谁在问，一个账号（见“账号和身份”）。只有网关配置了 `[identity]` 才看它；没有 `[identity]` 时和别的不认识的键一样被忽略 |
@@ -440,7 +440,7 @@ from feiyu_memgate.client import (MemoryClient, LocalClient, BlockFormatter, for
 ### `MemoryClient`
 
 ```python
-MemoryClient(base_url, token, tenant_token=None, logger=None, recall_limit=5, tenant_bound=False)
+MemoryClient(base_url, token, tenant_token=None, logger=None, recall_limit=8, tenant_bound=False)
 ```
 
 | 参数 | 说明 |
@@ -519,7 +519,7 @@ explain(query, timeout=8.5, tenant_id=None, *, limit=None, context=None, speaker
 
 ```python
 LocalClient(gateway, client=None, tenant_client=None, *, start=True, close_gateway=False,
-            logger=None, recall_limit=5)
+            logger=None, recall_limit=8)
 ```
 
 | 参数 | 说明 |

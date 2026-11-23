@@ -295,6 +295,46 @@ class RecallTests(GatewayTestCase):
         self.assertTrue(all(b["target_uri"] == "viking://~/memories" for b in find))
         self.assertTrue(all(b["limit"] <= 30 for b in find))
 
+    def twelve(self):
+        self.ov.memories[CHAN_KEY] = [
+            mem("viking://~/memories/preferences/owner/%d.md" % i, 0.9 - i / 100, "第%s件事" % "零一二三四五六七八九十甲"[i] * 3)
+            for i in range(12)
+        ]
+
+    def test_the_default_limit_is_8_and_the_cap_is_10(self):
+        self.assertEqual((gateway_app.DEFAULT_LIMIT, gateway_app.MAX_LIMIT), (8, 10))
+
+    def test_recall_without_a_limit_gives_8_and_never_more(self):
+        self.twelve()
+        status, body = self.recall()
+        self.assertEqual(status, 200)
+        self.assertEqual(len(body["results"]), 8)
+        self.assertEqual(body["more"], 4)
+
+    def test_recall_without_a_limit_gives_8_when_exactly_8_pass_the_score_line(self):
+        self.ov.memories[CHAN_KEY] = [
+            mem("viking://~/memories/preferences/owner/%d.md" % i, 0.9 - i / 100 if i < 8 else 0.3, "第%s件事" % "零一二三四五六七八九"[i] * 3)
+            for i in range(10)
+        ]
+        _, body = self.recall()
+        self.assertEqual(len(body["results"]), 8)
+
+    def test_recall_without_a_limit_gives_fewer_when_fewer_pass(self):
+        self.twelve()
+        self.ov.memories[CHAN_KEY] = self.ov.memories[CHAN_KEY][:6]
+        _, body = self.recall()
+        self.assertEqual(len(body["results"]), 6)
+
+    def test_an_explicit_limit_wins_over_the_default(self):
+        self.twelve()
+        self.assertEqual(len(self.recall(limit=3)[1]["results"]), 3)
+        self.assertEqual(len(self.recall(limit=5)[1]["results"]), 5)
+        self.assertEqual(len(self.recall(limit=10)[1]["results"]), 10)
+
+    def test_a_limit_above_10_is_cut_to_10(self):
+        self.twelve()
+        self.assertEqual(len(self.recall(limit=99)[1]["results"]), 10)
+
     def test_recall_bad_inputs_are_400(self):
         for body in ({"query": 5}, {"query": ""}, {"query": "x", "limit": "3"}, {"query": "x", "limit": True}, {}):
             self.assertEqual(self.request("POST", "/v1/recall", body)[0], 400, body)

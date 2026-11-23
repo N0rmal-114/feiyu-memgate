@@ -264,11 +264,11 @@ class ClientTests(unittest.TestCase):
 
     def test_the_body_is_unchanged_without_it(self):
         self.client.recall("hello")
-        self.assertEqual(self.last(), {"query": "hello", "limit": 5})
+        self.assertEqual(self.last(), {"query": "hello", "limit": 8})
         self.client.recall_detail("hello", history=None)
-        self.assertEqual(self.last(), {"query": "hello", "limit": 5})
+        self.assertEqual(self.last(), {"query": "hello", "limit": 8})
         self.client.explain("hello")
-        self.assertEqual(self.last(), {"query": "hello", "limit": 5})
+        self.assertEqual(self.last(), {"query": "hello", "limit": 8})
 
     def test_it_is_keyword_only(self):
         with self.assertRaises(TypeError):

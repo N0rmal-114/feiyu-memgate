@@ -657,7 +657,9 @@ def probe_bounded_output():
         for n in range(15):
             store.put("zephyrquartz entry %02d %s" % (n, _filler(rng, 6)), ref="e-%02d" % n)
         counts = {}
-        for label, body in (("limit3", {"limit": 3}), ("default", {}), ("limit50", {"limit": 50}), ("limit0", {"limit": 0})):
+        # "default" is pinned to a limit of 5: the recorded result (default gave 5) was made when the gateway default was 5;
+        # it is 8 now, and tests/test_gateway.py pins that
+        for label, body in (("limit3", {"limit": 3}), ("default", {"limit": 5}), ("limit50", {"limit": 50}), ("limit0", {"limit": 0})):
             reply = s.gw.recall("owner", dict(body, query="zephyrquartz entry"))
             counts[label] = len(reply.body["results"]) if reply.status == 200 else -1
         c.add("limit_is_honoured", counts["limit3"] == 3 and counts["default"] == 5, "limit=3 gave %d, default gave %d"
