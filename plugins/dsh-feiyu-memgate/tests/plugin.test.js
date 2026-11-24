@@ -1707,8 +1707,12 @@ test('recent pool: a folder that cannot be written leaves the turn alone and log
   assert.deepEqual(shape(first), ['user', 'recall', 'context'])
   await talk.turn('The cat again?', 'Yes.')
   const lines = r.host.logs.map((l) => l.text).filter((t) => t.includes('recent pool unavailable'))
-  assert.equal(lines.length, 1, 'once')
-  assert.match(lines[0], /^feiyu-memgate: recent pool unavailable \([A-Z0-9_]+\)$/)
+  // Reading and writing can fail with different codes for this one cause (on Linux the read gives ENOTDIR
+  // and the write EEXIST; on Windows the read just finds no file), so: one line per code, none repeated
+  // over the two turns.
+  assert.ok(lines.length >= 1 && lines.length <= 2, JSON.stringify(lines))
+  assert.equal(new Set(lines).size, lines.length, 'each kind once: ' + JSON.stringify(lines))
+  for (const line of lines) assert.match(line, /^feiyu-memgate: recent pool unavailable \([A-Z0-9_]+\)$/)
   assert.ok(!r.host.logs.some((l) => l.text.includes(M_CAT)))
   fs.rmSync(base, { recursive: true, force: true })
 })

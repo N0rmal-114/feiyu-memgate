@@ -57,6 +57,8 @@ test('real gateway: remember, recall, used and health', { skip: SRC ? false : 's
   child.stderr.on('data', (d) => { output += d })
   let exited = false
   child.on('exit', () => { exited = true })
+  // A command that cannot be started gives 'error' and never 'exit'; without this the test waits for ever.
+  child.on('error', (error) => { exited = true; output += `could not start ${PYTHON}: ${error.message}\n` })
   const warnings = []
   const client = createClient({ url: `http://127.0.0.1:${port}`, token: TOKEN, logger: { warn: (m) => warnings.push(m) } })
   try {
@@ -179,6 +181,7 @@ test('real gateway, hybrid endpoint store: both files hold the same refs, recall
   child.stderr.on('data', (d) => { output += d })
   let exited = false
   child.on('exit', () => { exited = true })
+  child.on('error', (error) => { exited = true; output += `could not start ${PYTHON}: ${error.message}\n` })
   const client = createClient({ url: `http://127.0.0.1:${port}`, token: TOKEN })
   const stop = async () => {
     child.kill()
