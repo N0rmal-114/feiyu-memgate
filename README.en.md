@@ -47,6 +47,8 @@ This project was extracted from the memory module of a long-running private comp
 | Group members flood writes and fill the store | Per-minute request limits and per-day write limits, counted per client and per tenant, plus a cross-tenant total limit |
 | A fact has a newer and an older memory, and the older one comes first | `newer_first` stage: among candidates that pass the score thresholds, the one with the newer date comes first |
 | One group-chat token can read every group | Optional tenant-bound token: one derived token per tenant, and the gateway trusts only the tenant inside the token |
+| The same person is two accounts on two chat platforms, each with its own memories, and every host decides for itself who the owner is | Optional identity table: a host reports only `platform:id` and the gateway looks the person up in one table; a client may report accounts of its own platforms only; an account that is not in the table is stored only as a keyed stand-in code |
+| Something noted in a private chat is recalled in a group | Stores and every memory carry an audience (owner, group, public): a memory whose audience is narrower than the client's is never handed to it, and the gateway refuses to start when the configuration does not add up |
 | Memory only grows | Optional forgetting curve: down-weight, archive and delete by use, with recovery (experimental, off by default) |
 
 ## Architecture

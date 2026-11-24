@@ -380,7 +380,7 @@ stages = [
 `min_score` 不写 `value` 时，每条候选的分数线依次看：`per_store` 里这个存储的值，`value`，存储按分数线档位声明的分数线：默认档位 `broad` 用 `broad_min_score`（`sqlite`、`inmemory` 是 0.25，`embedding` 按模型预设（bge-m3 是 0.30，其余见 [backends.md](backends.md)），`hybrid` 是 0.40，`openviking` 是 0.55），`precise` 档用 `default_min_score`（`sqlite`、`inmemory` 是 0.30，bge-m3 是 0.50，`hybrid` 是 0.70，`openviking` 是 0.55；每个数是怎么来的见 [backends.md](backends.md)）；存储没有声明某一档就用它的 `default_min_score`，都没有就是 0.5。`relative_score` 不写 `ratio` 时同理：`broad` 档用 `broad_relative_ratio`（`sqlite`、`inmemory` 是 0.70，bge-m3 是 0.60，`hybrid` 是 0.65，`openviking` 是 0.90），`precise` 档用 `default_relative_ratio`（`sqlite`、`inmemory` 是 0.75，bge-m3 是 0.85，`hybrid` 是 0.85，`openviking` 是 0.95），都没有就是 0.6。`default_` 前缀是历史命名，指的是 `precise` 这一档，不是默认档位。所以一般不用手写分数线；要调，最好用 `feiyu-memgate eval` 或 `bench/dev_eval.py` 在自己的数据上量一下再定：
 
 `profile` 是 `min_score`、`relative_score` 和 `linked` 三步共用的快捷方式，默认是 `"broad"`：用存储声明的宽松分数线（`broad_min_score`、`broad_relative_ratio`），
-聊天里一个话题通常牵到好几条记忆，所以默认每题交得多一些（用向量存储时约 2.5 条，`precise` 约 1 条）；代价是交出去的条目更杂、对没有答案的问题更容易开口（每个后端在开发集上的得失见 [backends.md](backends.md) 的“两档分数线”）。
+聊天里一个话题通常牵到好几条记忆，所以默认每题交得多一些（用向量存储时约 2.5 条，`precise` 约 1 条）；代价是交出去的条目更杂、对没有答案的问题更容易开口（每个后端在开发集上的得失见 [backends.md](backends.md) 的“两档分数线”）。“约 2.5 条”是每次最多交 5 条时量的；现在默认最多 8 条，这个数字没有重测。
 写 `profile = "precise"` 就回到以前的分数线：每题约 1 条，交出去的大部分是对的，漏答更多；`linked` 在这一档下默认也不再接记忆（见上面 `linked` 一节）。
 不写它就是 `"broad"`。它只加到**自己没有写 `profile` 的** `min_score`、`relative_score` 和 `linked` 上（`linked` 的 `profile` 只决定 `max_added` 不写时的默认：`precise` 是 0，其余是 2），
 不管 `stages` 是默认的还是自己写出来的；某一步自己写了 `profile = "precise"` 或 `"broad"`，就以它自己的为准；写了 `value` / `ratio` 的，数字永远优先于档位。

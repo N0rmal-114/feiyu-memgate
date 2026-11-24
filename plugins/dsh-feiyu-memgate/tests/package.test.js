@@ -59,7 +59,7 @@ function satisfies(version, range, includePrerelease) {
 
 test('manifest fields', () => {
   assert.equal(pkg.name, 'dsh-feiyu-memgate')
-  assert.equal(pkg.version, '0.3.2')
+  assert.equal(pkg.version, '0.4.0')
   assert.equal(pkg.type, 'module')
   assert.equal(pkg.license, 'MIT')
   assert.equal(pkg.author, 'N0rmal')

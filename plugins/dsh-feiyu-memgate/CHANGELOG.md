@@ -1,12 +1,16 @@
 # dsh-feiyu-memgate 更新记录
 
-这是 DSH 插件 `dsh-feiyu-memgate` 的版本记录。网关本身的改动在仓库根目录的 [CHANGELOG.md](https://github.com/N0rmal-114/feiyu-memgate/blob/main/CHANGELOG.md)；附加插件 `dsh-feiyu-memgate-embed` 目前只有 0.1.0 一个版本。
+这是 DSH 插件 `dsh-feiyu-memgate` 的版本记录。网关本身的改动在仓库根目录的 [CHANGELOG.md](https://github.com/N0rmal-114/feiyu-memgate/blob/main/CHANGELOG.md)；附加插件 `dsh-feiyu-memgate-embed` 有 0.1.0 和 0.1.1 两个版本；0.1.1 和本插件的 0.4.0 同时发布，只改了界面上的说明文字，功能没有变化。
 
 每个版本下，“默认行为的变化”列出升级后不用改设置就会不一样的地方，每一项都写了怎么改回去。
 
-## 未发布
+## 0.4.0
 
-三项实验功能，默认关闭，只做过离线测量。设计说明和测量见 [docs/design/2026-11-18-recall-with-a-model.md](https://github.com/N0rmal-114/feiyu-memgate/blob/main/docs/design/2026-11-18-recall-with-a-model.md)。实验设置都关着（默认）时，对话里没有任何变化（设置页面多了更新日志标签页，见下）：不注册新的监听，不保存对话状态，不写文件，不多做查询，记忆块和失败说明和 0.3.2 一样。
+日期：2026-11-24。内置网关为提交 `4beba60`。
+
+这一版给记忆加上了“谁说的、给谁看”：每次写入和召回都带上说话人账号，每条记忆有自己的受众。默认每次召回最多交的记忆从 5 条改成 8 条。设置页面重新设计，多了试召回、更新日志和反馈三处。升级后不改设置就会不一样的地方都列在下面的“默认行为的变化”里。
+
+另有三项实验功能（`advanced.afterthought`、`advanced.conversationPool`、`advanced.recentPool`），默认关闭，只做过离线测量，设计说明和测量见 [docs/design/2026-11-18-recall-with-a-model.md](https://github.com/N0rmal-114/feiyu-memgate/blob/main/docs/design/2026-11-18-recall-with-a-model.md)；回复前由模型筛选记忆的 `advanced.relevanceCheck` 也是实验功能，默认关闭。这一版的新功能都没有在真实的聊天里验证过，量过什么、没量什么见本节末尾的“没有验证的”。
 
 ### 默认行为的变化
 

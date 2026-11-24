@@ -56,7 +56,7 @@ function satisfies(version, range, includePrerelease) {
 describe('package', () => {
   it('has the manifest fields the host and npm read', () => {
     assert.equal(pkg.name, 'dsh-feiyu-memgate-embed')
-    assert.equal(pkg.version, '0.1.0')
+    assert.equal(pkg.version, '0.1.1')
     assert.equal(pkg.type, 'module')
     assert.equal(pkg.main, './index.js')
     assert.equal(pkg.license, 'MIT')

@@ -1,6 +1,6 @@
 {
   "name": "dsh-feiyu-memgate-embed",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Optional add-on for the dsh-feiyu-memgate DeepSeek Harness (DSH) plugin: runs a local embedding model on the CPU with node-llama-cpp and offers it to the memory gateway as an OpenAI-compatible endpoint on loopback.",
   "type": "module",
   "main": "./index.js",
