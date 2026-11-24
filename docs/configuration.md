@@ -330,6 +330,28 @@ stages = [
 
 不写 `stages` 时用默认的一套：`min_score`、`relative_score`、`newer_first`、`linked`、`record_audience`、`fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`。`record_audience` 逐条检查记忆自己的受众（见“每条记录的受众”）：记忆的受众比这个客户端的窄就拿掉，不用选项；写了自己的 `stages`、又有受众不是 `owner` 且能召回的客户端时，必须把它列进去，否则启动报错：`clients.NAME shows what it recalls to other people, but no recall stage checks each record's audience: add "record_audience" to [recall] stages`。`drop_marker`（丢掉写入自检留下的标记）不在默认里，要用就加在 `fill_text` 后面。要用遗忘曲线的 `freshness`（选项 `floor` 默认 0.7、`credit` 默认 `"top"`、`credit_ratio` 默认 0.9，见 [forgetting.md](forgetting.md)），放在 `min_score` 后面、`relative_score` 前面（它们都改分数或按分数比较，顺序见 [pieces.md](pieces.md)）。每个步骤的选项见 [pieces.md](pieces.md)。
 
+**`budget`：记忆普遍很长时，把字数预算调大。** `budget` 给一次召回交出去的总字数封顶，默认 1500 个字符；放不下的记忆整条不放，不截断，所以一条比预算还长的记忆永远交不出去。记忆是几十到几百个字符的短句时，这个默认值够用。记忆是整段的长文本（几千个字符的回话、文档片段）时，排在前面的几条常常放不下，交出去的就比 `limit` 少得多。这时自己写 `stages`，把默认的一套照抄，只改最后一项：
+
+```toml
+[recall]
+stages = [
+    "min_score", "relative_score", "newer_first", "linked", "record_audience",
+    "fill_text", "drop_oversize", "redact", "dedupe",
+    { type = "budget", max_chars = 6000 },
+]
+```
+
+调多大看两头：记忆一般有多长，和每次愿意往模型的上下文里放多少字。预算越大交得越多，其中不相关的也越多。在两套英文题库上量过（只用 `embedding`，`broad` 档，`limit` 用默认的 8；这两套题库把助手的长篇回话也算作记忆）：
+
+| 预算 | 每题交出的字符 | 交出的里面有证据的题 | 交出的里面证据占的比例 |
+|---|---|---|---|
+| 1500（默认） | 1242 和 1033 | 62.3% 和 78.5% | 21.2% 和 37.7% |
+| 3000 | 2109 和 1916 | 62.8% 和 82.8% | 18.6% 和 33.0% |
+| 6000 | 4934 和 3696 | 66.2% 和 88.2% | 17.5% 和 27.6% |
+| 12000 | 9173 和 4384 | 66.2% 和 88.2% | 14.7% 和 26.6% |
+
+第一套题库的记忆平均两千多个字符，预算从 1500 加到 3000 几乎没有用，到 6000 才见效；第二套的记忆短一些，加到 6000 以后再加就没有变化了，剩下没交出去的是被分数线挡住的，不归预算管。排名不受预算影响。这些数字来自 0.4.0 开发期间的一次测量，结果文件还没有放进仓库。写了自己的 `stages` 以后，以后的版本往默认的一套里加新步骤时，这份配置不会自动跟着多出来。
+
 **`linked`：把和最相关的几条连着的记忆一起带回来。** 默认在 `newer_first` 后面、`fill_text` 前面。分数线决定了交哪些之后，它看排在最前面的 `top` 条候选，向它们所在的存储要“和这一条最像的记忆”（后端的可选方法 `neighbours`，见 [pieces.md](pieces.md)），把相似度不低于 `minimum` 的、还不在候选里的最多 `max_added` 条接在后面，而且只在候选数还没到这次请求的 `limit` 时才接：`limit` 仍然是“最多这么多条”。接上的候选和别的候选一样走后面的 `fill_text`、`drop_oversize`、`redact`、`dedupe`、`budget`，所以脱敏和字数上限照常管着它们；它们的分数排在所有第一轮候选后面；HTTP 回答的字段不变（回答里看不出哪条是接上的）。它在分数线之后才起作用，所以不改变“什么时候保持安静”：一条候选都没有就什么也不加。
 
 | 选项 | 默认 | 意思 |
