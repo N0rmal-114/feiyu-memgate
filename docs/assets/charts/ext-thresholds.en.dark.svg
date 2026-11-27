@@ -187,5 +187,5 @@
 <text x="777.3" y="502.0" class="s">18.4%</text>
 <text x="24.0" y="564.0" class="s">PerLTQA has no no-answer questions, so its quiet rate is not defined and shows a dash. The score thresholds were chosen on this project's own development set (short Chinese</text>
 <text x="24.0" y="582.0" class="s">sentences) and were not tuned for these two datasets.</text>
-<text x="24.0" y="600.0" class="s">bench/external/results/summary.md · PerLTQA 32 stores, 8,588 questions; LoCoMo 10 stores, 1,535 questions · 2026-11-17</text>
+<text x="24.0" y="600.0" class="s">bench/external/results/summary.md · PerLTQA 32 stores, 8,588 questions; LoCoMo 10 stores, 1,535 questions · 2026-11-27</text>
 </svg>

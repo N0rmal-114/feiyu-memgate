@@ -349,11 +349,48 @@ def source_text(ext, lang):
     return fmt % (args + ((date,) if date else ()))
 
 
-def footer(doc, ext, y, note=None):
-    """The wrapped note (if any) and the source line, as bench/charts.py does; sets the document height."""
-    for line in charts.note_lines(note) if note else ():
-        doc.text(MARGIN, y, line, "s")
-        y += 18
+LEFT_OUT = {"zh": ("未列入：%s。它们在该数据集上存下的记忆比发去的少 5% 以上，见 README 的写入对账表。", "（%s）", "、", "；"),
+            "en": ("Left out: %s. On that dataset they stored over 5% fewer memories than they were sent; see the write "
+                   "audit in the README.", " (%s)", ", ", "; ")}
+
+
+def left_out_note(ext, lang, systems, keep=None):
+    """One sentence naming the projects left out of a dataset because they stored too little of what they were sent
+    (the "excluded" list of the summary, report.build), or None when there are none. Configurations of one project
+    are named once, by the project. `keep`: a test on the configuration name, for a chart that shows only some kinds
+    of configuration."""
+    where = {}
+    for dataset, name in DATASET_NAMES.items():
+        for config in (ext.get(dataset) or {}).get("excluded") or ():
+            if keep is not None and not keep(config):
+                continue
+            project = (systems.get(config) or {}).get("project") or report.label(config, lang, systems)
+            if name not in where.setdefault(project, []):
+                where[project].append(name)
+    if not where:
+        return None
+    sentence, paren, comma, between = LEFT_OUT[lang]
+    return sentence.replace("%s", between.join(p + paren % comma.join(d) for p, d in where.items()), 1)
+
+
+def calls_a_model(systems):
+    """A test on a configuration name: does it call a language model (the cost chart shows only those)?"""
+    return lambda name: bool((systems.get(name) or {}).get("llm")) or name in report.EXTRA_LABELS
+
+
+def is_sampled(name):
+    """Was this configuration run on a sample of the stores (the samples chart shows only those)?"""
+    return any(name in names for groups in report.SAMPLES.values() for _, _, names in groups)
+
+
+def footer(doc, ext, y, note=None, systems=None, keep=None):
+    """The wrapped note (if any), the sentence about left-out configurations (when `systems` is given and there are
+    any) and the source line, as bench/charts.py does; sets the document height."""
+    left_out = left_out_note(ext, doc.lang, systems, keep) if systems is not None else None
+    for text in (note, left_out):
+        for line in charts.note_lines(text) if text else ():
+            doc.text(MARGIN, y, line, "s")
+            y += 18
     doc.text(MARGIN, y, source_text(ext, doc.lang), "s")
     doc.h = int(y + 16)
 
@@ -419,7 +456,7 @@ def chart_overview(ext, own, systems, theme, lang):
                     heat_cell(doc, cx, y, cw, ROW_H, v, pct(v))
                 else:
                     ink_text(doc, cx + cw / 2.0, yc + 4.5, "%.2f" % v, doc.pal["ink"])
-    footer(doc, ext, top + plot_h + 28, t["overview_note"] % own_question_counts(own)[0])
+    footer(doc, ext, top + plot_h + 28, t["overview_note"] % own_question_counts(own)[0], systems=systems)
     return doc.render()
 
 
@@ -466,7 +503,7 @@ def chart_ranking(ext, own, systems, theme, lang):
                 doc.text(x0 + 4, yc + 4, "–", "s")
             else:
                 ranking_marks(doc, x0, scale, yc, row, fill_of(doc, name))
-    footer(doc, ext, top + plot_h + 50, t["ranking_note"])
+    footer(doc, ext, top + plot_h + 50, t["ranking_note"], systems=systems)
     return doc.render()
 
 
@@ -753,7 +790,7 @@ def chart_delivered(ext, own, systems, theme, lang):
             doc.add('<text x="%.1f" y="%.1f" class="l" style="font-size:11px"%s>%s</text>' % (
                 tx, ty - 2.5, "" if anchor == "start" else ' text-anchor="%s"' % anchor, charts.esc(label)))
     doc.text((left + right) / 2.0, top_last + plot_h + 38, t["delivered_x"], "s", "middle")
-    footer(doc, ext, top_last + plot_h + 62, t["delivered_note"])
+    footer(doc, ext, top_last + plot_h + 62, t["delivered_note"], systems=systems)
     return doc.render()
 
 
@@ -798,7 +835,7 @@ def chart_by_type(ext, own, systems, theme, lang):
                 ink_text(doc, cx + cw / 2.0, yc + 4.5, "–", doc.pal["ink2"], cls="s")
             else:
                 heat_cell(doc, cx, y, cw, ROW_H, v, pct(v))
-    footer(doc, ext, top + plot_h + 28, t["bytype_note"])
+    footer(doc, ext, top + plot_h + 28, t["bytype_note"], systems=systems)
     return doc.render()
 
 
@@ -955,7 +992,8 @@ def chart_cost(ext, own, systems, theme, lang):
                 ("%.1f" % (by[m]["calls"] / float(by[m]["memories"]))) if m in by else "–" for m in models), "s", "end")
             doc.text(stores_x, yc + 4, " / ".join(str(by[m]["stores"]) if m in by else "–" for m in models), "s", "end")
             y += row_h
-    footer(doc, ext, top + plot_h + 62, t["cost_note"] + (" " + t["cost_below"] if below else ""))
+    footer(doc, ext, top + plot_h + 62, t["cost_note"] + (" " + t["cost_below"] if below else ""), systems=systems,
+           keep=calls_a_model(systems))
     return doc.render()
 
 
@@ -1021,7 +1059,7 @@ def chart_latency(ext, own, systems, theme, lang):
             else:
                 doc.circle(x50, yc, 5, fill)
             doc.text(max(x95, x50) + 9, yc + 4, fmt_ms(v["p50_ms"]), "s")
-    footer(doc, ext, top + plot_h + 52, t["latency_note"])
+    footer(doc, ext, top + plot_h + 52, t["latency_note"], systems=systems)
     return doc.render()
 
 
@@ -1057,7 +1095,7 @@ def chart_samples(ext, own, systems, theme, lang):
             doc.text(items_x, yc + 4, "%.2f" % r["items"] if r.get("items") is not None else "–", "l", "end")
             y += ROW_H
         y = bottom + 34
-    footer(doc, ext, y + 8, t["samples_note"])
+    footer(doc, ext, y + 8, t["samples_note"], systems=systems, keep=is_sampled)
     return doc.render()
 
 

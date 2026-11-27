@@ -192,6 +192,28 @@ class ExternalChartsOnASmallSummary(unittest.TestCase):
             ET.fromstring(ext_charts.render_chart(name, ext, own, systems, "dark", "zh"))
             ET.fromstring(ext_charts.render_chart(name, small_inputs()[0], own, systems, "light", "en"))
 
+    def test_the_footer_names_the_configurations_left_out_of_a_dataset(self):
+        ext, own, systems = small_inputs()
+        systems["dsh-fish-memory"] = {"label": {"zh": "dsh-fish-memory", "en": "dsh-fish-memory"}, "project": "dsh-fish-memory"}
+        systems["dsh-fish-memory-expand-deepseek-flash"] = {
+            "label": {"zh": "dsh-fish-memory + x 扩词", "en": "dsh-fish-memory + x expansion"}, "project": "dsh-fish-memory",
+            "llm": True}
+        self.assertNotIn("Left out", ext_charts.render_chart("ranking", ext, own, systems, "light", "en"))
+        ext["perltqa"]["excluded"] = ["dsh-fish-memory", "dsh-fish-memory-expand-deepseek-flash"]
+        ext["locomo"]["excluded"] = ["dsh-fish-memory", "dsh-fish-memory-expand-deepseek-flash", "memsearch"]
+        ext["locomo"]["full"] = [r for r in ext["locomo"]["full"] if r["system"] != "memsearch"]
+        self.assertEqual(ext_charts.left_out_note(ext, "en", systems),
+                         "Left out: dsh-fish-memory (PerLTQA, LoCoMo); memsearch (LoCoMo). On that dataset they stored over "
+                         "5% fewer memories than they were sent; see the write audit in the README.")
+        self.assertTrue(ext_charts.left_out_note(ext, "zh", systems).startswith(
+            "未列入：dsh-fish-memory（PerLTQA、LoCoMo）；memsearch（LoCoMo）。"))
+        for name in ext_charts.CHARTS:
+            svg = ext_charts.render_chart(name, ext, own, systems, "light", "en")
+            ET.fromstring(svg)
+            self.assertEqual("Left out" in svg, name != "thresholds", name)  # that chart has this project's rows only
+            # memsearch calls no model and ran on every store: the cost and samples charts never showed it
+            self.assertEqual("memsearch (LoCoMo)" in svg, name not in ("thresholds", "cost", "samples"), name)
+
     def test_a_single_model_of_a_cost_pair_still_draws(self):
         ext, own, systems = small_inputs()
         ext = copy.deepcopy(ext)

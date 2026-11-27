@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="682" viewBox="0 0 1000 682" role="img" lang="en">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="690" viewBox="0 0 1000 690" role="img" lang="en">
 <style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#c3c2b7;font-size:13px}.t{font-size:17px;font-weight:600;fill:#f0efec}.l{font-size:13px;fill:#f0efec}.lb{font-size:13px;font-weight:600;fill:#f0efec}.s{font-size:11px;fill:#c3c2b7}.grid{stroke:#2c2c2a;stroke-width:1;fill:none}.axis{stroke:#383835;stroke-width:1;fill:none}.tick{stroke:#f0efec;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#3987e5}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
-<rect width="1000" height="682" fill="#1a1a19"/>
+<rect width="1000" height="690" fill="#1a1a19"/>
 <text x="24.0" y="32.0" class="t">Hit@5 by question type</text>
 <rect x="24.0" y="47.0" width="14" height="8" rx="2" class="fa"/>
 <text x="46.0" y="56.0" class="s">feiyu-memgate configurations</text>
@@ -123,14 +123,10 @@
 <text x="456.0" y="274.5" class="l" text-anchor="middle" style="fill:#f0efec">96.6%</text>
 <rect x="501.0" y="257.0" width="86.0" height="26.0" rx="3" fill="#2c5fab"/>
 <text x="544.0" y="274.5" class="l" text-anchor="middle" style="fill:#f0efec">93.1%</text>
-<rect x="603.0" y="257.0" width="86.0" height="26.0" rx="3" fill="#21344f"/>
-<text x="646.0" y="274.5" class="l" text-anchor="middle" style="fill:#f0efec">34.5%</text>
-<rect x="691.0" y="257.0" width="86.0" height="26.0" rx="3" fill="#203048"/>
-<text x="734.0" y="274.5" class="l" text-anchor="middle" style="fill:#f0efec">30.1%</text>
-<rect x="779.0" y="257.0" width="86.0" height="26.0" rx="3" fill="#213655"/>
-<text x="822.0" y="274.5" class="l" text-anchor="middle" style="fill:#f0efec">38.4%</text>
-<rect x="867.0" y="257.0" width="86.0" height="26.0" rx="3" fill="#1e2939"/>
-<text x="910.0" y="274.5" class="l" text-anchor="middle" style="fill:#f0efec">20.7%</text>
+<text x="646.0" y="274.5" class="s" text-anchor="middle" style="fill:#c3c2b7">–</text>
+<text x="734.0" y="274.5" class="s" text-anchor="middle" style="fill:#c3c2b7">–</text>
+<text x="822.0" y="274.5" class="s" text-anchor="middle" style="fill:#c3c2b7">–</text>
+<text x="910.0" y="274.5" class="s" text-anchor="middle" style="fill:#c3c2b7">–</text>
 <rect x="24.0" y="291.0" width="5" height="14" rx="2" class="fo"/>
 <text x="36.0" y="302.5" class="l">memsearch</text>
 <rect x="237.0" y="285.0" width="86.0" height="26.0" rx="3" fill="#2b5ea9"/>
@@ -315,41 +311,25 @@
 <rect x="867.0" y="537.0" width="86.0" height="26.0" rx="3" fill="#1c242d"/>
 <text x="910.0" y="554.5" class="l" text-anchor="middle" style="fill:#f0efec">13.0%</text>
 <rect x="24.0" y="571.0" width="5" height="14" rx="2" class="fo"/>
-<text x="36.0" y="582.5" class="l">dsh-fish-memory</text>
-<rect x="237.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#1a1a19"/>
-<text x="280.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">0.3%</text>
-<rect x="325.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#1a1a19"/>
-<text x="368.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">0.0%</text>
-<rect x="413.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#274f88"/>
-<text x="456.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">71.0%</text>
-<rect x="501.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#274e86"/>
-<text x="544.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">69.6%</text>
-<rect x="603.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#203149"/>
-<text x="646.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">30.4%</text>
-<rect x="691.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#1f2e43"/>
-<text x="734.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">26.6%</text>
-<rect x="779.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#223a5c"/>
-<text x="822.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">42.8%</text>
-<rect x="867.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#1d2531"/>
-<text x="910.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">15.2%</text>
-<rect x="24.0" y="599.0" width="5" height="14" rx="2" class="fo"/>
-<text x="36.0" y="610.5" class="l">SeekMemory</text>
-<rect x="237.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#1f2f46"/>
-<text x="280.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">28.9%</text>
-<rect x="325.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#295392"/>
-<text x="368.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">77.1%</text>
-<rect x="413.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#244069"/>
-<text x="456.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">50.8%</text>
-<rect x="501.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#233c61"/>
-<text x="544.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">46.1%</text>
-<rect x="603.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#20314a"/>
-<text x="646.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">31.2%</text>
-<rect x="691.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#1d2632"/>
-<text x="734.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">16.0%</text>
-<rect x="779.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#1f2f45"/>
-<text x="822.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">28.1%</text>
-<rect x="867.0" y="593.0" width="86.0" height="26.0" rx="3" fill="#1b1d20"/>
-<text x="910.0" y="610.5" class="l" text-anchor="middle" style="fill:#f0efec">4.3%</text>
-<text x="24.0" y="648.0" class="s">Colour shows Hit@5, one ramp from 0% to 100%; rows are in the order of the ranking chart. Under each type: its number of answerable questions.</text>
-<text x="24.0" y="666.0" class="s">bench/external/results/summary.md · PerLTQA 32 stores, 8,588 questions; LoCoMo 10 stores, 1,535 questions · 2026-11-17</text>
+<text x="36.0" y="582.5" class="l">SeekMemory</text>
+<rect x="237.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#1f2f46"/>
+<text x="280.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">28.9%</text>
+<rect x="325.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#295392"/>
+<text x="368.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">77.1%</text>
+<rect x="413.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#244069"/>
+<text x="456.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">50.8%</text>
+<rect x="501.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#233c61"/>
+<text x="544.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">46.1%</text>
+<rect x="603.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#20314a"/>
+<text x="646.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">31.2%</text>
+<rect x="691.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#1d2632"/>
+<text x="734.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">16.0%</text>
+<rect x="779.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#1f2f45"/>
+<text x="822.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">28.1%</text>
+<rect x="867.0" y="565.0" width="86.0" height="26.0" rx="3" fill="#1b1d20"/>
+<text x="910.0" y="582.5" class="l" text-anchor="middle" style="fill:#f0efec">4.3%</text>
+<text x="24.0" y="620.0" class="s">Colour shows Hit@5, one ramp from 0% to 100%; rows are in the order of the ranking chart. Under each type: its number of answerable questions.</text>
+<text x="24.0" y="638.0" class="s">Left out: dsh-fish-memory (PerLTQA, LoCoMo); lingshu (LoCoMo). On that dataset they stored over 5% fewer memories than they were sent; see the write audit in the</text>
+<text x="24.0" y="656.0" class="s">README.</text>
+<text x="24.0" y="674.0" class="s">bench/external/results/summary.md · PerLTQA 32 stores, 8,588 questions; LoCoMo 10 stores, 1,535 questions · 2026-11-27</text>
 </svg>

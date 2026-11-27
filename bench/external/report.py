@@ -5,7 +5,10 @@
 
 It reads only files that are in the repository: results/<dataset>/<system>.metrics.json (every configuration on the
 stores it ran on), same-stores-<label>.json (every configuration that covers a given set of stores, scored on exactly
-those stores) and latency-summary.json. Per dataset it gives:
+those stores), latency-summary.json and write-audit.json (per dataset and configuration: memories sent and memories
+stored on the stores of the published run). A configuration that stored less than 95% of what it was sent on a
+dataset is left out of every table and chart of that dataset and named under the first table with the reason; the
+write audit itself is the last table. Per dataset it gives:
   - the configurations that ran on every store, scored on all questions, with the figures per question type;
   - the configurations that ran on a sample of stores (those that call a language model, and Hindsight because of its
     running time), each group scored on exactly its stores next to this project's default configurations on the same
@@ -67,6 +70,52 @@ TEXT = {
 }
 
 
+REASONS = {  # why fewer memories were stored than sent: (short zh, short en, long zh, long en)
+    "daily-quota": (
+        "该项目每天收记忆的上限",
+        "the project's daily limit on new memories",
+        "该项目每天最多收 8 条记忆（它的 dailyQuota 设置的默认值）。本测试按每条记忆的日期写入，一天里超过 8 条的被它拒收："
+        "LoCoMo 的一次会话有几十句话，都在同一天；PerLTQA 里没有日期的记忆被本测试记在库里最早的那一天。"
+        "这是本测试的喂法和这个设置不相配造成的，这些库上的结果不代表该项目。",
+        "The project accepts at most 8 memories a day (the default of its dailyQuota setting). This benchmark writes each "
+        "memory on its own date, and the writes of a day beyond the eighth were refused: a LoCoMo session has dozens of "
+        "turns on one day, and the PerLTQA memories without a date were given the earliest day of their store. This comes "
+        "from the way the benchmark fed the store, which does not fit that setting: a result on these stores says nothing "
+        "about the project."),
+    "write-gate": (
+        "该项目的写入关卡把与已有记忆相近的新记忆放进待审队列",
+        "the project's write gate puts a memory that resembles a stored one into a review queue",
+        "该项目的写入关卡把与已有记忆相近的新记忆放进待审队列，或要求确认。测试中没有人审核，这些记忆不在库里。",
+        "The project's write gate puts a new memory that resembles a stored one into a review queue, or asks for "
+        "confirmation. Nobody reviews during a run, so these memories are not in the store."),
+    "duplicates": ("与库中另一条一字不差的记忆被跳过", "a memory identical to another one of the store is skipped",
+                   "与库中另一条一字不差的记忆被跳过。", "A memory identical to another one of the store is skipped."),
+    "merged": ("被该项目并入相近的记忆", "merged into a similar memory by the project",
+               "这些记忆被该项目并入相近的记忆。", "These memories were merged into similar ones by the project."),
+    "model-output": ("模型的输出不合格式，这几条没有写入", "the model's output did not parse, so these were not written",
+                     "模型的输出不合格式，这几条没有写入。", "The model's output did not parse, so these were not written."),
+}
+BASIS = {"record": ("运行记录", "record of the run"),
+         "count": ("重跑写入后数库里的条数", "rows counted after the ingest was run again"),
+         "probe": ("重跑写入后逐条问回", "every memory asked back after the ingest was run again")}
+AUDIT_TEXT = {
+    "zh": {"title": "写入对账：发去的记忆和存下的记忆", "excluded_title": "%s：未列入的配置",
+           "excluded_intro": "下列配置在这个数据集上存下的记忆比发去的少 5% 以上，不列入这个数据集的表和图：",
+           "bullet": "- %s：%s 条记忆存下 %s 条（%s）。", "stores": "%s 库", "pair": "%s 存下 / 发去",
+           "basis": "依据", "note": "说明", "failed": "%s / %s（失败 %s）", "processed": "调用模型的配置：数的是处理成功的记忆",
+           "no_count": "运行记录里只有失败数，没有入库数", "left_out": "未列入 %s 的表和图", "join": "；", "and": "、"},
+    "en": {"title": "Write audit: memories sent and memories stored", "excluded_title": "%s: configurations left out",
+           "excluded_intro": "On this dataset these configurations stored over 5% fewer memories than they were sent; "
+                             "they are in no table and no chart of this dataset:",
+           "bullet": "- %s: %s of %s memories stored (%s).", "stores": "%s stores", "pair": "%s stored / sent",
+           "basis": "How established", "note": "Note", "failed": "%s / %s (%s failed)",
+           "processed": "calls a model: the count is of memories processed without a failure",
+           "no_count": "the record of the run has failures only, no count of what was stored",
+           "left_out": "left out of the tables and charts of %s", "join": "; ", "and": ", "},
+}
+DATASET_NAMES = {"perltqa": "PerLTQA", "locomo": "LoCoMo"}
+
+
 def systems():
     with open(os.path.join(ROOT, "bench", "systems.json"), encoding="utf-8") as f:
         return json.load(f)
@@ -97,6 +146,23 @@ def metrics_files(dataset, results=None):
             if n.endswith(".metrics.json") and n.count(".") == 2}
 
 
+def audited_name(name):
+    """The configuration whose write audit covers `name`: a precise twin reads the store of its default."""
+    return name[:-len("-precise")] if name.endswith("-precise") else name
+
+
+def load_audit(results=None):
+    """results/write-audit.json, or {} where there is none (then nothing is left out)."""
+    path = os.path.join(results or RESULTS, "write-audit.json")
+    return load(path) if os.path.exists(path) else {}
+
+
+def stored_too_little(row, threshold):
+    """True when a write-audit row has a count of stored memories and it is short of what was sent by more than
+    `threshold` (a fraction). A row without a count (a record with failures only) is never left out by this rule."""
+    return bool(row) and row.get("stored") is not None and row["sent"] - row["stored"] > threshold * row["sent"]
+
+
 def harmonic(a, b):
     return None if a is None or b is None or a + b == 0 else 2 * a * b / (a + b)
 
@@ -120,19 +186,33 @@ def row_of(name, sc):
 
 def build(results=None):
     """Everything the tables and charts need:
-    {dataset: {"stores", "full": [rows], "samples": [{"n", "stores", "rows"}], "cost", "latency"}}."""
+    {dataset: {"stores", "full": [rows], "samples": [{"n", "stores", "rows"}], "cost", "latency", "writes",
+    "excluded"}}. "writes" is the write audit of the dataset and "excluded" names the configurations that stored
+    too little of what they were sent (stored_too_little): they are in none of the other lists."""
     results = results or RESULTS
+    audit = load_audit(results)
+    threshold = audit.get("threshold", 0.05)
     out = {}
     for dataset in DATASETS:
         scored = metrics_files(dataset, results)
+        audited = audit.get(dataset) or {}
+        excluded = sorted(name for name in scored if stored_too_little(audited.get(audited_name(name)), threshold))
+        writes = [{"system": name, "stores": a["stores"], "sent": a["sent"], "stored": a.get("stored"),
+                   "counts": a.get("counts"), "basis": a.get("basis"), "reason": a.get("reason"),
+                   "failed": a.get("failed"), "excluded": stored_too_little(a, threshold)}
+                  for name, a in audited.items()]
         ids = max((sc["world_ids"] for sc in scored.values()), key=len)
         sampled = {name for _, _, names in SAMPLES[dataset] for name in names}
-        full = [row_of(name, sc) for name, sc in scored.items() if len(sc["world_ids"]) == len(ids)]
+        full = [row_of(name, sc) for name, sc in scored.items()
+                if len(sc["world_ids"]) == len(ids) and name not in excluded]
         unlisted = sorted(name for name, sc in scored.items() if len(sc["world_ids"]) < len(ids) and name not in sampled)
         if unlisted:
             raise SystemExit("%s: partial results that are in no sample group: %s" % (dataset, unlisted))
         samples = []
         for n, label, names in SAMPLES[dataset]:
+            names = [name for name in names if name not in excluded]
+            if not names:  # nothing left of the group but this project's reference rows
+                continue
             same = load(os.path.join(results, dataset, "same-stores-%s.json" % label))
             if same["stores"] != ids[:n]:
                 raise SystemExit("%s: same-stores-%s.json is not the first %d stores" % (dataset, label, n))
@@ -144,7 +224,7 @@ def build(results=None):
             samples.append({"n": n, "stores": ids[:n], "rows": rows})
         cost = []
         for name, sc in scored.items():
-            if not sc.get("llm_model"):
+            if not sc.get("llm_model") or name in excluded:
                 continue
             u, memories = sc["usage"], sc["memories"]
             cost.append({"system": name, "model": sc["llm_model"], "thinking": sc.get("llm_thinking"),
@@ -156,7 +236,10 @@ def build(results=None):
                          "failed_stores": sc.get("failed_worlds") or []})
         lat_path = os.path.join(results, dataset, "latency-summary.json")
         latency = load(lat_path) if os.path.exists(lat_path) else None
-        out[dataset] = {"stores": ids, "full": full, "samples": samples, "cost": cost, "latency": latency}
+        if latency:
+            latency = {name: v for name, v in latency.items() if name not in excluded}
+        out[dataset] = {"stores": ids, "full": full, "samples": samples, "cost": cost, "latency": latency,
+                        "writes": writes, "excluded": excluded}
     return out
 
 
@@ -270,6 +353,68 @@ def latency_table(data, lang, registry):
     return "\n".join(lines + [r for _, r in sorted(rows)])
 
 
+def excluded_text(d, lang, registry):
+    """The configurations left out of a dataset: one bullet each with how much was stored, grouped by the reason,
+    which follows its group once."""
+    t, col = AUDIT_TEXT[lang], 2 if lang == "zh" else 3
+    groups = {}
+    for w in d["writes"]:
+        if w["system"] in d["excluded"]:
+            groups.setdefault(w["reason"], []).append(w)
+    lines = [t["excluded_intro"]]
+    for reason, rows in groups.items():
+        lines.append("")
+        for w in sorted(rows, key=lambda w: label(w["system"], lang, registry)):
+            counts = (thousands(w["sent"]), thousands(w["stored"])) if lang == "zh" else (
+                thousands(w["stored"]), thousands(w["sent"]))
+            lines.append(t["bullet"] % ((label(w["system"], lang, registry),) + counts + (pct(w["stored"] / w["sent"]),)))
+        lines += ["", REASONS[reason][col]]
+    return "\n".join(lines)
+
+
+def writes_table(data, lang, registry):
+    """The write audit: per configuration and dataset the stores, memories stored and sent, how the count was
+    established and, where fewer were stored than sent, why."""
+    t, col = AUDIT_TEXT[lang], 0 if lang == "zh" else 1
+    head = [TEXT[lang]["system"]]
+    for dataset in DATASETS:
+        head += [t["stores"] % DATASET_NAMES[dataset], t["pair"] % DATASET_NAMES[dataset]]
+    head += [t["basis"], t["note"]]
+    by_name = {}
+    for dataset in DATASETS:
+        for w in data[dataset]["writes"]:
+            by_name.setdefault(w["system"], {})[dataset] = w
+    rows = []
+    for name, per in by_name.items():
+        cells, notes, basis, left_out = [name_cell({"system": name}, lang, registry)], [], [], []
+        for dataset in DATASETS:
+            w = per.get(dataset)
+            if w is None:
+                cells += ["-", "-"]
+                continue
+            if w["stored"] is None:
+                pair = t["failed"] % ("–", thousands(w["sent"]), thousands(w["failed"]))
+                extra = t["no_count"]
+            else:
+                pair = "%s / %s" % (thousands(w["stored"]), thousands(w["sent"]))
+                extra = t["processed"] if w["counts"] == "processed" else None
+            cells += [str(w["stores"]), pair]
+            for note in (REASONS[w["reason"]][col] if w["reason"] else None, extra):
+                if note and note not in notes:
+                    notes.append(note)
+            if BASIS[w["basis"]][col] not in basis:
+                basis.append(BASIS[w["basis"]][col])
+            if w["excluded"]:
+                left_out.append(DATASET_NAMES[dataset])
+        if left_out:
+            notes.append(t["left_out"] % t["and"].join(left_out))
+        own = name.startswith("feiyu-memgate")
+        key = (0, OWN.index(name) if name in OWN else 9, "") if own else (1, 0, label(name, lang, registry).lower())
+        rows.append((key, "| " + " | ".join(cells + [t["join"].join(basis), t["join"].join(notes)]) + " |"))
+    lines = ["| " + " | ".join(head) + " |", "|---|" + "---:|" * (2 * len(DATASETS)) + "---|---|"]
+    return "\n".join(lines + [r for _, r in sorted(rows)])
+
+
 def sample_title(dataset, sample, lang):
     ids = sample["stores"]
     span = ids[0] if len(ids) == 1 else "%s – %s" % (ids[0], ids[-1])
@@ -290,6 +435,8 @@ def blocks(data, lang, registry):
         title = ("%s，全部 %d 个库，%s 个可答问题" if lang == "zh" else "%s, all %d stores, %s answerable questions") % (
             name, len(d["stores"]), thousands(n))
         out.append(("%s-full" % dataset, title, quality_table(order(d["full"]), lang, registry, quiet)))
+        if d.get("excluded"):
+            out.append(("%s-excluded" % dataset, AUDIT_TEXT[lang]["excluded_title"] % name, excluded_text(d, lang, registry)))
         defaults = [r for r in order(d["full"]) if not r["system"].endswith("-precise")]
         title = ("%s，分题型的 Hit@5" if lang == "zh" else "%s, Hit@5 by question type") % name
         out.append(("%s-types" % dataset, title, type_table(defaults, dataset, lang, registry)))
@@ -301,6 +448,8 @@ def blocks(data, lang, registry):
     out.append(("cost", "LLM usage" if lang == "en" else "模型用量", cost_table(data, lang, registry)))
     if any(data[d]["latency"] for d in DATASETS):
         out.append(("latency", "Latency" if lang == "en" else "延迟", latency_table(data, lang, registry)))
+    if any(data[d].get("writes") for d in DATASETS):
+        out.append(("writes", AUDIT_TEXT[lang]["title"], writes_table(data, lang, registry)))
     return out
 
 

@@ -1,0 +1,388 @@
+{
+ "about": "Per dataset and configuration: memories sent and memories stored on the stores of the published run. basis: record = the adapter's own per-store record of the published run; count = rows on disk after the same ingest was run again; probe = the same ingest run again and every memory asked back with its own text, together with the answers of the published run. counts: stored, or processed (a configuration that calls a model: memories processed without a failure). A configuration that stored less than (1 - threshold) of what was sent is left out of the tables and charts of that dataset (bench/external/report.py).",
+ "threshold": 0.05,
+ "perltqa": {
+  "dsh-fish-memory-expand-claude-haiku-5-5": {
+   "stores": 3,
+   "sent": 225,
+   "stored": 155,
+   "counts": "stored",
+   "basis": "record",
+   "reason": "daily-quota"
+  },
+  "dsh-fish-memory-expand-deepseek-flash": {
+   "stores": 3,
+   "sent": 225,
+   "stored": 155,
+   "counts": "stored",
+   "basis": "record",
+   "reason": "daily-quota"
+  },
+  "dsh-fish-memory": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 1361,
+   "counts": "stored",
+   "basis": "record",
+   "reason": "daily-quota"
+  },
+  "dsh-mnemon-embedding": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2155,
+   "counts": "stored",
+   "basis": "record"
+  },
+  "dsh-mnemon": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2155,
+   "counts": "stored",
+   "basis": "record"
+  },
+  "dsh-prime-memory-embedding": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2155,
+   "counts": "stored",
+   "basis": "count"
+  },
+  "dsh-prime-memory": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2155,
+   "counts": "stored",
+   "basis": "count"
+  },
+  "dsh-soul-md": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2155,
+   "counts": "stored",
+   "basis": "count"
+  },
+  "graphiti-claude-haiku-5-5": {
+   "stores": 10,
+   "sent": 664,
+   "stored": 664,
+   "counts": "processed",
+   "basis": "record"
+  },
+  "graphiti-deepseek-flash": {
+   "stores": 24,
+   "sent": 1589,
+   "stored": 1566,
+   "counts": "processed",
+   "basis": "record",
+   "reason": "model-output"
+  },
+  "hindsight-chunks": {
+   "stores": 5,
+   "sent": 361,
+   "stored": 361,
+   "counts": "stored",
+   "basis": "probe"
+  },
+  "hindsight-llm-claude-haiku-5-5": {
+   "stores": 5,
+   "sent": 361,
+   "stored": null,
+   "counts": "processed",
+   "basis": "record",
+   "failed": 0
+  },
+  "hindsight-llm-deepseek-flash": {
+   "stores": 5,
+   "sent": 361,
+   "stored": null,
+   "counts": "processed",
+   "basis": "record",
+   "failed": 0
+  },
+  "lingshu-dsh-memory": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2117,
+   "counts": "stored",
+   "basis": "record",
+   "reason": "write-gate",
+   "detail": {
+    "basis": "the ingest run again with every write logged; the verdict counts of every store match the record of the published run",
+    "sent_by_kind": {
+     "profile": 461,
+     "social_relationship": 302,
+     "events": 721,
+     "dialogues": 671
+    },
+    "not_stored_by_kind": {
+     "social_relationship": 4,
+     "dialogues": 23,
+     "events": 11
+    },
+    "answerable_questions_by_type": {
+     "profile": 357,
+     "social_relationship": 897,
+     "events": 4501,
+     "dialogues": 2833
+    },
+    "questions_whose_evidence_was_not_stored": {
+     "profile": 0,
+     "social_relationship": 16,
+     "events": 32,
+     "dialogues": 106
+    }
+   }
+  },
+  "mem0-llm-claude-haiku-5-5": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2155,
+   "counts": "processed",
+   "basis": "record"
+  },
+  "mem0-llm-deepseek-flash": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2155,
+   "counts": "processed",
+   "basis": "record"
+  },
+  "mem0-verbatim": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2155,
+   "counts": "stored",
+   "basis": "record"
+  },
+  "memsearch": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2155,
+   "counts": "stored",
+   "basis": "probe"
+  },
+  "meow-memory": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2152,
+   "counts": "stored",
+   "basis": "record",
+   "reason": "merged"
+  },
+  "openviking": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2155,
+   "counts": "stored",
+   "basis": "probe"
+  },
+  "seekmemory": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2155,
+   "counts": "stored",
+   "basis": "probe"
+  },
+  "feiyu-memgate-sqlite": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2155,
+   "counts": "stored",
+   "basis": "count"
+  },
+  "feiyu-memgate-embedding": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2155,
+   "counts": "stored",
+   "basis": "count"
+  },
+  "feiyu-memgate-hybrid": {
+   "stores": 32,
+   "sent": 2155,
+   "stored": 2155,
+   "counts": "stored",
+   "basis": "count"
+  }
+ },
+ "locomo": {
+  "dsh-fish-memory-expand-claude-haiku-5-5": {
+   "stores": 1,
+   "sent": 419,
+   "stored": 152,
+   "counts": "stored",
+   "basis": "record",
+   "reason": "daily-quota"
+  },
+  "dsh-fish-memory-expand-deepseek-flash": {
+   "stores": 1,
+   "sent": 419,
+   "stored": 152,
+   "counts": "stored",
+   "basis": "record",
+   "reason": "daily-quota"
+  },
+  "dsh-fish-memory": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 2176,
+   "counts": "stored",
+   "basis": "record",
+   "reason": "daily-quota"
+  },
+  "dsh-mnemon-embedding": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 5880,
+   "counts": "stored",
+   "basis": "record",
+   "reason": "duplicates"
+  },
+  "dsh-mnemon": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 5880,
+   "counts": "stored",
+   "basis": "record",
+   "reason": "duplicates"
+  },
+  "dsh-prime-memory-embedding": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 5882,
+   "counts": "stored",
+   "basis": "count"
+  },
+  "dsh-prime-memory": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 5882,
+   "counts": "stored",
+   "basis": "count"
+  },
+  "dsh-soul-md": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 5882,
+   "counts": "stored",
+   "basis": "count"
+  },
+  "graphiti-claude-haiku-5-5": {
+   "stores": 3,
+   "sent": 1451,
+   "stored": 1451,
+   "counts": "processed",
+   "basis": "record"
+  },
+  "graphiti-deepseek-flash": {
+   "stores": 3,
+   "sent": 1451,
+   "stored": 1448,
+   "counts": "processed",
+   "basis": "record",
+   "reason": "model-output"
+  },
+  "hindsight-chunks": {
+   "stores": 8,
+   "sent": 4850,
+   "stored": 4850,
+   "counts": "stored",
+   "basis": "probe"
+  },
+  "hindsight-llm-claude-haiku-5-5": {
+   "stores": 1,
+   "sent": 419,
+   "stored": null,
+   "counts": "processed",
+   "basis": "record",
+   "failed": 0
+  },
+  "hindsight-llm-deepseek-flash": {
+   "stores": 1,
+   "sent": 419,
+   "stored": null,
+   "counts": "processed",
+   "basis": "record",
+   "failed": 0
+  },
+  "lingshu-dsh-memory": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 1888,
+   "counts": "stored",
+   "basis": "record",
+   "reason": "write-gate"
+  },
+  "mem0-llm-claude-haiku-5-5": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 5882,
+   "counts": "processed",
+   "basis": "record"
+  },
+  "mem0-llm-deepseek-flash": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 5882,
+   "counts": "processed",
+   "basis": "record"
+  },
+  "mem0-verbatim": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 5882,
+   "counts": "stored",
+   "basis": "record"
+  },
+  "memsearch": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 5882,
+   "counts": "stored",
+   "basis": "probe"
+  },
+  "meow-memory": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 5874,
+   "counts": "stored",
+   "basis": "record",
+   "reason": "merged"
+  },
+  "openviking": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 5882,
+   "counts": "stored",
+   "basis": "probe"
+  },
+  "seekmemory": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 5882,
+   "counts": "stored",
+   "basis": "probe"
+  },
+  "feiyu-memgate-sqlite": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 5882,
+   "counts": "stored",
+   "basis": "count"
+  },
+  "feiyu-memgate-embedding": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 5882,
+   "counts": "stored",
+   "basis": "count"
+  },
+  "feiyu-memgate-hybrid": {
+   "stores": 10,
+   "sent": 5882,
+   "stored": 5882,
+   "counts": "stored",
+   "basis": "count"
+  }
+ }
+}

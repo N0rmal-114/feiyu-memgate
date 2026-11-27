@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1108" viewBox="0 0 1000 1108" role="img" lang="zh">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1126" viewBox="0 0 1000 1126" role="img" lang="zh">
 <style>text{font-family:-apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;fill:#52514e;font-size:13px}.t{font-size:17px;font-weight:600;fill:#0b0b0b}.l{font-size:13px;fill:#0b0b0b}.lb{font-size:13px;font-weight:600;fill:#0b0b0b}.s{font-size:11px;fill:#52514e}.grid{stroke:#e1e0d9;stroke-width:1;fill:none}.axis{stroke:#c3c2b7;stroke-width:1;fill:none}.tick{stroke:#0b0b0b;stroke-width:2;fill:none}.lead{stroke-width:1;fill:none}.fa{fill:#2a78d6}.fo{fill:#898781}.tint{fill:#898781;fill-opacity:0.35}</style>
-<rect width="1000" height="1108" fill="#fcfcfb"/>
+<rect width="1000" height="1126" fill="#fcfcfb"/>
 <text x="24.0" y="32.0" class="t">默认交付：每题交付条数与交付命中</text>
 <rect x="24.0" y="47.0" width="14" height="8" rx="2" class="fa"/>
 <text x="46.0" y="56.0" class="s">feiyu-memgate 的配置</text>
@@ -45,7 +45,6 @@
 <circle cx="735.2" cy="172.1" r="5" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="718.0" cy="171.8" r="5" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="136.3" cy="295.2" r="5" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="183.8" cy="348.8" r="5" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="526.4" cy="220.4" r="5" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <line x1="231.5" y1="204.0" x2="244.9" y2="200.5" class="lead" stroke-width="1.5" stroke="#2a78d6"/>
 <polygon points="248.7,199.5 242.6,204.6 240.9,198.1" fill="#2a78d6"/>
@@ -72,7 +71,6 @@
 <text x="743.9" y="171.2" class="l" style="font-size:11px">mem0（claude-haiku-5-5）</text>
 <text x="713.8" y="150.9" class="l" style="font-size:11px" text-anchor="middle">mem0（deepseek-flash）</text>
 <text x="145.3" y="296.7" class="l" style="font-size:11px">dsh-mnemon</text>
-<text x="192.8" y="350.3" class="l" style="font-size:11px">dsh-fish-memory</text>
 <text x="535.4" y="221.9" class="l" style="font-size:11px">SeekMemory</text>
 <text x="24.0" y="566.0" class="lb">LoCoMo</text>
 <text x="24.0" y="582.0" class="s">10 个库，1,535 个可答问题，446 个无答案问题</text>
@@ -100,7 +98,6 @@
 <line x1="940.0" y1="612.0" x2="940.0" y2="1012.0" class="grid"/>
 <text x="940.0" y="1030.0" class="s" text-anchor="middle">32</text>
 <circle cx="385.1" cy="815.8" r="5" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="424.0" cy="1005.2" r="5" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="479.4" cy="756.9" r="5" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="252.0" cy="860.9" r="5" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="479.4" cy="840.0" r="5" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
@@ -111,7 +108,6 @@
 <circle cx="811.2" cy="667.0" r="5" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="806.4" cy="669.1" r="5" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="121.9" cy="924.2" r="5" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="377.7" cy="898.4" r="5" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <circle cx="502.5" cy="904.9" r="5" fill="#898781" stroke="#fcfcfb" stroke-width="2"/>
 <line x1="455.5" y1="873.8" x2="454.2" y2="873.9" class="lead" stroke-width="1.5" stroke="#2a78d6"/>
 <polygon points="458.1,873.7 451.1,877.5 450.7,870.7" fill="#2a78d6"/>
@@ -130,7 +126,6 @@
 <text x="475.4" y="812.6" class="l" style="font-size:11px">embedding</text>
 <text x="478.6" y="790.2" class="l" style="font-size:11px">hybrid</text>
 <text x="379.1" y="806.9" class="l" style="font-size:11px" text-anchor="end">dsh-mnemon + 向量</text>
-<text x="415.3" y="1004.4" class="l" style="font-size:11px" text-anchor="end">lingshu</text>
 <text x="488.4" y="758.4" class="l" style="font-size:11px">memsearch</text>
 <text x="254.3" y="878.1" class="l" style="font-size:11px" text-anchor="middle">meow-memory</text>
 <text x="470.7" y="843.8" class="l" style="font-size:11px" text-anchor="end">dsh-soul-md</text>
@@ -140,9 +135,9 @@
 <text x="660.3" y="758.1" class="l" style="font-size:11px">OpenViking</text>
 <text x="803.2" y="654.6" class="l" style="font-size:11px" text-anchor="end">mem0（claude-haiku-5-5） / mem0（deepseek-flash）</text>
 <text x="130.9" y="925.7" class="l" style="font-size:11px">dsh-mnemon</text>
-<text x="386.7" y="899.9" class="l" style="font-size:11px">dsh-fish-memory</text>
 <text x="511.5" y="906.4" class="l" style="font-size:11px">SeekMemory</text>
 <text x="510.0" y="1050.0" class="s" text-anchor="middle">每题平均交付条数（对数轴）</text>
 <text x="24.0" y="1074.0" class="s">越靠左上，交得越少而命中越高。实心是默认（宽松）档，空心是同一配置固定为精确档，箭头指向默认档。</text>
-<text x="24.0" y="1092.0" class="s">bench/external/results/summary.md · PerLTQA 32 个库、8,588 个问题，LoCoMo 10 个库、1,535 个问题 · 2026-11-17</text>
+<text x="24.0" y="1092.0" class="s">未列入：dsh-fish-memory（PerLTQA、LoCoMo）；lingshu（LoCoMo）。它们在该数据集上存下的记忆比发去的少 5% 以上，见 README 的写入对账表。</text>
+<text x="24.0" y="1110.0" class="s">bench/external/results/summary.md · PerLTQA 32 个库、8,588 个问题，LoCoMo 10 个库、1,535 个问题 · 2026-11-27</text>
 </svg>

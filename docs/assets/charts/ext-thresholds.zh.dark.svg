@@ -186,5 +186,5 @@
 <text x="726.0" y="502.0" class="s" text-anchor="end">0.0%</text>
 <text x="777.3" y="502.0" class="s">18.4%</text>
 <text x="24.0" y="564.0" class="s">PerLTQA 没有无答案的问题，安静率没有定义，所以那一栏画“—”。分数线是在本项目自己的开发集（中文短句）上选的，没有为这两个数据集调整。</text>
-<text x="24.0" y="582.0" class="s">bench/external/results/summary.md · PerLTQA 32 个库、8,588 个问题，LoCoMo 10 个库、1,535 个问题 · 2026-11-17</text>
+<text x="24.0" y="582.0" class="s">bench/external/results/summary.md · PerLTQA 32 个库、8,588 个问题，LoCoMo 10 个库、1,535 个问题 · 2026-11-27</text>
 </svg>

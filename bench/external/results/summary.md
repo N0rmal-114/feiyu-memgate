@@ -1,6 +1,6 @@
 # External datasets: summary
 
-Generated on 2026-11-17 by `bench/external/report.py` from the metrics files of this folder; definitions in `bench/external/score.py`. Rows of this project in bold are the default profile.
+Generated on 2026-11-27 by `bench/external/report.py` from the metrics files of this folder; definitions in `bench/external/score.py`. Rows of this project in bold are the default profile.
 
 ## PerLTQA, all 32 stores, 8,588 answerable questions
 
@@ -24,8 +24,17 @@ Generated on 2026-11-17 by `bench/external/report.py` from the metrics files of 
 | mem0 (LLM extraction, claude-haiku-5-5) | extraction | 44.3% | 79.9% | 85.0% | 14.02 | 89.5% | 6.7% | 12.5% | 3,882 |
 | mem0 (LLM extraction, deepseek-flash) | extraction | 47.9% | 79.0% | 84.4% | 13.08 | 89.5% | 7.4% | 13.6% | 3,576 |
 | dsh-mnemon | keyword | 59.2% | 73.1% | 74.4% | 1.25 | 58.7% | 49.5% | 53.7% | 466 |
-| dsh-fish-memory | keyword | 34.6% | 60.2% | 62.5% | 1.52 | 45.3% | 31.1% | 36.9% | 544 |
 | SeekMemory | keyword | 37.6% | 51.1% | 85.5% | 6.04 | 77.4% | 15.3% | 25.5% | 633 |
+
+## PerLTQA: configurations left out
+
+On this dataset these configurations stored over 5% fewer memories than they were sent; they are in no table and no chart of this dataset:
+
+- dsh-fish-memory: 1,361 of 2,155 memories stored (63.2%).
+- dsh-fish-memory + claude-haiku-5-5 expansion: 155 of 225 memories stored (68.9%).
+- dsh-fish-memory + deepseek-flash expansion: 155 of 225 memories stored (68.9%).
+
+The project accepts at most 8 memories a day (the default of its dailyQuota setting). This benchmark writes each memory on its own date, and the writes of a day beyond the eighth were refused: a LoCoMo session has dozens of turns on one day, and the PerLTQA memories without a date were given the earliest day of their store. This comes from the way the benchmark fed the store, which does not fit that setting: a result on these stores says nothing about the project.
 
 ## PerLTQA, Hit@5 by question type
 
@@ -46,7 +55,6 @@ Generated on 2026-11-17 by `bench/external/report.py` from the metrics files of 
 | mem0 (LLM extraction, claude-haiku-5-5) | extraction | 84.3% | 80.6% | 82.1% | 75.8% |
 | mem0 (LLM extraction, deepseek-flash) | extraction | 78.7% | 79.4% | 85.9% | 67.8% |
 | dsh-mnemon | keyword | 5.9% | 35.8% | 80.6% | 81.3% |
-| dsh-fish-memory | keyword | 0.3% | 0.0% | 71.0% | 69.6% |
 | SeekMemory | keyword | 28.9% | 77.1% | 50.8% | 46.1% |
 
 ## PerLTQA, the first 10 stores (p01 – p10), 2,343 answerable questions
@@ -68,16 +76,6 @@ Generated on 2026-11-17 by `bench/external/report.py` from the metrics files of 
 | **feiyu-memgate sqlite** | keyword | 68.9% | 88.5% | 91.6% | 1.94 | 85.1% | 56.7% | 68.1% | 724 |
 | **feiyu-memgate hybrid** | hybrid | 71.2% | 96.2% | 98.0% | 3.32 | 95.1% | 37.2% | 53.5% | 848 |
 
-## PerLTQA, the first 3 stores (p01 – p03), 838 answerable questions
-
-| System | Retrieval | Hit@1 | Hit@5 | Hit@10 | Items delivered | Delivered hit | Precision | Delivered F1 | Characters |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| dsh-fish-memory | keyword | 40.3% | 66.2% | 69.8% | 1.42 | 48.7% | 35.8% | 41.2% | 531 |
-| dsh-fish-memory + deepseek-flash expansion | keyword | 42.0% | 67.7% | 71.1% | 1.32 | 49.8% | 38.9% | 43.6% | 491 |
-| dsh-fish-memory + claude-haiku-5-5 expansion | keyword | 42.4% | 67.9% | 71.4% | 1.35 | 50.2% | 38.5% | 43.6% | 496 |
-| **feiyu-memgate sqlite** | keyword | 68.0% | 87.8% | 91.1% | 1.96 | 84.1% | 55.8% | 67.1% | 753 |
-| **feiyu-memgate hybrid** | hybrid | 71.0% | 95.8% | 97.5% | 3.35 | 94.4% | 36.1% | 52.3% | 878 |
-
 ## LoCoMo, all 10 stores, 1,535 answerable questions
 
 | System | Retrieval | Hit@1 | Hit@5 | Hit@10 | Items delivered | Delivered hit | Precision | Delivered F1 | Characters | Quiet rate |
@@ -96,12 +94,24 @@ Generated on 2026-11-17 by `bench/external/report.py` from the metrics files of 
 | OpenViking | vector | 23.3% | 51.9% | 63.8% | 10.00 | 63.8% | 7.1% | 12.8% | 1,124 | 0.0% |
 | dsh-soul-md | keyword | 24.7% | 43.0% | 50.5% | 5.00 | 43.0% | 9.1% | 15.0% | 968 | 0.0% |
 | meow-memory | keyword | 29.3% | 42.0% | 45.2% | 2.00 | 37.8% | 19.2% | 25.5% | 302 | 0.0% |
-| lingshu | keyword | 20.1% | 33.7% | 38.7% | 4.00 | 1.7% | 0.4% | 0.7% | 773 | 0.0% |
-| dsh-fish-memory | keyword | 17.2% | 31.4% | 34.7% | 3.32 | 28.4% | 10.5% | 15.3% | 633 | 0.4% |
 | dsh-mnemon | keyword | 21.1% | 31.2% | 33.4% | 1.18 | 22.0% | 18.5% | 20.1% | 225 | 0.0% |
 | dsh-prime-memory + embeddings | hybrid | 7.9% | 30.3% | 55.4% | 5.00 | 44.9% | 9.4% | 15.6% | 639 | 0.0% |
 | SeekMemory | keyword | 15.1% | 26.1% | 38.6% | 5.49 | 26.8% | 6.0% | 9.8% | 524 | 0.0% |
 | dsh-prime-memory | keyword | 3.8% | 21.4% | 48.1% | 5.00 | 39.5% | 8.2% | 13.5% | 658 | 0.0% |
+
+## LoCoMo: configurations left out
+
+On this dataset these configurations stored over 5% fewer memories than they were sent; they are in no table and no chart of this dataset:
+
+- dsh-fish-memory: 2,176 of 5,882 memories stored (37.0%).
+- dsh-fish-memory + claude-haiku-5-5 expansion: 152 of 419 memories stored (36.3%).
+- dsh-fish-memory + deepseek-flash expansion: 152 of 419 memories stored (36.3%).
+
+The project accepts at most 8 memories a day (the default of its dailyQuota setting). This benchmark writes each memory on its own date, and the writes of a day beyond the eighth were refused: a LoCoMo session has dozens of turns on one day, and the PerLTQA memories without a date were given the earliest day of their store. This comes from the way the benchmark fed the store, which does not fit that setting: a result on these stores says nothing about the project.
+
+- lingshu: 1,888 of 5,882 memories stored (32.1%).
+
+The project's write gate puts a new memory that resembles a stored one into a review queue, or asks for confirmation. Nobody reviews during a run, so these memories are not in the store.
 
 ## LoCoMo, Hit@5 by question type
 
@@ -118,8 +128,6 @@ Generated on 2026-11-17 by `bench/external/report.py` from the metrics files of 
 | OpenViking | vector | 55.2% | 40.1% | 59.4% | 31.5% |
 | dsh-soul-md | keyword | 45.7% | 30.9% | 53.1% | 20.7% |
 | meow-memory | keyword | 48.0% | 25.2% | 46.6% | 21.7% |
-| lingshu | keyword | 34.5% | 30.1% | 38.4% | 20.7% |
-| dsh-fish-memory | keyword | 30.4% | 26.6% | 42.8% | 15.2% |
 | dsh-mnemon | keyword | 33.1% | 20.2% | 41.2% | 13.0% |
 | dsh-prime-memory + embeddings | hybrid | 34.7% | 18.4% | 32.5% | 18.5% |
 | SeekMemory | keyword | 31.2% | 16.0% | 28.1% | 4.3% |
@@ -141,9 +149,6 @@ Generated on 2026-11-17 by `bench/external/report.py` from the metrics files of 
 | Hindsight (no model) | hybrid | 48.0% | 76.0% | 83.3% | 59.48 | 94.7% | 2.0% | 3.9% | 8,989 | 0.0% |
 | Hindsight (deepseek-flash) | extraction | 44.7% | 73.3% | 83.3% | 88.86 | 91.3% | 1.3% | 2.6% | 15,298 | 0.0% |
 | Hindsight (claude-haiku-5-5) | extraction | 43.3% | 73.3% | 84.7% | 86.82 | 92.7% | 1.4% | 2.8% | 14,995 | 0.0% |
-| dsh-fish-memory | keyword | 18.7% | 34.7% | 36.7% | 2.87 | 32.7% | 13.9% | 19.5% | 594 | 2.1% |
-| dsh-fish-memory + deepseek-flash expansion | keyword | 21.3% | 34.7% | 36.7% | 2.72 | 32.0% | 13.6% | 19.1% | 556 | 2.1% |
-| dsh-fish-memory + claude-haiku-5-5 expansion | keyword | 19.3% | 34.7% | 37.3% | 2.65 | 32.0% | 14.3% | 19.8% | 544 | 2.1% |
 | **feiyu-memgate sqlite** | keyword | 23.3% | 40.7% | 52.7% | 4.51 | 35.3% | 10.4% | 16.1% | 1,298 | 0.0% |
 | **feiyu-memgate hybrid** | hybrid | 37.3% | 64.0% | 72.7% | 4.87 | 56.0% | 11.8% | 19.5% | 1,022 | 0.0% |
 
@@ -151,16 +156,12 @@ Generated on 2026-11-17 by `bench/external/report.py` from the metrics files of 
 
 | System | Dataset | Stores | Memories | Calls | Input tokens (of which cache hits) | Output tokens | Cost (USD) | Per 1,000 memories (USD) | Write time (s per memory) |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| dsh-fish-memory + claude-haiku-5-5 expansion | PerLTQA | 3 | 225 | 100 | 152,190 (0) | 18,074 | 0.024 | 0.11 | 0.8 |
-| dsh-fish-memory + deepseek-flash expansion | PerLTQA | 3 | 225 | 80 | 65,259 (29,184) | 3,040 | 0.007 | 0.03 | 0.4 |
 | Graphiti (claude-haiku-5-5) | PerLTQA | 10 | 664 | 3,347 | 11,144,644 (0) | 564,289 | 1.397 | 2.10 | 5.4 |
 | Graphiti (deepseek-flash) | PerLTQA | 24 | 1,589 | 10,553 | 17,996,457 (1,879,415) | 1,035,447 | 6.089 | 3.83 | 6.0 |
 | Hindsight (claude-haiku-5-5) | PerLTQA | 5 | 361 | 716 | 7,047,823 (3,646,443) | 506,158 | 0.630 | 1.75 | 3.5 |
 | Hindsight (deepseek-flash) | PerLTQA | 5 | 361 | 747 | 5,175,865 (2,749,056) | 429,449 | 0.630 | 1.75 | 3.4 |
 | mem0 (LLM extraction, claude-haiku-5-5) | PerLTQA | 32 | 2,155 | 2,155 | 32,527,632 (0) | 489,304 | 3.497 | 1.62 | 1.9 |
 | mem0 (LLM extraction, deepseek-flash) | PerLTQA | 32 | 2,155 | 2,155 | 20,000,381 (16,344,832) | 328,494 | 1.589 | 0.74 | 1.8 |
-| dsh-fish-memory + claude-haiku-5-5 expansion | LoCoMo | 1 | 419 | 79 | 69,572 (0) | 3,851 | 0.009 | 0.02 | 0.2 |
-| dsh-fish-memory + deepseek-flash expansion | LoCoMo | 1 | 419 | 77 | 43,549 (29,312) | 1,580 | 0.003 | 0.01 | 0.2 |
 | Graphiti (claude-haiku-5-5) | LoCoMo | 3 | 1,451 | 4,955 | 14,865,175 (0) | 619,415 | 1.796 | 1.24 | 4.2 |
 | Graphiti (deepseek-flash) | LoCoMo | 3 | 1,451 | 5,001 | 8,463,882 (839,296) | 326,362 | 1.645 | 1.13 | 3.8 |
 | Hindsight (claude-haiku-5-5) | LoCoMo | 1 | 419 | 697 | 6,566,072 (3,558,585) | 214,131 | 0.443 | 1.06 | 1.6 |
@@ -178,13 +179,10 @@ Generated on 2026-11-17 by `bench/external/report.py` from the metrics files of 
 | feiyu-memgate embedding | 13.9 ms | 30.6 ms | 23.4 ms | 50.5 ms | separate sequential pass on an idle machine |
 | feiyu-memgate hybrid (precise profile) | 18.5 ms | 41.4 ms | 35.4 ms | 50.0 ms | separate sequential pass on an idle machine |
 | feiyu-memgate hybrid | 19.7 ms | 49.0 ms | 40.6 ms | 68.7 ms | separate sequential pass on an idle machine |
-| dsh-fish-memory | 0.6 ms | 1.0 ms | 1.8 ms | 3.5 ms | separate sequential pass on an idle machine |
 | dsh-prime-memory | 0.9 ms | 1.2 ms | 0.8 ms | 1.2 ms | separate sequential pass on an idle machine |
-| dsh-fish-memory + deepseek-flash expansion | 1.2 ms | 1.9 ms | 2.0 ms | 3.9 ms | measured during the parallel runs (under load) |
 | dsh-soul-md | 1.3 ms | 1.7 ms | 12.6 ms | 14.3 ms | separate sequential pass on an idle machine |
-| dsh-fish-memory + claude-haiku-5-5 expansion | 1.3 ms | 2.3 ms | 2.8 ms | 5.7 ms | measured during the parallel runs (under load) |
 | SeekMemory | 1.9 ms | 5.2 ms | 10.6 ms | 12.8 ms | separate sequential pass on an idle machine |
-| lingshu | 2.1 ms | 2.4 ms | 2.1 ms | 2.6 ms | separate sequential pass on an idle machine |
+| lingshu | 2.1 ms | 2.4 ms | - | - | separate sequential pass on an idle machine |
 | meow-memory | 2.7 ms | 3.9 ms | 7.3 ms | 8.8 ms | separate sequential pass on an idle machine |
 | memsearch | 12.2 ms | 14.5 ms | 88.1 ms | 174.1 ms | separate sequential pass on an idle machine |
 | OpenViking | 14.6 ms | 29.1 ms | 16.3 ms | 30.1 ms | separate sequential pass on an idle machine |
@@ -199,3 +197,32 @@ Generated on 2026-11-17 by `bench/external/report.py` from the metrics files of 
 | Hindsight (claude-haiku-5-5) | 2152.2 ms | 2798.4 ms | 2558.5 ms | 2807.4 ms | measured during the parallel runs (under load) |
 | Hindsight (deepseek-flash) | 2174.2 ms | 2657.5 ms | 2451.6 ms | 2859.2 ms | measured during the parallel runs (under load) |
 | Hindsight (no model) | 2935.4 ms | 3071.4 ms | 1800.2 ms | 2233.7 ms | separate sequential pass on an idle machine |
+
+## Write audit: memories sent and memories stored
+
+| System | PerLTQA stores | PerLTQA stored / sent | LoCoMo stores | LoCoMo stored / sent | How established | Note |
+|---|---:|---:|---:|---:|---|---|
+| **feiyu-memgate sqlite** | 32 | 2,155 / 2,155 | 10 | 5,882 / 5,882 | rows counted after the ingest was run again |  |
+| **feiyu-memgate embedding** | 32 | 2,155 / 2,155 | 10 | 5,882 / 5,882 | rows counted after the ingest was run again |  |
+| **feiyu-memgate hybrid** | 32 | 2,155 / 2,155 | 10 | 5,882 / 5,882 | rows counted after the ingest was run again |  |
+| dsh-fish-memory | 32 | 1,361 / 2,155 | 10 | 2,176 / 5,882 | record of the run | the project's daily limit on new memories; left out of the tables and charts of PerLTQA, LoCoMo |
+| dsh-fish-memory + claude-haiku-5-5 expansion | 3 | 155 / 225 | 1 | 152 / 419 | record of the run | the project's daily limit on new memories; left out of the tables and charts of PerLTQA, LoCoMo |
+| dsh-fish-memory + deepseek-flash expansion | 3 | 155 / 225 | 1 | 152 / 419 | record of the run | the project's daily limit on new memories; left out of the tables and charts of PerLTQA, LoCoMo |
+| dsh-mnemon | 32 | 2,155 / 2,155 | 10 | 5,880 / 5,882 | record of the run | a memory identical to another one of the store is skipped |
+| dsh-mnemon + embeddings | 32 | 2,155 / 2,155 | 10 | 5,880 / 5,882 | record of the run | a memory identical to another one of the store is skipped |
+| dsh-prime-memory | 32 | 2,155 / 2,155 | 10 | 5,882 / 5,882 | rows counted after the ingest was run again |  |
+| dsh-prime-memory + embeddings | 32 | 2,155 / 2,155 | 10 | 5,882 / 5,882 | rows counted after the ingest was run again |  |
+| dsh-soul-md | 32 | 2,155 / 2,155 | 10 | 5,882 / 5,882 | rows counted after the ingest was run again |  |
+| Graphiti (claude-haiku-5-5) | 10 | 664 / 664 | 3 | 1,451 / 1,451 | record of the run | calls a model: the count is of memories processed without a failure |
+| Graphiti (deepseek-flash) | 24 | 1,566 / 1,589 | 3 | 1,448 / 1,451 | record of the run | the model's output did not parse, so these were not written; calls a model: the count is of memories processed without a failure |
+| Hindsight (claude-haiku-5-5) | 5 | – / 361 (0 failed) | 1 | – / 419 (0 failed) | record of the run | the record of the run has failures only, no count of what was stored |
+| Hindsight (deepseek-flash) | 5 | – / 361 (0 failed) | 1 | – / 419 (0 failed) | record of the run | the record of the run has failures only, no count of what was stored |
+| Hindsight (no model) | 5 | 361 / 361 | 8 | 4,850 / 4,850 | every memory asked back after the ingest was run again |  |
+| lingshu | 32 | 2,117 / 2,155 | 10 | 1,888 / 5,882 | record of the run | the project's write gate puts a memory that resembles a stored one into a review queue; left out of the tables and charts of LoCoMo |
+| mem0 (LLM extraction, claude-haiku-5-5) | 32 | 2,155 / 2,155 | 10 | 5,882 / 5,882 | record of the run | calls a model: the count is of memories processed without a failure |
+| mem0 (LLM extraction, deepseek-flash) | 32 | 2,155 / 2,155 | 10 | 5,882 / 5,882 | record of the run | calls a model: the count is of memories processed without a failure |
+| mem0 (verbatim) | 32 | 2,155 / 2,155 | 10 | 5,882 / 5,882 | record of the run |  |
+| memsearch | 32 | 2,155 / 2,155 | 10 | 5,882 / 5,882 | every memory asked back after the ingest was run again |  |
+| meow-memory | 32 | 2,152 / 2,155 | 10 | 5,874 / 5,882 | record of the run | merged into a similar memory by the project |
+| OpenViking | 32 | 2,155 / 2,155 | 10 | 5,882 / 5,882 | every memory asked back after the ingest was run again |  |
+| SeekMemory | 32 | 2,155 / 2,155 | 10 | 5,882 / 5,882 | every memory asked back after the ingest was run again |  |

@@ -104,6 +104,8 @@
 
 ### 修好的
 
+- **公开数据集（PerLTQA、LoCoMo）的结果更正。** 补做了写入对账：每个配置发去多少条记忆、库里存下多少条（`bench/external/results/write-audit.json`，README 的“写入对账”一节）。dsh-fish-memory 在两个数据集上、lingshu 在 LoCoMo 上存下的记忆比发去的少 5% 以上，原先公布的数字是在没有装满的库上测的，已从这一节的表和图中移出；前者是本测试的喂法造成的，后者来自它自己的写入关卡。其余配置发去多少存下多少，或差在 5% 以内。本项目自己的数字和自有题库的结果没有变。`bench/external/report.py` 现在按这份对账自动把存下不足的配置移出并写明原因。
+
 - 命令行在写不出中文的控制台或管道上（例如语言设为西文的 Windows，编码是 cp1252）不再以 `UnicodeEncodeError` 和退出码 1 结束：写不出的字符显示成替代符号，命令照常完成。要看到正常的中文，设环境变量 `PYTHONUTF8=1`。
 - `pyproject.toml` 的构建要求改成 `setuptools>=77`：`license = "MIT"` 加 `license-files` 的写法从这个版本起才被接受。
 - 没装 `cryptography` 时，测试 `test_a_wrong_key` 报错而不是跳过。

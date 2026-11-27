@@ -47,7 +47,7 @@ questions. How the datasets were turned into stores:
 | File | What it does |
 |---|---|
 | `score.py` | the definition of every figure (in its docstring), computed from the per-question files and the stores; writes `<config>.metrics.json`, `same-stores-*.json` and `tables.md`. It needs the stores, so it can be run only where the datasets have been prepared |
-| `report.py` | `results/summary.md` and `results/summary.json` from the metrics files; `--readme zh` or `--readme en` prints the tables used in the top-level README |
+| `report.py` | `results/summary.md` and `results/summary.json` from the metrics files and `results/write-audit.json`; `--readme zh` or `--readme en` prints the tables used in the top-level README |
 | `charts.py` | the charts of the top-level README section (`docs/assets/charts/ext-*.svg`) from `results/summary.json` |
 | `pack.py` | compresses the per-question files for the repository, and restores them (`--unpack`) |
 | `prices.json` | the list prices used for the cost figures, with their date |
@@ -69,7 +69,8 @@ python -I bench/external/pack.py --unpack     # only to read the per-question fi
 | `tables.md` | all of the above as tables |
 | `<config>.json.gz` | the per-question record: for every question the ranked memory ids with scores, the delivered memory ids, and the milliseconds of the call |
 
-`results/summary.md` and `results/summary.json` collect both datasets. `results/longmemeval/` holds one run of this
+`results/summary.md` and `results/summary.json` collect both datasets. `results/write-audit.json` has, per dataset and
+configuration, the memories sent and the memories stored (see [Write audit](#write-audit)). `results/longmemeval/` holds one run of this
 project's keyword configuration on LongMemEval-S, which is not part of the comparison (see the end of this page).
 
 Spending is part of the results. A usage record has `llm_calls`, `llm_input_tokens`, `llm_output_tokens`,
@@ -104,6 +105,46 @@ on everything.
 fixed; they are in its files and in `tables.md`, and are used in no comparison. A sampled configuration is never
 compared with a figure over other stores: every system is scored on exactly the stores of the sample
 (`same-stores-*`, `results/summary.md`).
+
+## Write audit
+
+A result says something about a system only when the store held what it was sent. On 2026-11-27 this was checked
+for every configuration on both datasets, after the first results were out. `results/write-audit.json` has the
+outcome and `report.py` prints it as the last table of `results/summary.md`.
+
+How a count was established (the `basis` of a row):
+
+- `record`: the stored count and the write failures the adapter wrote down when it finished a store. The
+  configurations that call a model were not run again, so theirs are always from the record; `counts: processed`
+  marks a count of memories processed without a failure.
+- `count`: the same adapter ran its ingest again, without a model, and the rows on the system's disk were counted
+  and each memory's text looked up there.
+- `probe`: the same ingest again, then every memory asked back with its own text. A memory counts as stored when it
+  comes back, or when it appeared in an answer of the published run.
+
+The rule (`threshold` in the file, applied by `report.py`): a configuration that stored over 5% fewer memories than it
+was sent on a dataset is in no table and no chart of that dataset. It is named under the dataset's first table with
+the numbers and the reason. A smaller shortfall stays in, with the numbers and the reason in the audit table. This
+is the proportion the model configurations already had (a store is rejected when more than 5% of its extractions
+cannot be parsed).
+
+Two sets of results were taken out by this rule:
+
+- `dsh-fish-memory` and its two expansion configurations, on both datasets. The project accepts at most 8 memories a
+  day (the default of its `dailyQuota` setting). The benchmark writes each memory on its own date, and the writes of
+  a day beyond the eighth were refused: a LoCoMo session has dozens of turns on one day, and the PerLTQA memories
+  without a date were given the earliest day of their store. This comes from the way the benchmark fed the store. On
+  this project's own question set all 240 memories were stored, so those results stand.
+- `lingshu-dsh-memory` on LoCoMo. Its write gate moves a new memory that resembles a stored one into a review queue,
+  and nobody reviews during a run: 1,888 of 5,882 memories were stored. On PerLTQA 2,117 of 2,155 were stored (1.8%
+  short), so those results stay. Running its ingest again and logging every write (the verdict counts
+  of every store match the record of the published run) shows the 38 are 23 dialogue, 11 event and 4
+  social-relationship memories, and no profile memory. 154 questions have their evidence among them (106 of 2,833
+  dialogue questions, 32 of 4,501 event questions, 16 of 897 social-relationship questions and 0 of 357 profile
+  questions); the evidence of those questions is not in its store. The breakdown is in `write-audit.json` (`detail`).
+
+The files of a configuration that was taken out (`<config>.metrics.json`, `<config>.json.gz`, its rows in
+`tables.md` and in `same-stores-*`) stay in the folder as the record of that run.
 
 ## Delivered items that are not a whole memory
 

@@ -178,6 +178,94 @@ class ReportTest(unittest.TestCase):
             self.assertIn("| Sampled | LoCoMo | 1 | 4 | 4 |", blocks["cost"])
             self.assertIn("measured during the parallel runs", blocks["latency"])
 
+    def _results_with_an_audit(self, tmp, audit):
+        """Two stores; this project's two reference rows, `other` on both stores, `sampled` (a model) on the first."""
+        root, results = os.path.join(tmp, "worlds"), os.path.join(tmp, "results")
+        folder = os.path.join(results, "locomo")
+        for store in ("w1", "w2"):
+            write_store(root, "locomo", store)
+        files = {"feiyu-memgate-sqlite": result("feiyu-memgate-sqlite", "locomo", ["w1", "w2"], good=False),
+                 "feiyu-memgate-hybrid": result("feiyu-memgate-hybrid", "locomo", ["w1", "w2"]),
+                 "other": result("other", "locomo", ["w1", "w2"]),
+                 "sampled": result("sampled", "locomo", ["w1"], llm="some-model")}
+        for name, body in files.items():
+            dump(os.path.join(folder, name + ".json"), body)
+            dump(os.path.join(folder, name + ".metrics.json"), ext_score.score_file(os.path.join(folder, name + ".json"), root))
+        ext_score.compare_stores(folder, root, ["w1"], "first1")
+        dump(os.path.join(folder, "latency-summary.json"),
+             {name: {"kind": "measured under load", "world": None, "memories": None, "questions": 3, "p50_ms": 4.0,
+                     "p95_ms": 6.0} for name in ("other", "sampled", "feiyu-memgate-hybrid")})
+        if audit is not None:
+            dump(os.path.join(results, "write-audit.json"), {"threshold": 0.05, "locomo": audit})
+        return results
+
+    REGISTRY = {"feiyu-memgate-sqlite": {"label": {"zh": "本项目 sqlite", "en": "own sqlite"}, "kind": "keyword"},
+                "feiyu-memgate-hybrid": {"label": {"zh": "本项目 hybrid", "en": "own hybrid"}, "kind": "hybrid"},
+                "other": {"label": {"zh": "别的", "en": "Other"}, "kind": "keyword"},
+                "sampled": {"label": {"zh": "抽样的", "en": "Sampled"}, "kind": "extraction"}}
+
+    def _build(self, results):
+        samples = {"locomo": [(1, "first1", ["sampled"])]}
+        with mock.patch.object(report, "DATASETS", ("locomo",)), mock.patch.object(report, "SAMPLES", samples):
+            data = report.build(results)
+            return data, {key: table for key, _, table in report.blocks(data, "en", self.REGISTRY)}
+
+    def test_a_configuration_that_stored_too_little_is_left_out_of_that_dataset(self):
+        audit = {"other": {"stores": 2, "sent": 8, "stored": 3, "counts": "stored", "basis": "record",
+                           "reason": "daily-quota"},
+                 "sampled": {"stores": 1, "sent": 4, "stored": 2, "counts": "processed", "basis": "record",
+                             "reason": "model-output"},
+                 "feiyu-memgate-hybrid": {"stores": 2, "sent": 8, "stored": 8, "counts": "stored", "basis": "count"}}
+        with tempfile.TemporaryDirectory() as tmp:
+            data, blocks = self._build(self._results_with_an_audit(tmp, audit))
+        d = data["locomo"]
+        self.assertEqual(sorted(r["system"] for r in d["full"]), ["feiyu-memgate-hybrid", "feiyu-memgate-sqlite"])
+        self.assertEqual(d["samples"], [])  # a group with nothing left but the reference rows is not shown
+        self.assertEqual(d["cost"], [])
+        self.assertEqual(sorted(d["latency"]), ["feiyu-memgate-hybrid"])
+        self.assertEqual(d["excluded"], ["other", "sampled"])
+        other = next(w for w in d["writes"] if w["system"] == "other")
+        self.assertEqual((other["stores"], other["sent"], other["stored"], other["reason"], other["excluded"]),
+                         (2, 8, 3, "daily-quota", True))
+        self.assertNotIn("locomo-first1", blocks)
+        self.assertNotIn("Other", blocks["locomo-full"])
+        self.assertIn("- Other: 3 of 8 memories stored (37.5%).", blocks["locomo-excluded"])
+        self.assertIn("at most 8 memories a day", blocks["locomo-excluded"])
+        self.assertIn("| Other | 2 | 3 / 8 |", blocks["writes"])
+        self.assertIn("| **own hybrid** | 2 | 8 / 8 |", blocks["writes"])
+
+    def test_a_shortfall_within_the_threshold_stays_in_and_is_listed(self):
+        audit = {"other": {"stores": 2, "sent": 100, "stored": 96, "counts": "stored", "basis": "record",
+                           "reason": "merged"},
+                 "sampled": {"stores": 1, "sent": 4, "stored": None, "counts": "processed", "basis": "record", "failed": 0}}
+        with tempfile.TemporaryDirectory() as tmp:
+            data, blocks = self._build(self._results_with_an_audit(tmp, audit))
+        d = data["locomo"]
+        self.assertIn("other", [r["system"] for r in d["full"]])
+        self.assertEqual(d["excluded"], [])
+        self.assertEqual([r["system"] for r in d["samples"][0]["rows"]][0], "sampled")
+        self.assertNotIn("locomo-excluded", blocks)
+        self.assertIn("| Other | 2 | 96 / 100 |", blocks["writes"])
+        self.assertIn("merged into a similar memory", blocks["writes"])
+        self.assertIn("| Sampled | 1 | – / 4 (0 failed) |", blocks["writes"])
+
+    def test_without_an_audit_file_nothing_is_left_out(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            data, blocks = self._build(self._results_with_an_audit(tmp, None))
+        d = data["locomo"]
+        self.assertEqual((d["excluded"], d["writes"]), ([], []))
+        self.assertIn("other", [r["system"] for r in d["full"]])
+        self.assertNotIn("writes", blocks)
+
+    def test_the_published_audit_covers_every_published_configuration(self):
+        """Every configuration with a metrics file has a row in write-audit.json for the same number of stores."""
+        audit = report.load(os.path.join(_EXT, "results", "write-audit.json"))
+        for dataset in report.DATASETS:
+            for name, scored in report.metrics_files(dataset).items():
+                row = audit[dataset][report.audited_name(name)]
+                self.assertEqual(row["stores"], len(scored["world_ids"]), (dataset, name))
+                self.assertEqual(row["sent"], scored["memories"], (dataset, name))
+
     def test_rows_order_and_tables(self):
         registry = {"feiyu-memgate-sqlite": {"label": {"zh": "本项目 sqlite", "en": "own sqlite"}, "kind": "keyword"},
                     "feiyu-memgate-sqlite-precise": {"label": {"zh": "本项目 sqlite（精确档）", "en": "own sqlite (precise)"},
